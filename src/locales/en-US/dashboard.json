@@ -1,0 +1,7 @@
+{
+	"title": "Product UI Dashboard",
+	"description": "Local Fake data drives layouts, states, and interactions without a real backend.",
+	"fakeBadge": "FAKE DATA",
+	"loadFailed": "Failed to load dashboard data",
+	"recentActivity": "Recent activity"
+}

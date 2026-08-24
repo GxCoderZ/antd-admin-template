@@ -1,0 +1,55 @@
+{
+	"role": {
+		"name": "角色名称",
+		"id": "角色标识",
+		"addRole": "新增角色",
+		"editRole": "编辑角色",
+		"assignMenu": "分配权限"
+	},
+	"user": {
+		"name": "用户名称",
+		"id": "用户标识",
+		"username": "用户名",
+		"nickname": "昵称",
+		"email": "邮箱",
+		"phone": "手机号",
+		"password": "密码",
+		"newPassword": "新密码",
+		"isAdmin": "管理员",
+		"roleCount": "角色数量",
+		"yes": "是",
+		"no": "否",
+		"addUser": "新增用户",
+		"editUser": "编辑用户",
+		"assignRole": "分配角色",
+		"selectRoles": "选择角色",
+		"resetPassword": "重置密码",
+		"resetPasswordSuccess": "密码重置成功",
+		"pleaseInputUsername": "请输入用户名",
+		"pleaseInputPassword": "请输入密码",
+		"pleaseInputNickname": "请输入昵称",
+		"pleaseInputEmail": "请输入邮箱",
+		"pleaseInputPhone": "请输入手机号",
+		"usernameMinLength": "用户名至少 3 个字符",
+		"passwordMinLength": "密码至少 6 个字符",
+		"emailFormat": "邮箱格式不正确"
+	},
+	"menu": {
+		"name": "权限名称",
+		"perms": "权限标识",
+		"menuType": "权限类型",
+		"page": "页面",
+		"button": "按钮",
+		"api": "接口",
+		"module": "所属模块",
+		"remark": "备注",
+		"addMenu": "新增权限",
+		"editMenu": "编辑权限"
+	},
+	"dept": {
+		"name": "部门名称",
+		"id": "部门标识",
+		"addDept": "新增部门",
+		"editDept": "编辑部门"
+	}
+}

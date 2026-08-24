@@ -1,0 +1,15 @@
+{
+	"title": "Audit Log",
+	"operator": "Operator",
+	"module": "Module",
+	"action": "Action",
+	"target": "Target",
+	"result": "Result",
+	"success": "Success",
+	"failed": "Failed",
+	"modules": {
+		"user": "Users",
+		"role": "Roles",
+		"permission": "Permissions"
+	}
+}

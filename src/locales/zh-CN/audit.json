@@ -1,0 +1,15 @@
+{
+	"title": "审计日志",
+	"operator": "操作人",
+	"module": "模块",
+	"action": "操作",
+	"target": "对象",
+	"result": "结果",
+	"success": "成功",
+	"failed": "失败",
+	"modules": {
+		"user": "用户管理",
+		"role": "角色管理",
+		"permission": "权限管理"
+	}
+}
