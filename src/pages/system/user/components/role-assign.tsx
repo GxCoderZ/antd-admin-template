@@ -4,9 +4,10 @@ import type { UserItemType } from "#src/api/system/user";
 import { fetchRoleList } from "#src/api/system/role";
 import { fetchUserRoles } from "#src/api/system/user";
 import { BasicButton } from "#src/components/basic-button";
+import { BasicDrawer } from "#src/components/basic-drawer";
 
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Drawer, Empty, Flex, List, Skeleton, Switch, Tag, Typography } from "antd";
+import { Alert, Empty, Flex, List, Skeleton, Switch, Tag, Typography } from "antd";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,8 +54,7 @@ export function RoleAssign({ loading = false, onClose, onSubmit, open, user }: R
 	const error = rolesQuery.error ?? userRolesQuery.error;
 
 	return (
-		<Drawer
-			destroyOnHidden
+		<BasicDrawer
 			extra={(
 				<Flex gap="small">
 					<BasicButton disabled={loading} onClick={handleClose}>{t("common.cancel")}</BasicButton>
@@ -111,6 +111,6 @@ export function RoleAssign({ loading = false, onClose, onSubmit, open, user }: R
 						/>
 					)}
 			</Flex>
-		</Drawer>
+		</BasicDrawer>
 	);
 }

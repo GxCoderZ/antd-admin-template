@@ -1,7 +1,8 @@
 import { BasicButton } from "#src/components/basic-button";
+import { BasicModal } from "#src/components/basic-modal";
 
 import { CopyOutlined } from "@ant-design/icons";
-import { Alert, Flex, Input, Modal, Typography } from "antd";
+import { Alert, Flex, Input, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 interface ResetPasswordResultProps {
@@ -19,7 +20,7 @@ export function ResetPasswordResult({ onClose, open, password, username }: Reset
 	};
 
 	return (
-		<Modal centered footer={<BasicButton type="primary" onClick={onClose}>{t("common.done")}</BasicButton>} onCancel={onClose} open={open} title={t("system.user.resetPasswordSuccess")}>
+		<BasicModal centered footer={<BasicButton type="primary" onClick={onClose}>{t("common.done")}</BasicButton>} onCancel={onClose} open={open} title={t("system.user.resetPasswordSuccess")}>
 			<Flex gap="middle" vertical>
 				<Alert description={t("system.user.passwordShownOnce", { username })} showIcon type="warning" />
 				<div>
@@ -30,6 +31,6 @@ export function ResetPasswordResult({ onClose, open, password, username }: Reset
 					</Flex>
 				</div>
 			</Flex>
-		</Modal>
+		</BasicModal>
 	);
 }

@@ -1,9 +1,10 @@
 import type { UserItemType } from "#src/api/system/user";
 
 import { BasicButton } from "#src/components/basic-button";
+import { BasicModal } from "#src/components/basic-modal";
 import { DangerConfirmation } from "#src/components/danger-confirmation";
 
-import { Modal, Result } from "antd";
+import { Result } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,9 +27,9 @@ export function ForceLogoutModal({ loading = false, onClose, onSubmit, open, use
 
 	if (revokedSessions !== undefined) {
 		return (
-			<Modal centered footer={<BasicButton type="primary" onClick={handleClose}>{t("common.done")}</BasicButton>} onCancel={handleClose} open={open} title={t("system.user.forceLogoutResult")}>
+			<BasicModal centered footer={<BasicButton type="primary" onClick={handleClose}>{t("common.done")}</BasicButton>} onCancel={handleClose} open={open} title={t("system.user.forceLogoutResult")}>
 				<Result status="success" title={t("system.user.revokedSessions", { count: revokedSessions })} />
-			</Modal>
+			</BasicModal>
 		);
 	}
 

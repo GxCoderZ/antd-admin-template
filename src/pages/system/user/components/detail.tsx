@@ -1,6 +1,8 @@
 import type { UserItemType } from "#src/api/system/user";
 
-import { Badge, Descriptions, Drawer } from "antd";
+import { BasicDrawer } from "#src/components/basic-drawer";
+
+import { Badge, Descriptions } from "antd";
 import { useTranslation } from "react-i18next";
 
 interface DetailProps {
@@ -18,7 +20,7 @@ export function Detail({ onClose, open, user }: DetailProps) {
 			: { badge: "default" as const, text: t("system.user.status.disabled") };
 
 	return (
-		<Drawer destroyOnHidden onClose={onClose} open={open} title={t("system.user.userDetail")} width={520}>
+		<BasicDrawer onClose={onClose} open={open} title={t("system.user.userDetail")} width={520}>
 			{user && (
 				<Descriptions bordered column={1} size="small">
 					<Descriptions.Item label={t("system.user.username")}>{user.username}</Descriptions.Item>
@@ -29,6 +31,6 @@ export function Detail({ onClose, open, user }: DetailProps) {
 					<Descriptions.Item label={t("common.createdAt")}>{user.created_at}</Descriptions.Item>
 				</Descriptions>
 			)}
-		</Drawer>
+		</BasicDrawer>
 	);
 }

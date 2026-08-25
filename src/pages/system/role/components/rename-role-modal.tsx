@@ -1,6 +1,8 @@
 import type { RoleItemType } from "#src/api/system/role";
 
-import { Form, Input, Modal } from "antd";
+import { BasicModal } from "#src/components/basic-modal";
+
+import { Form, Input } from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,11 +26,11 @@ export function RenameRoleModal({ loading = false, onClose, onSubmit, open, role
 	}, [form, open, role]);
 
 	return (
-		<Modal cancelButtonProps={{ disabled: loading }} cancelText={t("common.cancel")} confirmLoading={loading} destroyOnHidden onCancel={onClose} onOk={() => form.submit()} okText={t("common.confirm")} open={open} title={t("system.role.renameRole")}>
+		<BasicModal cancelButtonProps={{ disabled: loading }} cancelText={t("common.cancel")} confirmLoading={loading} onCancel={onClose} onOk={() => form.submit()} okText={t("common.confirm")} open={open} title={t("system.role.renameRole")}>
 			<Form form={form} layout="vertical" onFinish={values => onSubmit(values.name)} requiredMark={false}>
 				<Form.Item label={t("system.role.key")}><Input disabled value={role?.key} /></Form.Item>
 				<Form.Item label={t("system.role.name")} name="name" rules={[{ required: true }, { max: 40 }]}><Input /></Form.Item>
 			</Form>
-		</Modal>
+		</BasicModal>
 	);
 }

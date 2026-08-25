@@ -1,6 +1,8 @@
 import type { UserItemType, UserStatus, UserUpdateReq } from "#src/api/system/user";
 
-import { Alert, Form, Input, Modal, Select } from "antd";
+import { BasicModal } from "#src/components/basic-modal";
+
+import { Alert, Form, Input, Select } from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,11 +35,10 @@ export function EditUserModal({ loading = false, onClose, onSubmit, open, user }
 	}, [form, open, user]);
 
 	return (
-		<Modal
+		<BasicModal
 			cancelButtonProps={{ disabled: loading }}
 			cancelText={t("common.cancel")}
 			confirmLoading={loading}
-			destroyOnHidden
 			onCancel={onClose}
 			onOk={() => form.submit()}
 			okText={t("common.confirm")}
@@ -69,6 +70,6 @@ export function EditUserModal({ loading = false, onClose, onSubmit, open, user }
 				</Form.Item>
 				{status === 3 && <Alert description={t("system.user.disableWarning")} showIcon type="warning" />}
 			</Form>
-		</Modal>
+		</BasicModal>
 	);
 }

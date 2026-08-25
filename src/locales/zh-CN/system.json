@@ -28,7 +28,8 @@
 		"type": "角色类型",
 		"custom": "自定义",
 		"manageMembers": "维护成员",
-		"memberGuide": "成员维护在用户管理中完成，打开后将只显示当前角色的成员。"
+		"memberGuide": "成员维护在用户管理中完成，打开后将只显示当前角色的成员。",
+		"permissionsNotConfigured": "暂未配置"
 	},
 	"user": {
 		"name": "用户名称",
@@ -56,7 +57,7 @@
 		"pleaseInputEmail": "请输入邮箱",
 		"pleaseInputPhone": "请输入手机号",
 		"usernameMinLength": "用户名至少 3 个字符",
-		"passwordMinLength": "密码至少 8 个字符",
+		"passwordMinLength": "密码至少 12 个字符",
 		"emailFormat": "邮箱格式不正确",
 		"pleaseInputDisplayName": "请输入显示名称",
 		"searchPlaceholder": "搜索用户名、显示名称或邮箱",

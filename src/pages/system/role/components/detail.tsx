@@ -1,9 +1,10 @@
 import type { RoleItemType } from "#src/api/system/role";
 
 import { BasicButton } from "#src/components/basic-button";
+import { BasicDrawer } from "#src/components/basic-drawer";
 
 import { TeamOutlined } from "@ant-design/icons";
-import { Alert, Descriptions, Drawer, Flex, Tag, Typography } from "antd";
+import { Alert, Descriptions, Flex, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 interface DetailProps {
@@ -16,7 +17,7 @@ interface DetailProps {
 export function Detail({ onClose, onOpenMembers, open, role }: DetailProps) {
 	const { t } = useTranslation();
 	return (
-		<Drawer destroyOnHidden onClose={onClose} open={open} title={t("system.role.roleDetail")} width={560}>
+		<BasicDrawer onClose={onClose} open={open} title={t("system.role.roleDetail")} width={560}>
 			{role && (
 				<Flex gap="large" vertical>
 					<Descriptions bordered column={1} size="small">
@@ -41,6 +42,6 @@ export function Detail({ onClose, onOpenMembers, open, role }: DetailProps) {
 					/>
 				</Flex>
 			)}
-		</Drawer>
+		</BasicDrawer>
 	);
 }

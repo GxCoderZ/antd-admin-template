@@ -28,7 +28,8 @@
 		"type": "Role type",
 		"custom": "Custom",
 		"manageMembers": "Manage members",
-		"memberGuide": "Membership is maintained in User Management. Opening it filters the list to this role."
+		"memberGuide": "Membership is maintained in User Management. Opening it filters the list to this role.",
+		"permissionsNotConfigured": "Not configured"
 	},
 	"user": {
 		"name": "User Name",
@@ -56,7 +57,7 @@
 		"pleaseInputEmail": "Please input email",
 		"pleaseInputPhone": "Please input phone",
 		"usernameMinLength": "Username must be at least 3 characters",
-		"passwordMinLength": "Password must be at least 8 characters",
+		"passwordMinLength": "Password must be at least 12 characters",
 		"emailFormat": "Invalid email format",
 		"pleaseInputDisplayName": "Enter a display name",
 		"searchPlaceholder": "Search username, display name, or email",

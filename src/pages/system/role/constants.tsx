@@ -4,8 +4,8 @@ import type { TFunction } from "i18next";
 
 import { BasicButton } from "#src/components/basic-button";
 
-import { LockOutlined } from "@ant-design/icons";
-import { Badge, Flex, Tag, Tooltip } from "antd";
+import { EditOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { Space, Tag, Tooltip, Typography } from "antd";
 
 interface RoleColumnPermissions {
 	delete: boolean
@@ -17,7 +17,6 @@ interface CreateRoleColumnsOptions {
 	onConfigure: (role: RoleItemType) => void
 	onDelete: (role: RoleItemType) => void
 	onRename: (role: RoleItemType) => void
-	onView: (role: RoleItemType) => void
 	permissions: RoleColumnPermissions
 	t: TFunction
 }
@@ -33,79 +32,80 @@ export const permissionModuleNames: Record<string, string> = {
 	"system:info": "系统信息",
 };
 
-export function createRoleColumns({ onConfigure, onDelete, onRename, onView, permissions, t }: CreateRoleColumnsOptions): ProColumns<RoleItemType>[] {
+function getPermissionModule(code: string) {
+	return code.split(":").slice(0, -1).join(":");
+}
+
+export function createRoleColumns({ onConfigure, onDelete, onRename, permissions, t }: CreateRoleColumnsOptions): ProColumns<RoleItemType>[] {
 	return [
 		{
 			title: t("system.role.name"),
 			dataIndex: "name",
-			width: 170,
+			width: 180,
 			ellipsis: true,
-			sorter: true,
-			render: (_, role) => <BasicButton type="link" usage="table-action" onClick={() => onView(role)}>{role.name}</BasicButton>,
 		},
 		{
 			title: t("system.role.key"),
 			dataIndex: "key",
 			width: 180,
-			copyable: true,
-			ellipsis: true,
-			hideInSearch: true,
+			render: (_, role) => <Typography.Text code>{role.key}</Typography.Text>,
 		},
 		{
 			title: t("system.role.memberCount"),
 			dataIndex: "user_count",
 			width: 120,
-			hideInSearch: true,
-			sorter: true,
+			align: "right",
 		},
 		{
 			title: t("system.role.permissionSummary"),
 			dataIndex: "permission_codes",
-			width: 280,
-			hideInSearch: true,
-			render: (_, role) => (
-				<Flex gap={4} wrap>
-					{role.permission_codes.slice(0, 3).map(code => <Tag key={code}>{code}</Tag>)}
-					{role.permission_codes.length > 3 && (
-						<Tag>
-							+
-							{role.permission_codes.length - 3}
-						</Tag>
-					)}
-				</Flex>
-			),
-		},
-		{
-			title: t("common.status"),
-			dataIndex: "status",
-			valueType: "select",
-			valueEnum: { 1: { text: t("common.enabled") }, 2: { text: t("common.disabled") } },
-			width: 100,
-			sorter: true,
-			render: (_, role) => <Badge status={role.status === 1 ? "success" : "default"} text={role.status === 1 ? t("common.enabled") : t("common.disabled")} />,
-		},
-		{
-			title: t("common.createdAt"),
-			dataIndex: "created_at",
-			width: 180,
-			hideInSearch: true,
-			sorter: true,
+			width: 450,
+			render: (_, role) => {
+				const summaries = Object.entries(role.permission_codes.reduce<Record<string, number>>((result, code) => {
+					const module = getPermissionModule(code);
+					return { ...result, [module]: (result[module] ?? 0) + 1 };
+				}, {}));
+				return summaries.length > 0
+					? (
+						<Space size={2}>
+							{summaries.map(([module, count]) => <Tag key={module}>{`${permissionModuleNames[module] ?? module} ${count}`}</Tag>)}
+						</Space>
+					)
+					: <Typography.Text type="secondary">{t("system.role.permissionsNotConfigured")}</Typography.Text>;
+			},
 		},
 		{
 			title: t("common.action"),
 			valueType: "option",
 			key: "option",
-			width: 230,
+			width: 330,
 			fixed: "right",
-			render: (_, role) => (
-				<Flex align="center" gap={4}>
-					{permissions.edit && <BasicButton type="link" usage="table-action" onClick={() => onRename(role)}>{t("system.role.rename")}</BasicButton>}
-					{permissions.permissions && <BasicButton type="link" usage="table-action" onClick={() => onConfigure(role)}>{t("system.role.configurePermissions")}</BasicButton>}
-					{role.is_system
-						? <Tooltip title={t("system.role.builtInDeleteHint")}><LockOutlined className="px-2 text-colorTextTertiary" /></Tooltip>
-						: permissions.delete && <BasicButton danger type="link" usage="table-action" onClick={() => onDelete(role)}>{t("common.delete")}</BasicButton>}
-				</Flex>
-			),
+			render: (_, role) => {
+				const deleteButton = permissions.delete
+					? (
+						<BasicButton danger disabled={role.is_system} usage="table-action" onClick={() => onDelete(role)}>
+							{t("common.delete")}
+						</BasicButton>
+					)
+					: null;
+				return (
+					<Space size={4}>
+						{permissions.permissions && (
+							<BasicButton icon={<SafetyCertificateOutlined />} usage="table-action" onClick={() => onConfigure(role)}>
+								{t("system.role.configurePermissions")}
+							</BasicButton>
+						)}
+						{permissions.edit && (
+							<BasicButton icon={<EditOutlined />} usage="table-action" onClick={() => onRename(role)}>
+								{t("system.role.rename")}
+							</BasicButton>
+						)}
+						{role.is_system && deleteButton
+							? <Tooltip title={t("system.role.builtInDeleteHint")}><span>{deleteButton}</span></Tooltip>
+							: deleteButton}
+					</Space>
+				);
+			},
 		},
 	];
 }

@@ -1,23 +1,22 @@
 import type { UserItemType, UserStatus } from "#src/api/system/user";
+import type { QueryFilterField } from "#src/components/query-filter-panel";
 import type { ProColumns } from "@ant-design/pro-components";
 import type { TFunction } from "i18next";
 
 import { BasicButton } from "#src/components/basic-button";
 
-import { MoreOutlined } from "@ant-design/icons";
-import { Badge, Dropdown, Flex } from "antd";
+import { Avatar, Badge, Space } from "antd";
 
 export interface UserColumnPermissions {
 	assignRole: boolean
-	delete: boolean
 	edit: boolean
 	forceLogout: boolean
 	resetPassword: boolean
 }
 
 interface CreateUserColumnsOptions {
+	currentUserId?: number
 	onAssignRoles: (user: UserItemType) => void
-	onDelete: (user: UserItemType) => void
 	onEdit: (user: UserItemType) => void
 	onForceLogout: (user: UserItemType) => void
 	onResetPassword: (user: UserItemType) => void
@@ -32,9 +31,25 @@ export const userStatusOptions: Array<{ label: string, value: UserStatus }> = [
 	{ label: "停用", value: 3 },
 ];
 
+export function createUserSearchFields(t: TFunction): QueryFilterField[] {
+	return [
+		{ label: t("common.keyword"), name: "keyword", placeholder: t("system.user.searchPlaceholder"), type: "text" },
+		{
+			label: t("common.status"),
+			name: "status",
+			options: [
+				{ label: t("system.user.status.active"), value: 1 },
+				{ label: t("system.user.status.locked"), value: 2 },
+				{ label: t("system.user.status.disabled"), value: 3 },
+			],
+			type: "select",
+		},
+	];
+}
+
 export function createUserColumns({
+	currentUserId,
 	onAssignRoles,
-	onDelete,
 	onEdit,
 	onForceLogout,
 	onResetPassword,
@@ -50,48 +65,36 @@ export function createUserColumns({
 
 	return [
 		{
-			title: t("common.keyword"),
-			dataIndex: "keyword",
-			hideInTable: true,
-			fieldProps: { allowClear: true, placeholder: t("system.user.searchPlaceholder") },
-		},
-		{
 			title: t("system.user.username"),
 			dataIndex: "username",
 			width: 150,
 			ellipsis: true,
-			hideInSearch: true,
 			sorter: true,
-			render: (_, record) => (
-				<BasicButton type="link" usage="table-action" onClick={() => onView(record)}>{record.username}</BasicButton>
-			),
 		},
 		{
 			title: t("system.user.displayName"),
 			dataIndex: "display_name",
-			width: 150,
+			width: 170,
 			ellipsis: true,
-			hideInSearch: true,
 			sorter: true,
+			render: (_, record) => (
+				<Space size={4}>
+					<Avatar size="small">{(record.display_name || record.username).slice(0, 1).toUpperCase()}</Avatar>
+					<BasicButton usage="table-action" onClick={() => onView(record)}>{record.display_name}</BasicButton>
+				</Space>
+			),
 		},
 		{
 			title: t("system.user.email"),
 			dataIndex: "email",
 			width: 220,
 			ellipsis: true,
-			hideInSearch: true,
 			sorter: true,
 		},
 		{
 			title: t("common.status"),
 			dataIndex: "status",
 			width: 110,
-			valueType: "select",
-			valueEnum: {
-				1: { text: t("system.user.status.active") },
-				2: { text: t("system.user.status.locked") },
-				3: { text: t("system.user.status.disabled") },
-			},
 			sorter: true,
 			render: (_, record) => <Badge status={statusMap[record.status].status} text={statusMap[record.status].text} />,
 		},
@@ -99,50 +102,24 @@ export function createUserColumns({
 			title: t("common.createdAt"),
 			dataIndex: "created_at",
 			width: 180,
-			hideInSearch: true,
 			sorter: true,
 		},
 		{
 			title: t("common.action"),
 			valueType: "option",
 			key: "option",
-			width: 210,
+			width: 360,
 			fixed: "right",
-			render: (_, record) => {
-				const moreItems = [
-					permissions.resetPassword ? { key: "reset", label: t("system.user.resetPassword") } : null,
-					permissions.forceLogout ? { key: "force", label: t("system.user.forceLogout") } : null,
-					permissions.delete ? { key: "delete", danger: true, label: t("common.delete") } : null,
-				].filter(item => item !== null);
-				return (
-					<Flex align="center" gap={4}>
-						{permissions.edit && (
-							<BasicButton type="link" usage="table-action" onClick={() => onEdit(record)}>{t("common.edit")}</BasicButton>
-						)}
-						{permissions.assignRole && (
-							<BasicButton type="link" usage="table-action" onClick={() => onAssignRoles(record)}>{t("system.user.assignRole")}</BasicButton>
-						)}
-						{moreItems.length > 0 && (
-							<Dropdown
-								menu={{
-									items: moreItems,
-									onClick: ({ key }) => {
-										if (key === "reset")
-											onResetPassword(record);
-										if (key === "force")
-											onForceLogout(record);
-										if (key === "delete")
-											onDelete(record);
-									},
-								}}
-								trigger={["click"]}
-							>
-								<BasicButton aria-label={t("common.more")} icon={<MoreOutlined />} type="text" usage="table-action" />
-							</Dropdown>
-						)}
-					</Flex>
-				);
-			},
+			render: (_, record) => (
+				<Space size={4}>
+					{permissions.assignRole && <BasicButton usage="table-action" onClick={() => onAssignRoles(record)}>{t("system.user.assignRole")}</BasicButton>}
+					{permissions.edit && <BasicButton usage="table-action" onClick={() => onEdit(record)}>{t("common.edit")}</BasicButton>}
+					{permissions.resetPassword && <BasicButton usage="table-action" onClick={() => onResetPassword(record)}>{t("system.user.resetPassword")}</BasicButton>}
+					{permissions.forceLogout && record.id !== currentUserId && (
+						<BasicButton danger usage="table-action" onClick={() => onForceLogout(record)}>{t("system.user.forceLogout")}</BasicButton>
+					)}
+				</Space>
+			),
 		},
 	];
 }

@@ -1,8 +1,9 @@
 import type { UserCreateReq } from "#src/api/system/user";
 
 import { BasicButton } from "#src/components/basic-button";
+import { BasicDrawer } from "#src/components/basic-drawer";
 
-import { Drawer, Flex, Form, Input } from "antd";
+import { Flex, Form, Input } from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -23,8 +24,7 @@ export function CreateUserDrawer({ loading = false, onClose, onSubmit, open }: C
 	}, [form, open]);
 
 	return (
-		<Drawer
-			destroyOnHidden
+		<BasicDrawer
 			extra={(
 				<Flex gap="small">
 					<BasicButton disabled={loading} onClick={onClose}>{t("common.cancel")}</BasicButton>
@@ -54,10 +54,10 @@ export function CreateUserDrawer({ loading = false, onClose, onSubmit, open }: C
 				<Form.Item label={t("system.user.email")} name="email" rules={[{ required: true }, { type: "email", message: t("system.user.emailFormat") }]}>
 					<Input autoComplete="off" placeholder={t("system.user.pleaseInputEmail")} />
 				</Form.Item>
-				<Form.Item label={t("system.user.password")} name="password" rules={[{ required: true }, { min: 8, message: t("system.user.passwordMinLength") }]}>
+				<Form.Item label={t("system.user.password")} name="password" rules={[{ required: true }, { min: 12, message: t("system.user.passwordMinLength") }]}>
 					<Input.Password autoComplete="new-password" placeholder={t("system.user.pleaseInputPassword")} />
 				</Form.Item>
 			</Form>
-		</Drawer>
+		</BasicDrawer>
 	);
 }
