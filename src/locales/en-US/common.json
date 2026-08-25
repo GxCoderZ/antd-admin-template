@@ -86,5 +86,9 @@
 	"day": "days",
 	"startDate": "Start Date",
 	"endDate": "End Date",
-	"save": "Save"
+	"save": "Save",
+	"dangerConfirmation": {
+		"inputLabel": "Confirmation target",
+		"inputHint": "Enter “{{targetName}}” to confirm this action"
+	}
 }

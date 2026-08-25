@@ -10,6 +10,7 @@ import { isObject, isUndefined } from "#src/utils/is";
 import { LoadingOutlined } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
 import { useSize } from "ahooks";
+import { Empty } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -167,8 +168,15 @@ export function BasicTable<
 				dateFormatter="string"
 				{...props}
 				options={{
+					density: true,
 					fullScreen: true,
+					reload: true,
+					setting: true,
 					...props.options,
+				}}
+				locale={{
+					emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />,
+					...props.locale,
 				}}
 				rootClassName={cn(BASIC_TABLE_ROOT_CLASS_NAME, props.rootClassName)}
 				className={cn(classes.basicTable, props.className)}

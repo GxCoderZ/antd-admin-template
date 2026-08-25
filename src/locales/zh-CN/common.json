@@ -89,5 +89,9 @@
 	"day": "天",
 	"startDate": "开始日期",
 	"endDate": "结束日期",
-	"save": "保存"
+	"save": "保存",
+	"dangerConfirmation": {
+		"inputLabel": "确认对象",
+		"inputHint": "请输入“{{targetName}}”以确认此操作"
+	}
 }
