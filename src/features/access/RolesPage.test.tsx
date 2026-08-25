@@ -143,7 +143,22 @@ describe("RolesPage", () => {
 
 		await screen.findByText(`配置“${role.displayName}”的权限`);
 		const drawer = screen.getByRole("dialog");
-		await user.click(within(drawer).getByRole("checkbox", { name: "全选" }));
+		expect(
+			within(drawer).queryByRole("textbox", { name: "角色名称" }),
+		).not.toBeInTheDocument();
+		expect(within(drawer).queryByText("角色状态")).not.toBeInTheDocument();
+		expect(within(drawer).getByText("平台权限")).toBeInTheDocument();
+		expect(within(drawer).getByText("系统管理菜单")).toBeInTheDocument();
+		expect(within(drawer).getByText("用户管理页面")).toBeInTheDocument();
+		expect(
+			within(drawer).getByRole("searchbox", { name: "搜索权限" }),
+		).toBeInTheDocument();
+		expect(within(drawer).getByText("已选 1/7 项")).toBeInTheDocument();
+
+		await user.click(within(drawer).getByRole("button", { name: "全选" }));
+		expect(mocks.setPlatformRolePermission).not.toHaveBeenCalled();
+		expect(within(drawer).getByText("已选 7/7 项")).toBeInTheDocument();
+		await user.click(within(drawer).getByRole("button", { name: /保\s*存/ }));
 
 		await waitFor(() => {
 			expect(mocks.setPlatformRolePermission).toHaveBeenCalledTimes(6);
@@ -164,6 +179,31 @@ describe("RolesPage", () => {
 			},
 			expect.any(Object),
 		);
+	});
+
+	it("filters the permission tree and can disable parent-child linkage", async () => {
+		const user = renderRolesPage();
+
+		await openRoleActions(user);
+		await user.click(screen.getByRole("menuitem", { name: "权限配置" }));
+
+		const drawer = await screen.findByRole("dialog");
+		await user.type(
+			within(drawer).getByRole("searchbox", { name: "搜索权限" }),
+			"公告",
+		);
+
+		expect(within(drawer).getByText("公告管理页面")).toBeInTheDocument();
+		expect(within(drawer).getByText("查看公告")).toBeInTheDocument();
+		expect(within(drawer).getByText("管理公告")).toBeInTheDocument();
+		expect(within(drawer).queryByText("用户管理页面")).not.toBeInTheDocument();
+
+		await user.click(within(drawer).getByRole("switch", { name: "父子联动" }));
+		await user.click(within(drawer).getByRole("button", { name: "清空" }));
+		await user.click(
+			within(drawer).getByRole("checkbox", { name: /公告管理页面/ }),
+		);
+		expect(within(drawer).getByText("已选 0/7 项")).toBeInTheDocument();
 	});
 
 	it("requires the exact role name before deleting a role", async () => {

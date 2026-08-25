@@ -227,6 +227,7 @@ export function RolesPage() {
 			<RolePermissionDrawer
 				error={permissionMutation.error}
 				forbidden={permissionForbidden}
+				key={permissionRole?.id ?? "closed"}
 				loading={permissionMutation.isPending}
 				onChange={(permission, granted) => {
 					if (permissionRole) {
