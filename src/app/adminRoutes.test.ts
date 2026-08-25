@@ -11,6 +11,8 @@ describe("admin route template", () => {
 			"/system/announcements",
 			"/operations/audit-logs",
 			"/operations/login-logs",
+			"/examples/forms/basic",
+			"/examples/forms/step",
 			"/system/settings",
 			"/system/about",
 			"/exception/403",

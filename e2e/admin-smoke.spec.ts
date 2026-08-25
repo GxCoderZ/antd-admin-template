@@ -85,6 +85,44 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	await expect(page.getByRole("table")).not.toContainText("平台管理员");
 });
 
+test("表单示例通过 Fake API 完成基础与分步提交", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "基础表单", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
+	await page.getByLabel("事项标题").fill("端到端基础表单");
+	await page.getByLabel("负责人").fill("张伟");
+	await page.getByLabel("事项说明").fill("验证基础表单 Fake 提交流程。");
+	await page.getByRole("button", { name: "提交" }).click();
+	await expect(page.getByText("提交成功", { exact: true })).toBeVisible();
+
+	await page.getByRole("menuitem", { name: "分步表单", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
+	await page.getByLabel("事项名称").fill("端到端分步表单");
+	await page.getByLabel("负责人").fill("李娜");
+	await page.getByLabel("补充说明").fill("确认后通过 Fake API 提交。");
+	await page.getByRole("button", { name: "下一步" }).click();
+	await expect(page.getByText("端到端分步表单", { exact: true })).toBeVisible();
+	await page.getByRole("button", { name: "确认提交" }).click();
+	await expect(page.getByText("提交完成", { exact: true })).toBeVisible();
+});
+
+test("表单示例在窄屏下保持完整可用", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "基础表单", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
+	await expect(page.getByLabel("事项标题")).toBeVisible();
+	await expect(page.getByRole("button", { name: "提交" })).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
+});
+
 test("公告管理支持通过 Fake API 新建并查询公告", async ({ page }) => {
 	await signIn(page);
 

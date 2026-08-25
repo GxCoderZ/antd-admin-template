@@ -5,7 +5,7 @@ import { platformPermissions, type PlatformPermission } from "./permissions";
 export const dashboardPath = "/dashboard";
 
 export type AdminRouteGroupKey =
-	"dashboard" | "operations" | "system" | "account";
+	"dashboard" | "operations" | "examples" | "system" | "account";
 
 export type AdminRouteIconKey =
 	| "dashboard"
@@ -14,10 +14,12 @@ export type AdminRouteIconKey =
 	| "announcements"
 	| "auditLogs"
 	| "loginLogs"
+	| "basicForm"
+	| "stepForm"
 	| "settings"
 	| "about";
 
-export type AdminGroupIconKey = "operations" | "system";
+export type AdminGroupIconKey = "examples" | "operations" | "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -83,6 +85,18 @@ const loadAuditLogPage = async (): Promise<LazyAdminRouteModule> => {
 const loadLoginLogPage = async (): Promise<LazyAdminRouteModule> => {
 	const { LoginLogPage } = await import("../features/operations/LoginLogPage");
 	return { Component: LoginLogPage };
+};
+
+const loadBasicFormPage = async (): Promise<LazyAdminRouteModule> => {
+	const { BasicFormPage } =
+		await import("../features/form-examples/BasicFormPage");
+	return { Component: BasicFormPage };
+};
+
+const loadStepFormPage = async (): Promise<LazyAdminRouteModule> => {
+	const { StepFormPage } =
+		await import("../features/form-examples/StepFormPage");
+	return { Component: StepFormPage };
 };
 
 const loadPlatformSettingsPage = async (): Promise<LazyAdminRouteModule> => {
@@ -189,6 +203,22 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.loginLogs",
 	},
 	{
+		groupKey: "examples",
+		iconKey: "basicForm",
+		key: "/examples/forms/basic",
+		lazy: loadBasicFormPage,
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.basicForm",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "stepForm",
+		key: "/examples/forms/step",
+		lazy: loadStepFormPage,
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.stepForm",
+	},
+	{
 		aliases: [
 			{
 				lazy: loadPlatformSettingsAppearancePage,
@@ -259,6 +289,16 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/operations/login-logs" },
 		],
 		titleKey: "adminShell.navigation.operations",
+	},
+	{
+		defaultRouteKey: "/examples/forms/basic",
+		iconKey: "examples",
+		key: "examples",
+		nodes: [
+			{ routeKey: "/examples/forms/basic" },
+			{ routeKey: "/examples/forms/step" },
+		],
+		titleKey: "adminShell.navigation.examples",
 	},
 	{
 		defaultRouteKey: "/organization/users",

@@ -1,10 +1,12 @@
 import {
 	AntDesignOutlined,
+	AppstoreOutlined,
 	AuditOutlined,
 	BgColorsOutlined,
 	ControlOutlined,
 	DashboardOutlined,
 	FileTextOutlined,
+	FormOutlined,
 	GlobalOutlined,
 	InfoCircleOutlined,
 	LogoutOutlined,
@@ -14,6 +16,7 @@ import {
 	MoreOutlined,
 	NotificationOutlined,
 	ProfileOutlined,
+	PartitionOutlined,
 	SearchOutlined,
 	SettingOutlined,
 	SunOutlined,
@@ -268,10 +271,13 @@ export function AdminShellPage({
 		announcements: <NotificationOutlined aria-hidden />,
 		auditLogs: <AuditOutlined aria-hidden />,
 		loginLogs: <FileTextOutlined aria-hidden />,
+		basicForm: <FormOutlined aria-hidden />,
+		stepForm: <PartitionOutlined aria-hidden />,
 		settings: <ControlOutlined aria-hidden />,
 		about: <InfoCircleOutlined aria-hidden />,
 	};
 	const groupIconByKey: Record<AdminGroupIconKey, ReactNode> = {
+		examples: <AppstoreOutlined aria-hidden />,
 		operations: <ProfileOutlined aria-hidden />,
 		system: <SettingOutlined aria-hidden />,
 	};
