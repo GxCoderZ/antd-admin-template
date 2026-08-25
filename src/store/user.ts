@@ -1,6 +1,4 @@
-import type { UserInfoType } from "#src/api/auth";
-
-import { fetchCurrentUser } from "#src/api/auth";
+import type { UserInfoType } from "#src/api/auth/types";
 
 import { create } from "zustand";
 
@@ -17,7 +15,7 @@ const initialState = {
 type UserState = UserInfoType;
 
 interface UserAction {
-	getUserInfo: () => Promise<UserInfoType>
+	setUserInfo: (userInfo: UserInfoType) => void
 	reset: () => void
 };
 
@@ -26,23 +24,9 @@ export const useUserStore = create<UserState & UserAction>()(
 	set => ({
 		...initialState,
 
-		getUserInfo: async () => {
-			const response = await fetchCurrentUser();
+		setUserInfo: userInfo => set(userInfo),
 
-			if (response.code !== 0 || !response.data) {
-				throw new Error(response.msg || "获取用户信息失败");
-			}
-
-			const userInfo = response.data;
-			set(userInfo);
-			return userInfo;
-		},
-
-		reset: () => {
-			return set({
-				...initialState,
-			});
-		},
+		reset: () => set(initialState),
 
 	}),
 

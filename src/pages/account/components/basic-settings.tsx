@@ -1,6 +1,7 @@
 import type { AccountProfileType } from "#src/api/account";
 
 import { fetchAccountProfile, fetchDeleteAccountAvatar, fetchUpdateAccountProfile, fetchUploadAccountAvatar } from "#src/api/account";
+import { fetchCurrentUser } from "#src/api/auth";
 import { BasicButton } from "#src/components/basic-button";
 import { BasicCard } from "#src/components/basic-card";
 import { useUserStore } from "#src/store/user";
@@ -21,8 +22,14 @@ export function BasicSettings() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const queryClient = useQueryClient();
-	const refreshUserInfo = useUserStore(state => state.getUserInfo);
+	const setUserInfo = useUserStore(state => state.setUserInfo);
 	const [avatarValidationError, setAvatarValidationError] = useState<string>();
+	const refreshUserInfo = async () => {
+		const response = await fetchCurrentUser();
+		if (response.code !== 0 || !response.data)
+			throw new Error(response.msg || "获取用户信息失败");
+		setUserInfo(response.data);
+	};
 	const accountQuery = useQuery({
 		queryKey: accountProfileQueryKey,
 		queryFn: async () => {

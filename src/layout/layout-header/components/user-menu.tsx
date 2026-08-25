@@ -1,8 +1,8 @@
 import type { ButtonProps, MenuProps } from "antd";
 
+import { clearSession } from "#src/application/session";
 import { BasicButton } from "#src/components/basic-button";
 import { loginPath } from "#src/router/extra-info";
-import { useAuthStore } from "#src/store/auth";
 import { useUserStore } from "#src/store/user";
 import { cn } from "#src/utils/cn";
 
@@ -15,15 +15,14 @@ export function UserMenu({ ...restProps }: ButtonProps) {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const avatar = useUserStore(state => state.avatar);
-	const logout = useAuthStore(state => state.logout);
 
-	const onClick: MenuProps["onClick"] = async ({ key }) => {
+	const onClick: MenuProps["onClick"] = ({ key }) => {
 		if (key === "/account/profile" || key === "/account/settings") {
 			navigate(key);
 			return;
 		}
 		if (key === "logout") {
-			await logout();
+			clearSession();
 			navigate(loginPath);
 		}
 	};

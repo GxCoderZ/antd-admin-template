@@ -28,7 +28,7 @@ export async function refreshTokenAndRetry(request: Request, options: Options, r
 			// 从响应中提取新的 refreshToken
 			const newRefreshToken = freshResponse.data.refreshToken;
 			// 将新的 token 和 refreshToken 保存到 userStore 中
-			useAuthStore.setState({ token: newToken, refreshToken: newRefreshToken });
+			useAuthStore.getState().setTokens({ token: newToken, refreshToken: newRefreshToken });
 			// 调用 onRefreshed 函数，传入新的 token
 			onRefreshed(newToken);
 

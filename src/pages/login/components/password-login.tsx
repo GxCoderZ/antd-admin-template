@@ -1,3 +1,4 @@
+import { fetchLogin } from "#src/api/auth";
 import { BasicButton } from "#src/components/basic-button";
 import { PASSWORD_RULES, USERNAME_RULES } from "#src/constants/rules";
 import { forgotPasswordPath } from "#src/router/extra-info";
@@ -22,7 +23,7 @@ export function PasswordLogin() {
 	const { token } = theme.useToken();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const login = useAuthStore(state => state.login);
+	const setTokens = useAuthStore(state => state.setTokens);
 
 	const handleFinish = async (values: PasswordLoginValues) => {
 		setLoading(true);
@@ -30,7 +31,14 @@ export function PasswordLogin() {
 		const loadingMessage = window.$message?.loading(t("authority.loginInProgress"), 0);
 
 		try {
-			await login(values);
+			const response = await fetchLogin(values);
+			if (response.code !== 0 || !response.data) {
+				throw new Error(response.msg || t("authority.loginFailed"));
+			}
+			setTokens({
+				token: response.data.access_token,
+				refreshToken: response.data.refresh_token || "",
+			});
 			loadingMessage?.();
 			window.$message?.success(t("authority.loginSuccess"));
 			const targetPath = searchParams.get("redirect") || import.meta.env.VITE_BASE_HOME_PATH;

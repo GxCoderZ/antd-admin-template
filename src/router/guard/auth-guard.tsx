@@ -1,3 +1,4 @@
+import { fetchCurrentUser } from "#src/api/auth";
 import { fetchUserPermissions } from "#src/api/rbac";
 import { useCurrentRoute } from "#src/hooks/use-current-route";
 import { hideLoading } from "#src/plugins/hide-loading";
@@ -33,7 +34,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 	const { pathname } = useLocation();
 	const isLogin = useAuthStore(state => Boolean(state.token));
 	const isAuthorized = useUserStore(state => Boolean(state.id));
-	const getUserInfo = useUserStore(state => state.getUserInfo);
+	const setUserInfo = useUserStore(state => state.setUserInfo);
 	const { setAccessStore, isAccessChecked, routeList, permissions } = useAccessStore();
 
 	const isPathInNoLoginWhiteList = noLoginWhiteList.includes(pathname);
@@ -54,7 +55,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
 			 * @zh 1. 先获取用户信息
 			 * @en 1. Fetch user information first
 			 */
-			await getUserInfo();
+			const userResponse = await fetchCurrentUser();
+			if (userResponse.code !== 0 || !userResponse.data) {
+				throw new Error(userResponse.msg || "获取用户信息失败");
+			}
+			setUserInfo(userResponse.data);
 
 			const routes = [];
 			let userPermissions: string[] = [];
@@ -97,7 +102,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 		if (!whiteRouteNames.includes(pathname) && isLogin && !isAuthorized && !isAccessChecked) {
 			fetchUserInfoAndRoutes();
 		}
-	}, [pathname, isLogin, isAuthorized, isAccessChecked]);
+	}, [pathname, isLogin, isAuthorized, isAccessChecked, setAccessStore, setUserInfo]);
 
 	/**
 	 * @zh 路由白名单
