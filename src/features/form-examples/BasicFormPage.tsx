@@ -64,8 +64,18 @@ export function BasicFormPage() {
 	});
 
 	return (
-		<Flex gap={token.marginLG} vertical>
+		<Flex gap={token.margin} vertical>
 			{messageContext}
+			<Typography.Title
+				level={1}
+				style={{
+					fontSize: token.fontSizeHeading4,
+					lineHeight: `${token.controlHeight}px`,
+					margin: 0,
+				}}
+			>
+				{t("adminShell.navigation.basicForm")}
+			</Typography.Title>
 			<Typography.Paragraph
 				style={{ color: token.colorTextSecondary, margin: 0 }}
 			>
@@ -99,6 +109,7 @@ export function BasicFormPage() {
 					}}
 					requiredMark={false}
 					style={{ margin: "8px auto 0", maxWidth: 600 }}
+					variant="filled"
 				>
 					<Form.Item
 						label={t("adminShell.formExamples.basic.fields.title")}
@@ -151,6 +162,7 @@ export function BasicFormPage() {
 					>
 						<Input.TextArea
 							placeholder={t("adminShell.formExamples.basic.placeholders.goal")}
+							rows={3}
 							style={extraLargeControlStyle}
 						/>
 					</Form.Item>
@@ -169,6 +181,7 @@ export function BasicFormPage() {
 							placeholder={t(
 								"adminShell.formExamples.basic.placeholders.standard",
 							)}
+							rows={3}
 							style={extraLargeControlStyle}
 						/>
 					</Form.Item>
@@ -223,7 +236,6 @@ export function BasicFormPage() {
 						/>
 					</Form.Item>
 					<Form.Item
-						help={t("adminShell.formExamples.basic.publicHelp")}
 						label={t("adminShell.formExamples.basic.fields.publicType")}
 						name="publicType"
 					>
@@ -234,23 +246,23 @@ export function BasicFormPage() {
 							}))}
 						/>
 					</Form.Item>
-					{publicType === "2" ? (
-						<Form.Item name="publicUsers" style={{ margin: "8px 0 24px" }}>
-							<Select
-								aria-label={t(
-									"adminShell.formExamples.basic.fields.publicUsers",
-								)}
-								options={(["1", "2", "3"] as const).map((value) => ({
-									label: t(`adminShell.formExamples.basic.colleagues.${value}`),
-									value,
-								}))}
-								placeholder={t(
-									"adminShell.formExamples.basic.placeholders.publicUsers",
-								)}
-								style={mediumControlStyle}
-							/>
-						</Form.Item>
-					) : null}
+					<Form.Item name="publicUsers">
+						<Select
+							aria-label={t("adminShell.formExamples.basic.fields.publicUsers")}
+							options={(["1", "2", "3"] as const).map((value) => ({
+								label: t(`adminShell.formExamples.basic.colleagues.${value}`),
+								value,
+							}))}
+							placeholder={t(
+								"adminShell.formExamples.basic.placeholders.publicUsers",
+							)}
+							style={{
+								...mediumControlStyle,
+								display: publicType === "2" ? "block" : "none",
+								margin: "8px 0",
+							}}
+						/>
+					</Form.Item>
 					<Form.Item style={{ marginBottom: 0 }}>
 						<Space>
 							<Button

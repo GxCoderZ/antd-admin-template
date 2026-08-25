@@ -53,6 +53,9 @@ describe("form example pages", () => {
 		const user = renderPage(<BasicFormPage />);
 
 		expect(
+			screen.getByRole("heading", { level: 1, name: "基础表单" }),
+		).toBeVisible();
+		expect(
 			screen.getByText(
 				"表单页用于向用户收集或验证信息，基础表单常见于数据项较少的表单场景。",
 			),
@@ -69,6 +72,11 @@ describe("form example pages", () => {
 		expect(screen.getByLabelText("客户（选填）")).toBeVisible();
 		expect(screen.getByLabelText("邀评人（选填）")).toBeVisible();
 		expect(screen.getByLabelText("权重（选填）")).toBeVisible();
+		expect(screen.getByLabelText("目标描述")).toHaveAttribute("rows", "3");
+		expect(screen.getByLabelText("衡量标准")).toHaveAttribute("rows", "3");
+		expect(
+			screen.getByRole("combobox", { hidden: true, name: "公开范围" }),
+		).not.toBeVisible();
 
 		await user.click(screen.getByRole("radio", { name: "部分公开" }));
 		expect(screen.getByRole("combobox", { name: "公开范围" })).toBeVisible();
@@ -84,6 +92,9 @@ describe("form example pages", () => {
 	it("matches the Ant Design Pro transfer steps and submits after confirmation", async () => {
 		const user = renderPage(<StepFormPage />);
 
+		expect(
+			screen.getByRole("heading", { level: 1, name: "分步表单" }),
+		).toBeVisible();
 		expect(
 			screen.getByText(
 				"将一个冗长或用户不熟悉的表单任务分成多个步骤，指导用户完成。",

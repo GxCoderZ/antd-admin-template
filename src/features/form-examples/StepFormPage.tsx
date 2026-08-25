@@ -117,14 +117,24 @@ export function StepFormPage() {
 	} as const;
 
 	return (
-		<Flex gap={token.marginLG} vertical>
+		<Flex gap={token.margin} vertical>
+			<Typography.Title
+				level={1}
+				style={{
+					fontSize: token.fontSizeHeading4,
+					lineHeight: `${token.controlHeight}px`,
+					margin: 0,
+				}}
+			>
+				{t("adminShell.navigation.stepForm")}
+			</Typography.Title>
 			<Typography.Paragraph
 				style={{ color: token.colorTextSecondary, margin: 0 }}
 			>
 				{t("adminShell.formExamples.step.description")}
 			</Typography.Paragraph>
 			<Card variant="borderless">
-				<Flex gap={token.marginXL} vertical>
+				<Flex gap={0} vertical>
 					<Steps
 						current={currentStep}
 						items={(["details", "confirm", "complete"] as const).map(
@@ -133,7 +143,7 @@ export function StepFormPage() {
 							}),
 						)}
 						responsive
-						style={{ margin: "0 auto", maxWidth: 750 }}
+						style={{ margin: "0 auto", maxWidth: 960, width: "100%" }}
 					/>
 
 					{currentStep === 0 ? (
@@ -145,8 +155,8 @@ export function StepFormPage() {
 								setStepData(values);
 								setCurrentStep(1);
 							}}
-							requiredMark={false}
-							style={{ margin: "0 auto", maxWidth: 500 }}
+							style={{ margin: "32px auto 0", maxWidth: 420, width: "100%" }}
+							variant="filled"
 						>
 							<Form.Item
 								label={t("adminShell.formExamples.step.fields.payAccount")}
@@ -170,11 +180,24 @@ export function StepFormPage() {
 									style={mediumControlStyle}
 								/>
 							</Form.Item>
-							<Form.Item
-								label={t("adminShell.formExamples.step.fields.receiverAccount")}
-								required
-							>
-								<Space.Compact block style={mediumControlStyle}>
+							<div style={{ marginBottom: token.marginLG }}>
+								<Typography.Text
+									style={{
+										display: "block",
+										fontWeight: 500,
+										marginBottom: token.marginXL,
+									}}
+								>
+									{t("adminShell.formExamples.step.fields.receiverAccount")}
+								</Typography.Text>
+								<div
+									style={{
+										display: "grid",
+										gap: token.marginXS,
+										gridTemplateColumns: "100px minmax(0, 200px)",
+										maxWidth: "100%",
+									}}
+								>
 									<Form.Item<StepDetailsValues>
 										name="receiverMode"
 										noStyle
@@ -197,7 +220,7 @@ export function StepFormPage() {
 												),
 												value,
 											}))}
-											style={{ flex: "0 0 116px" }}
+											style={{ width: "100%" }}
 										/>
 									</Form.Item>
 									<Form.Item<StepDetailsValues>
@@ -225,10 +248,10 @@ export function StepFormPage() {
 											placeholder={t(
 												"adminShell.formExamples.step.placeholders.receiverAccount",
 											)}
-											style={{ minWidth: 0 }}
+											style={{ minWidth: 0, width: "100%" }}
 										/>
 									</Form.Item>
-								</Space.Compact>
+								</div>
 								<Form.Item noStyle shouldUpdate>
 									{({ getFieldError }) => (
 										<Form.ErrorList
@@ -239,7 +262,7 @@ export function StepFormPage() {
 										/>
 									)}
 								</Form.Item>
-							</Form.Item>
+							</div>
 							<Form.Item
 								label={t("adminShell.formExamples.step.fields.receiverName")}
 								name="receiverName"
@@ -301,7 +324,8 @@ export function StepFormPage() {
 								mutation.mutate({ ...stepData, password: password.trim() })
 							}
 							requiredMark={false}
-							style={resultStyle}
+							style={{ ...resultStyle, margin: "32px auto 0" }}
+							variant="filled"
 						>
 							<Alert
 								closable
@@ -374,7 +398,7 @@ export function StepFormPage() {
 								</>
 							}
 							status="success"
-							style={resultStyle}
+							style={{ ...resultStyle, margin: "32px auto 0" }}
 							subTitle={t("adminShell.formExamples.step.resultSubtitle")}
 							title={t("adminShell.formExamples.step.resultTitle")}
 						>
@@ -383,23 +407,56 @@ export function StepFormPage() {
 					) : null}
 
 					<Divider style={{ margin: "40px 0 24px" }} />
-					<Flex gap={token.marginSM} vertical>
-						<Typography.Title level={5} style={{ margin: 0 }}>
+					<div>
+						<h3
+							style={{
+								fontSize: token.fontSize,
+								fontWeight: 500,
+								lineHeight: token.lineHeight,
+								margin: "0 0 0.5em",
+							}}
+						>
 							{t("adminShell.formExamples.step.explanation.title")}
-						</Typography.Title>
-						<Typography.Text strong>
+						</h3>
+						<h4
+							style={{
+								fontSize: token.fontSize,
+								fontWeight: 500,
+								lineHeight: token.lineHeight,
+								margin: "0 0 0.5em",
+							}}
+						>
 							{t("adminShell.formExamples.step.explanation.alipayTitle")}
-						</Typography.Text>
-						<Typography.Paragraph style={{ margin: 0 }}>
+						</h4>
+						<p
+							style={{
+								fontSize: token.fontSize,
+								lineHeight: token.lineHeight,
+								margin: "0 0 1em",
+							}}
+						>
 							{t("adminShell.formExamples.step.explanation.content")}
-						</Typography.Paragraph>
-						<Typography.Text strong>
+						</p>
+						<h4
+							style={{
+								fontSize: token.fontSize,
+								fontWeight: 500,
+								lineHeight: token.lineHeight,
+								margin: "0 0 0.5em",
+							}}
+						>
 							{t("adminShell.formExamples.step.explanation.bankTitle")}
-						</Typography.Text>
-						<Typography.Paragraph style={{ margin: 0 }}>
+						</h4>
+						<p
+							style={{
+								fontSize: token.fontSize,
+								lineHeight: token.lineHeight,
+								margin: "0 0 1em",
+							}}
+						>
 							{t("adminShell.formExamples.step.explanation.content")}
-						</Typography.Paragraph>
-					</Flex>
+						</p>
+					</div>
 				</Flex>
 			</Card>
 		</Flex>

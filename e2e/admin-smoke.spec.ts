@@ -123,6 +123,19 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),
 	).toBeLessThanOrEqual(390);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "分步表单", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
+	await expect(
+		page.getByRole("heading", { level: 1, name: "分步表单" }),
+	).toBeVisible();
+	await expect(page.getByLabel("收款账户")).toBeVisible();
+	await expect(page.getByRole("button", { name: "下一步" })).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
 });
 
 test("公告管理支持通过 Fake API 新建并查询公告", async ({ page }) => {
