@@ -15,15 +15,17 @@ import { AnnouncementsPage } from "./AnnouncementsPage";
 
 const mocks = vi.hoisted(() => ({
 	createPlatformAnnouncement: vi.fn(),
+	deletePlatformAnnouncement: vi.fn(),
 	listPlatformAnnouncements: vi.fn(),
+	updatePlatformAnnouncement: vi.fn(),
 }));
 
 vi.mock("#src/api/announcements", () => ({
 	createPlatformAnnouncement: mocks.createPlatformAnnouncement,
-	deletePlatformAnnouncement: vi.fn(),
+	deletePlatformAnnouncement: mocks.deletePlatformAnnouncement,
 	listPlatformAnnouncements: mocks.listPlatformAnnouncements,
 	platformAnnouncementsQueryKey: ["platform-announcements"],
-	updatePlatformAnnouncement: vi.fn(),
+	updatePlatformAnnouncement: mocks.updatePlatformAnnouncement,
 }));
 
 const announcement = {
@@ -47,6 +49,8 @@ beforeEach(() => {
 		total: 1,
 	});
 	mocks.createPlatformAnnouncement.mockReset().mockResolvedValue(announcement);
+	mocks.deletePlatformAnnouncement.mockReset().mockResolvedValue(undefined);
+	mocks.updatePlatformAnnouncement.mockReset().mockResolvedValue(announcement);
 });
 
 function renderAnnouncementsPage(canManage = true) {
@@ -147,6 +151,42 @@ describe("AnnouncementsPage", () => {
 				status: "draft",
 				title: "版本发布通知",
 			});
+		});
+	});
+
+	it("edits announcements through the form drawer", async () => {
+		const user = renderAnnouncementsPage();
+
+		await screen.findByText("系统维护通知");
+		await user.click(screen.getByRole("button", { name: "编辑" }));
+		const titleInput = await screen.findByPlaceholderText("请输入公告标题");
+		await user.clear(titleInput);
+		await user.type(titleInput, "系统维护通知（更新）");
+		await user.click(screen.getByRole("button", { name: /保\s*存/ }));
+
+		await waitFor(() => {
+			expect(mocks.updatePlatformAnnouncement).toHaveBeenCalledWith({
+				announcementId: announcement.id,
+				input: {
+					content: announcement.content,
+					status: announcement.status,
+					title: "系统维护通知（更新）",
+				},
+			});
+		});
+	});
+
+	it("deletes announcements after explicit confirmation", async () => {
+		const user = renderAnnouncementsPage();
+
+		await screen.findByText("系统维护通知");
+		await user.click(screen.getByRole("button", { name: "删除" }));
+		await user.click(screen.getByRole("button", { name: "确认删除" }));
+
+		await waitFor(() => {
+			expect(mocks.deletePlatformAnnouncement.mock.calls[0]?.[0]).toBe(
+				announcement.id,
+			);
 		});
 	});
 
