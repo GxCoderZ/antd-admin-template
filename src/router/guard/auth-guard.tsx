@@ -4,15 +4,14 @@ import { useCurrentRoute } from "#src/hooks/use-current-route";
 import { hideLoading } from "#src/plugins/hide-loading";
 import { setupLoading } from "#src/plugins/loading";
 import { defaultLoginPath, exception403Path, exception404Path, loginPath } from "#src/router/extra-info";
-import { accessRoutes, whiteRouteNames } from "#src/router/routes";
+import { whiteRouteNames } from "#src/router/routes";
+import { createAccessSnapshot } from "#src/router/utils/create-access-snapshot";
 import { useAccessStore } from "#src/store/access";
 import { useAuthStore } from "#src/store/auth";
 import { useUserStore } from "#src/store/user";
 
 import { useEffect } from "react";
 import { matchRoutes, Navigate, useLocation } from "react-router";
-
-import { removeDuplicateRoutes } from "./utils";
 
 /**
  * @zh 路由白名单 1. 不进行权限校验， 2. 不会触发请求，例如用户信息接口
@@ -35,7 +34,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 	const isLogin = useAuthStore(state => Boolean(state.token));
 	const isAuthorized = useUserStore(state => Boolean(state.id));
 	const setUserInfo = useUserStore(state => state.setUserInfo);
-	const { setAccessStore, isAccessChecked, routeList, permissions } = useAccessStore();
+	const { setAccessSnapshot, isAccessChecked, routeList, permissions } = useAccessStore();
 
 	const isPathInNoLoginWhiteList = noLoginWhiteList.includes(pathname);
 
@@ -61,7 +60,6 @@ export function AuthGuard({ children }: AuthGuardProps) {
 			}
 			setUserInfo(userResponse.data);
 
-			const routes = [];
 			let userPermissions: string[] = [];
 
 			// 获取用户权限码列表
@@ -75,17 +73,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 				console.error("获取权限失败", e);
 			}
 
-			/**
-			 * @zh 使用静态路由（始终启用），向 Router 注册全量路由
-			 * 权限检查由 auth-guard 在渲染时处理（无权限跳转 403）
-			 * @en Use static routes (always enabled), register all routes to Router
-			 * Permission check is handled by auth-guard at render time (redirect to 403 without permission)
-			 */
-			routes.push(...accessRoutes);
-
-			const uniqueRoutes = removeDuplicateRoutes(routes);
-			// 传入权限列表
-			setAccessStore(uniqueRoutes, userPermissions);
+			setAccessSnapshot(createAccessSnapshot(userPermissions));
 		}
 		/**
 		 * @zh 只有在以下条件下才执行获取用户信息和路由的逻辑
@@ -102,7 +90,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
 		if (!whiteRouteNames.includes(pathname) && isLogin && !isAuthorized && !isAccessChecked) {
 			fetchUserInfoAndRoutes();
 		}
-	}, [pathname, isLogin, isAuthorized, isAccessChecked, setAccessStore, setUserInfo]);
+	}, [pathname, isLogin, isAuthorized, isAccessChecked, setAccessSnapshot, setUserInfo]);
 
 	/**
 	 * @zh 路由白名单

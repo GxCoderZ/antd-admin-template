@@ -23,7 +23,7 @@
 		"lint:fix": "eslint . --fix",
 		"pnpm:install": "pnpm install",
 		"npm-check": "taze major -lrw",
-		"check:circular-deps": "ds src --output circular-deps.json",
+		"check:circular-deps": "node scripts/check-circular-deps.mjs",
 		"test": "vitest"
 	},
 	"dependencies": {
