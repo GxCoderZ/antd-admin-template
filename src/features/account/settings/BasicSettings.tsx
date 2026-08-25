@@ -9,6 +9,7 @@ import {
 import { ApiProblemError } from "#src/api/client";
 import { platformUsersQueryKey } from "#src/api/users";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import ImgCrop from "antd-img-crop";
 import {
 	Alert,
 	Button,
@@ -107,6 +108,18 @@ export function BasicSettings({ account }: BasicSettingsProps) {
 						},
 					];
 	const isWide = screens.xl === true;
+	const validateAvatarFile = (file: File) => {
+		setAvatarError(undefined);
+		if (!supportedAvatarContentTypes.has(file.type)) {
+			setAvatarError(t("adminShell.account.settings.basic.avatarTypeError"));
+			return false;
+		}
+		if (file.size > avatarUploadLimitBytes) {
+			setAvatarError(t("adminShell.account.settings.basic.avatarSizeError"));
+			return false;
+		}
+		return true;
+	};
 
 	return (
 		<Flex
@@ -325,37 +338,38 @@ export function BasicSettings({ account }: BasicSettingsProps) {
 					size={144}
 					userId={account.id}
 				/>
-				<Upload
-					accept="image/png,image/jpeg,image/webp"
-					beforeUpload={(file) => {
-						setAvatarError(undefined);
-						if (!supportedAvatarContentTypes.has(file.type)) {
-							setAvatarError(
-								t("adminShell.account.settings.basic.avatarTypeError"),
-							);
-							return Upload.LIST_IGNORE;
-						}
-						if (file.size > avatarUploadLimitBytes) {
-							setAvatarError(
-								t("adminShell.account.settings.basic.avatarSizeError"),
-							);
-							return Upload.LIST_IGNORE;
-						}
-						return true;
-					}}
-					customRequest={({ file }) => {
-						if (file instanceof File) uploadAvatarMutation.mutate(file);
-					}}
-					showUploadList={false}
+				<ImgCrop
+					aspect={1}
+					beforeCrop={validateAvatarFile}
+					cropShape="round"
+					modalCancel={t("adminShell.account.settings.basic.avatarCropCancel")}
+					modalOk={t("adminShell.account.settings.basic.avatarCropConfirm")}
+					modalTitle={t("adminShell.account.settings.basic.avatarCropTitle")}
+					quality={0.9}
+					resetText={t("adminShell.account.settings.basic.avatarCropReset")}
+					rotationSlider
+					showGrid
+					showReset
 				>
-					<Button
-						icon={<UploadOutlined aria-hidden />}
-						loading={uploadAvatarMutation.isPending}
-						style={{ marginTop: 12, width: 144 }}
+					<Upload
+						accept="image/png,image/jpeg,image/webp"
+						beforeUpload={(file) =>
+							validateAvatarFile(file) ? true : Upload.LIST_IGNORE
+						}
+						customRequest={({ file }) => {
+							if (file instanceof File) uploadAvatarMutation.mutate(file);
+						}}
+						showUploadList={false}
 					>
-						{t("adminShell.account.settings.basic.uploadAvatar")}
-					</Button>
-				</Upload>
+						<Button
+							icon={<UploadOutlined aria-hidden />}
+							loading={uploadAvatarMutation.isPending}
+							style={{ marginTop: 12, width: 144 }}
+						>
+							{t("adminShell.account.settings.basic.uploadAvatar")}
+						</Button>
+					</Upload>
+				</ImgCrop>
 				{avatarError || uploadAvatarMutation.isError ? (
 					<Text
 						style={{
