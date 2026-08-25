@@ -174,7 +174,13 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "表单示例", exact: true }),
+	).toBeVisible();
 	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "基础表单", exact: true }),
+	).toBeVisible();
 	await page.getByRole("menuitem", { name: "基础表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
 	await expect(page.getByLabel("标题")).toBeVisible();
@@ -185,7 +191,13 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "表单示例", exact: true }),
+	).toBeVisible();
 	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "分步表单", exact: true }),
+	).toBeVisible();
 	await page.getByRole("menuitem", { name: "分步表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
 	await expect(
