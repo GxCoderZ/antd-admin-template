@@ -35,6 +35,7 @@ export const zhTWTranslation = {
 			searchApplications: "應用",
 			cardList: "卡片列表",
 			treeCategory: "樹狀分類管理",
+			previewPanel: "預覽面板",
 			genericDetail: "通用詳情頁",
 			resultExamples: "結果頁",
 			successResult: "成功結果頁",
@@ -243,6 +244,13 @@ export const zhTWTranslation = {
 				categoryNotEmpty: "請先刪除該分類的下級分類和內容", categorySaved: "分類已儲存", contentSaved: "內容已儲存",
 				categoryDeleted: "分類已刪除", contentDeleted: "內容已刪除",
 			},
+		},
+		previewWorkbench: {
+			editorTitle: "預覽內容設定", previewTitle: "即時預覽", zoom: "預覽縮放", refresh: "重新整理預覽",
+			modes: { desktop: "桌面端", mobile: "行動端", content: "內容" },
+			fields: { title: "內容標題", summary: "內容摘要", action: "按鈕文字", audience: "可見範圍", accent: "強調色", published: "顯示為已發佈" },
+			audiences: { all: "全部成員", admin: "管理員", operator: "營運人員" },
+			coverAlt: "內容預覽封面", published: "已發佈", draft: "草稿", updatedNow: "剛剛更新",
 		},
 		about: {
 			description: "查看目前 Fake-only UI 能力與前端技術基線。",

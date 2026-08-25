@@ -35,6 +35,7 @@ export const koKRTranslation = {
 			searchApplications: "애플리케이션",
 			cardList: "카드 목록",
 			treeCategory: "트리 카테고리 관리",
+			previewPanel: "미리보기 패널",
 			genericDetail: "기본 상세",
 			resultExamples: "결과 페이지",
 			successResult: "성공 결과",
@@ -245,6 +246,13 @@ export const koKRTranslation = {
 				categoryNotEmpty: "하위 카테고리와 콘텐츠를 먼저 삭제하세요", categorySaved: "카테고리가 저장되었습니다", contentSaved: "콘텐츠가 저장되었습니다",
 				categoryDeleted: "카테고리가 삭제되었습니다", contentDeleted: "콘텐츠가 삭제되었습니다",
 			},
+		},
+		previewWorkbench: {
+			editorTitle: "미리보기 콘텐츠 설정", previewTitle: "실시간 미리보기", zoom: "미리보기 확대/축소", refresh: "미리보기 새로고침",
+			modes: { desktop: "데스크톱", mobile: "모바일", content: "콘텐츠" },
+			fields: { title: "콘텐츠 제목", summary: "콘텐츠 요약", action: "버튼 문구", audience: "공개 범위", accent: "강조 색상", published: "게시됨으로 표시" },
+			audiences: { all: "전체 구성원", admin: "관리자", operator: "운영자" },
+			coverAlt: "콘텐츠 미리보기 표지", published: "게시됨", draft: "초안", updatedNow: "방금 업데이트됨",
 		},
 		about: {
 			description:

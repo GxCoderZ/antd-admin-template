@@ -35,6 +35,7 @@ export const enTranslation = {
 			searchApplications: "Applications",
 			cardList: "Card list",
 			treeCategory: "Tree category management",
+			previewPanel: "Preview panel",
 			genericDetail: "Basic profile",
 			resultExamples: "Result pages",
 			successResult: "Success result",
@@ -249,6 +250,13 @@ export const enTranslation = {
 				categoryNotEmpty: "Remove child categories and content first", categorySaved: "Category saved", contentSaved: "Content saved",
 				categoryDeleted: "Category deleted", contentDeleted: "Content deleted",
 			},
+		},
+		previewWorkbench: {
+			editorTitle: "Preview content settings", previewTitle: "Live preview", zoom: "Preview zoom", refresh: "Refresh preview",
+			modes: { desktop: "Desktop", mobile: "Mobile", content: "Content" },
+			fields: { title: "Content title", summary: "Content summary", action: "Button label", audience: "Audience", accent: "Accent color", published: "Show as published" },
+			audiences: { all: "All members", admin: "Administrators", operator: "Operators" },
+			coverAlt: "Content preview cover", published: "Published", draft: "Draft", updatedNow: "Updated just now",
 		},
 		about: {
 			description:
