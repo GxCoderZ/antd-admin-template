@@ -1,6 +1,8 @@
 default:
   image: node:24.17.0-bookworm
   interruptible: true
+  tags:
+    - test
   cache:
     key:
       files:
@@ -15,6 +17,7 @@ default:
 stages:
   - verify
   - e2e
+  - deploy
 
 quality:
   stage: verify
@@ -41,3 +44,17 @@ browser-smoke:
   script:
     - pnpm exec playwright install --with-deps chromium
     - pnpm run test:e2e
+
+deploy_pages:
+  stage: deploy
+  needs:
+    - quality
+    - browser-smoke
+  script:
+    - pnpm run build:prod
+    - pnpm dlx wrangler@4 pages deploy dist --project-name=antd-admin-template --branch="$CI_COMMIT_REF_NAME"
+  environment:
+    name: production
+    url: https://antd-admin-template.pages.dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
