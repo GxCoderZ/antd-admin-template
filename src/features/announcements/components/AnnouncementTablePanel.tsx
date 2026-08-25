@@ -23,18 +23,23 @@ import {
 	Tree,
 } from "antd";
 import type { TableProps } from "antd";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useRef, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
 import {
 	defaultPreferences,
+	getTableColumnSettingsStorageKey,
 	readUserTableDensityPreference,
 	subscribeToPreferenceChanges,
 	writeUserTableDensityPreference,
 } from "../../../app/preferenceStorage";
 import { resolveTableSort } from "../../../app/tableSorting";
+import {
+	type ResponsiveTableColumnConfig,
+	useResponsiveTableColumns,
+} from "../../../app/tableColumnVisibility";
 import { TableActionButton } from "../../../app/TableActionButton";
 import type {
 	ListPlatformAnnouncementsInput,
@@ -75,6 +80,13 @@ interface AnnouncementTablePanelProps {
 
 const columnKeys = ["title", "status", "updatedAt", "actions"] as const;
 type AnnouncementColumnKey = (typeof columnKeys)[number];
+const announcementColumnVisibility: readonly ResponsiveTableColumnConfig<AnnouncementColumnKey>[] =
+	[
+		{ key: "title", priority: "compact", required: true },
+		{ key: "status", priority: "compact" },
+		{ key: "updatedAt", priority: "regular" },
+		{ key: "actions", priority: "compact", required: true },
+	];
 
 const tableSortToContractSort: Record<string, AnnouncementSort> = {
 	status: "status",
@@ -104,26 +116,13 @@ export function AnnouncementTablePanel({
 		readUserTableDensityPreference,
 		() => defaultPreferences.userTableDensity,
 	);
-	const [columnOrder, setColumnOrder] = useState<AnnouncementColumnKey[]>([
-		...columnKeys,
-	]);
-	const [visibleColumnKeys, setVisibleColumnKeys] = useState<
-		AnnouncementColumnKey[]
-	>([...columnKeys]);
-	const tableMinimumWidth = token.controlHeight * 20;
+	const tableContainerRef = useRef<HTMLDivElement>(null);
 	const availableColumnKeys = useMemo<readonly AnnouncementColumnKey[]>(
 		() =>
 			canManage
 				? columnKeys
 				: columnKeys.filter((columnKey) => columnKey !== "actions"),
 		[canManage],
-	);
-	const visibleAvailableColumnKeys = useMemo(
-		() =>
-			visibleColumnKeys.filter((columnKey) =>
-				availableColumnKeys.includes(columnKey),
-			),
-		[availableColumnKeys, visibleColumnKeys],
 	);
 	const columns = useMemo<
 		NonNullable<TableProps<PlatformAnnouncement>["columns"]>
@@ -190,22 +189,9 @@ export function AnnouncementTablePanel({
 			});
 		}
 
-		const dataColumnByKey = new Map(
-			dataColumns.map((column) => [
-				column.key as AnnouncementColumnKey,
-				column,
-			]),
-		);
-
-		return columnOrder.flatMap((columnKey) => {
-			const column = dataColumnByKey.get(columnKey);
-			return column && visibleAvailableColumnKeys.includes(columnKey)
-				? [column]
-				: [];
-		});
+		return dataColumns;
 	}, [
 		canManage,
-		columnOrder,
 		formatPreferences,
 		onDelete,
 		onEdit,
@@ -213,17 +199,28 @@ export function AnnouncementTablePanel({
 		tableState.order,
 		tableState.sort,
 		token.controlHeight,
-		visibleAvailableColumnKeys,
 	]);
+	const tableColumns = useResponsiveTableColumns<
+		PlatformAnnouncement,
+		AnnouncementColumnKey
+	>({
+		availableColumnKeys,
+		columnKeys,
+		columns,
+		configs: announcementColumnVisibility,
+		containerRef: tableContainerRef,
+		storageKey: getTableColumnSettingsStorageKey("announcements"),
+	});
 	const columnSettingsTitle = (
 		<Flex align="center" justify="space-between">
 			<Checkbox
-				checked={availableColumnKeys.every((columnKey) =>
-					visibleAvailableColumnKeys.includes(columnKey),
-				)}
+				checked={tableColumns.isAllColumnsVisible}
+				indeterminate={tableColumns.isSomeColumnsVisible}
 				onChange={(event) => {
-					setVisibleColumnKeys(
-						event.target.checked ? [...availableColumnKeys] : ["title"],
+					tableColumns.setVisibleColumnKeys(
+						event.target.checked
+							? tableColumns.availableColumnKeys
+							: tableColumns.requiredColumnKeys,
 					);
 				}}
 			>
@@ -231,8 +228,7 @@ export function AnnouncementTablePanel({
 			</Checkbox>
 			<Button
 				onClick={() => {
-					setColumnOrder([...columnKeys]);
-					setVisibleColumnKeys([...availableColumnKeys]);
+					tableColumns.resetColumnSettings();
 				}}
 				size="small"
 				type="link"
@@ -257,16 +253,15 @@ export function AnnouncementTablePanel({
 				<Tree
 					blockNode
 					checkable
-					checkedKeys={visibleAvailableColumnKeys}
+					checkedKeys={tableColumns.visibleColumnKeys}
 					draggable
 					onCheck={(checkedKeys) => {
 						const nextCheckedKeys = Array.isArray(checkedKeys)
 							? checkedKeys
 							: checkedKeys.checked;
-						setVisibleColumnKeys(
-							availableColumnKeys.filter(
-								(columnKey) =>
-									columnKey === "title" || nextCheckedKeys.includes(columnKey),
+						tableColumns.setVisibleColumnKeys(
+							tableColumns.availableColumnKeys.filter((columnKey) =>
+								nextCheckedKeys.includes(columnKey),
 							),
 						);
 					}}
@@ -275,7 +270,7 @@ export function AnnouncementTablePanel({
 						const targetKey = node.key;
 						const targetPosition = Number(node.pos.split("-").at(-1));
 
-						setColumnOrder((existingOrder) => {
+						tableColumns.setColumnOrder((existingOrder) => {
 							const nextOrder = existingOrder.filter(
 								(columnKey) => columnKey !== dragKey,
 							);
@@ -290,13 +285,13 @@ export function AnnouncementTablePanel({
 					}}
 					selectable={false}
 					showLine={false}
-					treeData={columnOrder
-						.filter((columnKey) => availableColumnKeys.includes(columnKey))
-						.map((columnKey) => ({
-							disabled: columnKey === "title",
-							key: columnKey,
-							title: t(`adminShell.announcements.columns.${columnKey}`),
-						}))}
+					treeData={tableColumns.columnOrder.map((columnKey) => ({
+						disabled: tableColumns.requiredColumnKeys.some(
+							(requiredKey) => requiredKey === columnKey,
+						),
+						key: columnKey,
+						title: t(`adminShell.announcements.columns.${columnKey}`),
+					}))}
 				/>
 			</ConfigProvider>
 		</Flex>
@@ -326,133 +321,135 @@ export function AnnouncementTablePanel({
 	};
 
 	return (
-		<Card
-			data-testid="admin-announcements-table-card"
-			extra={
-				<Space>
-					{canManage ? (
-						<Button
-							icon={<PlusOutlined aria-hidden />}
-							onClick={onCreate}
-							type="primary"
+		<div ref={tableContainerRef}>
+			<Card
+				data-testid="admin-announcements-table-card"
+				extra={
+					<Space>
+						{canManage ? (
+							<Button
+								icon={<PlusOutlined aria-hidden />}
+								onClick={onCreate}
+								type="primary"
+							>
+								{t("adminShell.announcements.create")}
+							</Button>
+						) : null}
+						<Tooltip title={t("adminShell.announcements.reload")}>
+							<Button
+								aria-label={t("adminShell.announcements.reload")}
+								color="default"
+								icon={<ReloadOutlined aria-hidden />}
+								loading={refreshing}
+								onClick={onReload}
+								variant="link"
+							/>
+						</Tooltip>
+						<Dropdown
+							menu={{
+								items: [
+									{
+										key: "large",
+										label: t("adminShell.announcements.densityOptions.large"),
+									},
+									{
+										key: "middle",
+										label: t("adminShell.announcements.densityOptions.middle"),
+									},
+									{
+										key: "small",
+										label: t("adminShell.announcements.densityOptions.small"),
+									},
+								],
+								onClick: changeTableSize,
+								selectedKeys: [tableSize],
+							}}
+							placement="bottomRight"
+							trigger={["click"]}
 						>
-							{t("adminShell.announcements.create")}
-						</Button>
-					) : null}
-					<Tooltip title={t("adminShell.announcements.reload")}>
-						<Button
-							aria-label={t("adminShell.announcements.reload")}
-							color="default"
-							icon={<ReloadOutlined aria-hidden />}
-							loading={refreshing}
-							onClick={onReload}
-							variant="link"
-						/>
-					</Tooltip>
-					<Dropdown
-						menu={{
-							items: [
-								{
-									key: "large",
-									label: t("adminShell.announcements.densityOptions.large"),
-								},
-								{
-									key: "middle",
-									label: t("adminShell.announcements.densityOptions.middle"),
-								},
-								{
-									key: "small",
-									label: t("adminShell.announcements.densityOptions.small"),
-								},
-							],
-							onClick: changeTableSize,
-							selectedKeys: [tableSize],
-						}}
-						placement="bottomRight"
-						trigger={["click"]}
-					>
-						<Tooltip title={t("adminShell.announcements.density")}>
-							<Button
-								aria-label={t("adminShell.announcements.density")}
-								color="default"
-								icon={<ColumnHeightOutlined aria-hidden />}
-								variant="link"
-							/>
-						</Tooltip>
-					</Dropdown>
-					<Popover
-						arrow={false}
-						content={columnSettings}
-						placement="bottomRight"
-						title={columnSettingsTitle}
-						trigger="click"
-					>
-						<Tooltip title={t("adminShell.announcements.tableSettings")}>
-							<Button
-								aria-label={t("adminShell.announcements.tableSettings")}
-								color="default"
-								icon={<SettingOutlined aria-hidden />}
-								variant="link"
-							/>
-						</Tooltip>
-					</Popover>
-					<Tooltip
-						title={t(
-							isFullscreen
-								? "adminShell.announcements.exitFullscreen"
-								: "adminShell.announcements.fullscreen",
-						)}
-					>
-						<Button
-							aria-label={t(
+							<Tooltip title={t("adminShell.announcements.density")}>
+								<Button
+									aria-label={t("adminShell.announcements.density")}
+									color="default"
+									icon={<ColumnHeightOutlined aria-hidden />}
+									variant="link"
+								/>
+							</Tooltip>
+						</Dropdown>
+						<Popover
+							arrow={false}
+							content={columnSettings}
+							placement="bottomRight"
+							title={columnSettingsTitle}
+							trigger="click"
+						>
+							<Tooltip title={t("adminShell.announcements.tableSettings")}>
+								<Button
+									aria-label={t("adminShell.announcements.tableSettings")}
+									color="default"
+									icon={<SettingOutlined aria-hidden />}
+									variant="link"
+								/>
+							</Tooltip>
+						</Popover>
+						<Tooltip
+							title={t(
 								isFullscreen
 									? "adminShell.announcements.exitFullscreen"
 									: "adminShell.announcements.fullscreen",
 							)}
-							color="default"
-							icon={
-								isFullscreen ? (
-									<FullscreenExitOutlined aria-hidden />
-								) : (
-									<FullscreenOutlined aria-hidden />
-								)
-							}
-							onClick={onToggleFullscreen}
-							variant="link"
-						/>
-					</Tooltip>
-				</Space>
-			}
-			styles={{
-				header: { minHeight: token.controlHeightLG + token.marginLG },
-			}}
-			title={t("adminShell.announcements.tableTitle")}
-		>
-			<Table<PlatformAnnouncement>
-				columns={columns}
-				dataSource={data?.items ?? []}
-				loading={loading}
-				locale={{ emptyText: t("adminShell.announcements.empty") }}
-				onChange={handleTableChange}
-				pagination={{
-					current: data?.page ?? tableState.page,
-					pageSize: data?.pageSize ?? tableState.pageSize,
-					pageSizeOptions: [10, 20, 50, 100],
-					placement: ["bottomEnd"],
-					showSizeChanger: true,
-					showTotal: (total, [start, end]) =>
-						t("adminShell.announcements.paginationTotal", {
-							end,
-							start,
-							total,
-						}),
-					total: data?.total ?? 0,
+						>
+							<Button
+								aria-label={t(
+									isFullscreen
+										? "adminShell.announcements.exitFullscreen"
+										: "adminShell.announcements.fullscreen",
+								)}
+								color="default"
+								icon={
+									isFullscreen ? (
+										<FullscreenExitOutlined aria-hidden />
+									) : (
+										<FullscreenOutlined aria-hidden />
+									)
+								}
+								onClick={onToggleFullscreen}
+								variant="link"
+							/>
+						</Tooltip>
+					</Space>
+				}
+				styles={{
+					header: { minHeight: token.controlHeightLG + token.marginLG },
 				}}
-				rowKey="id"
-				scroll={{ x: tableMinimumWidth }}
-				size={tableSize}
-				tableLayout="fixed"
-			/>
-		</Card>
+				title={t("adminShell.announcements.tableTitle")}
+			>
+				<Table<PlatformAnnouncement>
+					columns={tableColumns.visibleColumns}
+					dataSource={data?.items ?? []}
+					loading={loading}
+					locale={{ emptyText: t("adminShell.announcements.empty") }}
+					onChange={handleTableChange}
+					pagination={{
+						current: data?.page ?? tableState.page,
+						pageSize: data?.pageSize ?? tableState.pageSize,
+						pageSizeOptions: [10, 20, 50, 100],
+						placement: ["bottomEnd"],
+						showSizeChanger: true,
+						showTotal: (total, [start, end]) =>
+							t("adminShell.announcements.paginationTotal", {
+								end,
+								start,
+								total,
+							}),
+						total: data?.total ?? 0,
+					}}
+					rowKey="id"
+					scroll={{ x: tableColumns.minimumWidth }}
+					size={tableSize}
+					tableLayout="fixed"
+				/>
+			</Card>
+		</div>
 	);
 }

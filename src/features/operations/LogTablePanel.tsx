@@ -37,10 +37,26 @@ import type {
 	TableProps,
 } from "antd";
 import type { ReactNode, RefObject } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+	defaultPreferences,
+	readUserTableDensityPreference,
+	subscribeToPreferenceChanges,
+	writeUserTableDensityPreference,
+} from "../../app/preferenceStorage";
 import { QueryFilterSubmitter } from "../../app/QueryFilterSubmitter";
+import {
+	type ResponsiveTableColumnConfig,
+	useResponsiveTableColumns,
+} from "../../app/tableColumnVisibility";
 
 const { Link } = Typography;
 const pageSizeOptions = [10, 20, 50, 100];
@@ -70,6 +86,8 @@ interface LogQueryPanelProps<Values extends object> {
 }
 
 interface LogTablePanelProps<Row extends { id: string }> {
+	columnSettingsStorageKey: string;
+	columnVisibility: readonly ResponsiveTableColumnConfig<string>[];
 	columns: TableColumnsType<Row>;
 	dataSource: Row[];
 	description?: ReactNode;
@@ -78,7 +96,7 @@ interface LogTablePanelProps<Row extends { id: string }> {
 	errorFallback?: string;
 	errorTitle?: string;
 	initialLoading: boolean;
-	minimumWidth: number;
+	minimumWidth?: number;
 	onPageChange: (page: number, pageSize: number) => void;
 	onReload: () => void;
 	onTableChange: NonNullable<TableProps<Row>["onChange"]>;
@@ -223,6 +241,8 @@ export function LogQueryPanel<Values extends object>({
 }
 
 export function LogTablePanel<Row extends { id: string }>({
+	columnSettingsStorageKey,
+	columnVisibility,
 	columns,
 	dataSource,
 	description,
@@ -252,13 +272,20 @@ export function LogTablePanel<Row extends { id: string }>({
 		() => columns.map((column) => String(column.key)),
 		[columns],
 	);
-	const [visibleColumnKeys, setVisibleColumnKeys] =
-		useState<string[]>(allColumnKeys);
-	const [tableSize, setTableSize] = useState<TableProps<Row>["size"]>("middle");
-	const [isFullscreen, setIsFullscreen] = useState(false);
-	const visibleColumns = columns.filter((column) =>
-		visibleColumnKeys.includes(String(column.key)),
+	const tableColumns = useResponsiveTableColumns<Row, string>({
+		columnKeys: allColumnKeys,
+		columns,
+		configs: columnVisibility,
+		containerRef: workspaceRef,
+		storageKey: columnSettingsStorageKey,
+	});
+	const tableSize = useSyncExternalStore(
+		subscribeToPreferenceChanges,
+		readUserTableDensityPreference,
+		() => defaultPreferences.userTableDensity,
 	);
+	const [isFullscreen, setIsFullscreen] = useState(false);
+	const tableScrollX = tableColumns.minimumWidth || minimumWidth || "max-content";
 
 	useEffect(() => {
 		const handleFullscreenChange = () => {
@@ -283,19 +310,20 @@ export function LogTablePanel<Row extends { id: string }>({
 		>
 			<Flex align="center" justify="space-between">
 				<Checkbox
-					checked={visibleColumnKeys.length === allColumnKeys.length}
-					indeterminate={
-						visibleColumnKeys.length > 0 &&
-						visibleColumnKeys.length < allColumnKeys.length
-					}
+					checked={tableColumns.isAllColumnsVisible}
+					indeterminate={tableColumns.isSomeColumnsVisible}
 					onChange={(event) => {
-						setVisibleColumnKeys(event.target.checked ? allColumnKeys : []);
+						tableColumns.setVisibleColumnKeys(
+							event.target.checked
+								? tableColumns.availableColumnKeys
+								: tableColumns.requiredColumnKeys,
+						);
 					}}
 				>
 					{t("adminShell.logs.common.columnDisplay")}
 				</Checkbox>
 				<Button
-					onClick={() => setVisibleColumnKeys(allColumnKeys)}
+					onClick={tableColumns.resetColumnSettings}
 					size="small"
 					type="link"
 				>
@@ -303,12 +331,18 @@ export function LogTablePanel<Row extends { id: string }>({
 				</Button>
 			</Flex>
 			<Checkbox.Group
-				onChange={(keys) => setVisibleColumnKeys(keys.map(String))}
-				value={visibleColumnKeys}
+				onChange={(keys) => tableColumns.setVisibleColumnKeys(keys.map(String))}
+				value={tableColumns.visibleColumnKeys}
 			>
 				<Flex gap={token.marginXS} vertical>
 					{columns.map((column) => (
-						<Checkbox key={String(column.key)} value={String(column.key)}>
+						<Checkbox
+							disabled={tableColumns.requiredColumnKeys.includes(
+								String(column.key),
+							)}
+							key={String(column.key)}
+							value={String(column.key)}
+						>
 							{column.title as ReactNode}
 						</Checkbox>
 					))}
@@ -375,8 +409,15 @@ export function LogTablePanel<Row extends { id: string }>({
 								<Dropdown
 									menu={{
 										items: densityItems,
-										onClick: ({ key }) =>
-											setTableSize(key as TableProps<Row>["size"]),
+										onClick: ({ key }) => {
+											if (
+												key === "large" ||
+												key === "middle" ||
+												key === "small"
+											) {
+												writeUserTableDensityPreference(key);
+											}
+										},
 										selectedKeys: [tableSize ?? "middle"],
 									}}
 									placement="bottomRight"
@@ -462,7 +503,7 @@ export function LogTablePanel<Row extends { id: string }>({
 						/>
 					) : (
 						<Table<Row>
-							columns={visibleColumns}
+							columns={tableColumns.visibleColumns}
 							dataSource={dataSource}
 							loading={initialLoading || refreshing}
 							locale={{ emptyText }}
@@ -483,7 +524,7 @@ export function LogTablePanel<Row extends { id: string }>({
 								total,
 							}}
 							rowKey="id"
-							scroll={{ x: minimumWidth }}
+							scroll={{ x: tableScrollX }}
 							size={tableSize}
 							tableLayout="fixed"
 						/>

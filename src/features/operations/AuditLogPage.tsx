@@ -18,7 +18,9 @@ import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { resolveTableSort } from "../../app/tableSorting";
+import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	TableActionButton,
 	TableActionMenu,
@@ -49,6 +51,16 @@ const auditTableSortToContractSort: Record<string, AuditLogSort> = {
 	created_at: "created_at",
 	result: "result",
 };
+const auditLogColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
+	[
+		{ key: "actorUsername", priority: "compact", required: true },
+		{ key: "action", priority: "compact" },
+		{ key: "target", priority: "regular" },
+		{ key: "result", priority: "compact" },
+		{ key: "requestIp", priority: "regular" },
+		{ key: "created_at", priority: "compact" },
+		{ key: "actions", priority: "compact", required: true },
+	];
 
 interface AuditFilterFormValues {
 	action?: string;
@@ -239,6 +251,10 @@ export function AuditLogPage() {
 		<Flex gap={token.marginLG} vertical>
 			{messageContextHolder}
 			<LogTablePanel<PlatformAuditLog>
+				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+					"audit-logs",
+				)}
+				columnVisibility={auditLogColumnVisibility}
 				columns={columns}
 				dataSource={query.data?.items ?? []}
 				emptyText={t("adminShell.logs.audit.empty")}

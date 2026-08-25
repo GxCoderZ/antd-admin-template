@@ -31,7 +31,6 @@ import {
 import {
 	type ReactNode,
 	useEffect,
-	useMemo,
 	useRef,
 	useState,
 	useSyncExternalStore,
@@ -40,23 +39,23 @@ import { useTranslation } from "react-i18next";
 
 import {
 	defaultPreferences,
+	getTableColumnSettingsStorageKey,
 	readUserTableDensityPreference,
 	subscribeToPreferenceChanges,
 	writeUserTableDensityPreference,
 } from "../../../app/preferenceStorage";
 import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
+import { useResponsiveTableColumns } from "../../../app/tableColumnVisibility";
 import { LogQueryPanel } from "../../operations/LogTablePanel";
 import type { PlatformUser } from "#src/api/users";
 import { getProblemFallback } from "../userProblems";
 import {
 	defaultUserFilterValues,
-	defaultVisibleUserColumnKeys,
-	requiredUserColumnKeys,
 	type UserColumnKey,
 	type UserFilterValues,
 	type UserTableState,
 	userColumnKeys,
-	userColumnWidthMultipliers,
+	userColumnVisibility,
 } from "../userTableTypes";
 import { useUserTableColumns } from "./useUserTableColumns";
 
@@ -132,24 +131,7 @@ export function UsersTablePanel({
 		() => defaultPreferences.userTableDensity,
 	);
 	const [isFullscreen, setIsFullscreen] = useState(false);
-	const [columnOrder, setColumnOrder] = useState<UserColumnKey[]>([
-		...userColumnKeys,
-	]);
-	const [visibleColumnKeys, setVisibleColumnKeys] = useState<UserColumnKey[]>([
-		...defaultVisibleUserColumnKeys,
-	]);
 	const workspaceRef = useRef<HTMLDivElement>(null);
-	const availableColumnKeys = useMemo<readonly UserColumnKey[]>(
-		() => userColumnKeys,
-		[],
-	);
-	const visibleAvailableColumnKeys = useMemo(
-		() =>
-			visibleColumnKeys.filter((columnKey) =>
-				availableColumnKeys.includes(columnKey),
-			),
-		[availableColumnKeys, visibleColumnKeys],
-	);
 	const columns = useUserTableColumns({
 		canManageUsers,
 		currentUserId,
@@ -159,14 +141,14 @@ export function UsersTablePanel({
 		onManageRoles,
 		onResetPassword,
 		tableState,
-		userColumnOrder: columnOrder,
-		visibleColumnKeys: visibleAvailableColumnKeys,
 	});
-	const minimumWidth = visibleAvailableColumnKeys.reduce(
-		(totalWidth, columnKey) =>
-			totalWidth + token.controlHeight * userColumnWidthMultipliers[columnKey],
-		token.controlHeight * 2,
-	);
+	const tableColumns = useResponsiveTableColumns<PlatformUser, UserColumnKey>({
+		columnKeys: userColumnKeys,
+		columns,
+		configs: userColumnVisibility,
+		containerRef: workspaceRef,
+		storageKey: getTableColumnSettingsStorageKey("users"),
+	});
 
 	useEffect(() => {
 		const syncFullscreenState = () => {
@@ -196,18 +178,13 @@ export function UsersTablePanel({
 	const columnSettingsTitle = (
 		<Flex align="center" justify="space-between">
 			<Checkbox
-				checked={availableColumnKeys.every((key) =>
-					visibleAvailableColumnKeys.includes(key),
-				)}
-				indeterminate={
-					visibleAvailableColumnKeys.length > 0 &&
-					visibleAvailableColumnKeys.length < availableColumnKeys.length
-				}
+				checked={tableColumns.isAllColumnsVisible}
+				indeterminate={tableColumns.isSomeColumnsVisible}
 				onChange={(event) =>
-					setVisibleColumnKeys(
+					tableColumns.setVisibleColumnKeys(
 						event.target.checked
-							? [...availableColumnKeys]
-							: [...requiredUserColumnKeys],
+							? tableColumns.availableColumnKeys
+							: tableColumns.requiredColumnKeys,
 					)
 				}
 			>
@@ -215,8 +192,7 @@ export function UsersTablePanel({
 			</Checkbox>
 			<Button
 				onClick={() => {
-					setColumnOrder([...userColumnKeys]);
-					setVisibleColumnKeys([...defaultVisibleUserColumnKeys]);
+					tableColumns.resetColumnSettings();
 				}}
 				size="small"
 				type="link"
@@ -241,18 +217,15 @@ export function UsersTablePanel({
 				<Tree
 					blockNode
 					checkable
-					checkedKeys={visibleAvailableColumnKeys}
+					checkedKeys={tableColumns.visibleColumnKeys}
 					draggable
 					onCheck={(checkedKeys) => {
 						const nextKeys = Array.isArray(checkedKeys)
 							? checkedKeys
 							: checkedKeys.checked;
-						setVisibleColumnKeys(
-							availableColumnKeys.filter(
-								(columnKey) =>
-									requiredUserColumnKeys.some(
-										(requiredKey) => requiredKey === columnKey,
-									) || nextKeys.includes(columnKey),
+						tableColumns.setVisibleColumnKeys(
+							tableColumns.availableColumnKeys.filter((columnKey) =>
+								nextKeys.includes(columnKey),
 							),
 						);
 					}}
@@ -260,7 +233,7 @@ export function UsersTablePanel({
 						const dragKey = dragNode.key;
 						const targetKey = node.key;
 						const targetPosition = Number(node.pos.split("-").at(-1));
-						setColumnOrder((existingOrder) => {
+						tableColumns.setColumnOrder((existingOrder) => {
 							const nextOrder = existingOrder.filter((key) => key !== dragKey);
 							const targetIndex = nextOrder.indexOf(targetKey);
 							const insertIndex =
@@ -273,15 +246,13 @@ export function UsersTablePanel({
 					}}
 					selectable={false}
 					showLine={false}
-					treeData={columnOrder
-						.filter((key) => availableColumnKeys.includes(key))
-						.map((key) => ({
-							disabled: requiredUserColumnKeys.some(
-								(requiredKey) => requiredKey === key,
-							),
-							key,
-							title: t(`adminShell.users.columns.${key}`),
-						}))}
+					treeData={tableColumns.columnOrder.map((key) => ({
+						disabled: tableColumns.requiredColumnKeys.some(
+							(requiredKey) => requiredKey === key,
+						),
+						key,
+						title: t(`adminShell.users.columns.${key}`),
+					}))}
 				/>
 			</ConfigProvider>
 		</Flex>
@@ -488,7 +459,7 @@ export function UsersTablePanel({
 					title={t("adminShell.users.tableTitle")}
 				>
 					<Table<PlatformUser>
-						columns={columns}
+						columns={tableColumns.visibleColumns}
 						dataSource={data?.items ?? []}
 						loading={initialLoading || refreshing}
 						locale={{ emptyText: t("adminShell.users.empty") }}
@@ -504,7 +475,7 @@ export function UsersTablePanel({
 							total: data?.total ?? 0,
 						}}
 						rowKey="id"
-						scroll={{ x: minimumWidth }}
+						scroll={{ x: tableColumns.minimumWidth }}
 						size={tableSize}
 						tableLayout="fixed"
 					/>
