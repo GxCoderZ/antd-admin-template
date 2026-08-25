@@ -152,6 +152,7 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 	await page.keyboard.press("Escape");
 
 	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
+	await expect(page.getByRole("table")).toContainText("系统维护通知");
 	await expect(
 		page.getByRole("button", { name: "编辑" }).first(),
 	).toBeVisible();
@@ -367,6 +368,51 @@ test("公告管理在窄屏下保持可导航和可编辑", async ({ page }) => 
 	await expect(drawer).toBeVisible();
 	const drawerBounds = await drawer.boundingBox();
 	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
+});
+
+test("可编辑表格支持通过 Fake API 新增并查询行", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
+	await expect(page.getByRole("table")).toContainText("月度预算复核");
+	for (const actionName of ["刷新", "表格密度", "表格设置", "表格全屏"]) {
+		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
+	}
+
+	await page.getByRole("button", { name: "新增行" }).click();
+	const editingRow = page.getByRole("row").filter({
+		has: page.getByRole("button", { name: "保存" }),
+	});
+	await editingRow.getByRole("textbox").nth(0).fill("端到端可编辑行");
+	await editingRow.getByRole("textbox").nth(1).fill("Sophia Sun");
+	await editingRow.getByRole("spinbutton").nth(0).fill("66");
+	await editingRow.getByRole("spinbutton").nth(1).fill("42");
+	await editingRow.getByRole("button", { name: "保存" }).click();
+
+	await page.getByPlaceholder("搜索事项名称或负责人").fill("端到端可编辑行");
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await expect(page.getByText("端到端可编辑行", { exact: true })).toBeVisible();
+});
+
+test("可编辑表格在 390px 窄屏下保留横向滚动且页面不溢出", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
+	await expect(page.getByRole("button", { name: "新增行" })).toBeVisible();
+	await expect(page.getByRole("combobox", { name: "状态" })).toHaveCount(0);
+	await page.getByText("展开", { exact: true }).click();
+	await expect(page.getByRole("combobox", { name: "状态" })).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
 });
 
 test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) => {

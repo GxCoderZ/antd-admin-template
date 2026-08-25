@@ -30,6 +30,7 @@ export type AdminRouteIconKey =
 	| "searchArticles"
 	| "searchProjects"
 	| "searchApplications"
+	| "editableTable"
 	| "treeCategory"
 	| "previewPanel"
 	| "resultSuccess"
@@ -174,6 +175,12 @@ const loadSearchApplicationsPage = async (): Promise<LazyAdminRouteModule> => {
 	const { SearchApplicationsPage } =
 		await import("../features/page-examples/SearchListPages");
 	return { Component: SearchApplicationsPage };
+};
+
+const loadEditableTablePage = async (): Promise<LazyAdminRouteModule> => {
+	const { EditableTablePage } =
+		await import("../features/editable-table-examples/EditableTablePage");
+	return { Component: EditableTablePage };
 };
 
 const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
@@ -403,6 +410,15 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 	},
 	{
 		groupKey: "examples",
+		iconKey: "editableTable",
+		key: "/examples/lists/editable-table",
+		lazy: loadEditableTablePage,
+		navigationParentKeys: ["example-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.editableTable",
+	},
+	{
+		groupKey: "examples",
 		iconKey: "about",
 		key: "/examples/lists/cards",
 		lazy: loadCardListPage,
@@ -595,6 +611,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 						],
 					},
 					{ routeKey: "/examples/lists/cards" },
+					{ routeKey: "/examples/lists/editable-table" },
 				],
 			},
 			{ routeKey: "/examples/tree-category" },

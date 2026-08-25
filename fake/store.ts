@@ -17,6 +17,7 @@ import type {
 	ExampleListItem,
 	ExampleRecordDetail,
 } from "../src/api/page-examples";
+import type { EditableTableRow } from "../src/api/editable-table-examples";
 import type { PlatformAuditLog, PlatformLoginLog } from "../src/api/operations";
 import type { PlatformPosition } from "../src/api/positions";
 import type { PlatformRole } from "../src/api/roles";
@@ -549,6 +550,37 @@ export const announcements: PlatformAnnouncement[] = Array.from(
 		status: index % 4 === 0 ? "draft" : "published",
 		title: `${announcementTitles[index % announcementTitles.length]} ${index + 1}`,
 		updatedAt: iso(2_000 - index * 37),
+	}),
+);
+
+const editableTableNames = [
+	"月度预算复核",
+	"客户标签整理",
+	"上线检查清单",
+	"内容排期维护",
+	"资产台账补录",
+	"服务质量抽检",
+] as const;
+
+const editableTableOwners = [
+	"Olivia Chen",
+	"Noah Wang",
+	"Emma Liu",
+	"Liam Zhang",
+	"Sophia Sun",
+	"Platform Admin",
+] as const;
+
+export const editableTableRows: EditableTableRow[] = Array.from(
+	{ length: 36 },
+	(_, index): EditableTableRow => ({
+		id: `editable-row-${index + 1}`,
+		name: `${editableTableNames[index % editableTableNames.length]} ${index + 1}`,
+		owner: editableTableOwners[index % editableTableOwners.length]!,
+		priority: (index + 1) * 10,
+		progress: (index * 13) % 101,
+		status: (["active", "draft", "paused"] as const)[index % 3]!,
+		updatedAt: iso(1_400 - index * 29),
 	}),
 );
 

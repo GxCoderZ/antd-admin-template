@@ -57,6 +57,7 @@ export function AdminRouteIcon({ iconKey }: AdminRouteIconProps) {
 		searchProjects: <ProjectOutlined aria-hidden />,
 		settings: <ControlOutlined aria-hidden />,
 		stepForm: <PartitionOutlined aria-hidden />,
+		editableTable: <TableOutlined aria-hidden />,
 		treeCategory: <ApartmentOutlined aria-hidden />,
 		users: <UserOutlined aria-hidden />,
 	} satisfies Record<AdminRouteIconKey, ReactNode>;

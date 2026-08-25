@@ -23,6 +23,7 @@ describe("admin route template", () => {
 			"/examples/lists/search/articles",
 			"/examples/lists/search/projects",
 			"/examples/lists/search/applications",
+			"/examples/lists/editable-table",
 			"/examples/lists/cards",
 			"/examples/tree-category",
 			"/examples/preview-panel",
