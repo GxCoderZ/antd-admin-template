@@ -15,8 +15,6 @@ interface PlatformUserAvatarProps {
 	userId: string;
 }
 
-const defaultCurrentUserAvatar = "/antd-pro-card-avatar.png";
-
 function getInitial(displayName: string) {
 	return Array.from(displayName.trim())[0]?.toUpperCase();
 }
@@ -39,17 +37,11 @@ export function PlatformUserAvatar({
 	const initial = getInitial(displayName);
 	const fallbackContent =
 		fallback === "icon" || !initial ? <UserOutlined aria-hidden /> : initial;
-	const fallbackSource =
-		fallback === "icon" ? defaultCurrentUserAvatar : undefined;
-	const source = [customSource, fallbackSource].find(
-		(candidate): candidate is string =>
-			candidate !== undefined && !failedSources.has(candidate),
-	);
+	const source =
+		customSource && !failedSources.has(customSource) ? customSource : undefined;
 
 	// Drive the image through Avatar's own src prop so antd applies its
-	// fill-and-crop styling (like Ant Design Pro); a child <img> would leave
-	// the default background ring showing. Fall back to the initial/icon when
-	// the image fails to load.
+	// fill-and-crop styling. Fall back to the initial/icon when it fails.
 	return (
 		<Avatar
 			alt=""

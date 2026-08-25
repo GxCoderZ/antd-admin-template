@@ -32,15 +32,15 @@ function renderAvatar(fallback: "icon" | "initial") {
 }
 
 describe("PlatformUserAvatar", () => {
-	it("uses the bundled Ant Design Pro card avatar for the current user fallback", async () => {
+	it("uses the Ant Design user icon when the current user has no avatar", async () => {
 		const { container } = renderAvatar("icon");
 
 		await waitFor(() =>
-			expect(container.querySelector(".ant-avatar img")).toHaveAttribute(
-				"src",
-				"/antd-pro-card-avatar.png",
-			),
+			expect(
+				container.querySelector(".ant-avatar img"),
+			).not.toBeInTheDocument(),
 		);
+		expect(container.querySelector(".anticon-user")).toBeInTheDocument();
 	});
 
 	it("keeps initials for list users", async () => {
