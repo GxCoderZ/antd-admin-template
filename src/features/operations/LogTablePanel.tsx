@@ -43,7 +43,7 @@ import { useTranslation } from "react-i18next";
 import { QueryFilterSubmitter } from "../../app/QueryFilterSubmitter";
 
 const { Link } = Typography;
-const pageSizeOptions = [10, 20, 50];
+const pageSizeOptions = [10, 20, 50, 100];
 
 export const defaultLogPageSize = 10;
 
@@ -72,6 +72,7 @@ interface LogQueryPanelProps<Values extends object> {
 interface LogTablePanelProps<Row extends { id: string }> {
 	columns: TableColumnsType<Row>;
 	dataSource: Row[];
+	description?: ReactNode;
 	emptyText: string;
 	error: unknown;
 	initialLoading: boolean;
@@ -81,6 +82,7 @@ interface LogTablePanelProps<Row extends { id: string }> {
 	onTableChange: NonNullable<TableProps<Row>["onChange"]>;
 	page: number;
 	pageSize: number;
+	primaryAction?: ReactNode;
 	queryPanel: ReactNode;
 	refreshing: boolean;
 	testId: string;
@@ -221,6 +223,7 @@ export function LogQueryPanel<Values extends object>({
 export function LogTablePanel<Row extends { id: string }>({
 	columns,
 	dataSource,
+	description,
 	emptyText,
 	error,
 	initialLoading,
@@ -230,6 +233,7 @@ export function LogTablePanel<Row extends { id: string }>({
 	onTableChange,
 	page,
 	pageSize,
+	primaryAction,
 	queryPanel,
 	refreshing,
 	testId,
@@ -346,6 +350,7 @@ export function LogTablePanel<Row extends { id: string }>({
 					data-testid={testId}
 					extra={
 						<Space>
+							{primaryAction}
 							<Tooltip title={t("adminShell.logs.common.reload")}>
 								<Button
 									aria-label={t("adminShell.logs.common.reload")}
@@ -422,6 +427,9 @@ export function LogTablePanel<Row extends { id: string }>({
 					}}
 					title={title}
 				>
+					{description ? (
+						<div style={{ marginBottom: token.margin }}>{description}</div>
+					) : null}
 					{error ? (
 						<Alert
 							action={

@@ -337,6 +337,9 @@ export const zhCNTranslation = {
 		},
 		roles: {
 			tableTitle: "角色列表",
+			filters: {
+				q: "关键词",
+			},
 			create: "新建角色",
 			createTitle: "新建角色",
 			delete: "删除",
@@ -411,6 +414,7 @@ export const zhCNTranslation = {
 			},
 			placeholders: {
 				displayName: "请输入角色名称",
+				q: "搜索角色名称或标识",
 				roleKey: "请输入小写字母、数字或连字符",
 			},
 			errors: {

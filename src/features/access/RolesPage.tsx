@@ -4,19 +4,23 @@ import {
 	SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import { ApiProblemError } from "#src/api/client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	keepPreviousData,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import {
 	Alert,
 	Button,
-	Card,
 	Checkbox,
+	Col,
 	Drawer,
 	Flex,
 	Form,
 	Input,
 	Modal,
 	Space,
-	Table,
 	Tag,
 	type TableProps,
 	theme,
@@ -34,14 +38,21 @@ import {
 	type PlatformPermission,
 } from "../../app/permissions";
 import { TableActionButton } from "../../app/TableActionButton";
+import {
+	useQueryFilterLayout,
+	useQuerySubmission,
+} from "../../app/queryFilterLayout";
+import { resolveTableSort } from "../../app/tableSorting";
+import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
 import { platformSessionQueryKey } from "#src/api/auth";
 import {
 	createPlatformRole,
 	deletePlatformRole,
-	listPlatformRoles,
+	listPlatformRolePage,
 	platformRolesQueryKey,
 	setPlatformRolePermission,
 	type CreatePlatformRoleInput,
+	type ListPlatformRolesInput,
 	type PlatformRole,
 	type UpdatePlatformRoleInput,
 	updatePlatformRole,
@@ -51,6 +62,25 @@ const { Text } = Typography;
 type PermissionGroupKey =
 	"announcements" | "roles" | "users" | "logs" | "settings";
 type RenameRoleFormValues = Pick<UpdatePlatformRoleInput, "displayName">;
+type RoleSort = NonNullable<ListPlatformRolesInput["sort"]>;
+
+interface RoleFilterValues {
+	q?: string;
+}
+
+interface RoleTableState {
+	order: ListPlatformRolesInput["order"];
+	page: number;
+	pageSize: number;
+	sort: ListPlatformRolesInput["sort"];
+}
+
+const defaultRoleFilterValues: RoleFilterValues = {};
+const roleTableSortToContractSort: Record<string, RoleSort> = {
+	displayName: "display_name",
+	memberCount: "member_count",
+	roleKey: "role_key",
+};
 
 interface PermissionDefinition {
 	groupKey: PermissionGroupKey;
@@ -152,17 +182,55 @@ export function RolesPage() {
 	const { token } = theme.useToken();
 	const queryClient = useQueryClient();
 	const [createForm] = Form.useForm<CreatePlatformRoleInput>();
+	const [filterForm] = Form.useForm<RoleFilterValues>();
 	const [renameForm] = Form.useForm<RenameRoleFormValues>();
 	const [createOpen, setCreateOpen] = useState(false);
 	const [renamingRole, setRenamingRole] = useState<PlatformRole | null>(null);
 	const [deletingRole, setDeletingRole] = useState<PlatformRole | null>(null);
 	const [permissionRoleId, setPermissionRoleId] = useState<string | null>(null);
+	const [draftFilters, setDraftFilters] = useState<RoleFilterValues>(
+		defaultRoleFilterValues,
+	);
+	const [filters, setFilters] = useState<RoleFilterValues>(
+		defaultRoleFilterValues,
+	);
+	const [tableState, setTableState] = useState<RoleTableState>({
+		order: "asc",
+		page: 1,
+		pageSize: 20,
+		sort: "role_key",
+	});
+	const querySubmission = useQuerySubmission();
+	const {
+		canExpand: canExpandFilters,
+		columnSpan: queryFilterSpan,
+		containerRef: queryFilterContainerRef,
+		formLayout: queryFilterLayout,
+		submitterOffset: queryFilterSubmitterOffset,
+	} = useQueryFilterLayout({ expanded: false, fieldCount: 1 });
+	const queryParams = useMemo<ListPlatformRolesInput>(() => {
+		const q = filters.q?.trim();
+		return {
+			page: tableState.page,
+			pageSize: tableState.pageSize,
+			...(tableState.order && tableState.sort
+				? { order: tableState.order, sort: tableState.sort }
+				: {}),
+			...(q ? { q } : {}),
+		};
+	}, [filters.q, tableState]);
 	const rolesQuery = useQuery({
-		queryFn: ({ signal }) => listPlatformRoles(signal),
-		queryKey: platformRolesQueryKey,
+		placeholderData: keepPreviousData,
+		queryFn: ({ signal }) => listPlatformRolePage(queryParams, signal),
+		queryKey: [
+			...platformRolesQueryKey,
+			"page",
+			queryParams,
+			querySubmission.revision,
+		],
 	});
 	const permissionRole =
-		rolesQuery.data?.find((role) => role.id === permissionRoleId) ?? null;
+		rolesQuery.data?.items.find((role) => role.id === permissionRoleId) ?? null;
 	const refreshRoles = () =>
 		queryClient.invalidateQueries({ queryKey: platformRolesQueryKey });
 	const refreshRolesAndAuthorization = () =>
@@ -270,11 +338,23 @@ export function RolesPage() {
 		setRenamingRole(null);
 		void rolesQuery.refetch();
 	};
-	const columns = useMemo<NonNullable<TableProps<PlatformRole>["columns"]>>(
-		() => [
+	const columns = useMemo<
+		NonNullable<TableProps<PlatformRole>["columns"]>
+	>(() => {
+		const sortOrder = (column: RoleSort) =>
+			tableState.sort === column && tableState.order
+				? tableState.order === "asc"
+					? "ascend"
+					: "descend"
+				: null;
+
+		return [
 			{
 				dataIndex: "displayName",
 				key: "displayName",
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("display_name"),
 				title: t("adminShell.roles.columns.displayName"),
 				width: token.controlHeight * 5,
 			},
@@ -282,6 +362,9 @@ export function RolesPage() {
 				dataIndex: "roleKey",
 				key: "roleKey",
 				render: (roleKey: string) => <Text code>{roleKey}</Text>,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("role_key"),
 				title: t("adminShell.roles.columns.roleKey"),
 				width: token.controlHeight * 5,
 			},
@@ -290,6 +373,9 @@ export function RolesPage() {
 				dataIndex: "memberCount",
 				key: "memberCount",
 				render: (memberCount?: number) => memberCount ?? 0,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("member_count"),
 				title: t("adminShell.roles.columns.memberCount"),
 				width: token.controlHeight * 4,
 			},
@@ -375,18 +461,53 @@ export function RolesPage() {
 				title: t("adminShell.roles.columns.actions"),
 				width: token.controlHeight * 9,
 			},
-		],
-		[
-			deleteMutation,
-			permissionMutation,
-			renameForm,
-			renameMutation,
-			t,
-			token.controlHeight,
-			token.marginXXS,
-			token.marginXS,
-		],
-	);
+		];
+	}, [
+		deleteMutation,
+		permissionMutation,
+		renameForm,
+		renameMutation,
+		tableState.order,
+		tableState.sort,
+		t,
+		token.controlHeight,
+		token.marginXXS,
+		token.marginXS,
+	]);
+	const queryRoles = () => {
+		setFilters(draftFilters);
+		setTableState((current) => ({ ...current, page: 1 }));
+		querySubmission.submit();
+	};
+	const resetRoleFilters = () => {
+		setDraftFilters(defaultRoleFilterValues);
+		setFilters(defaultRoleFilterValues);
+		setTableState((current) => ({ ...current, page: 1 }));
+		querySubmission.submit();
+	};
+	const handleTableChange: TableProps<PlatformRole>["onChange"] = (
+		_pagination,
+		_filters,
+		sorter,
+		extra,
+	) => {
+		if (extra.action !== "sort") {
+			return;
+		}
+
+		const currentSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+		const nextSorting = resolveTableSort(
+			currentSorter?.columnKey,
+			currentSorter?.order,
+			roleTableSortToContractSort,
+		);
+		setTableState((current) => ({
+			...current,
+			order: nextSorting.order,
+			page: 1,
+			sort: nextSorting.sort,
+		}));
+	};
 
 	return (
 		<>
@@ -676,8 +797,29 @@ export function RolesPage() {
 						type="error"
 					/>
 				) : null}
-				<Card
-					extra={
+				<LogTablePanel<PlatformRole>
+					columns={columns}
+					dataSource={rolesQuery.data?.items ?? []}
+					description={
+						<Flex align="baseline" gap={token.marginXS} wrap>
+							<Text type="secondary">{t("adminShell.roles.memberGuide")}</Text>
+							<RouterLink to="/organization/users">
+								{t("adminShell.roles.memberGuideLink")}
+							</RouterLink>
+						</Flex>
+					}
+					emptyText={t("adminShell.roles.empty")}
+					error={undefined}
+					initialLoading={rolesQuery.isPending}
+					minimumWidth={token.controlHeight * 39}
+					onPageChange={(page, pageSize) =>
+						setTableState((current) => ({ ...current, page, pageSize }))
+					}
+					onReload={() => void rolesQuery.refetch()}
+					onTableChange={handleTableChange}
+					page={tableState.page}
+					pageSize={tableState.pageSize}
+					primaryAction={
 						<Button
 							icon={<PlusOutlined aria-hidden />}
 							onClick={() => {
@@ -689,27 +831,47 @@ export function RolesPage() {
 							{t("adminShell.roles.create")}
 						</Button>
 					}
+					queryPanel={
+						<LogQueryPanel<RoleFilterValues>
+							actionsTestId="admin-roles-query-actions"
+							canExpand={canExpandFilters}
+							columnSpan={queryFilterSpan}
+							containerRef={queryFilterContainerRef}
+							expanded={false}
+							form={filterForm}
+							formLayout={queryFilterLayout}
+							initialValues={defaultRoleFilterValues}
+							loading={rolesQuery.isFetching && !rolesQuery.isPending}
+							onFinish={queryRoles}
+							onReset={resetRoleFilters}
+							onToggle={() => undefined}
+							submitterOffset={queryFilterSubmitterOffset}
+							testId="admin-roles-query-form"
+						>
+							<Col span={queryFilterSpan}>
+								<Form.Item
+									label={t("adminShell.roles.filters.q")}
+									style={{ marginBottom: 0 }}
+								>
+									<Input
+										allowClear
+										onChange={(event) =>
+											setDraftFilters({ q: event.target.value })
+										}
+										placeholder={t("adminShell.roles.placeholders.q")}
+										style={{ width: "100%" }}
+										value={draftFilters.q}
+									/>
+								</Form.Item>
+							</Col>
+						</LogQueryPanel>
+					}
+					refreshing={rolesQuery.isFetching && !rolesQuery.isPending}
+					testId="admin-roles-table-card"
 					title={t("adminShell.roles.tableTitle")}
-				>
-					<Flex gap={token.margin} vertical>
-						<Flex align="baseline" gap={token.marginXS} wrap>
-							<Text type="secondary">{t("adminShell.roles.memberGuide")}</Text>
-							<RouterLink to="/organization/users">
-								{t("adminShell.roles.memberGuideLink")}
-							</RouterLink>
-						</Flex>
-						<Table<PlatformRole>
-							columns={columns}
-							dataSource={rolesQuery.data ?? []}
-							loading={rolesQuery.isFetching}
-							locale={{ emptyText: t("adminShell.roles.empty") }}
-							pagination={false}
-							rowKey="id"
-							scroll={{ x: token.controlHeight * 39 }}
-							tableLayout="fixed"
-						/>
-					</Flex>
-				</Card>
+					total={rolesQuery.data?.total ?? 0}
+					workspaceTestId="admin-roles-table-workspace"
+				/>
 			</Flex>
 		</>
 	);

@@ -337,6 +337,9 @@ export const zhTWTranslation = {
 		},
 		roles: {
 			tableTitle: "角色清單",
+			filters: {
+				q: "關鍵字",
+			},
 			create: "新增角色",
 			createTitle: "新增角色",
 			delete: "刪除",
@@ -411,6 +414,7 @@ export const zhTWTranslation = {
 			},
 			placeholders: {
 				displayName: "請輸入角色名稱",
+				q: "搜尋角色名稱或識別碼",
 				roleKey: "請輸入小寫字母、數字或連字號",
 			},
 			errors: {

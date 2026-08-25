@@ -344,6 +344,9 @@ export const enTranslation = {
 		},
 		roles: {
 			tableTitle: "Role list",
+			filters: {
+				q: "Keyword",
+			},
 			create: "New role",
 			createTitle: "Create role",
 			delete: "Delete",
@@ -422,6 +425,7 @@ export const enTranslation = {
 			},
 			placeholders: {
 				displayName: "Enter a role name",
+				q: "Search role name or key",
 				roleKey: "Enter lowercase letters, digits, or hyphens",
 			},
 			errors: {

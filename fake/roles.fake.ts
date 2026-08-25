@@ -6,7 +6,7 @@ import type {
 } from "../src/api/roles";
 import type { PlatformPermission } from "../src/api/types";
 import { allPermissions, roles } from "./store";
-import { resultError, resultSuccess, routeParam } from "./utils";
+import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
 
 function getRole(roleId: string | undefined) {
 	return roles.find((role) => role.id === roleId);
@@ -16,7 +16,39 @@ export default defineFakeRoute([
 	{
 		url: "/platform/roles",
 		method: "get",
-		response: () => resultSuccess({ items: roles }),
+		response: ({ query }) => {
+			const page = pageValue(query.page, 1);
+			const pageSize = pageValue(query.page_size, 20);
+			const keyword = String(query.q ?? "")
+				.trim()
+				.toLowerCase();
+			const sort = routeParam(query.sort) ?? "role_key";
+			const order = routeParam(query.order) ?? "asc";
+			const filtered = roles.filter(
+				(role) =>
+					!keyword ||
+					role.displayName.toLowerCase().includes(keyword) ||
+					role.roleKey.toLowerCase().includes(keyword),
+			);
+			const sorted = [...filtered].sort((left, right) => {
+				const comparison =
+					sort === "member_count"
+						? (left.memberCount ?? 0) - (right.memberCount ?? 0)
+						: sort === "display_name"
+							? left.displayName.localeCompare(right.displayName)
+							: left.roleKey.localeCompare(right.roleKey);
+
+				return comparison * (order === "asc" ? 1 : -1);
+			});
+			const start = (page - 1) * pageSize;
+
+			return resultSuccess({
+				items: sorted.slice(start, start + pageSize),
+				page,
+				page_size: pageSize,
+				total: sorted.length,
+			});
+		},
 	},
 	{
 		url: "/platform/roles",

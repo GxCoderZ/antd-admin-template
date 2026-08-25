@@ -340,6 +340,9 @@ export const koKRTranslation = {
 		},
 		roles: {
 			tableTitle: "역할 목록",
+			filters: {
+				q: "키워드",
+			},
 			create: "역할 추가",
 			createTitle: "역할 추가",
 			delete: "삭제",
@@ -416,6 +419,7 @@ export const koKRTranslation = {
 			},
 			placeholders: {
 				displayName: "역할 이름 입력",
+				q: "역할 이름 또는 키 검색",
 				roleKey: "소문자, 숫자 또는 하이픈 입력",
 			},
 			errors: {

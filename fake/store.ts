@@ -24,6 +24,32 @@ export function setSignedIn(value: boolean) {
 	signedIn = value;
 }
 
+const generatedRoleSeeds = [
+	["finance-reviewer", "财务审核员"],
+	["customer-service", "客服专员"],
+	["content-editor", "内容编辑"],
+	["data-analyst", "数据分析师"],
+	["quality-auditor", "质量审计员"],
+	["project-owner", "项目负责人"],
+	["product-operator", "产品运营"],
+	["marketing-lead", "市场负责人"],
+	["sales-lead", "销售负责人"],
+	["hr-specialist", "人事专员"],
+	["recruiter", "招聘专员"],
+	["procurement-specialist", "采购专员"],
+	["warehouse-specialist", "仓储专员"],
+	["compliance-reviewer", "合规审核员"],
+	["risk-controller", "风险控制员"],
+	["billing-specialist", "账单专员"],
+	["report-viewer", "报表查看员"],
+	["notification-operator", "通知运营"],
+	["tenant-operator", "租户运营"],
+	["helpdesk-specialist", "帮助台专员"],
+	["asset-reviewer", "资产审核员"],
+	["ticket-specialist", "工单专员"],
+	["content-reviewer", "内容审核员"],
+] as const;
+
 export const roles: PlatformRole[] = [
 	{
 		id: "role-admin",
@@ -59,6 +85,14 @@ export const roles: PlatformRole[] = [
 		],
 		version: 1,
 	},
+	...generatedRoleSeeds.map(([roleKey, displayName], index) => ({
+		displayName,
+		id: `role-${roleKey}`,
+		memberCount: index % 8,
+		permissions: [allPermissions[5]],
+		roleKey,
+		version: 1,
+	})),
 ];
 
 const generatedUserSeeds = [

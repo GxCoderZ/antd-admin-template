@@ -66,6 +66,25 @@ test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
 	await expect(statusFilter).toBeVisible();
 });
 
+test("角色管理支持查询、分页和标准表格工具", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "角色管理", exact: true }).click();
+	await expect(page).toHaveURL(/\/access\/roles$/);
+
+	await expect(page.getByPlaceholder("搜索角色名称或标识")).toBeVisible();
+	for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
+		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
+	}
+	await expect(page.getByRole("button", { name: "right" })).toBeEnabled();
+
+	await page.getByPlaceholder("搜索角色名称或标识").fill("只读审计员");
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await expect(page.getByRole("table")).toContainText("只读审计员");
+	await expect(page.getByRole("table")).not.toContainText("平台管理员");
+});
+
 test("公告管理支持通过 Fake API 新建并查询公告", async ({ page }) => {
 	await signIn(page);
 
