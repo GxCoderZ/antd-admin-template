@@ -1,27 +1,27 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { DownOutlined, PlusOutlined } from "@ant-design/icons";
 import {
 	Alert,
 	Button,
 	Col,
+	Dropdown,
 	Flex,
 	Form,
 	Input,
 	Space,
 	Tag,
 	type FormInstance,
+	type MenuProps,
 	type TableProps,
 	theme,
 	Tooltip,
 	Typography,
 } from "antd";
 import { useMemo } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router";
 
-import {
-	TableActionButton,
-	TableActionMenu,
-} from "../../../app/TableActionButton";
+import { TableActionButton } from "../../../app/TableActionButton";
 import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
 import { LogQueryPanel, LogTablePanel } from "../../operations/LogTablePanel";
 import type { ListPlatformRolesInput, PlatformRole } from "#src/api/roles";
@@ -90,6 +90,7 @@ export function RoleTablePanel({
 }: RoleTablePanelProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const [openActionRoleId, setOpenActionRoleId] = useState<string | null>(null);
 	const { canExpand, columnSpan, containerRef, formLayout, submitterOffset } =
 		useQueryFilterLayout({ expanded: false, fieldCount: 1 });
 	const columns = useMemo<
@@ -167,6 +168,32 @@ export function RoleTablePanel({
 				key: "actions",
 				render: (_: unknown, role: PlatformRole) => {
 					const isBuiltIn = role.roleKey === "super-admin";
+					const actionItems: NonNullable<MenuProps["items"]> = [
+						{
+							key: "permissions",
+							label: t("adminShell.roles.configurePermissions"),
+							onClick: () => {
+								setOpenActionRoleId(null);
+								onConfigurePermissions(role);
+							},
+						},
+						{
+							danger: true,
+							disabled: isBuiltIn || deletePending,
+							key: "delete",
+							label: isBuiltIn ? (
+								<Tooltip title={t("adminShell.roles.builtInDeleteReason")}>
+									<span>{t("adminShell.roles.delete")}</span>
+								</Tooltip>
+							) : (
+								t("adminShell.roles.delete")
+							),
+							onClick: () => {
+								setOpenActionRoleId(null);
+								onDelete(role);
+							},
+						},
+					];
 
 					return (
 						<Space size="medium">
@@ -176,31 +203,22 @@ export function RoleTablePanel({
 							>
 								{t("adminShell.roles.rename")}
 							</TableActionButton>
-							<TableActionMenu
-								items={[
-									{
-										key: "permissions",
-										label: t("adminShell.roles.configurePermissions"),
-										onClick: () => onConfigurePermissions(role),
-									},
-									{
-										danger: true,
-										disabled: isBuiltIn || deletePending,
-										key: "delete",
-										label: isBuiltIn ? (
-											<Tooltip
-												title={t("adminShell.roles.builtInDeleteReason")}
-											>
-												<span>{t("adminShell.roles.delete")}</span>
-											</Tooltip>
-										) : (
-											t("adminShell.roles.delete")
-										),
-										onClick: () => onDelete(role),
-									},
-								]}
-								label={t("adminShell.tableActions.more")}
-							/>
+							<Dropdown
+								menu={{ items: actionItems }}
+								onOpenChange={(nextOpen) =>
+									setOpenActionRoleId(nextOpen ? role.id : null)
+								}
+								open={openActionRoleId === role.id}
+								placement="bottomRight"
+								trigger={["click"]}
+							>
+								<TableActionButton
+									icon={<DownOutlined aria-hidden />}
+									iconPlacement="end"
+								>
+									{t("adminShell.tableActions.more")}
+								</TableActionButton>
+							</Dropdown>
 						</Space>
 					);
 				},
@@ -213,6 +231,7 @@ export function RoleTablePanel({
 		onDelete,
 		onRename,
 		deletePending,
+		openActionRoleId,
 		renamePending,
 		roleOrder,
 		roleSort,

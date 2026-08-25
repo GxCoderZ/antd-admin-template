@@ -10,6 +10,15 @@ async function signIn(page: Page) {
 	await expect(page).toHaveURL(/\/dashboard$/);
 }
 
+async function showTableActions(page: Page) {
+	await page
+		.locator(".ant-table-content")
+		.last()
+		.evaluate((element) => {
+			element.scrollLeft = element.scrollWidth;
+		});
+}
+
 test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 	await signIn(page);
 	const currentUserButton = page.getByRole("button", {
@@ -83,6 +92,29 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	await page.getByRole("button", { name: /查\s*询/ }).click();
 	await expect(page.getByRole("table")).toContainText("只读审计员");
 	await expect(page.getByRole("table")).not.toContainText("平台管理员");
+
+	await page.getByPlaceholder("搜索角色名称或标识").clear();
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await showTableActions(page);
+	await page
+		.getByRole("row")
+		.filter({ hasText: "资产审核员" })
+		.getByRole("button", { name: "更多", exact: true })
+		.click();
+	await page.getByRole("menuitem", { name: "权限配置" }).click();
+	const permissionDrawer = page
+		.locator(".ant-drawer")
+		.filter({ hasText: "平台权限" });
+	await expect(
+		permissionDrawer.getByRole("searchbox", { name: "搜索权限" }),
+	).toBeVisible();
+	await expect(permissionDrawer.getByText("系统管理菜单")).toBeVisible();
+	await expect(permissionDrawer.getByText("用户管理页面")).toBeVisible();
+	await expect(permissionDrawer.getByText(/已选 \d+\/7 项/)).toBeVisible();
+	await expect(
+		permissionDrawer.getByRole("button", { name: /保\s*存/ }),
+	).toBeVisible();
+	await permissionDrawer.getByRole("button", { name: /取\s*消/ }).click();
 });
 
 test("数据表按操作数量展示主要操作或更多菜单", async ({ page }) => {
@@ -103,7 +135,12 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 	await expect(
 		page.getByRole("button", { name: "编辑" }).first(),
 	).toBeVisible();
-	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await showTableActions(page);
+	await page
+		.getByRole("row")
+		.filter({ hasText: "资产审核员" })
+		.getByRole("button", { name: "更多", exact: true })
+		.click();
 	await expect(page.getByRole("menuitem", { name: "权限配置" })).toBeVisible();
 	await page.keyboard.press("Escape");
 
@@ -325,9 +362,13 @@ test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async 
 	await page.getByPlaceholder("搜索文件名").fill("端到端验收");
 	await page.getByRole("button", { name: /查\s*询/ }).click();
 	await expect(page.getByRole("table")).toContainText("端到端验收.txt");
-	const uploadedRow = page.getByRole("row").filter({ hasText: "端到端验收.txt" });
+	const uploadedRow = page
+		.getByRole("row")
+		.filter({ hasText: "端到端验收.txt" });
 	await uploadedRow.getByRole("button", { name: /删除/ }).click();
 	await page.getByRole("button", { name: /确认删除/ }).click();
 	await expect(page.getByText("暂无文件")).toBeVisible();
-	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
 });
