@@ -26,6 +26,7 @@ export type AdminRouteIconKey =
 	| "basicForm"
 	| "batchTable"
 	| "stepForm"
+	| "advancedForm"
 	| "searchArticles"
 	| "searchProjects"
 	| "searchApplications"
@@ -40,11 +41,7 @@ export type AdminRouteIconKey =
 	| "about";
 
 export type AdminGroupIconKey =
-	| "examples"
-	| "operations"
-	| "results"
-	| "exceptions"
-	| "system";
+	"examples" | "operations" | "results" | "exceptions" | "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -125,6 +122,12 @@ const loadStepFormPage = async (): Promise<LazyAdminRouteModule> => {
 	return { Component: StepFormPage };
 };
 
+const loadAdvancedFormPage = async (): Promise<LazyAdminRouteModule> => {
+	const { AdvancedFormPage } =
+		await import("../features/form-examples/AdvancedFormPage");
+	return { Component: AdvancedFormPage };
+};
+
 const loadBasicListPage = async (): Promise<LazyAdminRouteModule> => {
 	const { BasicListPage } =
 		await import("../features/page-examples/ListExamplePages");
@@ -145,7 +148,8 @@ const loadSearchArticlesPage = async (): Promise<LazyAdminRouteModule> => {
 };
 
 const loadDepartmentsPage = async (): Promise<LazyAdminRouteModule> => {
-	const { DepartmentsPage } = await import("../features/departments/DepartmentsPage");
+	const { DepartmentsPage } =
+		await import("../features/departments/DepartmentsPage");
 	return { Component: DepartmentsPage };
 };
 
@@ -155,7 +159,8 @@ const loadPositionsPage = async (): Promise<LazyAdminRouteModule> => {
 };
 
 const loadDictionariesPage = async (): Promise<LazyAdminRouteModule> => {
-	const { DictionariesPage } = await import("../features/dictionaries/DictionariesPage");
+	const { DictionariesPage } =
+		await import("../features/dictionaries/DictionariesPage");
 	return { Component: DictionariesPage };
 };
 
@@ -177,11 +182,12 @@ const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
 	return { Component: CardListPage };
 };
 
-const loadContentCategoryManagementPage = async (): Promise<LazyAdminRouteModule> => {
-	const { ContentCategoryManagementPage } =
-		await import("../features/content-categories/ContentCategoryManagementPage");
-	return { Component: ContentCategoryManagementPage };
-};
+const loadContentCategoryManagementPage =
+	async (): Promise<LazyAdminRouteModule> => {
+		const { ContentCategoryManagementPage } =
+			await import("../features/content-categories/ContentCategoryManagementPage");
+		return { Component: ContentCategoryManagementPage };
+	};
 
 const loadPreviewWorkbenchPage = async (): Promise<LazyAdminRouteModule> => {
 	const { PreviewWorkbenchPage } =
@@ -368,9 +374,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.batchOperationsTable",
 	},
 	{
-		aliases: [
-			{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" },
-		],
+		aliases: [{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" }],
 		groupKey: "examples",
 		iconKey: "searchArticles",
 		key: "/examples/lists/search/articles",
@@ -477,6 +481,15 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		navigationParentKeys: ["example-forms"],
 		sectionKey: "adminShell.navigation.examples",
 		titleKey: "adminShell.navigation.stepForm",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "advancedForm",
+		key: "/examples/forms/advanced",
+		lazy: loadAdvancedFormPage,
+		navigationParentKeys: ["example-forms"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.advancedForm",
 	},
 	{
 		aliases: [
@@ -594,6 +607,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 				children: [
 					{ routeKey: "/examples/forms/basic" },
 					{ routeKey: "/examples/forms/step" },
+					{ routeKey: "/examples/forms/advanced" },
 				],
 			},
 		],
@@ -603,10 +617,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 		defaultRouteKey: "/result/success",
 		iconKey: "results",
 		key: "results",
-		nodes: [
-			{ routeKey: "/result/success" },
-			{ routeKey: "/result/fail" },
-		],
+		nodes: [{ routeKey: "/result/success" }, { routeKey: "/result/fail" }],
 		titleKey: "adminShell.navigation.resultExamples",
 	},
 	{

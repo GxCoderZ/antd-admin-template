@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { AdvancedFormPayload } from "../src/api/form-examples";
 import formExampleRoutes from "./form-examples.fake";
 
 interface TestRoute {
@@ -10,6 +11,10 @@ interface TestRoute {
 
 interface SubmissionPayload {
 	data: { id: string };
+}
+
+interface SuccessPayload<T> {
+	data: T;
 }
 
 function findRoute(url: string) {
@@ -66,5 +71,77 @@ describe("Fake form examples", () => {
 		expect(submitStep({ body: { receiverAccount: "" } })).toMatchObject({
 			code: 422,
 		});
+	});
+
+	it("persists advanced drafts, validates unique codes, and rejects invalid advanced submissions", () => {
+		const getDraft = (formExampleRoutes as unknown as TestRoute[]).find(
+			(candidate) =>
+				candidate.method === "get" &&
+				candidate.url === "/platform/form-examples/advanced/draft",
+		)?.response;
+		const saveDraft = findRoute("/platform/form-examples/advanced/draft");
+		const submitAdvanced = findRoute("/platform/form-examples/advanced/submit");
+		const validateCode = findRoute(
+			"/platform/form-examples/advanced/validate-code",
+		);
+		if (!getDraft) {
+			throw new Error("Missing Fake route: GET advanced draft");
+		}
+
+		const advancedPayload: AdvancedFormPayload = {
+			accessMode: "team",
+			approvers: ["lead"],
+			description: "沉淀高级表单资产",
+			enableApproval: true,
+			endAt: "2026-09-30T00:00:00.000Z",
+			members: [
+				{
+					email: "alex@example.com",
+					name: "Alex",
+					role: "owner",
+					weight: 100,
+				},
+			],
+			notifyChannels: ["mail"],
+			notifyOwner: true,
+			priority: "medium",
+			projectCode: "ADV-001",
+			projectName: "高级表单资产",
+			rule: {
+				action: "通知负责人复核",
+				condition: "amount",
+				name: "预算复核",
+			},
+			startAt: "2026-09-01T00:00:00.000Z",
+			teamScope: "platform",
+		};
+
+		expect(validateCode({ body: { projectCode: "OPS-LOCKED" } })).toMatchObject(
+			{
+				data: { available: false },
+			},
+		);
+		const draftSubmission = saveDraft({
+			body: advancedPayload,
+		}) as SubmissionPayload;
+		expect(draftSubmission.data.id).toMatch(/^advanced-/);
+		expect(
+			(getDraft({}) as SuccessPayload<{
+				approvers?: string[];
+				projectCode: string;
+			}>).data,
+		).toMatchObject({ approvers: ["lead"], projectCode: "ADV-001" });
+		const advancedSubmission = submitAdvanced({
+			body: advancedPayload,
+		}) as SubmissionPayload;
+		expect(advancedSubmission.data.id).toMatch(/^advanced-/);
+		expect(
+			submitAdvanced({
+				body: {
+					...advancedPayload,
+					members: [{ ...advancedPayload.members[0], weight: 50 }],
+				},
+			}),
+		).toMatchObject({ code: 422 });
 	});
 });
