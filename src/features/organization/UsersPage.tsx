@@ -1009,7 +1009,6 @@ export function UsersPage() {
 					setRoleUser(null);
 				}}
 				open={roleUser !== null}
-				size="large"
 				title={t("adminShell.users.roles.title", {
 					name: roleUser?.username,
 				})}
