@@ -6,6 +6,13 @@
 	"demoAccounts": "Demo accounts",
 	"administratorAccount": "Admin · admin / admin123",
 	"viewerAccount": "Viewer · viewer / viewer123",
+	"shellDescription": "A secure, focused administration experience",
+	"changeTheme": "Change theme",
+	"changeLanguage": "Change language",
+	"copyright": "© 2026 {{app}}",
+	"authorizedOnly": "For authorized product preview accounts only",
+	"contactAdministrator": "This is an offline product UI. Contact an administrator to reset the demo account password.",
+	"backToLogin": "Back to login",
 	"layout": {
 		"alignLeft": "Align Left",
 		"alignCenter": "Align Center",

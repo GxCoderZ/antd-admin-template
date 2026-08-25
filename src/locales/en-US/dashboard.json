@@ -1,7 +1,11 @@
 {
 	"title": "Product UI Dashboard",
-	"description": "Local Fake data drives layouts, states, and interactions without a real backend.",
+	"greeting": "Hello, {{name}}",
+	"defaultUser": "Demo user",
+	"description": "Review the platform's key data and operational overview.",
 	"fakeBadge": "FAKE DATA",
 	"loadFailed": "Failed to load dashboard data",
-	"recentActivity": "Recent activity"
+	"recentActivity": "Recent activity",
+	"retry": "Reload",
+	"noPermissionData": "This identity has no statistics available"
 }

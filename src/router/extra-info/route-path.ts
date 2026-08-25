@@ -1,4 +1,5 @@
 export const loginPath = "/login";
+export const forgotPasswordPath = "/forgot-password";
 export const defaultLoginPath = "/login";
 export const exceptionPath = "/exception";
 export const exception403Path = `${exceptionPath}/403`;
