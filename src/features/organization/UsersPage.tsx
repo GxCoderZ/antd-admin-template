@@ -57,6 +57,12 @@ interface ResetPasswordMutationInput {
 	username: string;
 }
 
+interface SaveUserRolesInput {
+	currentRoleIds: string[];
+	nextRoleIds: string[];
+	userId: string;
+}
+
 export function UsersPage() {
 	const { t } = useTranslation();
 	const queryClient = useQueryClient();
@@ -181,7 +187,29 @@ export function UsersPage() {
 		},
 	});
 	const roleMutation = useMutation({
-		mutationFn: setPlatformUserRole,
+		mutationFn: async ({
+			currentRoleIds,
+			nextRoleIds,
+			userId,
+		}: SaveUserRolesInput) => {
+			const currentRoleIdSet = new Set(currentRoleIds);
+			const nextRoleIdSet = new Set(nextRoleIds);
+			const addedRoleIds = nextRoleIds.filter(
+				(roleId) => !currentRoleIdSet.has(roleId),
+			);
+			const removedRoleIds = currentRoleIds.filter(
+				(roleId) => !nextRoleIdSet.has(roleId),
+			);
+
+			await Promise.all([
+				...addedRoleIds.map((roleId) =>
+					setPlatformUserRole({ assigned: true, roleId, userId }),
+				),
+				...removedRoleIds.map((roleId) =>
+					setPlatformUserRole({ assigned: false, roleId, userId }),
+				),
+			]);
+		},
 		onSuccess: async (_data, variables) => {
 			await Promise.all([refreshUsers(), refreshUserDetail(variables.userId)]);
 		},
@@ -379,19 +407,21 @@ export function UsersPage() {
 						}}
 						onRetryDetail={() => void userDetailQuery.refetch()}
 						onRetryRoles={() => void rolesQuery.refetch()}
-						onToggleRole={(roleId, assigned) => {
+						onSaveRoles={(nextRoleIds) => {
 							if (roleUser) {
-								roleMutation.mutate({ assigned, roleId, userId: roleUser.id });
+								roleMutation.mutate({
+									currentRoleIds: (userDetailQuery.data?.roles ?? []).map(
+										(role) => role.id,
+									),
+									nextRoleIds,
+									userId: roleUser.id,
+								});
 							}
 						}}
 						rolesError={rolesQuery.error}
+						saving={roleMutation.isPending}
 						user={roleUser}
 						userRoles={userDetailQuery.data?.roles ?? []}
-						updatingRoleId={
-							roleMutation.isPending
-								? roleMutation.variables?.roleId
-								: undefined
-						}
 					/>
 				</>
 			}

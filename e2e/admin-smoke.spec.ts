@@ -142,6 +142,61 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 	await expect(page.getByRole("menuitem", { name: "复制包名" })).toBeVisible();
 });
 
+test("用户管理角色抽屉通过草稿选择统一保存", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
+	await expect(page).toHaveURL(/\/organization\/users$/);
+	await page.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号").fill("admin");
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await expect(page.getByRole("table")).toContainText("admin");
+
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await page.getByRole("menuitem", { name: "角色", exact: true }).click();
+
+	const drawer = page.locator(".ant-drawer").filter({ hasText: "admin 的角色" });
+	await expect(drawer.getByRole("combobox", { name: "角色选择" })).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
+	await drawer.getByRole("combobox", { name: "角色选择" }).fill("auditor");
+	await page.getByRole("option", { name: /只读审计员/ }).click();
+	await expect(drawer.getByText("新增角色")).toBeVisible();
+	await expect(drawer.getByText("只读审计员").first()).toBeVisible();
+	await drawer.getByRole("button", { name: /保\s*存/ }).click();
+	await expect(drawer.getByText("暂无未保存变更")).toBeVisible();
+	await expect(page.getByRole("table")).toContainText("只读审计员");
+});
+
+test("用户管理角色抽屉在 390px 窄屏下不溢出", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
+	await expect(page).toHaveURL(/\/organization\/users$/);
+	await page.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号").fill("admin");
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await expect(page.getByRole("table")).toContainText("admin");
+
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await page.getByRole("menuitem", { name: "角色", exact: true }).click();
+
+	const drawer = page
+		.locator(".ant-drawer")
+		.filter({ hasText: "admin 的角色" })
+		.locator(".ant-drawer-content-wrapper");
+	await expect(drawer).toBeVisible();
+	const drawerBounds = await drawer.boundingBox();
+	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
+	await expect(page.getByRole("combobox", { name: "角色选择" })).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
+});
+
 test("表单示例通过 Fake API 完成基础与分步提交", async ({ page }) => {
 	await signIn(page);
 
