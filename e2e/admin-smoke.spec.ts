@@ -286,11 +286,15 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 	await expect(
 		page.getByRole("menuitem", { name: "表单示例", exact: true }),
 	).toBeVisible();
-	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
-	await expect(
-		page.getByRole("menuitem", { name: "分步表单", exact: true }),
-	).toBeVisible();
-	await page.getByRole("menuitem", { name: "分步表单", exact: true }).click();
+	const stepFormMenuItem = page.getByRole("menuitem", {
+		name: "分步表单",
+		exact: true,
+	});
+	if (!(await stepFormMenuItem.isVisible())) {
+		await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
+	}
+	await expect(stepFormMenuItem).toBeVisible();
+	await stepFormMenuItem.click();
 	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
 	await expect(
 		page.getByRole("heading", { level: 1, name: "分步表单" }),
@@ -463,6 +467,42 @@ test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async 
 	await uploadedRow.getByRole("button", { name: /删除/ }).click();
 	await page.getByRole("button", { name: /确认删除/ }).click();
 	await expect(page.getByText("暂无文件")).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
+});
+
+test("批量操作表格支持选择、导出、状态修改和删除确认", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
+	await page
+		.getByRole("menuitem", { name: "批量操作表格", exact: true })
+		.click();
+	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
+	await expect(page.getByText("批量操作表格", { exact: true })).toBeVisible();
+	await expect(page.getByText("已选择 0 项")).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
+
+	await page.getByRole("checkbox", { name: "Select row 1", exact: true }).click();
+	await page.getByRole("checkbox", { name: "Select row 2", exact: true }).click();
+	await expect(page.getByText("已选择 2 项")).toBeVisible();
+
+	await page.getByRole("button", { name: "批量导出" }).click();
+	await expect(page.getByText(/已生成 2 项导出/)).toBeVisible();
+	await page.getByRole("button", { name: "批量停用" }).click();
+	await expect(page.getByText("已选择 0 项")).toBeVisible();
+
+	await page.getByRole("checkbox", { name: "Select row 1", exact: true }).click();
+	await page.getByRole("button", { name: "批量删除" }).click();
+	await expect(page.getByText("确认批量删除")).toBeVisible();
+	await page.getByRole("button", { name: "确认删除" }).click();
+	await expect(page.getByText("已删除 1 项记录")).toBeVisible();
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),
 	).toBeLessThanOrEqual(390);

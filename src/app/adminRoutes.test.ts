@@ -19,6 +19,7 @@ describe("admin route template", () => {
 			"/operations/audit-logs",
 			"/operations/login-logs",
 			"/examples/lists/basic",
+			"/examples/lists/batch-operations",
 			"/examples/lists/search/articles",
 			"/examples/lists/search/projects",
 			"/examples/lists/search/applications",
