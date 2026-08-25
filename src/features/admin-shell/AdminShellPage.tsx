@@ -2,6 +2,9 @@ import {
 	AntDesignOutlined,
 	AuditOutlined,
 	BgColorsOutlined,
+	ClearOutlined,
+	CloseOutlined,
+	CompressOutlined,
 	ControlOutlined,
 	DashboardOutlined,
 	FileTextOutlined,
@@ -20,6 +23,8 @@ import {
 	SunOutlined,
 	UserOutlined,
 	UserSwitchOutlined,
+	VerticalLeftOutlined,
+	VerticalRightOutlined,
 } from "@ant-design/icons";
 import {
 	Breadcrumb,
@@ -1160,27 +1165,33 @@ export function AdminShellPage({
 											{
 												key: "closeCurrent",
 												disabled: !hasClosableCurrentTab,
+												icon: <CloseOutlined aria-hidden />,
 												label: t("adminShell.tabs.closeCurrent"),
 											},
 											{ type: "divider" },
 											{
 												key: "closeLeft",
 												disabled: !hasClosableLeftTabs,
+												icon: <VerticalLeftOutlined aria-hidden />,
 												label: t("adminShell.tabs.closeLeft"),
 											},
 											{
 												key: "closeRight",
 												disabled: !hasClosableRightTabs,
+												icon: <VerticalRightOutlined aria-hidden />,
 												label: t("adminShell.tabs.closeRight"),
 											},
+											{ type: "divider" },
 											{
 												key: "closeOthers",
 												disabled: !hasClosableOtherTabs,
+												icon: <CompressOutlined aria-hidden />,
 												label: t("adminShell.tabs.closeOthers"),
 											},
 											{
 												key: "closeAll",
 												disabled: !hasClosableTabs,
+												icon: <ClearOutlined aria-hidden />,
 												label: t("adminShell.tabs.closeAll"),
 											},
 										],
