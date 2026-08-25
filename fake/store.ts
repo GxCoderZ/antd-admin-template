@@ -1,5 +1,9 @@
 import type { PlatformSession } from "../src/api/auth";
 import type { PlatformAnnouncement } from "../src/api/announcements";
+import type {
+	ContentCategory,
+	ContentCategoryItem,
+} from "../src/api/content-categories";
 import type { PlatformDepartment } from "../src/api/departments";
 import type {
 	PlatformDictionaryItem,
@@ -727,6 +731,79 @@ export const exampleRecord: ExampleRecordDetail = {
 	progress: 72,
 	updatedAt: iso(20),
 };
+
+export const contentCategories: Array<Omit<ContentCategory, "children">> = [
+	{
+		code: "content",
+		id: "category-content",
+		itemCount: 0,
+		name: "内容中心",
+		parentId: null,
+		sortOrder: 1,
+		status: "active",
+	},
+	{
+		code: "guides",
+		id: "category-guides",
+		itemCount: 0,
+		name: "使用指南",
+		parentId: "category-content",
+		sortOrder: 1,
+		status: "active",
+	},
+	{
+		code: "news",
+		id: "category-news",
+		itemCount: 0,
+		name: "平台动态",
+		parentId: "category-content",
+		sortOrder: 2,
+		status: "active",
+	},
+	{
+		code: "help",
+		id: "category-help",
+		itemCount: 0,
+		name: "帮助中心",
+		parentId: null,
+		sortOrder: 2,
+		status: "active",
+	},
+	{
+		code: "faq",
+		id: "category-faq",
+		itemCount: 0,
+		name: "常见问题",
+		parentId: "category-help",
+		sortOrder: 1,
+		status: "active",
+	},
+];
+
+const contentItemTitles = [
+	"平台使用手册",
+	"账号安全指南",
+	"权限配置说明",
+	"新版本功能速览",
+	"常见登录问题",
+	"数据导出说明",
+] as const;
+
+export const contentCategoryItems: ContentCategoryItem[] = Array.from(
+	{ length: 24 },
+	(_, index) => {
+		const category = contentCategories[(index % 4) + 1]!;
+		return {
+			categoryId: category.id,
+			categoryName: category.name,
+			id: `content-category-item-${index + 1}`,
+			owner: users[index % 6]!.displayName,
+			status: index % 4 === 0 ? "draft" : "published",
+			title: `${contentItemTitles[index % contentItemTitles.length]} ${index + 1}`,
+			updatedAt: iso(index * 75),
+		};
+	},
+);
 
 const fileNames = [
 	"运营周报.pdf",

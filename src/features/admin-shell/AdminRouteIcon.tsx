@@ -1,5 +1,6 @@
 import {
 	AppstoreAddOutlined,
+	ApartmentOutlined,
 	AuditOutlined,
 	BugOutlined,
 	CheckCircleOutlined,
@@ -45,6 +46,7 @@ export function AdminRouteIcon({ iconKey }: AdminRouteIconProps) {
 		searchProjects: <ProjectOutlined aria-hidden />,
 		settings: <ControlOutlined aria-hidden />,
 		stepForm: <PartitionOutlined aria-hidden />,
+		treeCategory: <ApartmentOutlined aria-hidden />,
 		users: <UserOutlined aria-hidden />,
 	} satisfies Record<AdminRouteIconKey, ReactNode>;
 

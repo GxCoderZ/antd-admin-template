@@ -31,6 +31,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
@@ -39,6 +40,7 @@ import {
 	TableActionButton,
 	TableActionMenu,
 } from "../../app/TableActionButton";
+import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	createPlatformDepartment,
 	deletePlatformDepartment,
@@ -58,6 +60,15 @@ interface DepartmentFilterValues {
 
 const defaultDepartmentFilterValues: DepartmentFilterValues = { status: "all" };
 const formId = "department-form";
+const departmentColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
+	{ key: "name", priority: "compact", required: true },
+	{ key: "code", priority: "regular" },
+	{ key: "status", priority: "compact" },
+	{ key: "memberCount", priority: "spacious" },
+	{ key: "positionCount", priority: "spacious" },
+	{ key: "updatedAt", priority: "optional" },
+	{ key: "actions", priority: "compact", required: true },
+];
 
 function flattenDepartments(
 	departments: PlatformDepartment[],
@@ -437,6 +448,8 @@ export function DepartmentsPage() {
 		<>
 			{messageContextHolder}
 			<LogTablePanel<PlatformDepartment>
+				columnSettingsStorageKey={getTableColumnSettingsStorageKey("departments")}
+				columnVisibility={departmentColumnVisibility}
 				columns={columns}
 				dataSource={departmentsQuery.data ?? []}
 				emptyText={t("adminShell.departments.empty", {

@@ -25,6 +25,7 @@ export type AdminRouteIconKey =
 	| "searchArticles"
 	| "searchProjects"
 	| "searchApplications"
+	| "treeCategory"
 	| "resultSuccess"
 	| "resultFailure"
 	| "exceptionForbidden"
@@ -147,6 +148,12 @@ const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
 	const { CardListPage } =
 		await import("../features/page-examples/ListExamplePages");
 	return { Component: CardListPage };
+};
+
+const loadContentCategoryManagementPage = async (): Promise<LazyAdminRouteModule> => {
+	const { ContentCategoryManagementPage } =
+		await import("../features/content-categories/ContentCategoryManagementPage");
+	return { Component: ContentCategoryManagementPage };
 };
 
 const loadGenericDetailPage = async (): Promise<LazyAdminRouteModule> => {
@@ -332,6 +339,14 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 	},
 	{
 		groupKey: "examples",
+		iconKey: "treeCategory",
+		key: "/examples/tree-category",
+		lazy: loadContentCategoryManagementPage,
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.treeCategory",
+	},
+	{
+		groupKey: "examples",
 		iconKey: "users",
 		key: "/examples/detail",
 		lazy: loadGenericDetailPage,
@@ -491,6 +506,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 					{ routeKey: "/examples/lists/cards" },
 				],
 			},
+			{ routeKey: "/examples/tree-category" },
 			{ routeKey: "/examples/detail" },
 			{ routeKey: "/examples/files" },
 			{

@@ -32,6 +32,7 @@ import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
@@ -41,6 +42,7 @@ import {
 	TableActionButton,
 	TableActionMenu,
 } from "../../app/TableActionButton";
+import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	listPlatformDepartments,
 	platformDepartmentsQueryKey,
@@ -75,6 +77,15 @@ interface PositionTableState {
 
 const defaultPositionFilterValues: PositionFilterValues = { status: "all" };
 const formId = "position-form";
+const positionColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
+	{ key: "name", priority: "compact", required: true },
+	{ key: "code", priority: "regular" },
+	{ key: "departmentName", priority: "regular" },
+	{ key: "status", priority: "compact" },
+	{ key: "memberCount", priority: "spacious" },
+	{ key: "updatedAt", priority: "optional" },
+	{ key: "actions", priority: "compact", required: true },
+];
 const tableSortToContractSort: Record<
 	string,
 	NonNullable<ListPlatformPositionsInput["sort"]>
@@ -572,6 +583,8 @@ export function PositionsPage() {
 		<>
 			{messageContextHolder}
 			<LogTablePanel<PlatformPosition>
+				columnSettingsStorageKey={getTableColumnSettingsStorageKey("positions")}
+				columnVisibility={positionColumnVisibility}
 				columns={columns}
 				dataSource={positionsQuery.data?.items ?? []}
 				emptyText={t("adminShell.positions.empty", {
