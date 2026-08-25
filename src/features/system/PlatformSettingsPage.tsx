@@ -7,7 +7,7 @@ import {
 	updatePlatformSettings,
 } from "#src/api/settings";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert, Button, Flex, Form, Input, Tabs, theme } from "antd";
+import { Alert, Button, Card, Flex, Form, Input, Tabs, theme } from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
@@ -185,11 +185,9 @@ export function PlatformSettingsPage() {
 	)
 		? "preferences"
 		: "general";
-	const contentStyle = {
-		background: token.colorBgContainer,
-		minHeight: 520,
-		padding: token.paddingLG,
-	};
+	const selectedSectionLabel = t(
+		`adminShell.platformSettings.sections.${selectedSection}`,
+	);
 
 	function changeSection(nextSection: string) {
 		if (!isSettingsSection(nextSection)) {
@@ -204,38 +202,33 @@ export function PlatformSettingsPage() {
 	}
 
 	return (
-		<Tabs
-			activeKey={selectedSection}
-			animated={{ inkBar: true, tabPane: false }}
-			aria-label={t("adminShell.platformSettings.navigationLabel")}
-			items={[
-				{
-					children: (
-						<section
-							aria-label={t("adminShell.platformSettings.sections.general")}
-							style={contentStyle}
-						>
-							<PlatformGeneralSettings />
-						</section>
-					),
-					key: "general",
-					label: t("adminShell.platformSettings.sections.general"),
-				},
-				{
-					children: (
-						<section
-							aria-label={t("adminShell.platformSettings.sections.preferences")}
-							style={contentStyle}
-						>
-							<SystemPreferenceSettings />
-						</section>
-					),
-					key: "preferences",
-					label: t("adminShell.platformSettings.sections.preferences"),
-				},
-			]}
-			onChange={changeSection}
-			tabBarStyle={{ margin: 0 }}
-		/>
+		<Flex gap={token.marginLG} vertical>
+			<Tabs
+				activeKey={selectedSection}
+				animated={{ inkBar: true, tabPane: false }}
+				aria-label={t("adminShell.platformSettings.navigationLabel")}
+				items={[
+					{
+						key: "general",
+						label: t("adminShell.platformSettings.sections.general"),
+					},
+					{
+						key: "preferences",
+						label: t("adminShell.platformSettings.sections.preferences"),
+					},
+				]}
+				onChange={changeSection}
+				tabBarStyle={{ margin: 0 }}
+			/>
+			<Card styles={{ body: { minHeight: 520 } }} variant="borderless">
+				<section aria-label={selectedSectionLabel}>
+					{selectedSection === "general" ? (
+						<PlatformGeneralSettings />
+					) : (
+						<SystemPreferenceSettings />
+					)}
+				</section>
+			</Card>
+		</Flex>
 	);
 }

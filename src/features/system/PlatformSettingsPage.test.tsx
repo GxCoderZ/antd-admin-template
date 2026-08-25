@@ -86,6 +86,7 @@ describe("PlatformSettingsPage", () => {
 
 		const generalTab = await screen.findByRole("tab", { name: "基本设置" });
 		const contentPanel = screen.getByRole("region", { name: "基本设置" });
+		const contentCard = contentPanel.closest(".ant-card");
 
 		expect(
 			screen.queryByRole("heading", { name: "系统设置" }),
@@ -93,7 +94,10 @@ describe("PlatformSettingsPage", () => {
 		expect(
 			screen.queryByRole("heading", { name: "站点标题" }),
 		).not.toBeInTheDocument();
-		expect(contentPanel).not.toContainElement(generalTab);
+		expect(contentCard).toHaveClass("ant-card");
+		expect(contentCard).not.toHaveClass("ant-card-bordered");
+		expect(contentCard).not.toContainElement(generalTab);
+		expect(generalTab.closest(".ant-card")).toBeNull();
 	});
 
 	it("keeps platform settings sections in top tabs and in the URL", async () => {
