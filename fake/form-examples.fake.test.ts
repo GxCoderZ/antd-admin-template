@@ -31,21 +31,26 @@ describe("Fake form examples", () => {
 
 		const basicSubmission = submitBasic({
 			body: {
-				category: "operation",
+				client: "内部客户",
 				endAt: "2026-09-08T00:00:00.000Z",
-				notify: true,
-				owner: "张伟",
-				priority: "normal",
+				goal: "提升客户满意度",
+				invites: "张伟",
+				publicType: "2",
+				publicUsers: "1",
 				startAt: "2026-09-01T00:00:00.000Z",
-				summary: "用于验证通用基础表单。",
-				title: "基础表单演示",
+				standard: "满意度达到 95%",
+				title: "客户满意度目标",
+				weight: 30,
 			},
 		}) as SubmissionPayload;
 		const stepSubmission = submitStep({
 			body: {
-				name: "分步表单演示",
-				owner: "李娜",
-				scheduledAt: "2026-09-01T00:00:00.000Z",
+				amount: 500,
+				password: "123456",
+				payAccount: "ant-design@alipay.com",
+				receiverAccount: "test@example.com",
+				receiverMode: "alipay",
+				receiverName: "Alex",
 			},
 		}) as SubmissionPayload;
 
@@ -58,6 +63,8 @@ describe("Fake form examples", () => {
 		const submitStep = findRoute("/platform/form-examples/step");
 
 		expect(submitBasic({ body: { title: "" } })).toMatchObject({ code: 422 });
-		expect(submitStep({ body: { name: "" } })).toMatchObject({ code: 422 });
+		expect(submitStep({ body: { receiverAccount: "" } })).toMatchObject({
+			code: 422,
+		});
 	});
 });

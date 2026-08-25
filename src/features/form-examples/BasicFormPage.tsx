@@ -1,241 +1,278 @@
-import { SaveOutlined } from "@ant-design/icons";
 import { useMutation } from "@tanstack/react-query";
 import {
-	Alert,
 	Button,
 	Card,
 	DatePicker,
 	Flex,
 	Form,
 	Input,
+	InputNumber,
+	message,
 	Radio,
 	Select,
 	Space,
-	Switch,
 	theme,
+	Typography,
 } from "antd";
 import type { Dayjs } from "dayjs";
-import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 
-import {
-	submitBasicForm,
-	type BasicFormCategory,
-	type FormPriority,
-} from "#src/api/form-examples";
+import { submitBasicForm, type GoalVisibility } from "#src/api/form-examples";
 import { getFormExampleProblemDetail } from "./formExampleProblems";
 
 interface BasicFormValues {
-	category: BasicFormCategory;
+	client?: string;
 	dateRange: [Dayjs, Dayjs];
-	notify: boolean;
-	owner: string;
-	priority: FormPriority;
-	summary: string;
+	goal: string;
+	invites?: string;
+	publicType: GoalVisibility;
+	publicUsers?: string;
+	standard: string;
 	title: string;
+	weight?: number;
 }
 
-const initialValues: BasicFormValues = {
-	category: "operation",
-	dateRange: [dayjs().startOf("day"), dayjs().add(7, "day").startOf("day")],
-	notify: true,
-	owner: "",
-	priority: "normal",
-	summary: "",
-	title: "",
-};
+const mediumControlStyle = { maxWidth: "100%", width: 328 } as const;
+const extraLargeControlStyle = { maxWidth: "100%", width: 552 } as const;
+
+function optionalLabel(label: string, optional: string, color: string) {
+	return (
+		<span>
+			{label}
+			<em style={{ color, fontStyle: "normal" }}>{optional}</em>
+		</span>
+	);
+}
 
 export function BasicFormPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const [form] = Form.useForm<BasicFormValues>();
-	const mutation = useMutation({ mutationFn: submitBasicForm });
+	const [messageApi, messageContext] = message.useMessage();
+	const publicType = Form.useWatch("publicType", form);
+	const mutation = useMutation({
+		mutationFn: submitBasicForm,
+		onError: (error) => {
+			void messageApi.error(
+				getFormExampleProblemDetail(error) ??
+					t("adminShell.formExamples.common.errorFallback"),
+			);
+		},
+		onSuccess: () => {
+			void messageApi.success(t("adminShell.formExamples.basic.submitSuccess"));
+		},
+	});
 
 	return (
-		<Card>
-			<Flex justify="center">
-				<Flex
-					gap={token.margin}
-					style={{ maxWidth: token.screenSM, width: "100%" }}
-					vertical
+		<Flex gap={token.marginLG} vertical>
+			{messageContext}
+			<Typography.Paragraph
+				style={{ color: token.colorTextSecondary, margin: 0 }}
+			>
+				{t("adminShell.formExamples.basic.description")}
+			</Typography.Paragraph>
+			<Card variant="borderless">
+				<Form<BasicFormValues>
+					form={form}
+					initialValues={{ publicType: "1" }}
+					layout="vertical"
+					name="basic"
+					onFinish={(values) => {
+						mutation.mutate({
+							...(values.client?.trim()
+								? { client: values.client.trim() }
+								: {}),
+							endAt: values.dateRange[1].toISOString(),
+							goal: values.goal.trim(),
+							...(values.invites?.trim()
+								? { invites: values.invites.trim() }
+								: {}),
+							publicType: values.publicType,
+							...(values.publicUsers
+								? { publicUsers: values.publicUsers }
+								: {}),
+							startAt: values.dateRange[0].toISOString(),
+							standard: values.standard.trim(),
+							title: values.title.trim(),
+							...(values.weight === undefined ? {} : { weight: values.weight }),
+						});
+					}}
+					requiredMark={false}
+					style={{ margin: "8px auto 0", maxWidth: 600 }}
 				>
-					{mutation.isError ? (
-						<Alert
-							closable
-							description={
-								getFormExampleProblemDetail(mutation.error) ??
-								t("adminShell.formExamples.common.errorFallback")
-							}
-							onClose={() => mutation.reset()}
-							showIcon
-							title={t("adminShell.formExamples.basic.submitError")}
-							type="error"
-						/>
-					) : null}
-					{mutation.isSuccess ? (
-						<Alert
-							closable
-							description={t("adminShell.formExamples.common.submissionId", {
-								id: mutation.data.id,
-							})}
-							onClose={() => mutation.reset()}
-							showIcon
-							title={t("adminShell.formExamples.basic.submitSuccess")}
-							type="success"
-						/>
-					) : null}
-					<Form<BasicFormValues>
-						form={form}
-						initialValues={initialValues}
-						layout="vertical"
-						onFinish={(values) =>
-							mutation.mutate({
-								category: values.category,
-								endAt: values.dateRange[1].toISOString(),
-								notify: values.notify,
-								owner: values.owner.trim(),
-								priority: values.priority,
-								startAt: values.dateRange[0].toISOString(),
-								summary: values.summary.trim(),
-								title: values.title.trim(),
-							})
-						}
-						onValuesChange={() => mutation.reset()}
+					<Form.Item
+						label={t("adminShell.formExamples.basic.fields.title")}
+						name="title"
+						rules={[
+							{
+								message: t("adminShell.formExamples.basic.validation.title"),
+								required: true,
+								whitespace: true,
+							},
+						]}
 					>
-						<Form.Item
-							label={t("adminShell.formExamples.basic.fields.title")}
-							name="title"
-							rules={[
-								{
-									max: 80,
-									message: t("adminShell.formExamples.basic.validation.title"),
-									required: true,
-									whitespace: true,
-								},
+						<Input
+							placeholder={t(
+								"adminShell.formExamples.basic.placeholders.title",
+							)}
+							style={mediumControlStyle}
+						/>
+					</Form.Item>
+					<Form.Item
+						label={t("adminShell.formExamples.basic.fields.dateRange")}
+						name="dateRange"
+						rules={[
+							{
+								message: t(
+									"adminShell.formExamples.basic.validation.dateRange",
+								),
+								required: true,
+							},
+						]}
+					>
+						<DatePicker.RangePicker
+							placeholder={[
+								t("adminShell.formExamples.basic.placeholders.startAt"),
+								t("adminShell.formExamples.basic.placeholders.endAt"),
 							]}
-						>
-							<Input
-								maxLength={80}
-								placeholder={t(
-									"adminShell.formExamples.basic.placeholders.title",
-								)}
-								showCount
-							/>
-						</Form.Item>
-						<Form.Item
-							label={t("adminShell.formExamples.basic.fields.owner")}
-							name="owner"
-							rules={[
-								{
-									max: 40,
-									message: t("adminShell.formExamples.basic.validation.owner"),
-									required: true,
-									whitespace: true,
-								},
-							]}
-						>
-							<Input
-								maxLength={40}
-								placeholder={t(
-									"adminShell.formExamples.basic.placeholders.owner",
-								)}
-							/>
-						</Form.Item>
-						<Form.Item
-							label={t("adminShell.formExamples.basic.fields.category")}
-							name="category"
-							rules={[{ required: true }]}
-						>
+							style={mediumControlStyle}
+						/>
+					</Form.Item>
+					<Form.Item
+						label={t("adminShell.formExamples.basic.fields.goal")}
+						name="goal"
+						rules={[
+							{
+								message: t("adminShell.formExamples.basic.validation.goal"),
+								required: true,
+								whitespace: true,
+							},
+						]}
+					>
+						<Input.TextArea
+							placeholder={t("adminShell.formExamples.basic.placeholders.goal")}
+							style={extraLargeControlStyle}
+						/>
+					</Form.Item>
+					<Form.Item
+						label={t("adminShell.formExamples.basic.fields.standard")}
+						name="standard"
+						rules={[
+							{
+								message: t("adminShell.formExamples.basic.validation.standard"),
+								required: true,
+								whitespace: true,
+							},
+						]}
+					>
+						<Input.TextArea
+							placeholder={t(
+								"adminShell.formExamples.basic.placeholders.standard",
+							)}
+							style={extraLargeControlStyle}
+						/>
+					</Form.Item>
+					<Form.Item
+						label={optionalLabel(
+							t("adminShell.formExamples.basic.fields.client"),
+							t("adminShell.formExamples.basic.optional"),
+							token.colorTextSecondary,
+						)}
+						name="client"
+						tooltip={t("adminShell.formExamples.basic.clientTooltip")}
+					>
+						<Input
+							placeholder={t(
+								"adminShell.formExamples.basic.placeholders.client",
+							)}
+							style={mediumControlStyle}
+						/>
+					</Form.Item>
+					<Form.Item
+						label={optionalLabel(
+							t("adminShell.formExamples.basic.fields.invites"),
+							t("adminShell.formExamples.basic.optional"),
+							token.colorTextSecondary,
+						)}
+						name="invites"
+					>
+						<Input
+							placeholder={t(
+								"adminShell.formExamples.basic.placeholders.invites",
+							)}
+							style={mediumControlStyle}
+						/>
+					</Form.Item>
+					<Form.Item
+						label={optionalLabel(
+							t("adminShell.formExamples.basic.fields.weight"),
+							t("adminShell.formExamples.basic.optional"),
+							token.colorTextSecondary,
+						)}
+						name="weight"
+					>
+						<InputNumber<number>
+							formatter={(value) => `${value || 0}%`}
+							max={100}
+							min={0}
+							parser={(value) => Number(value?.replace("%", "") ?? 0)}
+							placeholder={t(
+								"adminShell.formExamples.basic.placeholders.weight",
+							)}
+							style={{ maxWidth: "100%", width: 104 }}
+						/>
+					</Form.Item>
+					<Form.Item
+						help={t("adminShell.formExamples.basic.publicHelp")}
+						label={t("adminShell.formExamples.basic.fields.publicType")}
+						name="publicType"
+					>
+						<Radio.Group
+							options={(["1", "2", "3"] as const).map((value) => ({
+								label: t(`adminShell.formExamples.basic.visibility.${value}`),
+								value,
+							}))}
+						/>
+					</Form.Item>
+					{publicType === "2" ? (
+						<Form.Item name="publicUsers" style={{ margin: "8px 0 24px" }}>
 							<Select
-								options={(["operation", "project", "other"] as const).map(
-									(value) => ({
-										label: t(
-											`adminShell.formExamples.basic.categories.${value}`,
-										),
-										value,
-									}),
+								aria-label={t(
+									"adminShell.formExamples.basic.fields.publicUsers",
 								)}
-							/>
-						</Form.Item>
-						<Form.Item
-							label={t("adminShell.formExamples.basic.fields.dateRange")}
-							name="dateRange"
-							rules={[{ required: true }]}
-						>
-							<DatePicker.RangePicker
-								allowClear={false}
-								placeholder={[
-									t("adminShell.formExamples.basic.placeholders.startAt"),
-									t("adminShell.formExamples.basic.placeholders.endAt"),
-								]}
-								style={{ width: "100%" }}
-							/>
-						</Form.Item>
-						<Form.Item
-							label={t("adminShell.formExamples.basic.fields.summary")}
-							name="summary"
-							rules={[
-								{
-									max: 500,
-									message: t(
-										"adminShell.formExamples.basic.validation.summary",
-									),
-									required: true,
-									whitespace: true,
-								},
-							]}
-						>
-							<Input.TextArea
-								maxLength={500}
-								placeholder={t(
-									"adminShell.formExamples.basic.placeholders.summary",
-								)}
-								rows={5}
-								showCount
-							/>
-						</Form.Item>
-						<Form.Item
-							label={t("adminShell.formExamples.basic.fields.priority")}
-							name="priority"
-						>
-							<Radio.Group
-								options={(["low", "normal", "high"] as const).map((value) => ({
-									label: t(`adminShell.formExamples.basic.priorities.${value}`),
+								options={(["1", "2", "3"] as const).map((value) => ({
+									label: t(`adminShell.formExamples.basic.colleagues.${value}`),
 									value,
 								}))}
+								placeholder={t(
+									"adminShell.formExamples.basic.placeholders.publicUsers",
+								)}
+								style={mediumControlStyle}
 							/>
 						</Form.Item>
-						<Form.Item
-							label={t("adminShell.formExamples.basic.fields.notify")}
-							name="notify"
-							valuePropName="checked"
-						>
-							<Switch />
-						</Form.Item>
-						<Form.Item style={{ marginBottom: 0 }}>
-							<Space wrap>
-								<Button
-									htmlType="submit"
-									icon={<SaveOutlined aria-hidden />}
-									loading={mutation.isPending}
-									type="primary"
-								>
-									{t("adminShell.formExamples.common.submit")}
-								</Button>
-								<Button
-									disabled={mutation.isPending}
-									onClick={() => {
-										form.resetFields();
-										mutation.reset();
-									}}
-								>
-									{t("adminShell.formExamples.common.reset")}
-								</Button>
-							</Space>
-						</Form.Item>
-					</Form>
-				</Flex>
-			</Flex>
-		</Card>
+					) : null}
+					<Form.Item style={{ marginBottom: 0 }}>
+						<Space>
+							<Button
+								disabled={mutation.isPending}
+								onClick={() => {
+									form.resetFields();
+									mutation.reset();
+								}}
+							>
+								{t("adminShell.formExamples.common.reset")}
+							</Button>
+							<Button
+								htmlType="submit"
+								loading={mutation.isPending}
+								type="primary"
+							>
+								{t("adminShell.formExamples.common.submit")}
+							</Button>
+						</Space>
+					</Form.Item>
+				</Form>
+			</Card>
+		</Flex>
 	);
 }

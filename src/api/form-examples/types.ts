@@ -1,22 +1,26 @@
-export type BasicFormCategory = "operation" | "project" | "other";
-export type FormPriority = "high" | "low" | "normal";
+export type GoalVisibility = "1" | "2" | "3";
+type ReceiverMode = "alipay" | "bank";
 
 export interface SubmitBasicFormInput {
-	category: BasicFormCategory;
+	client?: string;
 	endAt: string;
-	notify: boolean;
-	owner: string;
-	priority: FormPriority;
+	goal: string;
+	invites?: string;
+	publicType: GoalVisibility;
+	publicUsers?: string;
 	startAt: string;
-	summary: string;
+	standard: string;
 	title: string;
+	weight?: number;
 }
 
 export interface SubmitStepFormInput {
-	name: string;
-	notes?: string;
-	owner: string;
-	scheduledAt: string;
+	amount: number;
+	password: string;
+	payAccount: string;
+	receiverAccount: string;
+	receiverMode: ReceiverMode;
+	receiverName: string;
 }
 
 export interface FormExampleSubmission {

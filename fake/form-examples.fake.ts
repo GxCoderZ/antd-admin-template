@@ -16,22 +16,29 @@ function isIsoDate(value: unknown) {
 	return typeof value === "string" && Number.isFinite(Date.parse(value));
 }
 
+function isOptionalText(value: unknown) {
+	return value === undefined || typeof value === "string";
+}
+
 function isBasicFormInput(
 	input: Partial<SubmitBasicFormInput>,
 ): input is SubmitBasicFormInput {
 	return (
-		(input.category === "operation" ||
-			input.category === "project" ||
-			input.category === "other") &&
+		isOptionalText(input.client) &&
 		isIsoDate(input.endAt) &&
-		typeof input.notify === "boolean" &&
-		isNonEmptyText(input.owner) &&
-		(input.priority === "high" ||
-			input.priority === "low" ||
-			input.priority === "normal") &&
+		isNonEmptyText(input.goal) &&
+		isOptionalText(input.invites) &&
+		(input.publicType === "1" ||
+			input.publicType === "2" ||
+			input.publicType === "3") &&
+		isOptionalText(input.publicUsers) &&
 		isIsoDate(input.startAt) &&
-		isNonEmptyText(input.summary) &&
-		isNonEmptyText(input.title)
+		isNonEmptyText(input.standard) &&
+		isNonEmptyText(input.title) &&
+		(input.weight === undefined ||
+			(typeof input.weight === "number" &&
+				input.weight >= 0 &&
+				input.weight <= 100))
 	);
 }
 
@@ -39,10 +46,14 @@ function isStepFormInput(
 	input: Partial<SubmitStepFormInput>,
 ): input is SubmitStepFormInput {
 	return (
-		isNonEmptyText(input.name) &&
-		isNonEmptyText(input.owner) &&
-		isIsoDate(input.scheduledAt) &&
-		(input.notes === undefined || typeof input.notes === "string")
+		typeof input.amount === "number" &&
+		Number.isFinite(input.amount) &&
+		input.amount > 0 &&
+		isNonEmptyText(input.password) &&
+		isNonEmptyText(input.payAccount) &&
+		isNonEmptyText(input.receiverAccount) &&
+		(input.receiverMode === "alipay" || input.receiverMode === "bank") &&
+		isNonEmptyText(input.receiverName)
 	);
 }
 

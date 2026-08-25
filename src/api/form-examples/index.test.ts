@@ -16,14 +16,16 @@ function successResponse(data: unknown) {
 describe("form examples API", () => {
 	it("submits the basic form through the shared API client", async () => {
 		const input = {
-			category: "operation" as const,
+			client: "内部客户",
 			endAt: "2026-09-08T00:00:00.000Z",
-			notify: true,
-			owner: "张伟",
-			priority: "normal" as const,
+			goal: "提升客户满意度",
+			invites: "张伟",
+			publicType: "2" as const,
+			publicUsers: "1",
 			startAt: "2026-09-01T00:00:00.000Z",
-			summary: "用于验证通用基础表单。",
-			title: "基础表单演示",
+			standard: "满意度达到 95%",
+			title: "客户满意度目标",
+			weight: 30,
 		};
 		const fetchMock = vi.fn().mockResolvedValue(
 			successResponse({
@@ -46,10 +48,12 @@ describe("form examples API", () => {
 
 	it("submits the step form through the shared API client", async () => {
 		const input = {
-			name: "分步表单演示",
-			notes: "确认后提交。",
-			owner: "李娜",
-			scheduledAt: "2026-09-01T00:00:00.000Z",
+			amount: 500,
+			password: "123456",
+			payAccount: "ant-design@alipay.com",
+			receiverAccount: "test@example.com",
+			receiverMode: "alipay" as const,
+			receiverName: "Alex",
 		};
 		const fetchMock = vi.fn().mockResolvedValue(
 			successResponse({
