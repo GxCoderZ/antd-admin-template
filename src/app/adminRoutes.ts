@@ -5,7 +5,7 @@ import { platformPermissions, type PlatformPermission } from "./permissions";
 export const dashboardPath = "/dashboard";
 
 export type AdminRouteGroupKey =
-	"dashboard" | "operations" | "system" | "account";
+	"dashboard" | "operations" | "system" | "result" | "exception" | "account";
 
 export type AdminRouteIconKey =
 	| "dashboard"
@@ -14,9 +14,15 @@ export type AdminRouteIconKey =
 	| "auditLogs"
 	| "loginLogs"
 	| "settings"
-	| "about";
+	| "about"
+	| "successResult"
+	| "failureResult"
+	| "forbidden"
+	| "notFound"
+	| "serverError";
 
-export type AdminGroupIconKey = "operations" | "system";
+export type AdminGroupIconKey =
+	"operations" | "system" | "result" | "exception";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -95,6 +101,18 @@ const loadAboutSystemPage = async (): Promise<LazyAdminRouteModule> => {
 	const { AboutSystemPage } =
 		await import("../features/system/AboutSystemPage");
 	return { Component: AboutSystemPage };
+};
+
+const loadSuccessResultPage = async (): Promise<LazyAdminRouteModule> => {
+	const { SuccessResultPage } =
+		await import("../features/results/SuccessResultPage");
+	return { Component: SuccessResultPage };
+};
+
+const loadFailureResultPage = async (): Promise<LazyAdminRouteModule> => {
+	const { FailureResultPage } =
+		await import("../features/results/FailureResultPage");
+	return { Component: FailureResultPage };
 };
 
 const loadForbiddenPage = async (): Promise<LazyAdminRouteModule> => {
@@ -195,21 +213,40 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.about",
 	},
 	{
-		groupKey: "system",
+		groupKey: "result",
+		iconKey: "successResult",
+		key: "/result/success",
+		lazy: loadSuccessResultPage,
+		sectionKey: "adminShell.results.section",
+		titleKey: "adminShell.results.successTitle",
+	},
+	{
+		groupKey: "result",
+		iconKey: "failureResult",
+		key: "/result/fail",
+		lazy: loadFailureResultPage,
+		sectionKey: "adminShell.results.section",
+		titleKey: "adminShell.results.failureTitle",
+	},
+	{
+		groupKey: "exception",
+		iconKey: "forbidden",
 		key: "/exception/403",
 		lazy: loadForbiddenPage,
 		sectionKey: "adminShell.exceptions.section",
 		titleKey: "adminShell.exceptions.forbiddenTitle",
 	},
 	{
-		groupKey: "system",
+		groupKey: "exception",
+		iconKey: "notFound",
 		key: "/exception/404",
 		lazy: loadNotFoundPage,
 		sectionKey: "adminShell.exceptions.section",
 		titleKey: "adminShell.exceptions.notFoundTitle",
 	},
 	{
-		groupKey: "system",
+		groupKey: "exception",
+		iconKey: "serverError",
 		key: "/exception/500",
 		lazy: loadServerErrorPage,
 		sectionKey: "adminShell.exceptions.section",
@@ -255,6 +292,24 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/system/about" },
 		],
 		titleKey: "adminShell.navigation.system",
+	},
+	{
+		defaultRouteKey: "/result/success",
+		iconKey: "result",
+		key: "result",
+		nodes: [{ routeKey: "/result/success" }, { routeKey: "/result/fail" }],
+		titleKey: "adminShell.results.section",
+	},
+	{
+		defaultRouteKey: "/exception/403",
+		iconKey: "exception",
+		key: "exception",
+		nodes: [
+			{ routeKey: "/exception/403" },
+			{ routeKey: "/exception/404" },
+			{ routeKey: "/exception/500" },
+		],
+		titleKey: "adminShell.exceptions.section",
 	},
 ];
 

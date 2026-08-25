@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { adminRouteDefinitions, getAdminRouteMetadata } from "./adminRoutes";
+import {
+	adminNavigationGroups,
+	adminRouteDefinitions,
+	getAdminRouteMetadata,
+} from "./adminRoutes";
 
 describe("admin route template", () => {
 	it("contains the complete reference administration surface", () => {
@@ -12,11 +16,32 @@ describe("admin route template", () => {
 			"/operations/login-logs",
 			"/system/settings",
 			"/system/about",
+			"/result/success",
+			"/result/fail",
 			"/exception/403",
 			"/exception/404",
 			"/exception/500",
 			"/account/profile",
 			"/account/settings",
+		]);
+	});
+
+	it("exposes the original result and exception menu groups", () => {
+		expect(adminNavigationGroups.map((group) => group.key)).toEqual([
+			"operations",
+			"system",
+			"result",
+			"exception",
+		]);
+		expect(
+			adminNavigationGroups.find((group) => group.key === "result")?.nodes,
+		).toEqual([{ routeKey: "/result/success" }, { routeKey: "/result/fail" }]);
+		expect(
+			adminNavigationGroups.find((group) => group.key === "exception")?.nodes,
+		).toEqual([
+			{ routeKey: "/exception/403" },
+			{ routeKey: "/exception/404" },
+			{ routeKey: "/exception/500" },
 		]);
 	});
 

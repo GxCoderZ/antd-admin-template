@@ -1,54 +1,60 @@
+import { Button, Card, Result } from "antd";
+import type { FC } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 
-import { ExceptionPage } from "./ExceptionPage";
+function BackHomeButton() {
+	const { t } = useTranslation();
 
-function useBackHome() {
-	const navigate = useNavigate();
-	return () => void navigate("/dashboard");
+	return (
+		<Link to="/dashboard">
+			<Button type="primary">{t("adminShell.exceptions.backHome")}</Button>
+		</Link>
+	);
 }
 
 export function ForbiddenPage() {
 	const { t } = useTranslation();
-	const backHome = useBackHome();
 
 	return (
-		<ExceptionPage
-			backHomeLabel={t("adminShell.exceptions.backHome")}
-			description={t("adminShell.exceptions.forbiddenDescription")}
-			onBackHome={backHome}
-			status="403"
-		/>
+		<Card variant="borderless">
+			<Result
+				extra={<BackHomeButton />}
+				status="403"
+				subTitle={t("adminShell.exceptions.forbiddenDescription")}
+				title="403"
+			/>
+		</Card>
 	);
 }
 
-export function NotFoundPage() {
+export const NotFoundPage: FC = () => {
 	const { t } = useTranslation();
-	const backHome = useBackHome();
 
 	return (
-		<ExceptionPage
-			backHomeLabel={t("adminShell.exceptions.backHome")}
-			description={t("adminShell.exceptions.notFoundDescription")}
-			onBackHome={backHome}
-			status="404"
-		/>
+		<Card variant="borderless">
+			<Result
+				extra={<BackHomeButton />}
+				status="404"
+				subTitle={t("adminShell.exceptions.notFoundDescription")}
+				title="404"
+			/>
+		</Card>
 	);
-}
+};
 
 export function ServerErrorPage() {
 	const { t } = useTranslation();
-	const backHome = useBackHome();
 
 	return (
-		<ExceptionPage
-			backHomeLabel={t("adminShell.exceptions.backHome")}
-			description={t("adminShell.exceptions.serverErrorDescription")}
-			onBackHome={backHome}
-			onReload={() => window.location.reload()}
-			reloadLabel={t("adminShell.exceptions.reload")}
-			status="500"
-		/>
+		<Card variant="borderless">
+			<Result
+				extra={<BackHomeButton />}
+				status="500"
+				subTitle={t("adminShell.exceptions.serverErrorDescription")}
+				title="500"
+			/>
+		</Card>
 	);
 }
 

@@ -45,9 +45,25 @@ export default defineConfig(({ mode }) => {
 				}),
 		],
 		resolve: {
-			alias: {
-				"#src": fileURLToPath(new URL("./src", import.meta.url)),
-			},
+			alias: [
+				{
+					find: "#src",
+					replacement: fileURLToPath(new URL("./src", import.meta.url)),
+				},
+				...(mode === "test"
+					? [
+							{
+								find: /^@ant-design\/pro-components$/,
+								replacement: fileURLToPath(
+									new URL(
+										"./node_modules/@ant-design/pro-components/es/index.js",
+										import.meta.url,
+									),
+								),
+							},
+						]
+					: []),
+			],
 		},
 		server: {
 			port: 3003,
@@ -60,6 +76,11 @@ export default defineConfig(({ mode }) => {
 			setupFiles: ["./src/test/setup.ts"],
 			css: true,
 			exclude: [...configDefaults.exclude, "e2e/**"],
+			server: {
+				deps: {
+					inline: [/@ant-design\/pro-components/, /\/antd\/es\//],
+				},
+			},
 			testTimeout: 20_000,
 		},
 	};

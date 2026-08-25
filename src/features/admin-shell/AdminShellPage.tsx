@@ -2,7 +2,10 @@ import {
 	AntDesignOutlined,
 	AuditOutlined,
 	BgColorsOutlined,
+	BugOutlined,
+	CheckCircleOutlined,
 	ClearOutlined,
+	CloseCircleOutlined,
 	CloseOutlined,
 	CompressOutlined,
 	ControlOutlined,
@@ -20,11 +23,13 @@ import {
 	ReloadOutlined,
 	SearchOutlined,
 	SettingOutlined,
+	StopOutlined,
 	SunOutlined,
 	UserOutlined,
 	UserSwitchOutlined,
 	VerticalLeftOutlined,
 	VerticalRightOutlined,
+	WarningOutlined,
 } from "@ant-design/icons";
 import {
 	Breadcrumb,
@@ -406,10 +411,17 @@ export function AdminShellPage({
 		loginLogs: <FileTextOutlined aria-hidden />,
 		settings: <ControlOutlined aria-hidden />,
 		about: <InfoCircleOutlined aria-hidden />,
+		successResult: <CheckCircleOutlined aria-hidden />,
+		failureResult: <CloseCircleOutlined aria-hidden />,
+		forbidden: <StopOutlined aria-hidden />,
+		notFound: <WarningOutlined aria-hidden />,
+		serverError: <BugOutlined aria-hidden />,
 	};
 	const groupIconByKey: Record<AdminGroupIconKey, ReactNode> = {
 		operations: <ProfileOutlined aria-hidden />,
 		system: <SettingOutlined aria-hidden />,
+		result: <CheckCircleOutlined aria-hidden />,
+		exception: <WarningOutlined aria-hidden />,
 	};
 	const commandPaletteItems = adminRouteDefinitions
 		.filter(
