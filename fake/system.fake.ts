@@ -9,7 +9,7 @@ export default defineFakeRoute({
 	method: "get",
 	response: () =>
 		resultSuccess({
-			service: "admin-temp-fake-ui",
+			service: "antd-admin-template-fake-ui",
 			version: "0.0.0",
 			startedAt,
 		}),

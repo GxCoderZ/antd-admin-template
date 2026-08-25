@@ -1,8 +1,8 @@
-# Admin Temp 前端开发规则
+# AntD Admin Template 前端开发规则
 
 ## 作用与硬边界
 
-本仓库是 `product-ui/admin-temp` 产品 UI 母版。母版以及从它复制出的所有产品 UI 仓库都是 **Fake-only**：只负责页面视觉、组件交互、主题和 CSS，Fake Server 只负责驱动界面状态。
+本仓库是 `product-ui/antd-admin-template` 产品 UI 母版。母版以及从它复制出的所有产品 UI 仓库都是 **Fake-only**：只负责页面视觉、组件交互、主题和 CSS，Fake Server 只负责驱动界面状态。
 
 必须遵守：
 
@@ -19,14 +19,14 @@ GitLab 使用一个 `product-ui` Group，仓库直接按“项目 + 端”命名
 
 ```text
 product-ui/
-├── admin-temp
+├── antd-admin-template
 ├── ss-platform
 ├── ss-tenant
 ├── agg-platform
 └── agg-tenant
 ```
 
-新平台从 `admin-temp` 复制一次形成独立仓库。复制后各仓库独立演进，不跟踪母版版本、不自动同步、不共享运行时包。母版后续新增通用能力时，产品仓库按需人工复制增量文件。
+新平台从 `antd-admin-template` 复制一次形成独立仓库。复制后各仓库独立演进，不跟踪母版版本、不自动同步、不共享运行时包。母版后续新增通用能力时，产品仓库按需人工复制增量文件。
 
 ## 技术栈和命令
 

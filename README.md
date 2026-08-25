@@ -1,6 +1,6 @@
-# Admin Temp
+# AntD Admin Template
 
-`admin-temp` is a Fake-only React administration UI template. Its visual shell and pages follow `platform/react-antd-admin/apps/admin-web`, while every data request stays local through `src/api -> /api -> fake/*.fake.ts`.
+`antd-admin-template` is a Fake-only React administration UI template. Its visual shell and pages follow `platform/react-antd-admin/apps/admin-web`, while every data request stays local through `src/api -> /api -> fake/*.fake.ts`.
 
 ## Stack
 

@@ -13,7 +13,7 @@ import { PlatformSettingsPage } from "./PlatformSettingsPage";
 
 vi.mock("#src/api/settings", () => ({
 	getPlatformSettings: vi.fn().mockResolvedValue({
-		siteTitle: "Admin Temp",
+		siteTitle: "AntD Admin Template",
 		version: 1,
 	}),
 	platformSettingsQueryKey: ["platform-settings"],
