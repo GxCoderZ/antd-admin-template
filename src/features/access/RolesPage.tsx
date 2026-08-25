@@ -567,7 +567,6 @@ export function RolesPage() {
 					setPermissionRoleId(null);
 				}}
 				open={permissionRoleId !== null}
-				size="large"
 				title={t("adminShell.roles.permissionDrawerTitle", {
 					name: permissionRole?.displayName,
 				})}
