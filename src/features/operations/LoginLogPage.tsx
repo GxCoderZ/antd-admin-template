@@ -13,7 +13,7 @@ import {
 	TableActionButton,
 	TableActionMenu,
 } from "../../app/TableActionButton";
-import { copyTableValue } from "../../app/tableActions";
+import { useTableActions } from "../../app/tableActions";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
@@ -53,6 +53,7 @@ interface LoginFilterFormValues {
 export function LoginLogPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<LoginFilterFormValues>();
 	const [filters, setFilters] = useState<LoginLogFilters>({});
 	const [page, setPage] = useState(1);
@@ -178,12 +179,12 @@ export function LoginLogPage() {
 							{
 								key: "copyId",
 								label: t("adminShell.tableActions.copyRecordId"),
-								onClick: () => copyTableValue(row.id),
+								onClick: () => void copyTableValue(row.id),
 							},
 							{
 								key: "copyIp",
 								label: t("adminShell.tableActions.copyIpAddress"),
-								onClick: () => copyTableValue(row.requestIp),
+								onClick: () => void copyTableValue(row.requestIp),
 							},
 						]}
 						label={t("adminShell.tableActions.more")}
@@ -237,6 +238,7 @@ export function LoginLogPage() {
 
 	return (
 		<Flex gap={token.marginLG} vertical>
+			{messageContextHolder}
 			<LogTablePanel<PlatformLoginLog>
 				columns={columns}
 				dataSource={query.data?.items ?? []}

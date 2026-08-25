@@ -23,7 +23,7 @@ import {
 	TableActionButton,
 	TableActionMenu,
 } from "../../app/TableActionButton";
-import { copyTableValue } from "../../app/tableActions";
+import { useTableActions } from "../../app/tableActions";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
@@ -63,6 +63,7 @@ function formatTarget(log: PlatformAuditLog) {
 export function AuditLogPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<AuditFilterFormValues>();
 	const [filters, setFilters] = useState<AuditLogFilters>({});
 	const [page, setPage] = useState(1);
@@ -176,12 +177,12 @@ export function AuditLogPage() {
 							{
 								key: "copyId",
 								label: t("adminShell.tableActions.copyRecordId"),
-								onClick: () => copyTableValue(row.id),
+								onClick: () => void copyTableValue(row.id),
 							},
 							{
 								key: "copyTarget",
 								label: t("adminShell.tableActions.copyTarget"),
-								onClick: () => copyTableValue(formatTarget(row)),
+								onClick: () => void copyTableValue(formatTarget(row)),
 							},
 						]}
 						label={t("adminShell.tableActions.more")}
@@ -236,6 +237,7 @@ export function AuditLogPage() {
 
 	return (
 		<Flex gap={token.marginLG} vertical>
+			{messageContextHolder}
 			<LogTablePanel<PlatformAuditLog>
 				columns={columns}
 				dataSource={query.data?.items ?? []}

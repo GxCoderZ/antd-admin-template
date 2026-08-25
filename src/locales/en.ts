@@ -45,9 +45,11 @@ export const enTranslation = {
 		},
 		tableActions: {
 			actions: "Actions",
+			copyError: "Copy failed. Please try again.",
 			copyIpAddress: "Copy IP address",
 			copyPackageName: "Copy package name",
 			copyRecordId: "Copy log ID",
+			copySuccess: "Copied to clipboard",
 			copyTarget: "Copy target",
 			copyVersion: "Copy version",
 			more: "More",

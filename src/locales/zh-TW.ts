@@ -45,9 +45,11 @@ export const zhTWTranslation = {
 		},
 		tableActions: {
 			actions: "操作",
+			copyError: "複製失敗，請重試",
 			copyIpAddress: "複製 IP 位址",
 			copyPackageName: "複製套件名稱",
 			copyRecordId: "複製日誌 ID",
+			copySuccess: "已複製到剪貼簿",
 			copyTarget: "複製操作目標",
 			copyVersion: "複製版本",
 			more: "更多",

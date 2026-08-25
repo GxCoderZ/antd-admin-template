@@ -45,9 +45,11 @@ export const koKRTranslation = {
 		},
 		tableActions: {
 			actions: "작업",
+			copyError: "복사하지 못했습니다. 다시 시도해 주세요.",
 			copyIpAddress: "IP 주소 복사",
 			copyPackageName: "패키지 이름 복사",
 			copyRecordId: "로그 ID 복사",
+			copySuccess: "클립보드에 복사했습니다",
 			copyTarget: "작업 대상 복사",
 			copyVersion: "버전 복사",
 			more: "더보기",

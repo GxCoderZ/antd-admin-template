@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { TableActionMenu } from "../../app/TableActionButton";
-import { copyTableValue } from "../../app/tableActions";
+import { useTableActions } from "../../app/tableActions";
 import { getSystemInfo, systemInfoQueryKey } from "#src/api/system";
 
 const { Text, Title } = Typography;
@@ -209,6 +209,7 @@ function resolveTechnologyVersion(item: TechnologyItem) {
 export function AboutSystemPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const { copyTableValue, messageContextHolder } = useTableActions();
 	const formatPreferences = useLocalePreferences();
 	const systemInfoQuery = useQuery({
 		queryKey: [systemInfoQueryKey],
@@ -234,12 +235,12 @@ export function AboutSystemPage() {
 						{
 							key: "copyPackageName",
 							label: t("adminShell.tableActions.copyPackageName"),
-							onClick: () => copyTableValue(dependency.name),
+							onClick: () => void copyTableValue(dependency.name),
 						},
 						{
 							key: "copyVersion",
 							label: t("adminShell.tableActions.copyVersion"),
-							onClick: () => copyTableValue(dependency.version),
+							onClick: () => void copyTableValue(dependency.version),
 						},
 					]}
 					label={t("adminShell.tableActions.more")}
@@ -295,6 +296,7 @@ export function AboutSystemPage() {
 
 	return (
 		<Flex gap={token.marginLG} vertical>
+			{messageContextHolder}
 			<Card
 				data-testid="about-runtime-service"
 				loading={systemInfoQuery.isPending}
