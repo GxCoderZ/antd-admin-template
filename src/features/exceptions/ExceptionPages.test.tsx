@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import type { ComponentType } from "react";
 import { MemoryRouter } from "react-router";
 import { beforeAll, describe, expect, it } from "vitest";
 
@@ -9,7 +10,7 @@ beforeAll(async () => {
 	await i18n.changeLanguage("zh-CN");
 });
 
-function renderPage(Page: () => React.JSX.Element) {
+function renderPage(Page: ComponentType) {
 	return render(
 		<MemoryRouter>
 			<Page />
@@ -22,6 +23,7 @@ describe("exception pages", () => {
 		renderPage(ForbiddenPage);
 
 		expect(screen.getByText("403")).toBeVisible();
+		expect(screen.getByText("抱歉，您无权访问此页面。")).toBeVisible();
 		expect(screen.getByRole("button", { name: "返回首页" })).toBeVisible();
 	});
 
@@ -29,14 +31,18 @@ describe("exception pages", () => {
 		renderPage(NotFoundPage);
 
 		expect(screen.getByText("404")).toBeVisible();
+		expect(screen.getByText("抱歉，您访问的页面不存在。")).toBeVisible();
 		expect(screen.getByRole("button", { name: "返回首页" })).toBeVisible();
 	});
 
-	it("renders the official single home action for 500", () => {
+	it("renders the original 500 state", () => {
 		renderPage(ServerErrorPage);
 
 		expect(screen.getByText("500")).toBeVisible();
+		expect(screen.getByText("抱歉，服务器出错了。")).toBeVisible();
 		expect(screen.getByRole("button", { name: "返回首页" })).toBeVisible();
-		expect(screen.queryByRole("button", { name: "重新加载" })).toBeNull();
+		expect(
+			screen.queryByRole("button", { name: "重新加载" }),
+		).not.toBeInTheDocument();
 	});
 });

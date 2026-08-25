@@ -219,13 +219,13 @@ const loadGenericDetailPage = async (): Promise<LazyAdminRouteModule> => {
 
 const loadSuccessResultPage = async (): Promise<LazyAdminRouteModule> => {
 	const { SuccessResultPage } =
-		await import("../features/page-examples/ResultPages");
+		await import("../features/results/SuccessResultPage");
 	return { Component: SuccessResultPage };
 };
 
 const loadFailureResultPage = async (): Promise<LazyAdminRouteModule> => {
 	const { FailureResultPage } =
-		await import("../features/page-examples/ResultPages");
+		await import("../features/results/FailureResultPage");
 	return { Component: FailureResultPage };
 };
 
