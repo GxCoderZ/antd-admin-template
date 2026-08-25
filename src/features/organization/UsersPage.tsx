@@ -29,7 +29,6 @@ import {
 	type MenuProps,
 	Modal,
 	Popover,
-	Row,
 	Select,
 	Space,
 	Switch,
@@ -58,7 +57,6 @@ import {
 import { useLocalePreferences } from "../../app/localePreferences";
 import { platformPermissions, usePermission } from "../../app/permissions";
 import { PlatformUserAvatar } from "../../app/PlatformUserAvatar";
-import { QueryFilterSubmitter } from "../../app/QueryFilterSubmitter";
 import { TableActionButton } from "../../app/TableActionButton";
 import { resolveTableSort } from "../../app/tableSorting";
 import {
@@ -77,6 +75,7 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { LogQueryPanel } from "../operations/LogTablePanel";
 import { CreateUserDrawer } from "./CreateUserDrawer";
 import {
 	UserEditModal,
@@ -182,12 +181,14 @@ export function UsersPage() {
 	);
 	const [roleUser, setRoleUser] = useState<PlatformUser | null>(null);
 	const [resetPasswordForm] = Form.useForm<ResetPasswordFormValues>();
+	const [userFilterForm] = Form.useForm<UserFilterValues>();
 	const [userDraftFilters, setUserDraftFilters] = useState<UserFilterValues>(
 		defaultUserFilterValues,
 	);
 	const [userFilters, setUserFilters] = useState<UserFilterValues>(
 		defaultUserFilterValues,
 	);
+	const [userFiltersExpanded, setUserFiltersExpanded] = useState(false);
 	const [userTableState, setUserTableState] = useState<UserTableState>({
 		order: "desc",
 		page: 1,
@@ -196,14 +197,18 @@ export function UsersPage() {
 	});
 	const userQuerySubmission = useQuerySubmission();
 	const {
+		canExpand: canExpandUserFilters,
+		collapsedFieldCount: collapsedUserFilterCount,
 		columnSpan: userQueryFilterSpan,
 		containerRef: userQueryFilterContainerRef,
 		formLayout: userQueryFilterLayout,
 		submitterOffset: userQueryFilterSubmitterOffset,
 	} = useQueryFilterLayout({
-		expanded: false,
+		expanded: userFiltersExpanded,
 		fieldCount: userQueryFilterFieldCount,
 	});
+	const showUserStatusFilter =
+		userFiltersExpanded || collapsedUserFilterCount >= 2;
 	const userQueryParams = useMemo<ListPlatformUsersInput>(() => {
 		const q = userFilters.q?.trim();
 		const params: ListPlatformUsersInput = {
@@ -1049,103 +1054,80 @@ export function UsersPage() {
 						type="error"
 					/>
 				) : null}
-				<Card>
-					<div ref={userQueryFilterContainerRef}>
-						<Form
-							data-testid="admin-users-query-form"
-							{...(userQueryFilterLayout === "horizontal"
-								? {
-										labelCol: { flex: `0 0 ${token.controlHeightLG * 2}px` },
-										wrapperCol: {
-											style: {
-												maxWidth: `calc(100% - ${token.controlHeightLG * 2}px)`,
-											},
-										},
-									}
-								: {})}
-							layout={userQueryFilterLayout}
-							onFinish={queryUsers}
+				<LogQueryPanel<UserFilterValues>
+					actionsTestId="admin-users-query-actions"
+					canExpand={canExpandUserFilters}
+					columnSpan={userQueryFilterSpan}
+					containerRef={userQueryFilterContainerRef}
+					expanded={userFiltersExpanded}
+					form={userFilterForm}
+					formLayout={userQueryFilterLayout}
+					initialValues={defaultUserFilterValues}
+					loading={userQuery.isFetching && !userQuery.isPending}
+					onFinish={queryUsers}
+					onReset={resetUserFilters}
+					onToggle={() => setUserFiltersExpanded((expanded) => !expanded)}
+					submitterOffset={userQueryFilterSubmitterOffset}
+					testId="admin-users-query-form"
+				>
+					<Col span={userQueryFilterSpan}>
+						<Form.Item
+							label={t("adminShell.users.filters.q")}
+							style={{ marginBottom: 0 }}
 						>
-							<Row gutter={token.marginLG} justify="start">
-								<Col span={userQueryFilterSpan}>
-									<Form.Item
-										label={t("adminShell.users.filters.q")}
-										style={{ marginBottom: 0 }}
-									>
-										<Input
-											allowClear
-											onChange={(event) =>
-												setUserDraftFilters((existingFilters) => ({
-													...existingFilters,
-													q: event.target.value,
-												}))
-											}
-											placeholder={t("adminShell.users.placeholders.q")}
-											style={{ width: "100%" }}
-											value={userDraftFilters.q}
-										/>
-									</Form.Item>
-								</Col>
-								<Col span={userQueryFilterSpan}>
-									<Form.Item
-										label={t("adminShell.users.filters.status")}
-										style={{ marginBottom: 0 }}
-									>
-										<Select
-											aria-label={t("adminShell.users.filters.status")}
-											onChange={(status: UserFilterValues["status"]) =>
-												setUserDraftFilters((existingFilters) => ({
-													...existingFilters,
-													status,
-												}))
-											}
-											options={[
-												{
-													label: t("adminShell.users.allStatuses"),
-													value: "all",
-												},
-												{
-													label: t("adminShell.users.statuses.active"),
-													value: "active",
-												},
-												{
-													label: t("adminShell.users.statuses.locked"),
-													value: "locked",
-												},
-												{
-													label: t("adminShell.users.statuses.disabled"),
-													value: "disabled",
-												},
-											]}
-											style={{ width: "100%" }}
-											value={userDraftFilters.status}
-										/>
-									</Form.Item>
-								</Col>
-								<Col
-									data-testid="admin-users-query-actions"
-									offset={userQueryFilterSubmitterOffset}
-									span={userQueryFilterSpan}
-									style={{ textAlign: "end" }}
-								>
-									<Form.Item
-										colon={false}
-										label=" "
-										shouldUpdate={false}
-										style={{ marginBottom: 0, width: "100%" }}
-									>
-										<QueryFilterSubmitter
-											loading={userQuery.isFetching && !userQuery.isPending}
-											onReset={resetUserFilters}
-											queryText={t("adminShell.users.query")}
-											resetText={t("adminShell.users.reset")}
-										/>
-									</Form.Item>
-								</Col>
-							</Row>
-						</Form>
-					</div>
-				</Card>
+							<Input
+								allowClear
+								onChange={(event) =>
+									setUserDraftFilters((existingFilters) => ({
+										...existingFilters,
+										q: event.target.value,
+									}))
+								}
+								placeholder={t("adminShell.users.placeholders.q")}
+								style={{ width: "100%" }}
+								value={userDraftFilters.q}
+							/>
+						</Form.Item>
+					</Col>
+					{showUserStatusFilter ? (
+						<Col span={userQueryFilterSpan}>
+							<Form.Item
+								label={t("adminShell.users.filters.status")}
+								style={{ marginBottom: 0 }}
+							>
+								<Select
+									aria-label={t("adminShell.users.filters.status")}
+									onChange={(status: UserFilterValues["status"]) =>
+										setUserDraftFilters((existingFilters) => ({
+											...existingFilters,
+											status,
+										}))
+									}
+									options={[
+										{
+											label: t("adminShell.users.allStatuses"),
+											value: "all",
+										},
+										{
+											label: t("adminShell.users.statuses.active"),
+											value: "active",
+										},
+										{
+											label: t("adminShell.users.statuses.locked"),
+											value: "locked",
+										},
+										{
+											label: t("adminShell.users.statuses.disabled"),
+											value: "disabled",
+										},
+									]}
+									style={{ width: "100%" }}
+									value={userDraftFilters.status}
+								/>
+							</Form.Item>
+						</Col>
+					) : null}
+				</LogQueryPanel>
 
 				<Card
 					data-testid="admin-users-table-card"

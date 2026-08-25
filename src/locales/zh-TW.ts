@@ -428,6 +428,10 @@ export const zhTWTranslation = {
 			query: "查詢",
 			reset: "重設",
 			reload: "重新整理",
+			density: "表格密度",
+			tableSettings: "表格設定",
+			fullscreen: "表格全螢幕",
+			exitFullscreen: "退出表格全螢幕",
 			allStatuses: "全部狀態",
 			create: "新增公告",
 			createTitle: "新增公告",
@@ -442,6 +446,15 @@ export const zhTWTranslation = {
 			retry: "重試",
 			empty: "目前條件下暫無公告。",
 			paginationTotal: "第 {{start}}-{{end}} 筆／共 {{total}} 筆",
+			columnSettings: {
+				title: "欄位顯示",
+				reset: "重設",
+			},
+			densityOptions: {
+				large: "寬鬆",
+				middle: "預設",
+				small: "緊湊",
+			},
 			filters: {
 				q: "關鍵字",
 				status: "發布狀態",

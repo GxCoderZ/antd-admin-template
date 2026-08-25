@@ -434,6 +434,10 @@ export const koKRTranslation = {
 			query: "조회",
 			reset: "초기화",
 			reload: "새로 고침",
+			density: "표 밀도",
+			tableSettings: "표 설정",
+			fullscreen: "표 전체 화면",
+			exitFullscreen: "표 전체 화면 종료",
 			allStatuses: "전체 상태",
 			create: "공지 추가",
 			createTitle: "공지 추가",
@@ -448,6 +452,15 @@ export const koKRTranslation = {
 			retry: "다시 시도",
 			empty: "현재 조건에 맞는 공지가 없습니다.",
 			paginationTotal: "{{start}}-{{end}} / 총 {{total}}개",
+			columnSettings: {
+				title: "열 표시",
+				reset: "초기화",
+			},
+			densityOptions: {
+				large: "여유",
+				middle: "기본",
+				small: "좁게",
+			},
 			filters: {
 				q: "키워드",
 				status: "게시 상태",

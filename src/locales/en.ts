@@ -440,6 +440,10 @@ export const enTranslation = {
 			query: "Query",
 			reset: "Reset",
 			reload: "Reload",
+			density: "Table density",
+			tableSettings: "Table settings",
+			fullscreen: "Table fullscreen",
+			exitFullscreen: "Exit table fullscreen",
 			allStatuses: "All statuses",
 			create: "New announcement",
 			createTitle: "Create announcement",
@@ -454,6 +458,15 @@ export const enTranslation = {
 			retry: "Retry",
 			empty: "No announcements match the current filters.",
 			paginationTotal: "{{start}}-{{end}} of {{total}}",
+			columnSettings: {
+				title: "Columns",
+				reset: "Reset",
+			},
+			densityOptions: {
+				large: "Comfortable",
+				middle: "Default",
+				small: "Compact",
+			},
 			filters: {
 				q: "Keyword",
 				status: "Publication status",

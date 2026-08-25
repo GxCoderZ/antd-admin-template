@@ -87,6 +87,19 @@ function renderAnnouncementsPage(canManage = true) {
 }
 
 describe("AnnouncementsPage", () => {
+	it("uses the standard management query bar and table toolbar", async () => {
+		renderAnnouncementsPage();
+
+		await screen.findByText("系统维护通知");
+		expect(screen.getByTestId("admin-announcements-query-form")).toBeVisible();
+		expect(
+			screen.getByTestId("admin-announcements-query-actions"),
+		).toBeVisible();
+		for (const actionName of ["刷新", "表格密度", "表格设置", "表格全屏"]) {
+			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
+		}
+	});
+
 	it("submits keyword filters through the announcements API", async () => {
 		const user = renderAnnouncementsPage();
 

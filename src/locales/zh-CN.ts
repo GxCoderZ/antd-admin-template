@@ -428,6 +428,10 @@ export const zhCNTranslation = {
 			query: "查询",
 			reset: "重置",
 			reload: "刷新",
+			density: "表格密度",
+			tableSettings: "表格设置",
+			fullscreen: "表格全屏",
+			exitFullscreen: "退出表格全屏",
 			allStatuses: "全部状态",
 			create: "新建公告",
 			createTitle: "新建公告",
@@ -442,6 +446,15 @@ export const zhCNTranslation = {
 			retry: "重试",
 			empty: "当前条件下暂无公告。",
 			paginationTotal: "第 {{start}}-{{end}} 条/总共 {{total}} 条",
+			columnSettings: {
+				title: "列展示",
+				reset: "重置",
+			},
+			densityOptions: {
+				large: "宽松",
+				middle: "中等",
+				small: "紧凑",
+			},
 			filters: {
 				q: "关键词",
 				status: "发布状态",
