@@ -50,3 +50,40 @@ test("页面标签支持右键菜单关闭目标标签", async ({ page }) => {
 	await expect(page).toHaveURL(/\/dashboard$/);
 	await expect(usersTab).toHaveCount(0);
 });
+
+test("公告管理支持通过 Fake API 新建并查询公告", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
+	await expect(page).toHaveURL(/\/system\/announcements$/);
+	await expect(page.getByRole("table")).toContainText("系统维护通知");
+
+	await page.getByRole("button", { name: "新建公告" }).click();
+	const drawer = page.locator(".ant-drawer").filter({ hasText: "新建公告" });
+	await drawer.getByLabel("公告标题").fill("端到端公告演示");
+	await drawer.getByLabel("公告内容").fill("验证公告创建和查询流程。");
+	await drawer.getByRole("button", { name: /保\s*存/ }).click();
+	await expect(drawer).toBeHidden();
+
+	await page.getByPlaceholder("搜索公告标题").fill("端到端公告演示");
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await expect(page.getByText("端到端公告演示", { exact: true })).toBeVisible();
+});
+
+test("公告管理在窄屏下保持可导航和可编辑", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
+	await expect(page).toHaveURL(/\/system\/announcements$/);
+	await expect(page.getByRole("button", { name: "新建公告" })).toBeVisible();
+
+	await page.getByRole("button", { name: "新建公告" }).click();
+	const drawer = page.locator(".ant-drawer-content-wrapper");
+	await expect(drawer).toBeVisible();
+	const drawerBounds = await drawer.boundingBox();
+	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
+});

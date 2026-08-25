@@ -1,4 +1,5 @@
 import type { PlatformSession } from "../src/api/auth";
+import type { PlatformAnnouncement } from "../src/api/announcements";
 import type { PlatformAuditLog, PlatformLoginLog } from "../src/api/operations";
 import type { PlatformRole } from "../src/api/roles";
 import type { PlatformUserDetail } from "../src/api/users";
@@ -8,6 +9,8 @@ const iso = (offsetMinutes = 0) =>
 	new Date(now - offsetMinutes * 60_000).toISOString();
 
 export const allPermissions = [
+	"platform.announcements.manage",
+	"platform.announcements.read",
 	"platform.logs.read",
 	"platform.roles.manage",
 	"platform.settings.manage",
@@ -36,6 +39,8 @@ export const roles: PlatformRole[] = [
 		displayName: "运营管理员",
 		memberCount: 11,
 		permissions: [
+			"platform.announcements.manage",
+			"platform.announcements.read",
 			"platform.logs.read",
 			"platform.users.read",
 			"platform.users.manage",
@@ -47,7 +52,11 @@ export const roles: PlatformRole[] = [
 		roleKey: "auditor",
 		displayName: "只读审计员",
 		memberCount: 9,
-		permissions: ["platform.logs.read", "platform.users.read"],
+		permissions: [
+			"platform.announcements.read",
+			"platform.logs.read",
+			"platform.users.read",
+		],
 		version: 1,
 	},
 ];
@@ -163,6 +172,27 @@ export const users: PlatformUserDetail[] = [
 ];
 
 export const userAvatarDataUrls: Record<string, string> = {};
+
+const announcementTitles = [
+	"系统维护通知",
+	"管理控制台版本更新",
+	"账号安全提醒",
+	"服务时间调整公告",
+	"内部流程更新",
+	"数据导出功能升级",
+] as const;
+
+export const announcements: PlatformAnnouncement[] = Array.from(
+	{ length: 26 },
+	(_, index): PlatformAnnouncement => ({
+		content: `这是第 ${index + 1} 条公告内容，用于演示查询、分页和状态管理。`,
+		createdAt: iso(20_000 - index * 180),
+		id: `announcement-${index + 1}`,
+		status: index % 4 === 0 ? "draft" : "published",
+		title: `${announcementTitles[index % announcementTitles.length]} ${index + 1}`,
+		updatedAt: iso(2_000 - index * 37),
+	}),
+);
 
 export const session: PlatformSession = {
 	permissions: [...allPermissions],

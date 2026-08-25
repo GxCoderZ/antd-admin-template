@@ -20,6 +20,7 @@ export const koKRTranslation = {
 			dashboard: "대시보드",
 			users: "사용자 관리",
 			roles: "역할 관리",
+			announcements: "공지 관리",
 			operations: "감사 로그",
 			auditLogs: "작업 감사",
 			loginLogs: "로그인 로그",
@@ -366,10 +367,19 @@ export const koKRTranslation = {
 				groups: {
 					roles: "역할 관리",
 					users: "사용자 관리",
+					announcements: "공지 관리",
 					logs: "로그",
 					settings: "시스템 설정",
 				},
 				items: {
+					announcementsRead: {
+						name: "공지 조회",
+						description: "공지 목록, 내용 및 게시 상태를 조회합니다.",
+					},
+					announcementsManage: {
+						name: "공지 관리",
+						description: "공지를 생성, 편집, 게시 또는 삭제합니다.",
+					},
 					rolesManage: {
 						name: "역할 관리",
 						description:
@@ -417,6 +427,60 @@ export const koKRTranslation = {
 				permissionForbidden: "이 권한을 부여할 수 없습니다",
 				permissionForbiddenDescription:
 					"현재 계정에 없는 권한은 부여할 수 없습니다.",
+			},
+		},
+		announcements: {
+			tableTitle: "공지 목록",
+			query: "조회",
+			reset: "초기화",
+			reload: "새로 고침",
+			allStatuses: "전체 상태",
+			create: "공지 추가",
+			createTitle: "공지 추가",
+			edit: "편집",
+			editTitle: "공지 편집",
+			delete: "삭제",
+			cancel: "취소",
+			save: "저장",
+			confirmDelete: "삭제 확인",
+			deleteTitle: "공지 삭제",
+			deleteDescription: "공지 ‘{{title}}’을 삭제하면 복구할 수 없습니다.",
+			retry: "다시 시도",
+			empty: "현재 조건에 맞는 공지가 없습니다.",
+			paginationTotal: "{{start}}-{{end}} / 총 {{total}}개",
+			filters: {
+				q: "키워드",
+				status: "게시 상태",
+			},
+			fields: {
+				title: "공지 제목",
+				status: "게시 상태",
+				content: "공지 내용",
+			},
+			placeholders: {
+				query: "공지 제목 검색",
+				title: "공지 제목 입력",
+				content: "공지 내용 입력",
+			},
+			statuses: {
+				draft: "초안",
+				published: "게시됨",
+			},
+			columns: {
+				title: "공지 제목",
+				status: "게시 상태",
+				updatedAt: "수정 시간",
+				actions: "작업",
+			},
+			validation: {
+				titleLength: "1~100자의 공지 제목을 입력하세요.",
+				contentLength: "1~2,000자의 공지 내용을 입력하세요.",
+			},
+			errors: {
+				load: "공지 목록을 불러올 수 없습니다",
+				save: "공지를 저장할 수 없습니다",
+				delete: "공지를 삭제할 수 없습니다",
+				fallback: "요청에 실패했습니다. 잠시 후 다시 시도하세요.",
 			},
 		},
 		users: {

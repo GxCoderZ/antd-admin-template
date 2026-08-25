@@ -8,6 +8,7 @@ describe("admin route template", () => {
 			"/dashboard",
 			"/organization/users",
 			"/access/roles",
+			"/system/announcements",
 			"/operations/audit-logs",
 			"/operations/login-logs",
 			"/system/settings",

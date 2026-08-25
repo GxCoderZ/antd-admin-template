@@ -48,17 +48,34 @@ import {
 } from "#src/api/roles";
 
 const { Text } = Typography;
-type PermissionGroupKey = "roles" | "users" | "logs" | "settings";
+type PermissionGroupKey =
+	"announcements" | "roles" | "users" | "logs" | "settings";
 type RenameRoleFormValues = Pick<UpdatePlatformRoleInput, "displayName">;
 
 interface PermissionDefinition {
 	groupKey: PermissionGroupKey;
 	i18nKey:
-		"rolesManage" | "usersManage" | "usersRead" | "logsRead" | "settingsManage";
+		| "announcementsManage"
+		| "announcementsRead"
+		| "rolesManage"
+		| "usersManage"
+		| "usersRead"
+		| "logsRead"
+		| "settingsManage";
 	permission: PlatformPermission;
 }
 
 const permissionDefinitionByValue = {
+	[platformPermissions.announcementsRead]: {
+		groupKey: "announcements",
+		i18nKey: "announcementsRead",
+		permission: platformPermissions.announcementsRead,
+	},
+	[platformPermissions.announcementsManage]: {
+		groupKey: "announcements",
+		i18nKey: "announcementsManage",
+		permission: platformPermissions.announcementsManage,
+	},
 	[platformPermissions.rolesManage]: {
 		groupKey: "roles",
 		i18nKey: "rolesManage",
@@ -86,14 +103,14 @@ const permissionDefinitionByValue = {
 	},
 } satisfies Record<PlatformPermission, PermissionDefinition>;
 
-const permissionGroups = (["roles", "users", "logs", "settings"] as const).map(
-	(groupKey) => ({
-		groupKey,
-		permissions: Object.values(permissionDefinitionByValue).filter(
-			(definition) => definition.groupKey === groupKey,
-		),
-	}),
-);
+const permissionGroups = (
+	["roles", "users", "announcements", "logs", "settings"] as const
+).map((groupKey) => ({
+	groupKey,
+	permissions: Object.values(permissionDefinitionByValue).filter(
+		(definition) => definition.groupKey === groupKey,
+	),
+}));
 
 const allPermissionValues = Object.keys(
 	permissionDefinitionByValue,

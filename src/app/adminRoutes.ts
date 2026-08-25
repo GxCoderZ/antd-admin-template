@@ -11,6 +11,7 @@ export type AdminRouteIconKey =
 	| "dashboard"
 	| "users"
 	| "roles"
+	| "announcements"
 	| "auditLogs"
 	| "loginLogs"
 	| "settings"
@@ -66,6 +67,12 @@ const loadUsersPage = async (): Promise<LazyAdminRouteModule> => {
 const loadRolesPage = async (): Promise<LazyAdminRouteModule> => {
 	const { RolesPage } = await import("../features/access/RolesPage");
 	return { Component: RolesPage };
+};
+
+const loadAnnouncementsPage = async (): Promise<LazyAdminRouteModule> => {
+	const { AnnouncementsPage } =
+		await import("../features/announcements/AnnouncementsPage");
+	return { Component: AnnouncementsPage };
 };
 
 const loadAuditLogPage = async (): Promise<LazyAdminRouteModule> => {
@@ -153,6 +160,15 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		requiredPermission: platformPermissions.rolesManage,
 		sectionKey: "adminShell.navigation.system",
 		titleKey: "adminShell.navigation.roles",
+	},
+	{
+		groupKey: "system",
+		iconKey: "announcements",
+		key: "/system/announcements",
+		lazy: loadAnnouncementsPage,
+		requiredPermission: platformPermissions.announcementsRead,
+		sectionKey: "adminShell.navigation.system",
+		titleKey: "adminShell.navigation.announcements",
 	},
 	{
 		groupKey: "operations",
@@ -251,6 +267,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 		nodes: [
 			{ routeKey: "/organization/users" },
 			{ routeKey: "/access/roles" },
+			{ routeKey: "/system/announcements" },
 			{ routeKey: "/system/settings" },
 			{ routeKey: "/system/about" },
 		],

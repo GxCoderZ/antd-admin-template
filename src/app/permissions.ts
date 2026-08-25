@@ -5,6 +5,8 @@ import type { PlatformPermission } from "#src/api/types";
 export type { PlatformPermission } from "#src/api/types";
 
 export const platformPermissions = {
+	announcementsManage: "platform.announcements.manage",
+	announcementsRead: "platform.announcements.read",
 	logsRead: "platform.logs.read",
 	settingsManage: "platform.settings.manage",
 	rolesManage: "platform.roles.manage",

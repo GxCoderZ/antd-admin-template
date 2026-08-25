@@ -20,6 +20,7 @@ export const enTranslation = {
 			dashboard: "Dashboard",
 			users: "Users",
 			roles: "Roles",
+			announcements: "Announcements",
 			operations: "Audit logs",
 			auditLogs: "Operation audit",
 			loginLogs: "Login logs",
@@ -371,10 +372,19 @@ export const enTranslation = {
 				groups: {
 					roles: "Role management",
 					users: "User management",
+					announcements: "Announcement management",
 					logs: "Logs",
 					settings: "Settings",
 				},
 				items: {
+					announcementsRead: {
+						name: "Read announcements",
+						description: "View announcements, content, and publication status.",
+					},
+					announcementsManage: {
+						name: "Manage announcements",
+						description: "Create, edit, publish, or delete announcements.",
+					},
 					rolesManage: {
 						name: "Manage roles",
 						description:
@@ -423,6 +433,60 @@ export const enTranslation = {
 				permissionForbidden: "Unable to grant this permission",
 				permissionForbiddenDescription:
 					"You cannot grant a permission that your account does not have.",
+			},
+		},
+		announcements: {
+			tableTitle: "Announcement list",
+			query: "Query",
+			reset: "Reset",
+			reload: "Reload",
+			allStatuses: "All statuses",
+			create: "New announcement",
+			createTitle: "Create announcement",
+			edit: "Edit",
+			editTitle: "Edit announcement",
+			delete: "Delete",
+			cancel: "Cancel",
+			save: "Save",
+			confirmDelete: "Delete",
+			deleteTitle: "Delete announcement",
+			deleteDescription: 'Deleting announcement "{{title}}" cannot be undone.',
+			retry: "Retry",
+			empty: "No announcements match the current filters.",
+			paginationTotal: "{{start}}-{{end}} of {{total}}",
+			filters: {
+				q: "Keyword",
+				status: "Publication status",
+			},
+			fields: {
+				title: "Announcement title",
+				status: "Publication status",
+				content: "Announcement content",
+			},
+			placeholders: {
+				query: "Search announcement titles",
+				title: "Enter an announcement title",
+				content: "Enter announcement content",
+			},
+			statuses: {
+				draft: "Draft",
+				published: "Published",
+			},
+			columns: {
+				title: "Announcement title",
+				status: "Publication status",
+				updatedAt: "Updated at",
+				actions: "Actions",
+			},
+			validation: {
+				titleLength: "Enter an announcement title of 1 to 100 characters.",
+				contentLength: "Enter announcement content of 1 to 2,000 characters.",
+			},
+			errors: {
+				load: "Unable to load announcements",
+				save: "Unable to save the announcement",
+				delete: "Unable to delete the announcement",
+				fallback: "The request failed. Try again later.",
 			},
 		},
 		users: {

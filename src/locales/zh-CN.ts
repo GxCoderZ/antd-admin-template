@@ -20,6 +20,7 @@ export const zhCNTranslation = {
 			dashboard: "仪表盘",
 			users: "用户管理",
 			roles: "角色管理",
+			announcements: "公告管理",
 			operations: "审计日志",
 			auditLogs: "操作审计",
 			loginLogs: "登录日志",
@@ -362,10 +363,19 @@ export const zhCNTranslation = {
 				groups: {
 					roles: "角色管理",
 					users: "用户管理",
+					announcements: "公告管理",
 					logs: "日志",
 					settings: "系统设置",
 				},
 				items: {
+					announcementsRead: {
+						name: "查看公告",
+						description: "查看公告列表、内容和发布状态。",
+					},
+					announcementsManage: {
+						name: "管理公告",
+						description: "新建、编辑、发布或删除公告。",
+					},
 					rolesManage: {
 						name: "管理角色",
 						description: "创建或删除角色、配置权限点并分配用户角色。",
@@ -411,6 +421,60 @@ export const zhCNTranslation = {
 				fallback: "请求失败，请稍后重试。",
 				permissionForbidden: "无法授予此权限",
 				permissionForbiddenDescription: "不能授予当前账号不具备的权限点。",
+			},
+		},
+		announcements: {
+			tableTitle: "公告列表",
+			query: "查询",
+			reset: "重置",
+			reload: "刷新",
+			allStatuses: "全部状态",
+			create: "新建公告",
+			createTitle: "新建公告",
+			edit: "编辑",
+			editTitle: "编辑公告",
+			delete: "删除",
+			cancel: "取消",
+			save: "保存",
+			confirmDelete: "确认删除",
+			deleteTitle: "删除公告",
+			deleteDescription: "删除公告“{{title}}”后无法恢复。",
+			retry: "重试",
+			empty: "当前条件下暂无公告。",
+			paginationTotal: "第 {{start}}-{{end}} 条/总共 {{total}} 条",
+			filters: {
+				q: "关键词",
+				status: "发布状态",
+			},
+			fields: {
+				title: "公告标题",
+				status: "发布状态",
+				content: "公告内容",
+			},
+			placeholders: {
+				query: "搜索公告标题",
+				title: "请输入公告标题",
+				content: "请输入公告内容",
+			},
+			statuses: {
+				draft: "草稿",
+				published: "已发布",
+			},
+			columns: {
+				title: "公告标题",
+				status: "发布状态",
+				updatedAt: "更新时间",
+				actions: "操作",
+			},
+			validation: {
+				titleLength: "请输入 1 至 100 个字符的公告标题。",
+				contentLength: "请输入 1 至 2000 个字符的公告内容。",
+			},
+			errors: {
+				load: "公告列表加载失败",
+				save: "公告保存失败",
+				delete: "公告删除失败",
+				fallback: "请求失败，请稍后重试。",
 			},
 		},
 		users: {

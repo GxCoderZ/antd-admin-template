@@ -1,4 +1,6 @@
 export type PlatformPermission =
+	| "platform.announcements.manage"
+	| "platform.announcements.read"
 	| "platform.logs.read"
 	| "platform.roles.manage"
 	| "platform.settings.manage"

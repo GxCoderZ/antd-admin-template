@@ -20,6 +20,7 @@ export const zhTWTranslation = {
 			dashboard: "儀表板",
 			users: "使用者管理",
 			roles: "角色管理",
+			announcements: "公告管理",
 			operations: "稽核日誌",
 			auditLogs: "操作稽核",
 			loginLogs: "登入日誌",
@@ -362,10 +363,19 @@ export const zhTWTranslation = {
 				groups: {
 					roles: "角色管理",
 					users: "使用者管理",
+					announcements: "公告管理",
 					logs: "日誌",
 					settings: "系統設定",
 				},
 				items: {
+					announcementsRead: {
+						name: "檢視公告",
+						description: "檢視公告清單、內容和發布狀態。",
+					},
+					announcementsManage: {
+						name: "管理公告",
+						description: "新增、編輯、發布或刪除公告。",
+					},
 					rolesManage: {
 						name: "管理角色",
 						description: "建立或刪除角色、設定權限項目並指派使用者角色。",
@@ -411,6 +421,60 @@ export const zhTWTranslation = {
 				fallback: "請求失敗，請稍後再試。",
 				permissionForbidden: "無法授予此權限",
 				permissionForbiddenDescription: "不能授予目前帳號不具備的權限點。",
+			},
+		},
+		announcements: {
+			tableTitle: "公告清單",
+			query: "查詢",
+			reset: "重設",
+			reload: "重新整理",
+			allStatuses: "全部狀態",
+			create: "新增公告",
+			createTitle: "新增公告",
+			edit: "編輯",
+			editTitle: "編輯公告",
+			delete: "刪除",
+			cancel: "取消",
+			save: "儲存",
+			confirmDelete: "確認刪除",
+			deleteTitle: "刪除公告",
+			deleteDescription: "刪除公告「{{title}}」後無法復原。",
+			retry: "重試",
+			empty: "目前條件下暫無公告。",
+			paginationTotal: "第 {{start}}-{{end}} 筆／共 {{total}} 筆",
+			filters: {
+				q: "關鍵字",
+				status: "發布狀態",
+			},
+			fields: {
+				title: "公告標題",
+				status: "發布狀態",
+				content: "公告內容",
+			},
+			placeholders: {
+				query: "搜尋公告標題",
+				title: "請輸入公告標題",
+				content: "請輸入公告內容",
+			},
+			statuses: {
+				draft: "草稿",
+				published: "已發布",
+			},
+			columns: {
+				title: "公告標題",
+				status: "發布狀態",
+				updatedAt: "更新時間",
+				actions: "操作",
+			},
+			validation: {
+				titleLength: "請輸入 1 至 100 個字元的公告標題。",
+				contentLength: "請輸入 1 至 2000 個字元的公告內容。",
+			},
+			errors: {
+				load: "公告清單載入失敗",
+				save: "公告儲存失敗",
+				delete: "公告刪除失敗",
+				fallback: "請求失敗，請稍後再試。",
 			},
 		},
 		users: {
