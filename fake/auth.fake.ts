@@ -1,55 +1,42 @@
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
-import { authenticate, getAccountByToken, refreshSession } from "./store";
+import { loginLogs, session, setSignedIn, signedIn } from "./store";
 import { resultError, resultSuccess } from "./utils";
-
-function getBearerToken(headers: Record<string, string | string[] | undefined>) {
-	const authorization = headers.authorization;
-	const value = Array.isArray(authorization) ? authorization[0] : authorization;
-	return value?.replace(/^Bearer\s+/i, "");
-}
 
 export default defineFakeRoute([
 	{
-		url: "/auth/login",
+		url: "/platform/auth/session",
+		method: "get",
+		response: () =>
+			signedIn ? resultSuccess(session) : resultError("Please sign in", 401),
+	},
+	{
+		url: "/platform/auth/login",
 		method: "post",
-		timeout: 250,
 		response: ({ body }) => {
-			const account = authenticate(body.username, body.password);
-			if (!account)
-				return resultError("账号或密码错误");
-
-			return resultSuccess({
-				access_token: account.token,
-				refresh_token: account.refreshToken,
-				expires_in: 7200,
+			if (!body.identifier || !body.password) {
+				return resultError("Username and password are required", 422);
+			}
+			setSignedIn(true);
+			loginLogs.unshift({
+				id: `login-${Date.now()}`,
+				identifier: String(body.identifier),
+				requestIp: "127.0.0.1",
+				result: "success",
+				userAgent: "Fake Server preview",
+				acceptLanguage: "zh-CN",
+				timeZone: String(body.timeZone ?? "Asia/Shanghai"),
+				createdAt: new Date().toISOString(),
 			});
+			return resultSuccess(session);
 		},
 	},
 	{
-		url: "/auth/refresh-token",
+		url: "/platform/auth/logout",
 		method: "post",
-		response: ({ body }) => {
-			const account = refreshSession(body.refresh_token);
-			return account
-				? resultSuccess({ access_token: account.token, refresh_token: account.refreshToken, expires_in: 7200 })
-				: resultError("登录状态已失效", 401);
-		},
-	},
-	{
-		url: "/auth/current-user",
-		method: "post",
-		response: ({ headers }) => {
-			const account = getAccountByToken(getBearerToken(headers));
-			return resultSuccess(account.user);
-		},
-	},
-	{
-		url: "/rbac/permissions",
-		method: "post",
-		response: ({ headers }) => {
-			const account = getAccountByToken(getBearerToken(headers));
-			return resultSuccess({ permissions: account.permissions });
+		response: () => {
+			setSignedIn(false);
+			return resultSuccess(null);
 		},
 	},
 ]);

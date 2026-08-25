@@ -30,9 +30,9 @@ product-ui/
 
 ## 技术栈和命令
 
-- React 18、TypeScript、Vite 7、React Router 7。
-- Ant Design 5、Ant Design Pro Components、Tailwind CSS 4。
-- TanStack Query 5、Zustand 5、Ky。
+- React 19、TypeScript、Vite 8、React Router 8。
+- Ant Design 6、Ant Design Plots 2。
+- TanStack Query 5、Zustand 5。
 - `vite-plugin-fake-server`、Vitest、Testing Library。
 - 包管理器固定使用 pnpm。
 
@@ -53,58 +53,50 @@ pnpm preview
 页面 / 子组件
   → TanStack Query useQuery / useMutation
   → src/api/<domain>
-  → src/utils/request
+  → src/api/client
   → /api/*
   → fake/<domain>.fake.ts
 ```
 
-| 路径 | 职责 |
-|---|---|
-| `src/pages/<domain>/` | 页面入口、领域内组件、列配置和页面交互 |
-| `src/api/<domain>/index.ts` | 请求函数，只处理传输契约 |
-| `src/api/<domain>/types.ts` | 请求参数、响应数据和领域记录类型 |
-| `fake/<domain>.fake.ts` | 对应领域的 Fake HTTP 接口 |
-| `src/components/` | 跨领域通用 UI 组件 |
-| `src/hooks/` | 跨领域、框架级 Hook |
-| `src/router/routes/static/` | 产品 UI 的全部业务路由 |
-| `src/store/` | 认证、用户、权限、主题等跨页面状态 |
-| `src/styles/` | 全局样式、基础样式和 AntD 主题 |
-| `src/locales/{zh-CN,en-US}/` | 双语文案，文件名即 namespace |
+| 路径                        | 职责                                      |
+| --------------------------- | ----------------------------------------- |
+| `src/features/<domain>/`    | 页面入口、领域组件和页面交互              |
+| `src/api/<domain>/index.ts` | 请求函数，只处理传输契约                  |
+| `src/api/<domain>/types.ts` | 请求参数、响应数据和领域记录类型          |
+| `src/api/client.ts`         | `/api` 请求与统一响应处理                 |
+| `fake/<domain>.fake.ts`     | 对应领域的 Fake HTTP 接口                 |
+| `src/app/`                  | 应用 Provider、路由元数据和跨页面 UI 能力 |
+| `src/app/adminRoutes.ts`    | 产品 UI 的全部业务路由和菜单元数据        |
+| `src/locales/*.ts`          | 简中、繁中、英文、韩文文案                |
 
 ## 页面组织规范
 
 ```text
-src/pages/<feature>/
-├── index.tsx          # 页面状态、Query/Mutation 和组件编排
-├── constants.tsx      # options、状态映射、BasicTable 列工厂
-├── types.ts           # 仅页面内部使用的展示类型（需要时）
-├── components/        # Drawer、Modal、Card、详情等领域组件
-└── hooks/             # 仅本领域复用的复杂 Hook（需要时）
+src/features/<feature>/
+├── <Feature>Page.tsx  # 页面状态、Query/Mutation 和组件编排
+├── <Component>.tsx    # Drawer、Modal、Card、详情等领域组件
+└── *.module.css       # 仅该领域使用的样式（需要时）
 ```
 
-- `index.tsx` 不堆放大段列定义、Fake 数组或完整抽屉 JSX。
-- 列配置需要权限或回调时写成工厂函数，由页面传参；`constants.tsx` 不读取页面 State，不发送请求。
+- 页面文件不堆放 Fake 数组；所有界面数据必须来自 TanStack Query 或 Mutation。
 - 子组件通过明确 Props 回传事件，不接管页面级路由、表格刷新或无关 Mutation。
 - 简单 `useQuery`、`useMutation` 和弹窗状态直接留在页面或对应组件中。
-- 只有本领域多个组件共用的复杂逻辑才放 `pages/<domain>/hooks`。
-- 跨多个领域复用的 Hook 才能进入 `src/hooks`；组件私有 Hook 放 `components/<component>/hooks`。
+- 只有多个组件确实复用的复杂逻辑才新增领域 Hook。
 - 请求和响应类型放 `src/api/<domain>/types.ts`；纯页面状态类型才放页面目录。
 
 ## UI 和样式规则
 
 - AntD 是基础交互组件，不手写复刻 Button、Table、Form、Drawer、Modal。
-- 页面根容器使用 `BasicContent`，普通管理列表使用 `BasicTable`，操作使用 `BasicButton`。
-- 主题 Token 在 `src/styles/theme/antd/antd-theme.ts` 和 `src/app.tsx` 的 `ConfigProvider` 修改。
-- 全局基础样式放 `src/styles/base.css`、`src/styles/global.css`；不要在页面散落全局 `.ant-*` 覆盖。
-- Button 的通用行为和样式入口是 `src/components/basic-button`；不创建平行按钮体系。
-- 页面专属样式留在对应页面或组件中，优先使用现有 Tailwind 工具类。
+- 应用级主题在 `src/app/App.tsx` 的 `ConfigProvider` 修改，组件样式优先读取 AntD Token。
+- 管理壳层、登录页和通用交互优先复用 `src/app` 与现有 `src/features` 组件。
+- 页面专属样式留在对应页面或组件中，优先使用现有 CSS Module 与 AntD Token。
 - 所有可交互组件都要考虑 hover、focus、active、disabled、loading 和 danger 状态。
 - 关键页面必须覆盖加载、正常、空数据、失败和无权限状态，并核对桌面与窄屏。
 - 无权限操作直接隐藏；不要把 `disabled` 当权限控制。
 
 ## API 和 Fake 规则
 
-- API 按领域组织为 `index.ts + types.ts`，请求函数使用 `fetchXxx` 命名。
+- API 按领域组织为 `index.ts + types.ts`，请求函数沿用 `get/list/create/update/deleteXxx` 命名。
 - 统一响应为 `{ code, msg, data }`；分页数据为 `{ items, total, page, page_size }`。
 - Fake 文件必须以 `.fake.ts` 结尾，URL 不包含 Vite 配置中的 `/api` basename。
 - `enableProd: true` 时 Fake 文件不能使用 Node 专属模块。
@@ -114,10 +106,10 @@ src/pages/<feature>/
 
 ## 路由、菜单和权限
 
-- 业务路由只放 `src/router/routes/static/`，不使用后端动态路由。
-- 新增菜单通常同时修改路由文件、`src/router/extra-info/order.ts`、菜单图标和双语文案。
-- 受控路由配置 `handle.permission`；页面操作使用 `usePermission` 或 `usePermissionAll`。
-- 权限码按现有格式使用，如 `system:user:view`、`system:user:add`。
+- 业务路由与菜单元数据只放 `src/app/adminRoutes.ts`，不使用后端动态路由。
+- 新增菜单同时修改路由元数据、Ant Design 图标和四种语言文案。
+- 受控路由配置 `requiredPermission`；页面操作使用 `usePermission`。
+- 权限码沿用 `platform.users.read`、`platform.users.manage` 等当前格式。
 - 删除领域时同步删除 Page、API、Fake、Route、Locale、Store 和专用类型，不保留不可达残件。
 
 ## 标准领域开发示例：公告管理
@@ -129,16 +121,14 @@ src/pages/<feature>/
 ```text
 src/api/announcements/index.ts
 src/api/announcements/types.ts
-src/pages/announcements/index.tsx
-src/pages/announcements/constants.tsx
-src/pages/announcements/components/announcement-form-drawer.tsx
-src/router/routes/static/announcements.ts
-src/locales/zh-CN/announcements.json
-src/locales/en-US/announcements.json
+src/features/announcements/AnnouncementsPage.tsx
+src/features/announcements/AnnouncementFormDrawer.tsx
+src/app/adminRoutes.ts
+src/locales/{zh-CN,zh-TW,en,ko-KR}.ts
 fake/announcements.fake.ts
 ```
 
-当前交互简单时不创建 `hooks/`。只有多个公告组件确实复用复杂逻辑时，才增加 `src/pages/announcements/hooks/use-announcement-selection.ts`。
+当前交互简单时不创建 Hook。只有多个公告组件确实复用复杂逻辑时，才增加 `src/features/announcements/useAnnouncementSelection.ts`。
 
 ### 数据契约
 
@@ -146,18 +136,18 @@ fake/announcements.fake.ts
 
 ```ts
 export interface AnnouncementItemType {
-	id: number
-	title: string
-	content: string
-	status: 1 | 2
-	created_at: string
+	id: number;
+	title: string;
+	content: string;
+	status: 1 | 2;
+	created_at: string;
 }
 
 export interface AnnouncementListReq {
-	page: number
-	page_size: number
-	title?: string
-	status?: 1 | 2
+	page: number;
+	page_size: number;
+	title?: string;
+	status?: 1 | 2;
 }
 ```
 
@@ -167,14 +157,17 @@ export interface AnnouncementListReq {
 
 ```ts
 import type { AnnouncementItemType, AnnouncementListReq } from "./types";
-import { request } from "#src/utils/request";
+import { request } from "../client";
 
 export * from "./types";
 
-export function fetchAnnouncementList(data: AnnouncementListReq) {
-	return request
-		.post("/api/announcements/list", { json: data })
-		.json<ApiListResponse<AnnouncementItemType>>();
+export function listAnnouncements(data: AnnouncementListReq) {
+	return request<{
+		items: AnnouncementItemType[];
+		total: number;
+		page: number;
+		page_size: number;
+	}>("/announcements/list", { method: "POST", body: data });
 }
 ```
 
@@ -187,7 +180,13 @@ import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import { resultSuccess } from "./utils";
 
 let records = [
-	{ id: 1, title: "系统维护通知", content: "本周日凌晨维护", status: 1, created_at: "2026-08-24 10:00:00" },
+	{
+		id: 1,
+		title: "系统维护通知",
+		content: "本周日凌晨维护",
+		status: 1,
+		created_at: "2026-08-24 10:00:00",
+	},
 ];
 
 export default defineFakeRoute([
@@ -195,26 +194,33 @@ export default defineFakeRoute([
 		url: "/announcements/list",
 		method: "post",
 		response: ({ body }) => {
-			const items = records.filter(item => !body.title || item.title.includes(body.title));
-			return resultSuccess({ items, total: items.length, page: 1, page_size: 10 });
+			const items = records.filter(
+				(item) => !body.title || item.title.includes(body.title),
+			);
+			return resultSuccess({
+				items,
+				total: items.length,
+				page: 1,
+				page_size: 10,
+			});
 		},
 	},
 ]);
 ```
 
-页面只能调用 `fetchAnnouncementList`，不能导入 `records` 或 Fake 文件。`index.tsx` 负责 Query/Mutation、Drawer 开关和表格刷新；列工厂放 `constants.tsx`；表单抽屉放 `components/announcement-form-drawer.tsx`。
+页面只能调用 `listAnnouncements`，不能导入 `records` 或 Fake 文件。`AnnouncementsPage.tsx` 负责 Query/Mutation、Drawer 开关和表格刷新；复杂表单拆到 `AnnouncementFormDrawer.tsx`。
 
 ### 路由和权限
 
 ```ts
-handle: {
-	icon: "NotificationOutlined",
-	title: "announcements.menu",
-	permission: "announcements:view",
+{
+	key: "/announcements",
+	titleKey: "adminShell.navigation.announcements",
+	requiredPermission: "announcements:view",
 }
 ```
 
-按钮权限使用 `announcements:add`、`announcements:edit`、`announcements:delete`，无权限时隐藏对应操作。
+新增领域权限时同步扩展 `src/api/types.ts` 的权限联合类型。按钮权限使用 `announcements:add`、`announcements:edit`、`announcements:delete`，无权限时隐藏对应操作。
 
 ## 固定开发流程
 
@@ -222,8 +228,8 @@ handle: {
 2. 在 `src/api/<domain>/types.ts` 定义契约。
 3. 在 `src/api/<domain>/index.ts` 写请求函数。
 4. 在 `fake/<domain>.fake.ts` 实现 Fake HTTP 行为。
-5. 在 `src/pages/<domain>` 完成页面和领域组件。
-6. 注册静态路由、菜单顺序、图标、文案和模拟权限。
+5. 在 `src/features/<domain>` 完成页面和领域组件。
+6. 在 `src/app/adminRoutes.ts` 注册路由、菜单顺序、图标、文案和模拟权限。
 7. 补齐加载、空数据、失败、无权限和响应式状态。
 8. 先写失败测试，再实现行为；最后执行完整验证。
 
@@ -240,3 +246,9 @@ pnpm run build:prod
 ```
 
 涉及布局、主题、表格、Drawer、Modal 或响应式时，还要启动页面人工核对。没有新鲜命令输出和页面检查证据，不宣称完成。
+
+## 版本留痕与测试地址
+
+- 每轮代码修改完成并通过验证后，创建一个本地 Git 提交；不同功能不得挤进同一个后续提交。
+- 未经用户明确要求不推送远端。
+- 完成回复必须给出本次提交哈希和可访问的本地测试地址；开发服务未运行时先启动并确认 HTTP 可访问。

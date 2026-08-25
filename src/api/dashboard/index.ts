@@ -1,11 +1,12 @@
-import type { DashboardSummaryType } from "./types";
-
-import { request } from "#src/utils/request";
+import { request } from "../client";
+import type { DashboardStatistics } from "./types";
 
 export * from "./types";
 
-export function fetchDashboardSummary() {
-	return request
-		.post("/api/dashboard/summary", { json: {} })
-		.json<ApiResponse<DashboardSummaryType>>();
+export const dashboardStatisticsQueryKey = ["dashboard-statistics"] as const;
+
+export function getDashboardStatistics(signal?: AbortSignal) {
+	return request<DashboardStatistics>("/platform/dashboard/statistics", {
+		signal,
+	});
 }

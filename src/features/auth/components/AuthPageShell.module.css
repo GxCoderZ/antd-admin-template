@@ -1,0 +1,23 @@
+.page {
+	position: relative;
+	display: grid;
+	min-height: 100dvh;
+	place-items: center;
+	overflow: auto;
+}
+
+.toolbar {
+	position: absolute;
+}
+
+.card {
+	width: 100%;
+}
+
+.header {
+	text-align: center;
+}
+
+.footer {
+	position: absolute;
+}

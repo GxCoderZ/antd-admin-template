@@ -1,7 +1,0 @@
-{
-	"title": "产品 UI 工作台",
-	"description": "使用本地 Fake 数据展示布局、状态和交互，不连接任何真实后端。",
-	"fakeBadge": "FAKE DATA",
-	"loadFailed": "工作台数据加载失败",
-	"recentActivity": "最近操作"
-}
