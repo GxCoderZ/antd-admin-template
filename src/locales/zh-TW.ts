@@ -209,6 +209,11 @@ export const zhTWTranslation = {
 			noPermissionData: "目前帳號沒有可查看的平台統計",
 			loadError: "平台統計載入失敗",
 			retry: "重新載入",
+			quickEntryTitle: "快速入口", todoTitle: "待辦事項", recentActivityTitle: "近期操作", trendTitle: "登入趨勢",
+			trendValue: "成功 {{success}} / 失敗 {{failure}}", dueAt: "截止 {{time}}", activitySummary: "{{actor}} {{action}} {{target}}",
+			priorities: { high: "高", medium: "中", low: "低" },
+			quickEntries: { users: "使用者", roles: "角色", announcements: "公告", audit: "稽核", files: "檔案", categories: "分類", settings: "設定" },
+			activityActions: { user: { update: "更新使用者", create: "新增使用者" }, role: { permission: { update: "更新角色權限" } }, settings: { update: "更新設定" } },
 		},
 		contentCategories: {
 			treeTitle: "分類結構",

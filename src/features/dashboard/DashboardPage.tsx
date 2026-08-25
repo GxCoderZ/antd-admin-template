@@ -6,7 +6,7 @@ import {
 	UserOutlined,
 } from "@ant-design/icons";
 import { ApiProblemError } from "#src/api/client";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Button,
 	Card,
@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import { platformPermissions, usePermission } from "../../app/permissions";
 import {
 	dashboardStatisticsQueryKey,
+	completeDashboardTodo,
 	getDashboardStatistics,
 } from "#src/api/dashboard";
 import {
@@ -32,6 +33,7 @@ import {
 	type PlatformAccount,
 } from "#src/api/account";
 import { platformSessionQueryKey, type PlatformSession } from "#src/api/auth";
+import { DashboardAssetPanels } from "./components/DashboardAssetPanels";
 
 interface DashboardMetric {
 	icon: ReactNode;
@@ -49,6 +51,7 @@ function getProblemDetail(error: unknown) {
 export function DashboardPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const queryClient = useQueryClient();
 	const canReadUsers = usePermission(platformPermissions.usersRead);
 	const canReadRoles = usePermission(platformPermissions.rolesManage);
 	const canReadLogs = usePermission(platformPermissions.logsRead);
@@ -69,6 +72,11 @@ export function DashboardPage() {
 		enabled: hasVisibleStatistics,
 		queryFn: ({ signal }) => getDashboardStatistics(signal),
 		queryKey: dashboardStatisticsQueryKey,
+	});
+	const completeTodoMutation = useMutation({
+		mutationFn: completeDashboardTodo,
+		onSuccess: () =>
+			queryClient.invalidateQueries({ queryKey: dashboardStatisticsQueryKey }),
 	});
 	const greeting = currentUserName ? (
 		<Title level={4} style={{ margin: 0 }}>
@@ -203,6 +211,12 @@ export function DashboardPage() {
 							</Col>
 						))}
 			</Row>
+			<DashboardAssetPanels
+				completingTodoId={completeTodoMutation.isPending ? completeTodoMutation.variables : undefined}
+				loading={statisticsQuery.isPending}
+				onCompleteTodo={(todo) => completeTodoMutation.mutate(todo.id)}
+				statistics={statistics}
+			/>
 		</Flex>
 	);
 }

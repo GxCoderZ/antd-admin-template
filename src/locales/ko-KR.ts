@@ -211,6 +211,11 @@ export const koKRTranslation = {
 			noPermissionData: "현재 계정에서 확인할 수 있는 플랫폼 통계가 없습니다",
 			loadError: "플랫폼 통계를 불러오지 못했습니다",
 			retry: "다시 불러오기",
+			quickEntryTitle: "빠른 메뉴", todoTitle: "할 일", recentActivityTitle: "최근 작업", trendTitle: "로그인 추이",
+			trendValue: "성공 {{success}} / 실패 {{failure}}", dueAt: "마감 {{time}}", activitySummary: "{{actor}} {{action}} {{target}}",
+			priorities: { high: "높음", medium: "보통", low: "낮음" },
+			quickEntries: { users: "사용자", roles: "역할", announcements: "공지", audit: "감사", files: "파일", categories: "카테고리", settings: "설정" },
+			activityActions: { user: { update: "사용자 업데이트", create: "사용자 생성" }, role: { permission: { update: "역할 권한 업데이트" } }, settings: { update: "설정 업데이트" } },
 		},
 		contentCategories: {
 			treeTitle: "카테고리 구조",

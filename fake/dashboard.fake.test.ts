@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { getDashboardStatisticsSnapshot } from "./dashboard.fake";
-import { auditLogs, loginLogs, roles, users } from "./store";
+import routes, { getDashboardStatisticsSnapshot } from "./dashboard.fake";
+import { auditLogs, dashboardTodos, loginLogs, roles, users } from "./store";
 
 describe("Fake dashboard statistics", () => {
 	it("aggregates the current in-memory domain state", () => {
@@ -15,7 +15,7 @@ describe("Fake dashboard statistics", () => {
 			createdAt >= periodStart.toISOString();
 		const recentLoginLogs = loginLogs.filter(isRecent);
 
-		expect(statistics).toEqual({
+		expect(statistics).toMatchObject({
 			auditOperationCount: auditLogs.filter(isRecent).length,
 			loginFailureCount: recentLoginLogs.filter(
 				(item) => item.result !== "success",
@@ -27,5 +27,27 @@ describe("Fake dashboard statistics", () => {
 			roleCount: roles.length,
 			userCount: users.length,
 		});
+		expect(statistics.loginTrend).toHaveLength(7);
+		expect(statistics.todos.length).toBeGreaterThan(0);
+		expect(statistics.recentActivities.length).toBeGreaterThan(0);
+	});
+
+	it("persists todo completion in the current preview session", () => {
+		const route = (routes as unknown as Array<{
+			method: string;
+			response: (request: { params: Record<string, string> }) => { data: unknown };
+			url: string;
+		}>).find(
+			(candidate) =>
+				candidate.method === "patch" &&
+				candidate.url === "/platform/dashboard/todos/:todoId",
+		);
+		const todo = dashboardTodos.find((item) => item.status === "pending")!;
+		const result = route?.response({ params: { todoId: todo.id } });
+
+		expect(result?.data).toMatchObject({ id: todo.id, status: "completed" });
+		expect(dashboardTodos.find((item) => item.id === todo.id)?.status).toBe(
+			"completed",
+		);
 	});
 });

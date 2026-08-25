@@ -215,6 +215,11 @@ export const enTranslation = {
 				"The current account cannot view any platform statistics",
 			loadError: "Platform statistics could not be loaded",
 			retry: "Reload",
+			quickEntryTitle: "Quick access", todoTitle: "Todos", recentActivityTitle: "Recent activity", trendTitle: "Login trend",
+			trendValue: "{{success}} success / {{failure}} failed", dueAt: "Due {{time}}", activitySummary: "{{actor}} {{action}} {{target}}",
+			priorities: { high: "High", medium: "Medium", low: "Low" },
+			quickEntries: { users: "Users", roles: "Roles", announcements: "Notices", audit: "Audit", files: "Files", categories: "Categories", settings: "Settings" },
+			activityActions: { user: { update: "updated user", create: "created user" }, role: { permission: { update: "updated role permissions for" } }, settings: { update: "updated settings for" } },
 		},
 		contentCategories: {
 			treeTitle: "Category structure",

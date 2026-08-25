@@ -209,6 +209,23 @@ export const zhCNTranslation = {
 			noPermissionData: "当前账号没有可查看的平台统计",
 			loadError: "平台统计加载失败",
 			retry: "重新加载",
+			quickEntryTitle: "快捷入口",
+			todoTitle: "待办事项",
+			recentActivityTitle: "近期操作",
+			trendTitle: "登录趋势",
+			trendValue: "成功 {{success}} / 失败 {{failure}}",
+			dueAt: "截止 {{time}}",
+			activitySummary: "{{actor}} {{action}} {{target}}",
+			priorities: { high: "高", medium: "中", low: "低" },
+			quickEntries: {
+				users: "用户", roles: "角色", announcements: "公告", audit: "审计",
+				files: "文件", categories: "分类", settings: "设置",
+			},
+			activityActions: {
+				user: { update: "更新用户", create: "新建用户" },
+				role: { permission: { update: "更新角色权限" } },
+				settings: { update: "更新设置" },
+			},
 		},
 		contentCategories: {
 			treeTitle: "分类结构",
