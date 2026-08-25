@@ -87,6 +87,10 @@
 	"startDate": "Start Date",
 	"endDate": "End Date",
 	"save": "Save",
+	"keyword": "Keyword",
+	"more": "More actions",
+	"done": "Done",
+	"retry": "Retry",
 	"dangerConfirmation": {
 		"inputLabel": "Confirmation target",
 		"inputHint": "Enter “{{targetName}}” to confirm this action"

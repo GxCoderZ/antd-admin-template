@@ -4,7 +4,8 @@
 		"id": "Role Id",
 		"addRole": "Add Role",
 		"editRole": "Edit Role",
-		"assignMenu": "Assign Menu"
+		"assignMenu": "Assign permissions",
+		"builtIn": "Built-in"
 	},
 	"user": {
 		"name": "User Name",
@@ -12,6 +13,7 @@
 		"username": "Username",
 		"nickname": "Nickname",
 		"email": "Email",
+		"displayName": "Display name",
 		"phone": "Phone",
 		"password": "Password",
 		"newPassword": "New Password",
@@ -31,8 +33,36 @@
 		"pleaseInputEmail": "Please input email",
 		"pleaseInputPhone": "Please input phone",
 		"usernameMinLength": "Username must be at least 3 characters",
-		"passwordMinLength": "Password must be at least 6 characters",
-		"emailFormat": "Invalid email format"
+		"passwordMinLength": "Password must be at least 8 characters",
+		"emailFormat": "Invalid email format",
+		"pleaseInputDisplayName": "Enter a display name",
+		"searchPlaceholder": "Search username, display name, or email",
+		"status": {
+			"active": "Active",
+			"locked": "Locked",
+			"disabled": "Disabled"
+		},
+		"disableWarning": "Disabling this user prevents them from signing in to the product UI.",
+		"createSuccess": "User created",
+		"updateSuccess": "User updated",
+		"loadFailed": "Failed to load users",
+		"userDetail": "User details",
+		"deleteUser": "Delete user",
+		"deleteImpact": "Deleting {{username}} also removes their role bindings and sessions.",
+		"assignRoleTitle": "Assign roles to {{username}}",
+		"assignedRoles": "Assigned roles",
+		"noRoleAssigned": "No roles assigned",
+		"roleMemberCount": "{{count}} members",
+		"rolesUpdated": "User roles updated",
+		"resetPasswordDescription": "Set a new temporary password for {{username}}.",
+		"temporaryPassword": "Temporary password",
+		"passwordShownOnce": "The temporary password for {{username}} is shown only once. Store it securely.",
+		"copyPassword": "Copy password",
+		"passwordCopied": "Password copied",
+		"forceLogout": "Force sign-out",
+		"forceLogoutImpact": "This revokes every session for {{username}} and requires them to sign in again.",
+		"forceLogoutResult": "Force sign-out result",
+		"revokedSessions": "Revoked {{count}} sessions"
 	},
 	"menu": {
 		"name": "Menu Name",

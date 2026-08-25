@@ -1,129 +1,34 @@
-import type { UserCreateReq, UserUpdateReq } from "#src/api/system/user";
+import type { UserItemType } from "#src/api/system/user";
 
-import { fetchCreateUser, fetchUpdateUser, fetchUserDetail } from "#src/api/system/user";
-
-import { DrawerForm, ProFormRadio, ProFormText } from "@ant-design/pro-components";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Form } from "antd";
-import { useEffect } from "react";
+import { Badge, Descriptions, Drawer } from "antd";
 import { useTranslation } from "react-i18next";
 
 interface DetailProps {
-	title: string
-	open: boolean
-	userId?: number
 	onClose: () => void
-	onSuccess?: () => void
+	open: boolean
+	user?: UserItemType
 }
 
-export function Detail(props: DetailProps) {
-	const { title, open, userId, onClose, onSuccess } = props;
+export function Detail({ onClose, open, user }: DetailProps) {
 	const { t } = useTranslation();
-	const [form] = Form.useForm<UserCreateReq & UserUpdateReq>();
-
-	const createMutation = useMutation({
-		mutationFn: fetchCreateUser,
-	});
-
-	const updateMutation = useMutation({
-		mutationFn: fetchUpdateUser,
-	});
-
-	const { data: detailResp } = useQuery({
-		queryKey: ["system-user-detail", userId],
-		enabled: open && !!userId,
-		queryFn: () => fetchUserDetail({ id: userId! }),
-	});
-
-	useEffect(() => {
-		if (!open) {
-			form.resetFields();
-			return;
-		}
-		if (!userId) {
-			form.setFieldsValue({ status: 1 } as any);
-			return;
-		}
-		if (detailResp?.code === 0 && detailResp.data) {
-			form.setFieldsValue({
-				username: detailResp.data.username,
-				status: detailResp.data.status,
-			} as any);
-		}
-	}, [detailResp, form, open, userId]);
-
-	const onFinish = async (values: any) => {
-		try {
-			const res = userId
-				? await updateMutation.mutateAsync({
-					id: userId,
-					username: values.username,
-					status: values.status,
-				})
-				: await createMutation.mutateAsync({
-					username: values.username,
-					password: values.password,
-				});
-			if (res.code !== 0) {
-				window.$message?.error(res.msg || t("common.fail"));
-				return false;
-			}
-
-			window.$message?.success(t("common.success"));
-			onSuccess?.();
-			onClose();
-			return true;
-		}
-		catch {
-			return false;
-		}
-	};
+	const status = user?.status === 1
+		? { badge: "success" as const, text: t("system.user.status.active") }
+		: user?.status === 2
+			? { badge: "warning" as const, text: t("system.user.status.locked") }
+			: { badge: "default" as const, text: t("system.user.status.disabled") };
 
 	return (
-		<DrawerForm
-			title={title}
-			open={open}
-			form={form}
-			onOpenChange={(visible) => {
-				if (visible === false) {
-					onClose();
-				}
-			}}
-			drawerProps={{
-				destroyOnHidden: true,
-			}}
-			onFinish={onFinish}
-			width={500}
-		>
-			<ProFormText
-				name="username"
-				label={t("system.user.username")}
-				placeholder={t("system.user.pleaseInputUsername")}
-				rules={[
-					{ required: true, message: t("system.user.pleaseInputUsername") },
-					{ min: 3, message: t("system.user.usernameMinLength") },
-				]}
-			/>
-			{!userId && (
-				<ProFormText.Password
-					name="password"
-					label={t("system.user.password")}
-					placeholder={t("system.user.pleaseInputPassword")}
-					rules={[
-						{ required: true, message: t("system.user.pleaseInputPassword") },
-						{ min: 6, message: t("system.user.passwordMinLength") },
-					]}
-				/>
+		<Drawer destroyOnHidden onClose={onClose} open={open} title={t("system.user.userDetail")} width={520}>
+			{user && (
+				<Descriptions bordered column={1} size="small">
+					<Descriptions.Item label={t("system.user.username")}>{user.username}</Descriptions.Item>
+					<Descriptions.Item label={t("system.user.displayName")}>{user.display_name}</Descriptions.Item>
+					<Descriptions.Item label={t("system.user.email")}>{user.email}</Descriptions.Item>
+					<Descriptions.Item label={t("common.status")}><Badge status={status.badge} text={status.text} /></Descriptions.Item>
+					<Descriptions.Item label={t("system.user.id")}>{user.uuid}</Descriptions.Item>
+					<Descriptions.Item label={t("common.createdAt")}>{user.created_at}</Descriptions.Item>
+				</Descriptions>
 			)}
-			<ProFormRadio.Group
-				name="status"
-				label={t("common.status")}
-				radioType="button"
-				options={[
-					{ label: t("common.enable"), value: 1 },
-					{ label: t("common.disable"), value: 2 },
-				]}
-			/>
-		</DrawerForm>
+		</Drawer>
 	);
 }
