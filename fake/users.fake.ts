@@ -121,7 +121,11 @@ export default defineFakeRoute([
 			const user = getUser(routeParam(params.userId));
 			if (!user) return resultError("User not found", 404);
 			const input = body as unknown as UpdatePlatformUserInput;
+			user.department = input.department;
 			user.displayName = input.displayName;
+			user.email = input.email;
+			user.jobTitle = input.jobTitle;
+			user.phone = input.phone;
 			user.status = input.status;
 			user.updatedAt = new Date().toISOString();
 			user.version = (user.version ?? 0) + 1;

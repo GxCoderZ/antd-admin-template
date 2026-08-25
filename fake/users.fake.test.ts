@@ -129,6 +129,57 @@ describe("Fake users", () => {
 		).toHaveLength(0);
 	});
 
+	it("persists editable profile fields through the user PATCH route", () => {
+		const routes = userRoutes as unknown as TestRoute[];
+		const createUser = routes.find(
+			(route) => route.method === "post" && route.url === "/platform/users",
+		)?.response;
+		const updateUser = routes.find(
+			(route) =>
+				route.method === "patch" && route.url === "/platform/users/:userId",
+		)?.response;
+		const deleteUser = routes.find(
+			(route) =>
+				route.method === "delete" && route.url === "/platform/users/:userId",
+		)?.response;
+
+		const username = `update-test-${Date.now()}`;
+		const created = createUser?.({
+			body: {
+				displayName: "Update Test",
+				email: `${username}@example.com`,
+				password: "test-password",
+				username,
+			},
+		}) as UserMutationPayload;
+		const updated = updateUser?.({
+			body: {
+				department: "operations",
+				displayName: "Updated User",
+				email: "updated@example.com",
+				expectedVersion: created.data!.version,
+				jobTitle: "Operations Lead",
+				phone: "+86 139 0013 9000",
+				status: "disabled",
+			},
+			params: { userId: created.data!.id },
+		}) as UserMutationPayload;
+
+		expect(updated.code).toBe(0);
+		expect(updated.data).toEqual(
+			expect.objectContaining({
+				department: "operations",
+				displayName: "Updated User",
+				email: "updated@example.com",
+				jobTitle: "Operations Lead",
+				phone: "+86 139 0013 9000",
+				status: "disabled",
+			}),
+		);
+
+		deleteUser?.({ params: { userId: created.data!.id } });
+	});
+
 	it("rejects deleting the current signed-in user", () => {
 		const deleteUser = (userRoutes as unknown as TestRoute[]).find(
 			(route) =>

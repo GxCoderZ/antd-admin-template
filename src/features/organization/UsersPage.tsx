@@ -1041,7 +1041,14 @@ export function UsersPage() {
 			return;
 		}
 		updateUserMutation.mutate({
-			input: { ...values, expectedVersion: editingUser.version },
+			input: {
+				...values,
+				displayName: values.displayName.trim(),
+				email: values.email.trim(),
+				expectedVersion: editingUser.version,
+				jobTitle: values.jobTitle.trim(),
+				phone: values.phone.trim(),
+			},
 			userId: editingUser.id,
 		});
 	};

@@ -1,4 +1,15 @@
-import { Alert, Button, Flex, Form, Input, Modal, Select, theme } from "antd";
+import {
+	Alert,
+	Button,
+	Col,
+	Flex,
+	Form,
+	Input,
+	Modal,
+	Row,
+	Select,
+	theme,
+} from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,10 +20,10 @@ import {
 	isApiProblemStatus,
 } from "../userProblems";
 
-export interface UserEditFormValues {
-	displayName: string;
-	status: UpdatePlatformUserInput["status"];
-}
+export type UserEditFormValues = Omit<
+	UpdatePlatformUserInput,
+	"expectedVersion"
+>;
 
 interface UserEditModalProps {
 	error: unknown;
@@ -48,7 +59,11 @@ export function UserEditModal({
 		}
 
 		form.setFieldsValue({
+			department: user.department,
 			displayName: user.displayName,
+			email: user.email,
+			jobTitle: user.jobTitle,
+			phone: user.phone,
 			status: user.status === "locked" ? "disabled" : user.status,
 		});
 	}, [form, user]);
@@ -63,9 +78,10 @@ export function UserEditModal({
 			onCancel={onCancel}
 			onOk={() => form.submit()}
 			open={user !== null}
-			title={t("adminShell.users.editForm.title", {
+				title={t("adminShell.users.editForm.title", {
 				name: user?.username,
 			})}
+			width={token.screenSM}
 		>
 			<Flex gap={token.margin} vertical>
 				{error ? (
@@ -106,41 +122,106 @@ export function UserEditModal({
 					layout="vertical"
 					onFinish={onSubmit}
 				>
-					<Form.Item
-						label={t("adminShell.users.createForm.displayName")}
-						name="displayName"
-						rules={[
-							{
-								max: 128,
-								message: t(
-									"adminShell.users.createForm.validation.displayNameRequired",
-								),
-								required: true,
-								whitespace: true,
-							},
-						]}
-					>
-						<Input autoComplete="name" />
-					</Form.Item>
-					<Form.Item
-						label={t("adminShell.users.columns.status")}
-						name="status"
-						rules={[{ required: true }]}
-					>
-						<Select
-							aria-label={t("adminShell.users.columns.status")}
-							options={[
-								{
-									label: t("adminShell.users.statuses.active"),
-									value: "active",
-								},
-								{
-									label: t("adminShell.users.statuses.disabled"),
-									value: "disabled",
-								},
-							]}
-						/>
-					</Form.Item>
+					<Row gutter={token.margin}>
+						<Col sm={12} xs={24}>
+							<Form.Item
+								label={t("adminShell.users.createForm.displayName")}
+								name="displayName"
+								rules={[
+									{
+										max: 128,
+										message: t(
+											"adminShell.users.createForm.validation.displayNameRequired",
+										),
+										required: true,
+										whitespace: true,
+									},
+								]}
+							>
+								<Input autoComplete="name" maxLength={128} />
+							</Form.Item>
+						</Col>
+						<Col sm={12} xs={24}>
+							<Form.Item
+								label={t("adminShell.users.columns.email")}
+								name="email"
+								rules={[
+									{
+										message: t(
+											"adminShell.users.createForm.validation.emailRequired",
+										),
+										required: true,
+									},
+									{
+										message: t(
+											"adminShell.users.createForm.validation.emailInvalid",
+										),
+										type: "email",
+									},
+								]}
+							>
+								<Input autoComplete="email" maxLength={254} />
+							</Form.Item>
+						</Col>
+						<Col sm={12} xs={24}>
+							<Form.Item
+								label={t("adminShell.users.columns.phone")}
+								name="phone"
+							>
+								<Input autoComplete="tel" maxLength={32} />
+							</Form.Item>
+						</Col>
+						<Col sm={12} xs={24}>
+							<Form.Item
+								label={t("adminShell.users.columns.department")}
+								name="department"
+								rules={[{ required: true }]}
+							>
+								<Select
+									aria-label={t("adminShell.users.columns.department")}
+									options={[
+										"platform",
+										"operations",
+										"finance",
+										"hr",
+										"risk",
+									].map((department) => ({
+										label: t(`adminShell.users.departments.${department}`),
+										value: department,
+									}))}
+								/>
+							</Form.Item>
+						</Col>
+						<Col sm={12} xs={24}>
+							<Form.Item
+								label={t("adminShell.users.columns.jobTitle")}
+								name="jobTitle"
+							>
+								<Input maxLength={128} />
+							</Form.Item>
+						</Col>
+						<Col sm={12} xs={24}>
+							<Form.Item
+								label={t("adminShell.users.columns.status")}
+								name="status"
+								rules={[{ required: true }]}
+							>
+								<Select
+									aria-label={t("adminShell.users.columns.status")}
+									options={[
+										{
+											label: t("adminShell.users.statuses.active"),
+											value: "active",
+										},
+										{
+											label: t("adminShell.users.statuses.disabled"),
+											value: "disabled",
+										},
+									]}
+								/>
+							</Form.Item>
+						</Col>
+					</Row>
 					{showsDisableWarning ? (
 						<Alert
 							description={t("adminShell.users.editForm.disableImpact")}

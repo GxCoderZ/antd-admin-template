@@ -58,8 +58,12 @@ export interface CreatePlatformUserInput {
 }
 
 export interface UpdatePlatformUserInput {
+	department: PlatformUserDepartment;
 	displayName: string;
+	email: string;
 	expectedVersion?: number;
+	jobTitle: string;
+	phone: string;
 	status: "active" | "disabled";
 }
 
