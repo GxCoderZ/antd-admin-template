@@ -34,6 +34,7 @@ interface AdminRouteIconProps {
 export function AdminRouteIcon({ iconKey }: AdminRouteIconProps) {
 	const icons = {
 		about: <InfoCircleOutlined aria-hidden />,
+		advancedForm: <FormOutlined aria-hidden />,
 		announcements: <NotificationOutlined aria-hidden />,
 		auditLogs: <AuditOutlined aria-hidden />,
 		basicForm: <FormOutlined aria-hidden />,

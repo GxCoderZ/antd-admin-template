@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { submitBasicForm, submitStepForm } from "./index";
+import {
+	getAdvancedFormDraft,
+	saveAdvancedFormDraft,
+	submitAdvancedForm,
+	submitBasicForm,
+	submitStepForm,
+	validateAdvancedProjectCode,
+} from "./index";
 
 afterEach(() => {
 	vi.unstubAllGlobals();
@@ -69,6 +76,82 @@ describe("form examples API", () => {
 			"/api/platform/form-examples/step",
 			expect.objectContaining({
 				body: JSON.stringify(input),
+				method: "POST",
+			}),
+		);
+	});
+
+	it("loads, validates, saves, and submits the advanced form through the shared API client", async () => {
+		const advancedInput = {
+			accessMode: "team" as const,
+			approvers: ["lead"],
+			description: "沉淀高级表单资产",
+			enableApproval: true,
+			endAt: "2026-09-30T00:00:00.000Z",
+			members: [
+				{
+					email: "alex@example.com",
+					name: "Alex",
+					role: "owner" as const,
+					weight: 100,
+				},
+			],
+			notifyChannels: ["mail"],
+			notifyOwner: true,
+			priority: "medium" as const,
+			projectCode: "ADV-001",
+			projectName: "高级表单资产",
+			rule: {
+				action: "通知负责人复核",
+				condition: "amount" as const,
+				name: "预算复核",
+			},
+			startAt: "2026-09-01T00:00:00.000Z",
+			teamScope: "platform",
+		};
+		const fetchMock = vi.fn().mockImplementation(() =>
+			Promise.resolve(
+				successResponse({
+					id: "advanced-001",
+					submittedAt: "2026-08-26T00:00:00.000Z",
+				}),
+			),
+		);
+		vi.stubGlobal("fetch", fetchMock);
+
+		await getAdvancedFormDraft();
+		await validateAdvancedProjectCode({ projectCode: "ADV-001" });
+		await saveAdvancedFormDraft(advancedInput);
+		await submitAdvancedForm(advancedInput);
+
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			1,
+			"/api/platform/form-examples/advanced/draft",
+			expect.objectContaining({
+				method: "GET",
+			}),
+		);
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			2,
+			"/api/platform/form-examples/advanced/validate-code",
+			expect.objectContaining({
+				body: JSON.stringify({ projectCode: "ADV-001" }),
+				method: "POST",
+			}),
+		);
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			3,
+			"/api/platform/form-examples/advanced/draft",
+			expect.objectContaining({
+				body: JSON.stringify(advancedInput),
+				method: "POST",
+			}),
+		);
+		expect(fetchMock).toHaveBeenNthCalledWith(
+			4,
+			"/api/platform/form-examples/advanced/submit",
+			expect.objectContaining({
+				body: JSON.stringify(advancedInput),
 				method: "POST",
 			}),
 		);

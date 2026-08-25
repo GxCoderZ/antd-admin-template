@@ -5,24 +5,85 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { i18n } from "../../i18n";
+import { AdvancedFormPage } from "./AdvancedFormPage";
 import { BasicFormPage } from "./BasicFormPage";
 import { StepFormPage } from "./StepFormPage";
 
 const mocks = vi.hoisted(() => ({
+	getAdvancedFormDraft: vi.fn(),
+	saveAdvancedFormDraft: vi.fn(),
+	submitAdvancedForm: vi.fn(),
 	submitBasicForm: vi.fn(),
 	submitStepForm: vi.fn(),
+	validateAdvancedProjectCode: vi.fn(),
 }));
 
 vi.mock("#src/api/form-examples", () => ({
+	getAdvancedFormDraft: mocks.getAdvancedFormDraft,
+	saveAdvancedFormDraft: mocks.saveAdvancedFormDraft,
+	submitAdvancedForm: mocks.submitAdvancedForm,
 	submitBasicForm: mocks.submitBasicForm,
 	submitStepForm: mocks.submitStepForm,
+	validateAdvancedProjectCode: mocks.validateAdvancedProjectCode,
 }));
 
 beforeAll(async () => {
 	await i18n.changeLanguage("zh-CN");
+	HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
 beforeEach(() => {
+	mocks.getAdvancedFormDraft.mockReset().mockResolvedValue({
+		accessMode: "team",
+		approvers: ["lead"],
+		description: "沉淀可复用的跨部门协作表单资产。",
+		enableApproval: true,
+		endAt: "2026-09-30T00:00:00.000Z",
+		members: [
+			{
+				email: "alex@example.com",
+				name: "Alex",
+				role: "owner",
+				weight: 60,
+			},
+			{
+				email: "casey@example.com",
+				name: "Casey",
+				role: "reviewer",
+				weight: 40,
+			},
+		],
+		notifyChannels: ["mail", "message"],
+		notifyOwner: true,
+		priority: "medium",
+		projectCode: "FORM-ASSET-2026",
+		projectName: "高级表单资产",
+		rule: {
+			action: "自动通知项目负责人复核提交材料。",
+			condition: "amount",
+			name: "预算超限复核",
+		},
+		startAt: "2026-09-01T00:00:00.000Z",
+		teamScope: "platform",
+		updatedAt: "2026-08-26T00:00:00.000Z",
+	});
+	mocks.saveAdvancedFormDraft.mockReset().mockResolvedValue({
+		id: "advanced-draft-001",
+		submittedAt: "2026-08-26T00:00:00.000Z",
+	});
+	mocks.submitAdvancedForm.mockReset().mockResolvedValue({
+		id: "advanced-001",
+		submittedAt: "2026-08-26T00:00:00.000Z",
+	});
+	mocks.validateAdvancedProjectCode
+		.mockReset()
+		.mockImplementation(({ projectCode }: { projectCode: string }) =>
+			Promise.resolve(
+				projectCode.trim().toUpperCase() === "OPS-LOCKED"
+					? { available: false, message: "项目编码已被占用" }
+					: { available: true },
+			),
+		);
 	mocks.submitBasicForm.mockReset().mockResolvedValue({
 		id: "basic-001",
 		submittedAt: "2026-08-26T00:00:00.000Z",
@@ -128,5 +189,87 @@ describe("form example pages", () => {
 		expect(screen.getByText("预计两小时内到账")).toBeVisible();
 		expect(screen.getByRole("button", { name: "再转一笔" })).toBeVisible();
 		expect(screen.getByRole("button", { name: "查看账单" })).toBeVisible();
+	});
+
+	it("renders the advanced form sections, linked fields, dynamic members, and async validation", async () => {
+		const user = renderPage(<AdvancedFormPage />);
+
+		expect(
+			await screen.findByRole("heading", { level: 1, name: "高级表单" }),
+		).toBeVisible();
+		for (const section of [
+			"基础信息",
+			"成员与规则",
+			"触发规则",
+			"通知与提交",
+		]) {
+			expect(
+				await screen.findByRole("heading", { name: section }),
+			).toBeVisible();
+		}
+		expect(screen.getByLabelText("项目名称")).toHaveValue("高级表单资产");
+		expect(screen.getByLabelText("团队范围")).toBeVisible();
+		expect(screen.getByLabelText("审批人")).toBeVisible();
+		expect(screen.getAllByLabelText("成员姓名")).toHaveLength(2);
+
+		await user.click(screen.getByRole("button", { name: "新增成员" }));
+		expect(screen.getAllByLabelText("成员姓名")).toHaveLength(3);
+		await user.click(screen.getByRole("button", { name: "删除第 3 位成员" }));
+		expect(screen.getAllByLabelText("成员姓名")).toHaveLength(2);
+
+		const projectCode = screen.getByLabelText("项目编码");
+		await user.clear(projectCode);
+		await user.type(projectCode, "OPS-LOCKED");
+		await user.tab();
+		expect(await screen.findByText("项目编码已被占用")).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: /提\s*交/ }));
+		expect(
+			await screen.findByText("请修正表单中的错误，已定位到第一个错误字段。"),
+		).toBeVisible();
+		expect(mocks.submitAdvancedForm).not.toHaveBeenCalled();
+	});
+
+	it("saves an advanced form draft and submits through the API payload", async () => {
+		const user = renderPage(<AdvancedFormPage />);
+
+		await screen.findByRole("heading", { name: "基础信息" });
+		await user.click(screen.getByRole("button", { name: "保存草稿" }));
+		await waitFor(() => {
+			expect(mocks.saveAdvancedFormDraft.mock.calls[0]?.[0]).toMatchObject({
+				accessMode: "team",
+				approvers: ["lead"],
+				members: [
+					expect.objectContaining({ email: "alex@example.com", weight: 60 }),
+					expect.objectContaining({ email: "casey@example.com", weight: 40 }),
+				],
+				projectCode: "FORM-ASSET-2026",
+				teamScope: "platform",
+			});
+		});
+		expect((await screen.findAllByText("草稿已保存")).length).toBeGreaterThan(
+			0,
+		);
+
+		await user.click(screen.getByRole("button", { name: /提\s*交/ }));
+		await waitFor(() => {
+			const payload = mocks.submitAdvancedForm.mock.calls[0]?.[0] as
+				| undefined
+				| {
+						notifyChannels: string[];
+						notifyOwner: boolean;
+						projectName: string;
+						rule: { condition: string };
+				  };
+			expect(payload).toMatchObject({
+				notifyChannels: ["mail", "message"],
+				notifyOwner: true,
+				projectName: "高级表单资产",
+			});
+			expect(payload?.rule.condition).toBe("amount");
+		});
+		expect((await screen.findAllByText("正式提交成功")).length).toBeGreaterThan(
+			0,
+		);
 	});
 });

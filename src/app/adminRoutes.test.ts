@@ -31,6 +31,7 @@ describe("admin route template", () => {
 			"/examples/files",
 			"/examples/forms/basic",
 			"/examples/forms/step",
+			"/examples/forms/advanced",
 			"/system/settings",
 			"/system/about",
 			"/exception/403",
