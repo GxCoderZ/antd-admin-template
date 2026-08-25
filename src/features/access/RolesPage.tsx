@@ -1,8 +1,4 @@
-import {
-	EditOutlined,
-	PlusOutlined,
-	SafetyCertificateOutlined,
-} from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { ApiProblemError } from "#src/api/client";
 import {
 	keepPreviousData,
@@ -37,7 +33,10 @@ import {
 	platformPermissions,
 	type PlatformPermission,
 } from "../../app/permissions";
-import { TableActionButton } from "../../app/TableActionButton";
+import {
+	TableActionButton,
+	TableActionMenu,
+} from "../../app/TableActionButton";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
@@ -413,33 +412,11 @@ export function RolesPage() {
 				key: "actions",
 				render: (_: unknown, role: PlatformRole) => {
 					const isBuiltIn = role.roleKey === "super-admin";
-					const deleteButton = (
-						<TableActionButton
-							danger
-							disabled={isBuiltIn || deleteMutation.isPending}
-							onClick={() => {
-								deleteMutation.reset();
-								setDeletingRole(role);
-							}}
-						>
-							{t("adminShell.roles.delete")}
-						</TableActionButton>
-					);
 
 					return (
-						<Space size={token.marginXS}>
-							<TableActionButton
-								icon={<SafetyCertificateOutlined aria-hidden />}
-								onClick={() => {
-									permissionMutation.reset();
-									setPermissionRoleId(role.id);
-								}}
-							>
-								{t("adminShell.roles.configurePermissions")}
-							</TableActionButton>
+						<Space size="medium">
 							<TableActionButton
 								disabled={renameMutation.isPending}
-								icon={<EditOutlined aria-hidden />}
 								onClick={() => {
 									renameMutation.reset();
 									renameForm.setFieldsValue({ displayName: role.displayName });
@@ -448,18 +425,42 @@ export function RolesPage() {
 							>
 								{t("adminShell.roles.rename")}
 							</TableActionButton>
-							{isBuiltIn ? (
-								<Tooltip title={t("adminShell.roles.builtInDeleteReason")}>
-									<span>{deleteButton}</span>
-								</Tooltip>
-							) : (
-								deleteButton
-							)}
+							<TableActionMenu
+								items={[
+									{
+										key: "permissions",
+										label: t("adminShell.roles.configurePermissions"),
+										onClick: () => {
+											permissionMutation.reset();
+											setPermissionRoleId(role.id);
+										},
+									},
+									{
+										danger: true,
+										disabled: isBuiltIn || deleteMutation.isPending,
+										key: "delete",
+										label: isBuiltIn ? (
+											<Tooltip
+												title={t("adminShell.roles.builtInDeleteReason")}
+											>
+												<span>{t("adminShell.roles.delete")}</span>
+											</Tooltip>
+										) : (
+											t("adminShell.roles.delete")
+										),
+										onClick: () => {
+											deleteMutation.reset();
+											setDeletingRole(role);
+										},
+									},
+								]}
+								label={t("adminShell.tableActions.more")}
+							/>
 						</Space>
 					);
 				},
 				title: t("adminShell.roles.columns.actions"),
-				width: token.controlHeight * 9,
+				width: token.controlHeight * 4,
 			},
 		];
 	}, [
@@ -472,7 +473,6 @@ export function RolesPage() {
 		t,
 		token.controlHeight,
 		token.marginXXS,
-		token.marginXS,
 	]);
 	const queryRoles = () => {
 		setFilters(draftFilters);

@@ -57,7 +57,10 @@ import {
 import { useLocalePreferences } from "../../app/localePreferences";
 import { platformPermissions, usePermission } from "../../app/permissions";
 import { PlatformUserAvatar } from "../../app/PlatformUserAvatar";
-import { TableActionButton } from "../../app/TableActionButton";
+import {
+	TableActionButton,
+	TableActionMenu,
+} from "../../app/TableActionButton";
 import { resolveTableSort } from "../../app/tableSorting";
 import {
 	listPlatformRoles,
@@ -136,7 +139,7 @@ const defaultVisibleUserColumnKeys = [
 	"actions",
 ] satisfies readonly UserColumnKey[];
 const userColumnWidthMultipliers: Record<UserColumnKey, number> = {
-	actions: 8,
+	actions: 4,
 	authSource: 3,
 	createdAt: 5,
 	department: 4,
@@ -635,50 +638,59 @@ export function UsersPage() {
 		dataColumns.push({
 			key: "actions",
 			render: (_: unknown, row: PlatformUser) => (
-				<Space size={token.marginXS}>
-					<TableActionButton
-						onClick={() => {
-							roleMutation.reset();
-							setRoleUser(row);
-						}}
-					>
-						{t("adminShell.users.roles.action")}
-					</TableActionButton>
+				<Space size="medium">
 					{canManageUsers ? (
-						<>
-							<TableActionButton
-								onClick={() => {
-									updateUserMutation.reset();
-									setEditingUser(row);
-								}}
-							>
-								{t("adminShell.users.edit")}
-							</TableActionButton>
-							<TableActionButton
-								onClick={() => {
-									resetPasswordMutation.reset();
-									resetPasswordForm.resetFields();
-									setResetPasswordConfirmationName("");
-									setResetPasswordResult(null);
-									setPasswordCopied(false);
-									setResetPasswordUser(row);
-								}}
-							>
-								{t("adminShell.users.resetPassword")}
-							</TableActionButton>
-							{currentUserId && row.id !== currentUserId ? (
-								<TableActionButton
-									danger
-									onClick={() => {
-										forceLogoutMutation.reset();
-										setForceLogoutUser(row);
-									}}
-								>
-									{t("adminShell.users.forceLogout.action")}
-								</TableActionButton>
-							) : null}
-						</>
+						<TableActionButton
+							onClick={() => {
+								updateUserMutation.reset();
+								setEditingUser(row);
+							}}
+						>
+							{t("adminShell.users.edit")}
+						</TableActionButton>
 					) : null}
+					<TableActionMenu
+						items={[
+							{
+								key: "roles",
+								label: t("adminShell.users.roles.action"),
+								onClick: () => {
+									roleMutation.reset();
+									setRoleUser(row);
+								},
+							},
+							...(canManageUsers
+								? [
+										{
+											key: "resetPassword",
+											label: t("adminShell.users.resetPassword"),
+											onClick: () => {
+												resetPasswordMutation.reset();
+												resetPasswordForm.resetFields();
+												setResetPasswordConfirmationName("");
+												setResetPasswordResult(null);
+												setPasswordCopied(false);
+												setResetPasswordUser(row);
+											},
+										},
+									]
+								: []),
+							...(canManageUsers && currentUserId && row.id !== currentUserId
+								? [
+										{
+											danger: true,
+											key: "forceLogout",
+											label: t("adminShell.users.forceLogout.action"),
+											onClick: () => {
+												forceLogoutMutation.reset();
+												setForceLogoutUser(row);
+											},
+										},
+									]
+								: []),
+						]}
+						label={t("adminShell.tableActions.more")}
+					/>
 				</Space>
 			),
 			title: t("adminShell.users.columns.actions"),

@@ -138,6 +138,22 @@ function renderUsersPage() {
 }
 
 describe("UsersPage", () => {
+	it("keeps edit visible and moves secondary row actions into more", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		expect(screen.getByRole("button", { name: "编辑" })).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "重置密码" }),
+		).not.toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "更多" }));
+		expect(screen.getByRole("menuitem", { name: "角色" })).toBeInTheDocument();
+		expect(
+			screen.getByRole("menuitem", { name: "重置密码" }),
+		).toBeInTheDocument();
+	});
+
 	it("submits keyword filters through the users API", async () => {
 		const user = renderUsersPage();
 
@@ -190,8 +206,6 @@ describe("UsersPage", () => {
 		});
 		expect(userIdCheckbox).not.toBeChecked();
 		await user.click(userIdCheckbox);
-		expect(
-			screen.getByRole("columnheader", { name: "用户 ID" }),
-		).toBeVisible();
+		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
 	});
 });

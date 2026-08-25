@@ -1,13 +1,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	Badge,
-	Button,
 	Col,
 	DatePicker,
 	Flex,
 	Form,
 	Input,
 	Select,
+	Space,
 	theme,
 	Typography,
 } from "antd";
@@ -19,6 +19,11 @@ import { useTranslation } from "react-i18next";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { resolveTableSort } from "../../app/tableSorting";
+import {
+	TableActionButton,
+	TableActionMenu,
+} from "../../app/TableActionButton";
+import { copyTableValue } from "../../app/tableActions";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
@@ -159,17 +164,32 @@ export function AuditLogPage() {
 		{
 			key: "actions",
 			render: (_, row) => (
-				<Button
-					aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
-					onClick={() => setSelectedLog(row)}
-					size="small"
-					type="link"
-				>
-					{t("adminShell.logs.common.view")}
-				</Button>
+				<Space size="medium">
+					<TableActionButton
+						aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
+						onClick={() => setSelectedLog(row)}
+					>
+						{t("adminShell.logs.common.view")}
+					</TableActionButton>
+					<TableActionMenu
+						items={[
+							{
+								key: "copyId",
+								label: t("adminShell.tableActions.copyRecordId"),
+								onClick: () => copyTableValue(row.id),
+							},
+							{
+								key: "copyTarget",
+								label: t("adminShell.tableActions.copyTarget"),
+								onClick: () => copyTableValue(formatTarget(row)),
+							},
+						]}
+						label={t("adminShell.tableActions.more")}
+					/>
+				</Space>
 			),
 			title: t("adminShell.logs.audit.columns.actions"),
-			width: token.controlHeight * 2,
+			width: token.controlHeight * 4,
 		},
 	];
 

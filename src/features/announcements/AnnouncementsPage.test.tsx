@@ -87,6 +87,19 @@ function renderAnnouncementsPage(canManage = true) {
 }
 
 describe("AnnouncementsPage", () => {
+	it("keeps edit visible and moves delete into more", async () => {
+		const user = renderAnnouncementsPage();
+
+		await screen.findByText("系统维护通知");
+		expect(screen.getByRole("button", { name: "编辑" })).toBeVisible();
+		expect(
+			screen.queryByRole("button", { name: "删除" }),
+		).not.toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "更多" }));
+		expect(screen.getByRole("menuitem", { name: "删除" })).toBeInTheDocument();
+	});
+
 	it("uses the standard management query bar and table toolbar", async () => {
 		renderAnnouncementsPage();
 
@@ -150,7 +163,7 @@ describe("AnnouncementsPage", () => {
 			screen.queryByRole("button", { name: "编辑" }),
 		).not.toBeInTheDocument();
 		expect(
-			screen.queryByRole("button", { name: "删除" }),
+			screen.queryByRole("button", { name: "更多" }),
 		).not.toBeInTheDocument();
 	});
 });

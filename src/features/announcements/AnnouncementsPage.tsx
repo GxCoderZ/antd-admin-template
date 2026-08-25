@@ -58,7 +58,10 @@ import {
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
 import { resolveTableSort } from "../../app/tableSorting";
-import { TableActionButton } from "../../app/TableActionButton";
+import {
+	TableActionButton,
+	TableActionMenu,
+} from "../../app/TableActionButton";
 import {
 	createPlatformAnnouncement,
 	deletePlatformAnnouncement,
@@ -297,7 +300,7 @@ export function AnnouncementsPage() {
 			dataColumns.push({
 				key: "actions",
 				render: (_: unknown, announcement: PlatformAnnouncement) => (
-					<Space size={token.marginXS}>
+					<Space size="medium">
 						<TableActionButton
 							onClick={() => {
 								saveMutation.reset();
@@ -307,15 +310,20 @@ export function AnnouncementsPage() {
 						>
 							{t("adminShell.announcements.edit")}
 						</TableActionButton>
-						<TableActionButton
-							danger
-							onClick={() => {
-								deleteMutation.reset();
-								setDeletingAnnouncement(announcement);
-							}}
-						>
-							{t("adminShell.announcements.delete")}
-						</TableActionButton>
+						<TableActionMenu
+							items={[
+								{
+									danger: true,
+									key: "delete",
+									label: t("adminShell.announcements.delete"),
+									onClick: () => {
+										deleteMutation.reset();
+										setDeletingAnnouncement(announcement);
+									},
+								},
+							]}
+							label={t("adminShell.tableActions.more")}
+						/>
 					</Space>
 				),
 				title: t("adminShell.announcements.columns.actions"),
@@ -346,7 +354,6 @@ export function AnnouncementsPage() {
 		tableState.order,
 		tableState.sort,
 		token.controlHeight,
-		token.marginXS,
 		visibleAvailableColumnKeys,
 	]);
 	const columnSettingsTitle = (

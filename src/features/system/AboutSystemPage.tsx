@@ -16,6 +16,8 @@ import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import { TableActionMenu } from "../../app/TableActionButton";
+import { copyTableValue } from "../../app/tableActions";
 import { getSystemInfo, systemInfoQueryKey } from "#src/api/system";
 
 const { Text, Title } = Typography;
@@ -223,6 +225,28 @@ export function AboutSystemPage() {
 			key: "version",
 			title: t("adminShell.about.versionColumn"),
 			width: token.controlHeight * 4,
+		},
+		{
+			key: "actions",
+			render: (_: unknown, dependency: ProductionDependency) => (
+				<TableActionMenu
+					items={[
+						{
+							key: "copyPackageName",
+							label: t("adminShell.tableActions.copyPackageName"),
+							onClick: () => copyTableValue(dependency.name),
+						},
+						{
+							key: "copyVersion",
+							label: t("adminShell.tableActions.copyVersion"),
+							onClick: () => copyTableValue(dependency.version),
+						},
+					]}
+					label={t("adminShell.tableActions.more")}
+				/>
+			),
+			title: t("adminShell.tableActions.actions"),
+			width: token.controlHeight * 3,
 		},
 	];
 	const statusColor = (status: TechnologyStatus) =>

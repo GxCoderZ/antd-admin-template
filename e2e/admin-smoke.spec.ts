@@ -85,6 +85,63 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	await expect(page.getByRole("table")).not.toContainText("平台管理员");
 });
 
+test("所有数据表使用主要操作和更多菜单", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
+	await expect(
+		page.getByRole("button", { name: "编辑" }).first(),
+	).toBeVisible();
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await expect(
+		page.getByRole("menuitem", { name: "角色", exact: true }),
+	).toBeVisible();
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("menuitem", { name: "角色管理", exact: true }).click();
+	await expect(
+		page.getByRole("button", { name: "编辑" }).first(),
+	).toBeVisible();
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await expect(page.getByRole("menuitem", { name: "权限配置" })).toBeVisible();
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
+	await expect(
+		page.getByRole("button", { name: "编辑" }).first(),
+	).toBeVisible();
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await expect(page.getByRole("menuitem", { name: "删除" })).toBeVisible();
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("menuitem", { name: "审计日志", exact: true }).click();
+	await page.getByRole("menuitem", { name: "操作审计", exact: true }).click();
+	await expect(
+		page.getByRole("button", { name: /查看日志/ }).first(),
+	).toBeVisible();
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await expect(
+		page.getByRole("menuitem", { name: "复制日志 ID" }),
+	).toBeVisible();
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("menuitem", { name: "登录日志", exact: true }).click();
+	await expect(
+		page.getByRole("button", { name: /查看日志/ }).first(),
+	).toBeVisible();
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await expect(
+		page.getByRole("menuitem", { name: "复制 IP 地址" }),
+	).toBeVisible();
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "关于系统", exact: true }).click();
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await expect(page.getByRole("menuitem", { name: "复制包名" })).toBeVisible();
+});
+
 test("表单示例通过 Fake API 完成基础与分步提交", async ({ page }) => {
 	await signIn(page);
 

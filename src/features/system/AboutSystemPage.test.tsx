@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import * as systemApi from "#src/api/system";
@@ -68,5 +69,27 @@ describe("AboutSystemPage", () => {
 		expect(screen.getByText(/服务端状态与请求缓存/)).toBeVisible();
 		expect(screen.queryByText("Zustand")).not.toBeInTheDocument();
 		expect(screen.queryByText("Ant Design Plots")).not.toBeInTheDocument();
+	});
+
+	it("offers dependency copy actions from the standard more menu", async () => {
+		const user = userEvent.setup();
+		vi.spyOn(systemApi, "getSystemInfo").mockResolvedValue({
+			builtAt: "2026-08-25T10:00:00.000Z",
+			commitSha: "93376d3f00ab",
+			environment: "cloudflare-pages",
+			service: "antd-admin-template-fake-ui",
+			version: "0.1.0",
+		});
+
+		renderAboutSystemPage();
+
+		const moreButtons = await screen.findAllByRole("button", { name: "更多" });
+		await user.click(moreButtons[0]!);
+		expect(
+			screen.getByRole("menuitem", { name: "复制包名" }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("menuitem", { name: "复制版本" }),
+		).toBeInTheDocument();
 	});
 });

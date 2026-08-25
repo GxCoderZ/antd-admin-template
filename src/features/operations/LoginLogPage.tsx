@@ -1,14 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-	Badge,
-	Button,
-	Col,
-	DatePicker,
-	Flex,
-	Form,
-	Select,
-	theme,
-} from "antd";
+import { Badge, Col, DatePicker, Flex, Form, Select, Space, theme } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
 import type { Dayjs } from "dayjs";
 import { useState } from "react";
@@ -18,6 +9,11 @@ import { formatDeviceInfo, getPrimaryLanguage } from "../../app/deviceInfo";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { resolveTableSort } from "../../app/tableSorting";
+import {
+	TableActionButton,
+	TableActionMenu,
+} from "../../app/TableActionButton";
+import { copyTableValue } from "../../app/tableActions";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
@@ -170,17 +166,32 @@ export function LoginLogPage() {
 		{
 			key: "actions",
 			render: (_, row) => (
-				<Button
-					aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
-					onClick={() => setSelectedLog(row)}
-					size="small"
-					type="link"
-				>
-					{t("adminShell.logs.common.view")}
-				</Button>
+				<Space size="medium">
+					<TableActionButton
+						aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
+						onClick={() => setSelectedLog(row)}
+					>
+						{t("adminShell.logs.common.view")}
+					</TableActionButton>
+					<TableActionMenu
+						items={[
+							{
+								key: "copyId",
+								label: t("adminShell.tableActions.copyRecordId"),
+								onClick: () => copyTableValue(row.id),
+							},
+							{
+								key: "copyIp",
+								label: t("adminShell.tableActions.copyIpAddress"),
+								onClick: () => copyTableValue(row.requestIp),
+							},
+						]}
+						label={t("adminShell.tableActions.more")}
+					/>
+				</Space>
 			),
 			title: t("adminShell.logs.login.columns.actions"),
-			width: token.controlHeight * 2,
+			width: token.controlHeight * 4,
 		},
 	];
 
