@@ -3,23 +3,38 @@ export interface PlatformAuditLog {
 	actorId?: string;
 	actorUsername: string;
 	action: string;
+	module: string;
 	targetId?: string;
 	targetType: string;
+	requestId: string;
 	requestIp: string;
+	requestMethod: "DELETE" | "PATCH" | "POST" | "PUT";
+	requestPath: string;
 	result: "failure" | "success";
+	failureReason?: string;
 	before?: Record<string, unknown>;
 	after?: Record<string, unknown>;
+	userAgent?: string;
+	durationMs: number;
 	createdAt: string;
 }
 
 export interface PlatformLoginLog {
 	id: string;
+	userId?: string;
 	identifier: string;
+	authMethod: "passkey" | "password" | "sso";
+	mfaUsed: boolean;
+	requestId: string;
 	requestIp: string;
 	result: "invalid" | "limited" | "success";
+	failureReason?: string;
+	sessionId?: string;
+	location?: string;
 	userAgent?: string;
 	acceptLanguage?: string;
 	timeZone?: string;
+	durationMs: number;
 	createdAt: string;
 }
 

@@ -1,25 +1,52 @@
 import UAParser from "ua-parser-js";
 
-export function formatDeviceInfo(
-	userAgent: string | undefined,
-	unknownDevice: string,
-) {
+export interface DeviceDetails {
+	browser?: string;
+	operatingSystem?: string;
+}
+
+export function getDeviceDetails(userAgent: string | undefined): DeviceDetails {
 	const normalizedUserAgent = userAgent?.trim();
 
 	if (!normalizedUserAgent) {
-		return unknownDevice;
+		return {};
 	}
 
 	const { browser, os } = new UAParser(normalizedUserAgent).getResult();
 	const browserName = browser.name?.trim();
 	const browserVersion = browser.version?.split(".")[0]?.trim();
-	const operatingSystem = os.name?.trim();
+	const operatingSystemName = os.name?.trim();
+	const operatingSystemVersion = os.version?.trim();
 
-	if (!browserName || !browserVersion || !operatingSystem) {
+	return {
+		...(browserName
+			? {
+					browser: browserVersion
+						? `${browserName} ${browserVersion}`
+						: browserName,
+				}
+			: {}),
+		...(operatingSystemName
+			? {
+					operatingSystem: operatingSystemVersion
+						? `${operatingSystemName} ${operatingSystemVersion}`
+						: operatingSystemName,
+				}
+			: {}),
+	};
+}
+
+export function formatDeviceInfo(
+	userAgent: string | undefined,
+	unknownDevice: string,
+) {
+	const { browser, operatingSystem } = getDeviceDetails(userAgent);
+
+	if (!browser || !operatingSystem) {
 		return unknownDevice;
 	}
 
-	return `${browserName} ${browserVersion} · ${operatingSystem}`;
+	return `${browser} · ${operatingSystem}`;
 }
 
 export function getPrimaryLanguage(acceptLanguage: string | undefined) {

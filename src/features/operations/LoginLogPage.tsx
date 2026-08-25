@@ -8,13 +8,18 @@ import {
 	Form,
 	Select,
 	theme,
+	Typography,
 } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
 import type { Dayjs } from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { formatDeviceInfo, getPrimaryLanguage } from "../../app/deviceInfo";
+import {
+	formatDeviceInfo,
+	getDeviceDetails,
+	getPrimaryLanguage,
+} from "../../app/deviceInfo";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { resolveTableSort } from "../../app/tableSorting";
@@ -35,9 +40,26 @@ import {
 	type PlatformLoginLog,
 } from "#src/api/operations";
 
+const { Text } = Typography;
 type LoginLogSort = "created_at" | "identifier" | "result";
 type SortOrder = "asc" | "desc";
-const loginRequiredColumnKeys = ["identifier"] as const;
+const loginDefaultVisibleColumnKeys = [
+	"identifier",
+	"result",
+	"userAgent",
+	"requestIp",
+	"acceptLanguage",
+	"timeZone",
+	"created_at",
+	"actions",
+] as const;
+const loginRequiredColumnKeys = [
+	"identifier",
+	"result",
+	"requestIp",
+	"created_at",
+	"actions",
+] as const;
 const loginTableSortToContractSort: Record<string, LoginLogSort> = {
 	created_at: "created_at",
 	identifier: "identifier",
@@ -103,6 +125,18 @@ export function LoginLogPage() {
 		sort === column && order ? (order === "asc" ? "ascend" : "descend") : null;
 	const missingDeviceValue = t("adminShell.deviceInfo.notRecorded");
 	const unknownDevice = t("adminShell.deviceInfo.unknownDevice");
+	const renderCodeValue = (value: string | undefined) => {
+		const displayValue = value?.trim() || missingDeviceValue;
+		return (
+			<Text
+				code
+				ellipsis={{ tooltip: displayValue }}
+				style={{ maxWidth: "100%" }}
+			>
+				{displayValue}
+			</Text>
+		);
+	};
 	const columns: TableColumnsType<PlatformLoginLog> = [
 		{
 			dataIndex: "identifier",
@@ -183,6 +217,101 @@ export function LoginLogPage() {
 			title: t("adminShell.logs.login.columns.actions"),
 			width: token.controlHeight * 2,
 		},
+		{
+			dataIndex: "id",
+			key: "id",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.recordId"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "userId",
+			key: "userId",
+			render: renderCodeValue,
+			title: t("adminShell.logs.login.columns.userId"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "requestId",
+			key: "requestId",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.requestId"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "authMethod",
+			key: "authMethod",
+			render: (value: PlatformLoginLog["authMethod"]) =>
+				t(`adminShell.logs.login.authMethods.${value}`),
+			title: t("adminShell.logs.login.columns.authMethod"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "mfaUsed",
+			key: "mfaUsed",
+			render: (value: boolean) =>
+				t(`adminShell.logs.common.${value ? "yes" : "no"}`),
+			title: t("adminShell.logs.login.columns.mfaUsed"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "location",
+			key: "location",
+			render: (value: string | undefined) => value ?? missingDeviceValue,
+			title: t("adminShell.logs.login.columns.location"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "userAgent",
+			key: "browser",
+			render: (value: string | undefined) =>
+				getDeviceDetails(value).browser ?? missingDeviceValue,
+			title: t("adminShell.logs.common.browser"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "userAgent",
+			key: "operatingSystem",
+			render: (value: string | undefined) =>
+				getDeviceDetails(value).operatingSystem ?? missingDeviceValue,
+			title: t("adminShell.logs.common.operatingSystem"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "durationMs",
+			key: "durationMs",
+			render: (value: number) => `${value} ms`,
+			title: t("adminShell.logs.common.duration"),
+			width: token.controlHeight * 3,
+		},
+		{
+			dataIndex: "failureReason",
+			key: "failureReason",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.failureReason"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "sessionId",
+			key: "sessionId",
+			render: renderCodeValue,
+			title: t("adminShell.logs.login.columns.sessionId"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "acceptLanguage",
+			key: "rawAcceptLanguage",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.acceptLanguage"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "userAgent",
+			key: "rawUserAgent",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.userAgent"),
+			width: token.controlHeight * 10,
+		},
 	];
 
 	const applyFilters = (values: LoginFilterFormValues) => {
@@ -230,6 +359,7 @@ export function LoginLogPage() {
 			<LogTablePanel<PlatformLoginLog>
 				columns={columns}
 				dataSource={query.data?.items ?? []}
+				defaultVisibleColumnKeys={loginDefaultVisibleColumnKeys}
 				emptyText={t("adminShell.logs.login.empty")}
 				error={query.error}
 				initialLoading={query.isPending}
@@ -326,9 +456,33 @@ export function LoginLogPage() {
 									children: selectedLog.id,
 								},
 								{
+									key: "requestId",
+									label: t("adminShell.logs.common.requestId"),
+									children: selectedLog.requestId,
+								},
+								{
+									key: "userId",
+									label: t("adminShell.logs.login.columns.userId"),
+									children: selectedLog.userId ?? missingDeviceValue,
+								},
+								{
 									key: "identifier",
 									label: t("adminShell.logs.login.columns.identifier"),
 									children: selectedLog.identifier,
+								},
+								{
+									key: "authMethod",
+									label: t("adminShell.logs.login.columns.authMethod"),
+									children: t(
+										`adminShell.logs.login.authMethods.${selectedLog.authMethod}`,
+									),
+								},
+								{
+									key: "mfaUsed",
+									label: t("adminShell.logs.login.columns.mfaUsed"),
+									children: t(
+										`adminShell.logs.common.${selectedLog.mfaUsed ? "yes" : "no"}`,
+									),
 								},
 								{
 									key: "result",
@@ -343,12 +497,31 @@ export function LoginLogPage() {
 									children: selectedLog.requestIp,
 								},
 								{
+									key: "location",
+									label: t("adminShell.logs.login.columns.location"),
+									children: selectedLog.location ?? missingDeviceValue,
+								},
+								{
 									key: "device",
 									label: t("adminShell.deviceInfo.device"),
 									children: formatDeviceInfo(
 										selectedLog.userAgent,
 										unknownDevice,
 									),
+								},
+								{
+									key: "browser",
+									label: t("adminShell.logs.common.browser"),
+									children:
+										getDeviceDetails(selectedLog.userAgent).browser ??
+										missingDeviceValue,
+								},
+								{
+									key: "operatingSystem",
+									label: t("adminShell.logs.common.operatingSystem"),
+									children:
+										getDeviceDetails(selectedLog.userAgent).operatingSystem ??
+										missingDeviceValue,
 								},
 								{
 									key: "language",
@@ -358,9 +531,34 @@ export function LoginLogPage() {
 										missingDeviceValue,
 								},
 								{
+									key: "acceptLanguage",
+									label: t("adminShell.logs.common.acceptLanguage"),
+									children: selectedLog.acceptLanguage ?? missingDeviceValue,
+								},
+								{
 									key: "timeZone",
 									label: t("adminShell.deviceInfo.timeZone"),
 									children: selectedLog.timeZone?.trim() || missingDeviceValue,
+								},
+								{
+									key: "durationMs",
+									label: t("adminShell.logs.common.duration"),
+									children: `${selectedLog.durationMs} ms`,
+								},
+								{
+									key: "failureReason",
+									label: t("adminShell.logs.common.failureReason"),
+									children: selectedLog.failureReason ?? missingDeviceValue,
+								},
+								{
+									key: "sessionId",
+									label: t("adminShell.logs.login.columns.sessionId"),
+									children: selectedLog.sessionId ?? missingDeviceValue,
+								},
+								{
+									key: "userAgent",
+									label: t("adminShell.logs.common.userAgent"),
+									children: selectedLog.userAgent ?? missingDeviceValue,
 								},
 								{
 									key: "occurredAt",
