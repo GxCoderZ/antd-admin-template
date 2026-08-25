@@ -26,7 +26,7 @@ export const roles: PlatformRole[] = [
 		id: "role-admin",
 		roleKey: "platform_admin",
 		displayName: "平台管理员",
-		memberCount: 2,
+		memberCount: 10,
 		permissions: [...allPermissions],
 		version: 1,
 	},
@@ -34,7 +34,7 @@ export const roles: PlatformRole[] = [
 		id: "role-operator",
 		roleKey: "operator",
 		displayName: "运营管理员",
-		memberCount: 3,
+		memberCount: 11,
 		permissions: [
 			"platform.logs.read",
 			"platform.users.read",
@@ -46,11 +46,38 @@ export const roles: PlatformRole[] = [
 		id: "role-auditor",
 		roleKey: "auditor",
 		displayName: "只读审计员",
-		memberCount: 1,
+		memberCount: 9,
 		permissions: ["platform.logs.read", "platform.users.read"],
 		version: 1,
 	},
 ];
+
+const generatedUserSeeds = [
+	["avery.chen", "Avery Chen"],
+	["ethan.chen", "Ethan Chen"],
+	["mia.zhao", "Mia Zhao"],
+	["lucas.wu", "Lucas Wu"],
+	["amelia.hu", "Amelia Hu"],
+	["henry.lin", "Henry Lin"],
+	["harper.xu", "Harper Xu"],
+	["james.he", "James He"],
+	["evelyn.guo", "Evelyn Guo"],
+	["benjamin.luo", "Benjamin Luo"],
+	["abigail.tang", "Abigail Tang"],
+	["alex.yang", "Alex Yang"],
+	["ella.fang", "Ella Fang"],
+	["daniel.xie", "Daniel Xie"],
+	["scarlett.cao", "Scarlett Cao"],
+	["matthew.deng", "Matthew Deng"],
+	["grace.qin", "Grace Qin"],
+	["jack.han", "Jack Han"],
+	["chloe.ma", "Chloe Ma"],
+	["leo.shen", "Leo Shen"],
+	["lily.jiang", "Lily Jiang"],
+	["samuel.peng", "Samuel Peng"],
+	["zoey.du", "Zoey Du"],
+	["owen.song", "Owen Song"],
+] as const;
 
 export const users: PlatformUserDetail[] = [
 	{
@@ -119,6 +146,20 @@ export const users: PlatformUserDetail[] = [
 		version: 1,
 		roles: [roles[1]!],
 	},
+	...generatedUserSeeds.map(
+		([username, displayName], index): PlatformUserDetail => ({
+			id: `user-demo-${index + 1}`,
+			username,
+			email: `${username}@example.com`,
+			displayName,
+			status:
+				index % 10 === 4 ? "locked" : index % 6 === 2 ? "disabled" : "active",
+			createdAt: iso(10_000 - index * 240),
+			updatedAt: iso(420 + index * 17),
+			version: 1 + (index % 4),
+			roles: [roles[index % roles.length]!],
+		}),
+	),
 ];
 
 export const userAvatarDataUrls: Record<string, string> = {};
