@@ -18,6 +18,7 @@ export interface UserListReq {
 	status?: UserStatus
 	sort?: UserSortField
 	order?: "ascend" | "descend"
+	role_id?: number
 }
 
 export interface UserCreateReq {

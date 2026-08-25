@@ -190,7 +190,11 @@ export function isUserIdentityTaken(username: string, email: string, excludeId?:
 
 export function listUsers(params: UserListReq) {
 	const keyword = params.keyword?.trim().toLocaleLowerCase();
-	const filtered = state.users.filter(item => (!keyword || `${item.username}${item.display_name}${item.email}`.toLocaleLowerCase().includes(keyword)) && (!params.status || item.status === params.status));
+	const filtered = state.users.filter(item =>
+		(!keyword || `${item.username}${item.display_name}${item.email}`.toLocaleLowerCase().includes(keyword))
+		&& (!params.status || item.status === params.status)
+		&& (!params.role_id || (state.userRoles[item.id] ?? []).includes(params.role_id)),
+	);
 	const sort = params.sort ?? "created_at";
 	const sorted = [...filtered].sort((left, right) => {
 		switch (sort) {

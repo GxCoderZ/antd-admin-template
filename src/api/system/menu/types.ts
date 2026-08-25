@@ -26,3 +26,9 @@ export interface MenuListReq {
 export interface MenuTreeReq {
 	status?: number // 状态：0=全部 1=启用 2=禁用
 }
+
+export interface PermissionGroupType {
+	children: PermissionGroupType[] | null
+	module: string
+	permissions: MenuItemType[]
+}

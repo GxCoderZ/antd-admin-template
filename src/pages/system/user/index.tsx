@@ -21,6 +21,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Result } from "antd";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router";
 
 import { CreateUserDrawer } from "./components/create-user-drawer";
 import { Detail } from "./components/detail";
@@ -39,6 +40,8 @@ const userSortFields: UserSortField[] = ["username", "display_name", "email", "s
 export default function User() {
 	const { t } = useTranslation();
 	const queryClient = useQueryClient();
+	const [searchParams] = useSearchParams();
+	const roleId = Number(searchParams.get("role_id")) || undefined;
 	const [query, setQuery] = useState<UserListReq>(initialQuery);
 	const [createOpen, setCreateOpen] = useState(false);
 	const [detailUser, setDetailUser] = useState<UserItemType>();
@@ -64,9 +67,9 @@ export default function User() {
 	};
 
 	const usersQuery = useQuery({
-		queryKey: ["system-users", query],
+		queryKey: ["system-users", query, roleId],
 		queryFn: async () => {
-			const response = await fetchUserList(query);
+			const response = await fetchUserList({ ...query, role_id: roleId });
 			if (response.code !== 0)
 				throw new Error(response.msg);
 			return response.data;

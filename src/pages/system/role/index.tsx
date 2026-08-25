@@ -1,181 +1,158 @@
-import type { RoleItemType } from "#src/api/system/role";
-import type { ActionType, ProColumns, ProCoreActionType } from "@ant-design/pro-components";
+import type { RoleCreateReq, RoleItemType, RoleListReq } from "#src/api/system/role";
+import type { TableProps } from "antd";
 
-import { fetchDeleteRoleItem, fetchMenuByRoleId, fetchRoleList, fetchRoleMenu } from "#src/api/system/role";
+import { fetchAddRoleItem, fetchDeleteRoleItem, fetchRoleList, fetchUpdateRoleItem } from "#src/api/system/role";
 import { BasicButton } from "#src/components/basic-button";
 import { BasicContent } from "#src/components/basic-content";
 import { BasicTable } from "#src/components/basic-table";
 import { usePermission } from "#src/hooks/use-permission";
 
-import { PlusCircleOutlined } from "@ant-design/icons";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Popconfirm } from "antd";
-import { useRef, useState } from "react";
+import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Result } from "antd";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 
+import { CreateRoleModal } from "./components/create-role-modal";
+import { DeleteRoleModal } from "./components/delete-role-modal";
 import { Detail } from "./components/detail";
-import { getConstantColumns } from "./constants";
+import { PermissionDrawer } from "./components/permission-drawer";
+import { RenameRoleModal } from "./components/rename-role-modal";
+import { createRoleColumns } from "./constants";
 
-/** 模块 key → 中文名称映射 */
-const moduleNameMap: Record<string, string> = {
-	"dashboard": "工作台",
-	"audit": "审计日志",
-	"system:user": "用户管理",
-	"system:role": "角色管理",
-	"system:permission": "权限管理",
-};
+const initialQuery: RoleListReq = { page: 1, page_size: 10, sort: "created_at", order: "descend" };
+const roleSortFields = ["name", "status", "user_count", "created_at"] as const;
 
 export default function Role() {
 	const { t } = useTranslation();
-	const canAdd = usePermission("system:role:add");
-	const canEdit = usePermission("system:role:edit");
-	const canDelete = usePermission("system:role:delete");
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+	const [query, setQuery] = useState<RoleListReq>(initialQuery);
+	const [createOpen, setCreateOpen] = useState(false);
+	const [detailRole, setDetailRole] = useState<RoleItemType>();
+	const [renameRole, setRenameRole] = useState<RoleItemType>();
+	const [permissionRole, setPermissionRole] = useState<RoleItemType>();
+	const [deleteRole, setDeleteRole] = useState<RoleItemType>();
+	const permissions = {
+		add: usePermission("system:role:add"),
+		edit: usePermission("system:role:edit"),
+		delete: usePermission("system:role:delete"),
+		permissions: usePermission("system:role:assign-permission"),
+	};
 
-	const { data: menuItems } = useQuery({
-		queryKey: ["role-menu"],
+	const rolesQuery = useQuery({
+		queryKey: ["system-roles", query],
 		queryFn: async () => {
-			const responseData = await fetchRoleMenu();
-			if (responseData.code !== 0) {
-				window.$message?.error(responseData.msg || t("common.fail"));
-				return [];
-			}
-			// Backend may return array directly or { tree: [...] }
-			const tree = Array.isArray(responseData.data) ? responseData.data : (responseData?.data?.tree || []);
-			return tree.map((moduleNode: { module: string, permissions?: { id: number, name: string }[] }) => ({
-				id: `module-${moduleNode.module}`,
-				title: moduleNameMap[moduleNode.module] || moduleNode.module,
-				children: (moduleNode.permissions || []).map(perm => ({
-					id: String(perm.id),
-					title: perm.name,
-					children: [],
-				})),
-			}));
+			const response = await fetchRoleList(query);
+			if (response.code !== 0)
+				throw new Error(response.msg);
+			const items = Array.isArray(response.data) ? response.data : response.data.items;
+			return { items, total: Array.isArray(response.data) ? items.length : response.data.total };
 		},
-		initialData: [],
 	});
-	const deleteRoleItemMutation = useMutation({
-		mutationFn: fetchDeleteRoleItem,
-	});
-	/* Detail Data */
-	const [isOpen, setIsOpen] = useState(false);
-	const [title, setTitle] = useState("");
-	const [detailData, setDetailData] = useState<Partial<RoleItemType> & { menus?: number[] }>({});
+	const createMutation = useMutation({ mutationFn: fetchAddRoleItem });
+	const updateMutation = useMutation({ mutationFn: fetchUpdateRoleItem });
+	const deleteMutation = useMutation({ mutationFn: fetchDeleteRoleItem });
 
-	const actionRef = useRef<ActionType>(null);
+	const refreshRoles = async () => {
+		await Promise.all([
+			queryClient.invalidateQueries({ queryKey: ["system-roles"] }),
+			queryClient.invalidateQueries({ queryKey: ["system-users"] }),
+			queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }),
+			queryClient.invalidateQueries({ queryKey: ["audit-logs"] }),
+		]);
+	};
 
-	const handleDeleteRow = async (id: number, action?: ProCoreActionType<object>) => {
-		const responseData = await deleteRoleItemMutation.mutateAsync(id);
-		if (responseData.code !== 0) {
-			window.$message?.error(responseData.msg || t("common.fail"));
+	const handleCreate = async (values: RoleCreateReq) => {
+		const response = await createMutation.mutateAsync(values);
+		if (response.code !== 0) {
+			window.$message?.error(response.msg || t("common.fail"));
+			return false;
+		}
+		setCreateOpen(false);
+		await refreshRoles();
+		window.$message?.success(t("system.role.createSuccess"));
+		return true;
+	};
+
+	const handleRename = async (name: string) => {
+		if (!renameRole)
+			return false;
+		const response = await updateMutation.mutateAsync({ id: renameRole.id, key: renameRole.key, name, status: renameRole.status, remark: renameRole.remark });
+		if (response.code !== 0) {
+			window.$message?.error(response.msg || t("common.fail"));
+			return false;
+		}
+		setRenameRole(undefined);
+		await refreshRoles();
+		window.$message?.success(t("system.role.renameSuccess"));
+		return true;
+	};
+
+	const handleDelete = async () => {
+		if (!deleteRole || deleteRole.is_system)
+			return;
+		const response = await deleteMutation.mutateAsync(deleteRole.id);
+		if (response.code !== 0) {
+			window.$message?.error(response.msg || t("common.fail"));
 			return;
 		}
-		await action?.reload?.();
+		setDeleteRole(undefined);
+		await refreshRoles();
 		window.$message?.success(t("common.deleteSuccess"));
 	};
 
-	const columns: ProColumns<RoleItemType>[] = [
-		...getConstantColumns(t),
-		{
-			title: t("common.action"),
-			valueType: "option",
-			key: "option",
-			width: 120,
-			fixed: "right",
-			render: (text, record, _, action) => {
-				return [
-					!record.is_system && (
-						<BasicButton
-							key="editable"
-							type="link"
-							size="small"
-							disabled={!canEdit}
-							onClick={async () => {
-							/* 请求角色菜单权限 */
-								const responseData = await fetchMenuByRoleId({ role_id: record.id });
-								if (responseData.code !== 0) {
-									window.$message?.error(responseData.msg || t("common.fail"));
-									return;
-								}
-								setIsOpen(true);
-								setTitle(t("system.role.editRole"));
-								setDetailData({ ...record, menus: responseData.data?.permission_ids || [] });
-							}}
-						>
-							{t("common.edit")}
-						</BasicButton>
-					),
-					!record.is_system && (
-						<Popconfirm
-							key="delete"
-							title={t("common.confirmDelete")}
-							onConfirm={() => handleDeleteRow(record.id, action)}
-							okText={t("common.confirm")}
-							cancelText={t("common.cancel")}
-						>
-							<BasicButton type="link" size="small" disabled={!canDelete}>{t("common.delete")}</BasicButton>
-						</Popconfirm>
-					),
-				];
-			},
-		},
-	];
+	const columns = useMemo(() => createRoleColumns({
+		t,
+		permissions,
+		onView: setDetailRole,
+		onRename: setRenameRole,
+		onConfigure: setPermissionRole,
+		onDelete: role => !role.is_system && setDeleteRole(role),
+	}), [permissions.delete, permissions.edit, permissions.permissions, t]);
 
-	const onCloseChange = () => {
-		setIsOpen(false);
-		setDetailData({});
+	const handleTableChange: NonNullable<TableProps<RoleItemType>["onChange"]> = (pagination, _filters, sorter) => {
+		const activeSorter = Array.isArray(sorter) ? sorter[0] : sorter;
+		const field = String(activeSorter.field ?? "");
+		setQuery(current => ({
+			...current,
+			page: pagination.current ?? 1,
+			page_size: pagination.pageSize ?? current.page_size,
+			sort: roleSortFields.includes(field as typeof roleSortFields[number]) ? field as RoleListReq["sort"] : undefined,
+			order: activeSorter.order === "ascend" || activeSorter.order === "descend" ? activeSorter.order : undefined,
+		}));
 	};
 
-	const refreshTable = () => {
-		actionRef.current?.reload();
-	};
 	return (
 		<BasicContent className="h-full">
 			<BasicTable<RoleItemType>
 				adaptive
 				columns={columns}
-				actionRef={actionRef}
-				request={async (params) => {
-					const responseData = await fetchRoleList({ page: params.current!, page_size: params.pageSize! });
-					if (responseData.code !== 0) {
-						window.$message?.error(responseData.msg || t("common.fail"));
-						return {
-							data: [],
-							total: 0,
-							success: false,
-						};
-					}
-					// Backend may return array directly or { items, total }
-					const data = Array.isArray(responseData.data) ? responseData.data : responseData.data?.items || [];
-					return {
-						data,
-						total: Array.isArray(responseData.data) ? data.length : responseData.data?.total ?? data.length,
-						success: true,
-					};
-				}}
+				columnsState={{ persistenceKey: `${import.meta.env.VITE_GLOB_APP_TITLE}:system-roles:columns`, persistenceType: "localStorage" }}
+				dataSource={rolesQuery.data?.items ?? []}
 				headerTitle={t("common.menu.role")}
-				toolBarRender={() => [
-					<BasicButton
-						key="add-role"
-						icon={<PlusCircleOutlined />}
-						type="primary"
-						disabled={!canAdd}
-						onClick={() => {
-							setIsOpen(true);
-							setTitle(t("system.role.addRole"));
-						}}
-					>
-						{t("common.add")}
-					</BasicButton>,
-				]}
+				loading={rolesQuery.isFetching}
+				locale={rolesQuery.isError ? { emptyText: <Result extra={<BasicButton icon={<ReloadOutlined />} onClick={() => rolesQuery.refetch()}>{t("common.retry")}</BasicButton>} status="error" subTitle={rolesQuery.error.message} title={t("system.role.loadFailed")} /> } : undefined}
+				onChange={handleTableChange}
+				onReset={() => setQuery(initialQuery)}
+				onSubmit={values => setQuery(current => ({ ...current, page: 1, name: values.name || undefined, status: values.status || undefined }))}
+				options={{ reload: () => rolesQuery.refetch() }}
+				pagination={{ current: query.page, pageSize: query.page_size, total: rolesQuery.data?.total ?? 0 }}
+				search={{ defaultCollapsed: false, labelWidth: "auto" }}
+				toolBarRender={() => permissions.add ? [<BasicButton key="add-role" icon={<PlusOutlined />} type="primary" usage="toolbar" onClick={() => setCreateOpen(true)}>{t("system.role.addRole")}</BasicButton>] : []}
 			/>
+
+			<CreateRoleModal loading={createMutation.isPending} onClose={() => setCreateOpen(false)} onSubmit={handleCreate} open={createOpen} />
+			<RenameRoleModal loading={updateMutation.isPending} onClose={() => setRenameRole(undefined)} onSubmit={handleRename} open={Boolean(renameRole)} role={renameRole} />
+			<PermissionDrawer onClose={() => setPermissionRole(undefined)} onSuccess={refreshRoles} open={Boolean(permissionRole)} role={permissionRole} />
+			<DeleteRoleModal loading={deleteMutation.isPending} onClose={() => setDeleteRole(undefined)} onSubmit={handleDelete} open={Boolean(deleteRole)} role={deleteRole} />
 			<Detail
-				title={title}
-				open={isOpen}
-				onCloseChange={onCloseChange}
-				detailData={detailData}
-				refreshTable={refreshTable}
-				treeData={menuItems || []}
+				onClose={() => setDetailRole(undefined)}
+				onOpenMembers={role => navigate(`/system/user?role_id=${role.id}`)}
+				open={Boolean(detailRole)}
+				role={detailRole}
 			/>
 		</BasicContent>
 	);
-};
+}
