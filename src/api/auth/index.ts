@@ -2,9 +2,9 @@ import type { LoginParams, LoginResult, UserInfoType } from "./types";
 
 import { request } from "#src/utils/request";
 
-export * from "./types";
 export { fetchRefreshToken } from "./refresh";
 export type { RefreshTokenResult } from "./refresh";
+export * from "./types";
 
 export function fetchLogin(data: LoginParams) {
 	return request

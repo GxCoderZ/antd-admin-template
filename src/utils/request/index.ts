@@ -5,8 +5,8 @@ import { useAuthStore } from "#src/store/auth";
 import { usePreferencesStore } from "#src/store/preferences";
 import { message } from "#src/utils/static-antd";
 
-import { AUTH_HEADER, LANG_HEADER, REFRESH_TOKEN_PATH } from "./constants";
 import { rawRequest } from "./client";
+import { AUTH_HEADER, LANG_HEADER, REFRESH_TOKEN_PATH } from "./constants";
 import { handleErrorResponse } from "./error-response";
 import { globalProgress } from "./global-progress";
 import { goLogin } from "./go-login";
