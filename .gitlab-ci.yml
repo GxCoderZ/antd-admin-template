@@ -23,7 +23,7 @@ quality:
   stage: verify
   script:
     - pnpm run typecheck
-    - pnpm test -- --run
+    - pnpm exec vitest run
     - pnpm run lint
     - pnpm run check:circular-deps
     - pnpm run check:unused
