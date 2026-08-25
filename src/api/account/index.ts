@@ -1,75 +1,100 @@
+import { request } from "../client";
 import type {
-	AccountAvatarUpdateReq,
-	AccountPasswordChangeReq,
-	AccountProfileType,
-	AccountProfileUpdateReq,
-	AccountSessionRevokeReq,
-	AccountSessionRevokeResp,
-	AccountSessionType,
+	ChangePlatformAccountPasswordInput,
+	PlatformAccount,
+	PlatformAccountNotifications,
+	PlatformAccountSecurity,
+	UpdatePlatformAccountInput,
+	UpdatePlatformAccountSecurityInput,
 } from "./types";
-
-import { request } from "#src/utils/request";
 
 export * from "./types";
 
-function fileToDataUrl(file: File) {
+export const platformAccountQueryKey = ["platform-account"] as const;
+export const platformAccountNotificationsQueryKey = [
+	...platformAccountQueryKey,
+	"notifications",
+] as const;
+export const platformAccountSecurityQueryKey = [
+	...platformAccountQueryKey,
+	"security",
+] as const;
+
+export function getPlatformAccount(signal?: AbortSignal) {
+	return request<PlatformAccount>("/platform/account", { signal });
+}
+
+export function updatePlatformAccount(input: UpdatePlatformAccountInput) {
+	return request<PlatformAccount>("/platform/account", {
+		method: "PATCH",
+		body: input,
+	});
+}
+
+export function changePlatformAccountPassword(
+	input: ChangePlatformAccountPasswordInput,
+) {
+	return request<void>("/platform/account/password", {
+		method: "POST",
+		body: input,
+	});
+}
+
+function readFileAsDataUrl(file: File) {
 	return new Promise<string>((resolve, reject) => {
 		const reader = new FileReader();
-		reader.addEventListener("load", () => resolve(String(reader.result)));
-		reader.addEventListener("error", () => reject(reader.error));
+		reader.addEventListener("load", () => {
+			if (typeof reader.result === "string") {
+				resolve(reader.result);
+				return;
+			}
+			reject(new Error("Unable to read avatar file"));
+		});
+		reader.addEventListener("error", () =>
+			reject(reader.error ?? new Error("Unable to read avatar file")),
+		);
 		reader.readAsDataURL(file);
 	});
 }
 
-export function fetchAccountProfile() {
-	return request
-		.post("/api/account/profile", { json: {} })
-		.json<ApiResponse<AccountProfileType>>();
+export async function uploadPlatformAccountAvatar(file: File) {
+	const dataUrl = await readFileAsDataUrl(file);
+	return request<void>("/platform/account/avatar", {
+		method: "PUT",
+		body: { dataUrl },
+	});
 }
 
-export function fetchUpdateAccountProfile(data: AccountProfileUpdateReq) {
-	return request
-		.post("/api/account/profile/update", { json: data })
-		.json<ApiResponse<AccountProfileType>>();
+export function getPlatformAccountNotifications(signal?: AbortSignal) {
+	return request<PlatformAccountNotifications>(
+		"/platform/account/notifications",
+		{ signal },
+	);
 }
 
-export async function fetchUploadAccountAvatar(file: File) {
-	const data: AccountAvatarUpdateReq = {
-		avatar_data: await fileToDataUrl(file),
-		mime_type: file.type,
-		size: file.size,
-	};
-	return request
-		.post("/api/account/avatar/update", { json: data })
-		.json<ApiResponse<{ avatar: string }>>();
+export function updatePlatformAccountNotifications(
+	input: PlatformAccountNotifications,
+) {
+	return request<PlatformAccountNotifications>(
+		"/platform/account/notifications",
+		{
+			method: "PATCH",
+			body: input,
+		},
+	);
 }
 
-export function fetchDeleteAccountAvatar() {
-	return request
-		.post("/api/account/avatar/delete", { json: {} })
-		.json<ApiResponse<void>>();
+export function getPlatformAccountSecurity(signal?: AbortSignal) {
+	return request<PlatformAccountSecurity>("/platform/account/security", {
+		signal,
+	});
 }
 
-export function fetchChangeAccountPassword(data: AccountPasswordChangeReq) {
-	return request
-		.post("/api/account/password/change", { json: data })
-		.json<ApiResponse<void>>();
-}
-
-export function fetchAccountSessions() {
-	return request
-		.post("/api/account/sessions/list", { json: {} })
-		.json<ApiResponse<AccountSessionType[]>>();
-}
-
-export function fetchRevokeAccountSession(data: AccountSessionRevokeReq) {
-	return request
-		.post("/api/account/sessions/revoke", { json: data })
-		.json<ApiResponse<AccountSessionRevokeResp>>();
-}
-
-export function fetchRevokeOtherAccountSessions() {
-	return request
-		.post("/api/account/sessions/revoke-others", { json: {} })
-		.json<ApiResponse<AccountSessionRevokeResp>>();
+export function updatePlatformAccountSecurity(
+	input: UpdatePlatformAccountSecurityInput,
+) {
+	return request<PlatformAccountSecurity>("/platform/account/security", {
+		method: "PATCH",
+		body: input,
+	});
 }

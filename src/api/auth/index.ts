@@ -1,19 +1,21 @@
-import type { LoginParams, LoginResult, UserInfoType } from "./types";
+import { request } from "../client";
+import type { PlatformLoginInput, PlatformSession } from "./types";
 
-import { request } from "#src/utils/request";
-
-export { fetchRefreshToken } from "./refresh";
-export type { RefreshTokenResult } from "./refresh";
 export * from "./types";
 
-export function fetchLogin(data: LoginParams) {
-	return request
-		.post("/api/auth/login", { json: data })
-		.json<ApiResponse<LoginResult>>();
+export const platformSessionQueryKey = ["platform-session"] as const;
+
+export function getPlatformSession(signal?: AbortSignal) {
+	return request<PlatformSession>("/platform/auth/session", { signal });
 }
 
-export function fetchCurrentUser() {
-	return request
-		.post("/api/auth/current-user", { json: {} })
-		.json<ApiResponse<UserInfoType>>();
+export function loginPlatform(input: PlatformLoginInput) {
+	return request<PlatformSession>("/platform/auth/login", {
+		method: "POST",
+		body: input,
+	});
+}
+
+export function logoutPlatform() {
+	return request<void>("/platform/auth/logout", { method: "POST" });
 }

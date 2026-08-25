@@ -1,0 +1,37 @@
+.rootGrid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rootGrid::before,
+.rootGrid::after {
+	display: none;
+}
+
+.twoColumnSubmenu > :global(ul[role="menu"]:not(.ant-menu-hidden)) {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rootGrid > .fullWidthSubmenu,
+.twoColumnSubmenu > :global(ul[role="menu"]) > .fullWidthSubmenu {
+	grid-column: 1 / -1;
+}
+
+.titleLabel {
+	display: inline-flex;
+	margin-inline-start: var(--service-grid-content-inset);
+}
+
+.twoColumnSubmenu
+	> :global(.ant-menu-submenu-title)
+	> :global(.ant-menu-submenu-arrow) {
+	inset-inline-end: calc(
+		var(--service-grid-arrow-base) + var(--service-grid-arrow-offset, 0px)
+	);
+}
+
+.twoColumnSubmenu > :global(ul[role="menu"])::before,
+.twoColumnSubmenu > :global(ul[role="menu"])::after {
+	display: none;
+}

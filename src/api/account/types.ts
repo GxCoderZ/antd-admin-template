@@ -1,49 +1,50 @@
-export interface AccountRoleType {
-	id: number
-	name: string
+import type { PlatformUserRole } from "../types";
+
+export interface PlatformAccount {
+	address: string;
+	bio: string;
+	city: string;
+	country: string;
+	createdAt: string;
+	displayName: string;
+	email: string;
+	id: string;
+	phoneAreaCode: string;
+	phoneNumber: string;
+	province: string;
+	roles: PlatformUserRole[];
+	username: string;
+	version?: number;
 }
 
-export interface AccountProfileType {
-	id: number
-	username: string
-	display_name: string
-	email: string
-	avatar: string
-	roles: AccountRoleType[]
-	created_at: string
+export interface UpdatePlatformAccountInput {
+	address: string;
+	bio: string;
+	city: string;
+	country: string;
+	displayName: string;
+	email: string;
+	expectedVersion?: number;
+	phoneAreaCode: string;
+	phoneNumber: string;
+	province: string;
 }
 
-export interface AccountSessionType {
-	id: string
-	current: boolean
-	device: string
-	ip: string
-	language: string
-	time_zone: string
-	created_at: string
-	expires_at: string
+export interface ChangePlatformAccountPasswordInput {
+	currentPassword: string;
+	newPassword: string;
 }
 
-export interface AccountProfileUpdateReq {
-	display_name: string
-	email: string
+export interface PlatformAccountNotifications {
+	systemMessage: boolean;
+	todoTask: boolean;
+	userMessage: boolean;
 }
 
-export interface AccountAvatarUpdateReq {
-	avatar_data: string
-	mime_type: string
-	size: number
+export interface PlatformAccountSecurity {
+	backupEmail: string;
+	securityPhoneAreaCode: string;
+	securityPhoneNumber: string;
 }
 
-export interface AccountPasswordChangeReq {
-	current_password: string
-	new_password: string
-}
-
-export interface AccountSessionRevokeReq {
-	session_id: string
-}
-
-export interface AccountSessionRevokeResp {
-	revoked_sessions: number
-}
+export type UpdatePlatformAccountSecurityInput = PlatformAccountSecurity;
