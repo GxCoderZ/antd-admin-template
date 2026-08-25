@@ -21,6 +21,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router";
 
+import { formatDateTime } from "../../../app/formatting";
+import { useLocalePreferences } from "../../../app/localePreferences";
 import { TableActionButton } from "../../../app/TableActionButton";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
 import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
@@ -37,6 +39,10 @@ const roleColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
 	{ key: "roleKey", priority: "compact" },
 	{ key: "memberCount", priority: "compact" },
 	{ key: "permissions", priority: "regular" },
+	{ key: "id", priority: "optional" },
+	{ key: "builtIn", priority: "optional" },
+	{ key: "createdAt", priority: "optional" },
+	{ key: "updatedAt", priority: "optional" },
 	{ key: "actions", priority: "compact", required: true },
 ];
 
@@ -99,6 +105,7 @@ export function RoleTablePanel({
 }: RoleTablePanelProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const formatPreferences = useLocalePreferences();
 	const [openActionRoleId, setOpenActionRoleId] = useState<string | null>(null);
 	const { canExpand, columnSpan, containerRef, formLayout, submitterOffset } =
 		useQueryFilterLayout({ expanded: false, fieldCount: 1 });
@@ -174,9 +181,43 @@ export function RoleTablePanel({
 				width: token.controlHeight * 14,
 			},
 			{
+				dataIndex: "id",
+				key: "id",
+				render: (id: string) => <Text code>{id}</Text>,
+				title: t("adminShell.roles.columns.id"),
+				width: token.controlHeight * 5,
+			},
+			{
+				dataIndex: "builtIn",
+				key: "builtIn",
+				render: (builtIn: boolean) => (
+					<Tag {...(builtIn ? { color: "processing" } : {})}>
+						{t(`adminShell.roles.types.${builtIn ? "builtIn" : "custom"}`)}
+					</Tag>
+				),
+				title: t("adminShell.roles.columns.builtIn"),
+				width: token.controlHeight * 3,
+			},
+			{
+				dataIndex: "createdAt",
+				key: "createdAt",
+				render: (createdAt: string) =>
+					formatDateTime(createdAt, formatPreferences),
+				title: t("adminShell.roles.columns.createdAt"),
+				width: token.controlHeight * 5,
+			},
+			{
+				dataIndex: "updatedAt",
+				key: "updatedAt",
+				render: (updatedAt: string) =>
+					formatDateTime(updatedAt, formatPreferences),
+				title: t("adminShell.roles.columns.updatedAt"),
+				width: token.controlHeight * 5,
+			},
+			{
 				key: "actions",
 				render: (_: unknown, role: PlatformRole) => {
-					const isBuiltIn = role.roleKey === "super-admin";
+					const isBuiltIn = role.builtIn;
 					const actionItems: NonNullable<MenuProps["items"]> = [
 						{
 							key: "permissions",
@@ -244,6 +285,7 @@ export function RoleTablePanel({
 		renamePending,
 		roleOrder,
 		roleSort,
+		formatPreferences,
 		t,
 		token.controlHeight,
 		token.marginXXS,

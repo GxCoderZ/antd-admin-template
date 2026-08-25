@@ -29,6 +29,8 @@ const currentUser: PlatformUser = {
 
 const roles = [
 	{
+		builtIn: true,
+		createdAt: "2026-07-01T00:00:00.000Z",
 		description: "拥有所有后台配置和权限分配能力",
 		displayName: "平台管理员",
 		id: "role-admin",
@@ -39,18 +41,24 @@ const roles = [
 			"platform.settings.manage",
 		],
 		roleKey: "platform_admin",
+		updatedAt: "2026-08-25T00:00:00.000Z",
 		version: 1,
 	},
 	{
+		builtIn: false,
+		createdAt: "2026-07-02T00:00:00.000Z",
 		description: "负责日常内容与账号维护",
 		displayName: "运营管理员",
 		id: "role-operator",
 		memberCount: 8,
 		permissions: ["platform.users.read"],
 		roleKey: "operator",
+		updatedAt: "2026-08-24T00:00:00.000Z",
 		version: 1,
 	},
 	{
+		builtIn: false,
+		createdAt: "2026-07-03T00:00:00.000Z",
 		description: "已停用，仅保留历史成员可见",
 		disabled: true,
 		displayName: "旧审计员",
@@ -58,6 +66,7 @@ const roles = [
 		memberCount: 1,
 		permissions: ["platform.logs.read"],
 		roleKey: "legacy_auditor",
+		updatedAt: "2026-08-23T00:00:00.000Z",
 		version: 1,
 	},
 ] satisfies Array<

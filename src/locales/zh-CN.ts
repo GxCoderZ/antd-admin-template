@@ -1060,11 +1060,19 @@ export const zhCNTranslation = {
 				},
 			},
 			columns: {
+				id: "角色 ID",
 				displayName: "角色名称",
 				roleKey: "角色标识",
 				memberCount: "成员数",
 				permissions: "权限点",
+				builtIn: "角色类型",
+				createdAt: "创建时间",
+				updatedAt: "更新时间",
 				actions: "操作",
+			},
+			types: {
+				builtIn: "内置角色",
+				custom: "自定义角色",
 			},
 			fields: {
 				displayName: "角色名称",

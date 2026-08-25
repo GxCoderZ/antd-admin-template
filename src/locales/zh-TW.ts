@@ -1060,11 +1060,19 @@ export const zhTWTranslation = {
 				},
 			},
 			columns: {
+				id: "角色 ID",
 				displayName: "角色名稱",
 				roleKey: "角色識別碼",
 				memberCount: "成員數",
 				permissions: "權限項目",
+				builtIn: "角色類型",
+				createdAt: "建立時間",
+				updatedAt: "更新時間",
 				actions: "操作",
+			},
+			types: {
+				builtIn: "內建角色",
+				custom: "自訂角色",
 			},
 			fields: {
 				displayName: "角色名稱",

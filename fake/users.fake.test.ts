@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { PlatformUser } from "../src/api/users";
+import type { PlatformUserDetail } from "../src/api/users";
 import userRoutes from "./users.fake";
 
 interface UserListPayload {
 	data: {
-		items: PlatformUser[];
+		items: PlatformUserDetail[];
 		page: number;
 		page_size: number;
 		total: number;
@@ -14,7 +14,7 @@ interface UserListPayload {
 
 interface UserMutationPayload {
 	code: number;
-	data: PlatformUser | null;
+	data: PlatformUserDetail | null;
 }
 
 interface TestRoute {
@@ -194,5 +194,16 @@ describe("Fake users", () => {
 		expect(
 			listUsers({ page: "1", page_size: "100", q: "admin" }).data.items,
 		).toContainEqual(expect.objectContaining({ id: "user-admin" }));
+	});
+
+	it("includes role and recent sign-in data required by the user table", () => {
+		const response = listUsers({ page: "1", page_size: "10" });
+
+		expect(response.data.items).not.toHaveLength(0);
+		expect(
+			response.data.items.every(
+				(user) => Array.isArray(user.roles) && "lastLoginAt" in user,
+			),
+		).toBe(true);
 	});
 });

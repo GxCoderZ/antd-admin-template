@@ -1092,11 +1092,19 @@ export const enTranslation = {
 				},
 			},
 			columns: {
+				id: "Role ID",
 				displayName: "Role name",
 				roleKey: "Role key",
 				memberCount: "Members",
 				permissions: "Permission points",
+				builtIn: "Role type",
+				createdAt: "Created at",
+				updatedAt: "Updated at",
 				actions: "Actions",
+			},
+			types: {
+				builtIn: "Built-in role",
+				custom: "Custom role",
 			},
 			fields: {
 				displayName: "Role name",

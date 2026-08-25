@@ -80,14 +80,19 @@ const generatedRoleSeeds = [
 
 export const roles: PlatformRole[] = [
 	{
+		builtIn: true,
+		createdAt: iso(180_000),
 		id: "role-admin",
 		roleKey: "platform_admin",
 		displayName: "平台管理员",
 		memberCount: 10,
 		permissions: [...allPermissions],
+		updatedAt: iso(20),
 		version: 1,
 	},
 	{
+		builtIn: false,
+		createdAt: iso(170_000),
 		id: "role-operator",
 		roleKey: "operator",
 		displayName: "运营管理员",
@@ -99,9 +104,12 @@ export const roles: PlatformRole[] = [
 			"platform.users.read",
 			"platform.users.manage",
 		],
+		updatedAt: iso(90),
 		version: 1,
 	},
 	{
+		builtIn: false,
+		createdAt: iso(160_000),
 		id: "role-auditor",
 		roleKey: "auditor",
 		displayName: "只读审计员",
@@ -111,14 +119,18 @@ export const roles: PlatformRole[] = [
 			"platform.logs.read",
 			"platform.users.read",
 		],
+		updatedAt: iso(240),
 		version: 1,
 	},
 	...generatedRoleSeeds.map(([roleKey, displayName], index) => ({
+		builtIn: false,
+		createdAt: iso(150_000 - index * 720),
 		displayName,
 		id: `role-${roleKey}`,
 		memberCount: index % 8,
 		permissions: ["platform.users.read" as const],
 		roleKey,
+		updatedAt: iso(300 + index * 17),
 		version: 1,
 	})),
 ];

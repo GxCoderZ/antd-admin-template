@@ -1072,11 +1072,19 @@ export const koKRTranslation = {
 				},
 			},
 			columns: {
+				id: "역할 ID",
 				displayName: "역할 이름",
 				roleKey: "역할 키",
 				memberCount: "구성원 수",
 				permissions: "권한 항목",
+				builtIn: "역할 유형",
+				createdAt: "생성 시간",
+				updatedAt: "업데이트 시간",
 				actions: "작업",
+			},
+			types: {
+				builtIn: "기본 제공 역할",
+				custom: "사용자 지정 역할",
 			},
 			fields: {
 				displayName: "역할 이름",
