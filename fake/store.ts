@@ -947,48 +947,101 @@ export const session: PlatformSession = {
 	},
 };
 
+const macUserAgent =
+	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/140 Safari/537.36";
+const windowsUserAgent =
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36";
+const auditOperationSeeds = [
+	{
+		action: "user.update",
+		module: "users",
+		requestMethod: "PATCH",
+		requestPath: "/platform/users/:id",
+	},
+	{
+		action: "role.permission.update",
+		module: "roles",
+		requestMethod: "PUT",
+		requestPath: "/platform/roles/:id/permissions",
+	},
+	{
+		action: "user.create",
+		module: "users",
+		requestMethod: "POST",
+		requestPath: "/platform/users",
+	},
+	{
+		action: "settings.update",
+		module: "settings",
+		requestMethod: "PATCH",
+		requestPath: "/platform/settings",
+	},
+] as const;
+
 export const auditLogs: PlatformAuditLog[] = Array.from(
 	{ length: 32 },
-	(_, index): PlatformAuditLog => ({
-		id: `audit-${index + 1}`,
-		actorId: index % 4 === 0 ? users[1]!.id : users[0]!.id,
-		actorUsername: index % 4 === 0 ? users[1]!.username : users[0]!.username,
-		action: [
-			"user.update",
-			"role.permission.update",
-			"user.create",
-			"settings.update",
-		][index % 4]!,
-		targetId:
-			index % 2 === 0
-				? users[(index + 1) % users.length]!.id
-				: roles[index % roles.length]!.id,
-		targetType: index % 2 === 0 ? "platform_user" : "platform_role",
-		requestIp: `10.12.4.${20 + (index % 12)}`,
-		result: index % 9 === 0 ? "failure" : "success",
-		...(index % 3 === 0
-			? { before: { status: "disabled" }, after: { status: "active" } }
-			: {}),
-		createdAt: iso(index * 53),
-	}),
+	(_, index): PlatformAuditLog => {
+		const operation = auditOperationSeeds[index % auditOperationSeeds.length]!;
+		const result = index % 9 === 0 ? "failure" : "success";
+
+		return {
+			id: `audit-${index + 1}`,
+			actorId: index % 4 === 0 ? users[1]!.id : users[0]!.id,
+			actorUsername: index % 4 === 0 ? users[1]!.username : users[0]!.username,
+			action: operation.action,
+			module: operation.module,
+			targetId:
+				index % 2 === 0
+					? users[(index + 1) % users.length]!.id
+					: roles[index % roles.length]!.id,
+			targetType: index % 2 === 0 ? "platform_user" : "platform_role",
+			requestId: `req-audit-${String(index + 1).padStart(4, "0")}`,
+			requestIp: `10.12.4.${20 + (index % 12)}`,
+			requestMethod: operation.requestMethod,
+			requestPath: operation.requestPath,
+			result,
+			...(result === "failure" ? { failureReason: "permission_denied" } : {}),
+			...(index % 3 === 0
+				? { before: { status: "disabled" }, after: { status: "active" } }
+				: {}),
+			userAgent: index % 3 === 0 ? macUserAgent : windowsUserAgent,
+			durationMs: 36 + ((index * 17) % 240),
+			createdAt: iso(index * 53),
+		};
+	},
 );
 
 export const loginLogs: PlatformLoginLog[] = Array.from(
 	{ length: 46 },
-	(_, index) => ({
-		id: `login-${index + 1}`,
-		identifier: users[index % users.length]!.username,
-		requestIp: `172.16.10.${10 + (index % 20)}`,
-		result:
-			index % 11 === 0 ? "limited" : index % 5 === 0 ? "invalid" : "success",
-		userAgent:
-			index % 3 === 0
-				? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/140 Safari/537.36"
-				: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
-		acceptLanguage: index % 2 === 0 ? "zh-CN" : "en-US",
-		timeZone: "Asia/Shanghai",
-		createdAt: iso(index * 37),
-	}),
+	(_, index): PlatformLoginLog => {
+		const user = users[index % users.length]!;
+		const result =
+			index % 11 === 0 ? "limited" : index % 5 === 0 ? "invalid" : "success";
+		const authMethod = ["password", "sso", "passkey"] as const;
+
+		return {
+			id: `login-${index + 1}`,
+			...(result === "success" ? { userId: user.id } : {}),
+			identifier: user.username,
+			authMethod: authMethod[index % authMethod.length]!,
+			mfaUsed: result === "success" && index % 3 !== 0,
+			requestId: `req-login-${String(index + 1).padStart(4, "0")}`,
+			requestIp: `172.16.10.${10 + (index % 20)}`,
+			result,
+			...(result === "success"
+				? { sessionId: `session-${String(index + 1).padStart(4, "0")}` }
+				: {
+						failureReason:
+							result === "limited" ? "rate_limited" : "invalid_credentials",
+					}),
+			location: ["Shanghai, CN", "Hangzhou, CN", "Singapore, SG"][index % 3]!,
+			userAgent: index % 3 === 0 ? macUserAgent : windowsUserAgent,
+			acceptLanguage: index % 2 === 0 ? "zh-CN" : "en-US",
+			timeZone: index % 3 === 2 ? "Asia/Singapore" : "Asia/Shanghai",
+			durationMs: 48 + ((index * 23) % 620),
+			createdAt: iso(index * 37),
+		};
+	},
 );
 
 export const batchTableRecords: BatchTableRecord[] = Array.from(

@@ -16,6 +16,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { formatDeviceInfo, getDeviceDetails } from "../../app/deviceInfo";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
@@ -62,6 +63,22 @@ const auditLogColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
 		{ key: "requestIp", priority: "regular" },
 		{ key: "created_at", priority: "compact" },
 		{ key: "actions", priority: "compact", required: true },
+		{ key: "id", priority: "optional" },
+		{ key: "actorId", priority: "optional" },
+		{ key: "module", priority: "optional" },
+		{ key: "targetType", priority: "optional" },
+		{ key: "targetId", priority: "optional" },
+		{ key: "requestId", priority: "optional" },
+		{ key: "requestMethod", priority: "optional" },
+		{ key: "requestPath", priority: "optional" },
+		{ key: "device", priority: "optional" },
+		{ key: "browser", priority: "optional" },
+		{ key: "operatingSystem", priority: "optional" },
+		{ key: "durationMs", priority: "optional" },
+		{ key: "failureReason", priority: "optional" },
+		{ key: "before", priority: "optional" },
+		{ key: "after", priority: "optional" },
+		{ key: "userAgent", priority: "optional" },
 	];
 
 interface AuditFilterFormValues {
@@ -184,6 +201,22 @@ export function AuditLogPage() {
 	const showResultFilter = filtersExpanded || collapsedFieldCount >= 2;
 	const showDateRangeFilter = filtersExpanded || collapsedFieldCount >= 3;
 	const formatPreferences = useLocalePreferences();
+	const notRecorded = t("adminShell.deviceInfo.notRecorded");
+	const unknownDevice = t("adminShell.deviceInfo.unknownDevice");
+	const renderCodeValue = (value: string | undefined) => {
+		const displayValue = value?.trim() || notRecorded;
+		return (
+			<Text
+				code
+				ellipsis={{ tooltip: displayValue }}
+				style={{ maxWidth: "100%" }}
+			>
+				{displayValue}
+			</Text>
+		);
+	};
+	const formatChange = (value: Record<string, unknown> | undefined) =>
+		value ? JSON.stringify(value) : notRecorded;
 	const query = useQuery({
 		placeholderData: keepPreviousData,
 		queryKey: [
@@ -208,7 +241,6 @@ export function AuditLogPage() {
 	});
 	const sortOrder = (column: AuditLogSort) =>
 		sort === column && order ? (order === "asc" ? "ascend" : "descend") : null;
-	const notRecorded = t("adminShell.deviceInfo.notRecorded");
 	const columns: TableColumnsType<PlatformAuditLog> = [
 		{
 			dataIndex: "actorUsername",
@@ -292,6 +324,123 @@ export function AuditLogPage() {
 			),
 			title: t("adminShell.logs.audit.columns.actions"),
 			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "id",
+			key: "id",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.recordId"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "actorId",
+			key: "actorId",
+			render: renderCodeValue,
+			title: t("adminShell.logs.audit.columns.actorId"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "module",
+			key: "module",
+			render: renderCodeValue,
+			title: t("adminShell.logs.audit.columns.module"),
+			width: token.controlHeight * 3,
+		},
+		{
+			dataIndex: "targetType",
+			key: "targetType",
+			render: renderCodeValue,
+			title: t("adminShell.logs.audit.columns.targetType"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "targetId",
+			key: "targetId",
+			render: renderCodeValue,
+			title: t("adminShell.logs.audit.columns.targetId"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "requestId",
+			key: "requestId",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.requestId"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "requestMethod",
+			key: "requestMethod",
+			render: renderCodeValue,
+			title: t("adminShell.logs.audit.columns.requestMethod"),
+			width: token.controlHeight * 3,
+		},
+		{
+			dataIndex: "requestPath",
+			key: "requestPath",
+			render: renderCodeValue,
+			title: t("adminShell.logs.audit.columns.requestPath"),
+			width: token.controlHeight * 7,
+		},
+		{
+			dataIndex: "userAgent",
+			key: "device",
+			render: (value: string | undefined) =>
+				formatDeviceInfo(value, unknownDevice),
+			title: t("adminShell.deviceInfo.device"),
+			width: token.controlHeight * 7,
+		},
+		{
+			dataIndex: "userAgent",
+			key: "browser",
+			render: (value: string | undefined) =>
+				getDeviceDetails(value).browser ?? notRecorded,
+			title: t("adminShell.logs.common.browser"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "userAgent",
+			key: "operatingSystem",
+			render: (value: string | undefined) =>
+				getDeviceDetails(value).operatingSystem ?? notRecorded,
+			title: t("adminShell.logs.common.operatingSystem"),
+			width: token.controlHeight * 4,
+		},
+		{
+			dataIndex: "durationMs",
+			key: "durationMs",
+			render: (value: number) => `${value} ms`,
+			title: t("adminShell.logs.common.duration"),
+			width: token.controlHeight * 3,
+		},
+		{
+			dataIndex: "failureReason",
+			key: "failureReason",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.failureReason"),
+			width: token.controlHeight * 5,
+		},
+		{
+			dataIndex: "before",
+			key: "before",
+			render: (value: Record<string, unknown> | undefined) =>
+				renderCodeValue(formatChange(value)),
+			title: t("adminShell.logs.audit.columns.before"),
+			width: token.controlHeight * 6,
+		},
+		{
+			dataIndex: "after",
+			key: "after",
+			render: (value: Record<string, unknown> | undefined) =>
+				renderCodeValue(formatChange(value)),
+			title: t("adminShell.logs.audit.columns.after"),
+			width: token.controlHeight * 6,
+		},
+		{
+			dataIndex: "userAgent",
+			key: "userAgent",
+			render: renderCodeValue,
+			title: t("adminShell.logs.common.userAgent"),
+			width: token.controlHeight * 10,
 		},
 	];
 
@@ -459,6 +608,11 @@ export function AuditLogPage() {
 									children: selectedLog.id,
 								},
 								{
+									key: "requestId",
+									label: t("adminShell.logs.common.requestId"),
+									children: selectedLog.requestId,
+								},
+								{
 									key: "actor",
 									label: t("adminShell.logs.audit.columns.actor"),
 									children: selectedLog.actorUsername,
@@ -474,6 +628,16 @@ export function AuditLogPage() {
 									key: "action",
 									label: t("adminShell.logs.audit.columns.action"),
 									children: selectedLog.action,
+								},
+								{
+									key: "module",
+									label: t("adminShell.logs.audit.columns.module"),
+									children: selectedLog.module,
+								},
+								{
+									key: "target",
+									label: t("adminShell.logs.audit.columns.target"),
+									children: formatTarget(selectedLog),
 								},
 								{
 									key: "targetType",
@@ -514,6 +678,63 @@ export function AuditLogPage() {
 									key: "ipAddress",
 									label: t("adminShell.logs.audit.columns.ipAddress"),
 									children: selectedLog.requestIp,
+								},
+								{
+									key: "requestMethod",
+									label: t("adminShell.logs.audit.columns.requestMethod"),
+									children: selectedLog.requestMethod,
+								},
+								{
+									key: "requestPath",
+									label: t("adminShell.logs.audit.columns.requestPath"),
+									children: selectedLog.requestPath,
+								},
+								{
+									key: "failureReason",
+									label: t("adminShell.logs.common.failureReason"),
+									children: selectedLog.failureReason ?? notRecorded,
+								},
+								{
+									key: "device",
+									label: t("adminShell.deviceInfo.device"),
+									children: formatDeviceInfo(
+										selectedLog.userAgent,
+										unknownDevice,
+									),
+								},
+								{
+									key: "browser",
+									label: t("adminShell.logs.common.browser"),
+									children:
+										getDeviceDetails(selectedLog.userAgent).browser ??
+										notRecorded,
+								},
+								{
+									key: "operatingSystem",
+									label: t("adminShell.logs.common.operatingSystem"),
+									children:
+										getDeviceDetails(selectedLog.userAgent).operatingSystem ??
+										notRecorded,
+								},
+								{
+									key: "durationMs",
+									label: t("adminShell.logs.common.duration"),
+									children: `${selectedLog.durationMs} ms`,
+								},
+								{
+									key: "before",
+									label: t("adminShell.logs.audit.columns.before"),
+									children: formatChange(selectedLog.before),
+								},
+								{
+									key: "after",
+									label: t("adminShell.logs.audit.columns.after"),
+									children: formatChange(selectedLog.after),
+								},
+								{
+									key: "userAgent",
+									label: t("adminShell.logs.common.userAgent"),
+									children: selectedLog.userAgent ?? notRecorded,
 								},
 								{
 									key: "occurredAt",
