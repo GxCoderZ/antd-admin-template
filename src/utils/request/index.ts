@@ -4,9 +4,9 @@ import { loginPath } from "#src/router/extra-info";
 import { useAuthStore } from "#src/store/auth";
 import { usePreferencesStore } from "#src/store/preferences";
 import { message } from "#src/utils/static-antd";
-import ky from "ky";
 
 import { AUTH_HEADER, LANG_HEADER, REFRESH_TOKEN_PATH } from "./constants";
+import { rawRequest } from "./client";
 import { handleErrorResponse } from "./error-response";
 import { globalProgress } from "./global-progress";
 import { goLogin } from "./go-login";
@@ -23,17 +23,7 @@ declare module "ky" {
 // 请求白名单, 请求白名单内的接口不需要携带 token
 const requestWhiteList = ["/api/auth/login", "/api/auth/refresh-token"];
 
-// 请求超时时间
-const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 10000;
-
 const defaultConfig: Options = {
-	// 不使用 prefixUrl，所有请求都使用完整路径
-	prefixUrl: "",
-	timeout: API_TIMEOUT,
-	retry: {
-		// 当请求失败时，最多重试次数
-		limit: 3,
-	},
 	hooks: {
 		beforeRequest: [
 			async (request, options) => {
@@ -114,4 +104,4 @@ const defaultConfig: Options = {
 	},
 };
 
-export const request = ky.create(defaultConfig);
+export const request = rawRequest.extend(defaultConfig);

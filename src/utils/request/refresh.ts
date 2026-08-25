@@ -1,5 +1,5 @@
 import type { KyResponse, Options } from "ky";
-import { fetchRefreshToken } from "#src/api/auth";
+import { fetchRefreshToken } from "#src/api/auth/refresh";
 
 import { useAuthStore } from "#src/store/auth";
 import ky from "ky";
