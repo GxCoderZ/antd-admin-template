@@ -1,5 +1,6 @@
 import type { PlatformSession } from "../src/api/auth";
 import type { PlatformAnnouncement } from "../src/api/announcements";
+import type { BatchTableRecord } from "../src/api/batch-table";
 import type {
 	ContentCategory,
 	ContentCategoryItem,
@@ -909,6 +910,21 @@ export const loginLogs: PlatformLoginLog[] = Array.from(
 		acceptLanguage: index % 2 === 0 ? "zh-CN" : "en-US",
 		timeZone: "Asia/Shanghai",
 		createdAt: iso(index * 37),
+	}),
+);
+
+const batchTableRecordCategories = ["权限资产", "内容资产", "运营资产"] as const;
+
+export const batchTableRecords: BatchTableRecord[] = Array.from(
+	{ length: 36 },
+	(_, index): BatchTableRecord => ({
+		category: batchTableRecordCategories[index % batchTableRecordCategories.length]!,
+		createdAt: iso(12_000 - index * 160),
+		id: `batch-table-record-${index + 1}`,
+		name: `批量演示记录 ${index + 1}`,
+		owner: users[index % 8]!.displayName,
+		status: index % 5 === 0 ? "disabled" : "active",
+		updatedAt: iso(360 + index * 29),
 	}),
 );
 

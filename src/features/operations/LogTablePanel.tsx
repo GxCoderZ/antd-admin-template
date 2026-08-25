@@ -105,6 +105,7 @@ interface LogTablePanelProps<Row extends { id: string }> {
 	primaryAction?: ReactNode;
 	queryPanel: ReactNode;
 	refreshing: boolean;
+	rowSelection?: TableProps<Row>["rowSelection"];
 	testId: string;
 	title: string;
 	total: number;
@@ -260,6 +261,7 @@ export function LogTablePanel<Row extends { id: string }>({
 	primaryAction,
 	queryPanel,
 	refreshing,
+	rowSelection,
 	testId,
 	title,
 	total,
@@ -524,6 +526,7 @@ export function LogTablePanel<Row extends { id: string }>({
 								total,
 							}}
 							rowKey="id"
+							{...(rowSelection ? { rowSelection } : {})}
 							scroll={{ x: tableScrollX }}
 							size={tableSize}
 							tableLayout="fixed"

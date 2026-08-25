@@ -24,6 +24,7 @@ export type AdminRouteIconKey =
 	| "auditLogs"
 	| "loginLogs"
 	| "basicForm"
+	| "batchTable"
 	| "stepForm"
 	| "searchArticles"
 	| "searchProjects"
@@ -129,6 +130,13 @@ const loadBasicListPage = async (): Promise<LazyAdminRouteModule> => {
 		await import("../features/page-examples/ListExamplePages");
 	return { Component: BasicListPage };
 };
+
+const loadBatchOperationsTablePage =
+	async (): Promise<LazyAdminRouteModule> => {
+		const { BatchOperationsTablePage } =
+			await import("../features/batch-table/BatchOperationsTablePage");
+		return { Component: BatchOperationsTablePage };
+	};
 
 const loadSearchArticlesPage = async (): Promise<LazyAdminRouteModule> => {
 	const { SearchArticlesPage } =
@@ -351,6 +359,15 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.basicList",
 	},
 	{
+		groupKey: "examples",
+		iconKey: "batchTable",
+		key: "/examples/lists/batch-operations",
+		lazy: loadBatchOperationsTablePage,
+		navigationParentKeys: ["example-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.batchOperationsTable",
+	},
+	{
 		aliases: [
 			{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" },
 		],
@@ -554,6 +571,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 				titleKey: "adminShell.navigation.listExamples",
 				children: [
 					{ routeKey: "/examples/lists/basic" },
+					{ routeKey: "/examples/lists/batch-operations" },
 					{
 						key: "example-search-lists",
 						titleKey: "adminShell.navigation.searchList",
