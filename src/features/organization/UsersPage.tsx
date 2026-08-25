@@ -103,13 +103,57 @@ const { Link, Text } = Typography;
 const defaultUserFilterValues: UserFilterValues = { status: "all" };
 const userQueryFilterFieldCount = 2;
 const userColumnKeys = [
+	"id",
 	"username",
 	"displayName",
+	"department",
+	"jobTitle",
+	"roles",
+	"phone",
 	"email",
 	"status",
+	"authSource",
+	"mfaEnabled",
+	"mustChangePassword",
+	"lastLoginAt",
+	"lastLoginIp",
 	"createdAt",
+	"updatedAt",
 	"actions",
 ] as const;
+type UserColumnKey = (typeof userColumnKeys)[number];
+const requiredUserColumnKeys = ["username", "status", "actions"] as const;
+const defaultVisibleUserColumnKeys = [
+	"username",
+	"displayName",
+	"department",
+	"roles",
+	"phone",
+	"email",
+	"status",
+	"lastLoginAt",
+	"createdAt",
+	"actions",
+] satisfies readonly UserColumnKey[];
+const userColumnWidthMultipliers: Record<UserColumnKey, number> = {
+	actions: 8,
+	authSource: 3,
+	createdAt: 5,
+	department: 4,
+	displayName: 5,
+	email: 7,
+	id: 5,
+	jobTitle: 4,
+	lastLoginAt: 5,
+	lastLoginIp: 4,
+	mfaEnabled: 3,
+	mustChangePassword: 3,
+	phone: 4,
+	roles: 6,
+	status: 3,
+	updatedAt: 5,
+	username: 4,
+};
 const userStatusBadgeByStatus: Record<
 	PlatformUser["status"],
 	"default" | "error" | "success"
@@ -118,17 +162,29 @@ const userStatusBadgeByStatus: Record<
 	disabled: "default",
 	locked: "error",
 };
+const userAuthSourceTagColor: Record<
+	PlatformUser["authSource"],
+	"blue" | "cyan" | "default"
+> = {
+	ldap: "cyan",
+	local: "default",
+	sso: "blue",
+};
 const tableSortToContractSort: Record<
 	string,
 	NonNullable<ListPlatformUsersInput["sort"]>
 > = {
+	authSource: "auth_source",
 	createdAt: "created_at",
+	department: "department",
+	displayName: "display_name",
 	email: "email",
+	lastLoginAt: "last_login_at",
+	phone: "phone",
 	status: "status",
+	updatedAt: "updated_at",
 	username: "username",
 };
-
-type UserColumnKey = (typeof userColumnKeys)[number];
 
 interface UserFilterValues {
 	q?: string;
@@ -314,11 +370,8 @@ export function UsersPage() {
 	]);
 	const [visibleUserColumnKeys, setVisibleUserColumnKeys] = useState<
 		UserColumnKey[]
-	>([...userColumnKeys]);
+	>([...defaultVisibleUserColumnKeys]);
 	const userTableWorkspaceRef = useRef<HTMLDivElement>(null);
-	const userSelectionColumnWidth = token.controlHeightSM + token.marginXXS;
-	const userTableMinimumWidth =
-		token.controlHeight * 25 + userSelectionColumnWidth;
 	const availableUserColumnKeys = useMemo<readonly UserColumnKey[]>(
 		() => userColumnKeys,
 		[],
@@ -348,6 +401,11 @@ export function UsersPage() {
 			),
 		[availableUserColumnKeys, visibleUserColumnKeys],
 	);
+	const userTableMinimumWidth = visibleAvailableUserColumnKeys.reduce(
+		(totalWidth, columnKey) =>
+			totalWidth + token.controlHeight * userColumnWidthMultipliers[columnKey],
+		token.controlHeight * 2,
+	);
 
 	const userTableColumns = useMemo<
 		NonNullable<TableProps<PlatformUser>["columns"]>
@@ -360,17 +418,27 @@ export function UsersPage() {
 				: null;
 		const dataColumns: NonNullable<TableProps<PlatformUser>["columns"]> = [
 			{
+				dataIndex: "id",
+				key: "id",
+				render: (id: string) => <Text code>{id}</Text>,
+				title: t("adminShell.users.columns.id"),
+				width: token.controlHeight * userColumnWidthMultipliers.id,
+			},
+			{
 				dataIndex: "username",
 				key: "username",
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("username"),
 				title: t("adminShell.users.columns.username"),
-				width: token.controlHeight * 4,
+				width: token.controlHeight * userColumnWidthMultipliers.username,
 			},
 			{
 				dataIndex: "displayName",
 				key: "displayName",
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("display_name"),
 				render: (displayName: string, row: PlatformUser) => (
 					<Space size={token.marginXS}>
 						<PlatformUserAvatar
@@ -383,7 +451,62 @@ export function UsersPage() {
 					</Space>
 				),
 				title: t("adminShell.users.columns.displayName"),
-				width: token.controlHeight * 5,
+				width: token.controlHeight * userColumnWidthMultipliers.displayName,
+			},
+			{
+				dataIndex: "department",
+				key: "department",
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("department"),
+				title: t("adminShell.users.columns.department"),
+				width: token.controlHeight * userColumnWidthMultipliers.department,
+				render: (department: PlatformUser["department"]) =>
+					t(`adminShell.users.departments.${department}`),
+			},
+			{
+				dataIndex: "jobTitle",
+				key: "jobTitle",
+				render: (jobTitle: string) =>
+					jobTitle || <Text type="secondary">-</Text>,
+				title: t("adminShell.users.columns.jobTitle"),
+				width: token.controlHeight * userColumnWidthMultipliers.jobTitle,
+			},
+			{
+				dataIndex: "roles",
+				key: "roles",
+				render: (roles: PlatformUser["roles"]) =>
+					roles.length > 0 ? (
+						<Space size={[token.marginXXS, token.marginXXS]} wrap>
+							{roles.slice(0, 2).map((role) => (
+								<Tag key={role.id}>{role.displayName}</Tag>
+							))}
+							{roles.length > 2 ? (
+								<Tooltip
+									title={roles
+										.slice(2)
+										.map((role) => role.displayName)
+										.join("、")}
+								>
+									<Tag>+{roles.length - 2}</Tag>
+								</Tooltip>
+							) : null}
+						</Space>
+					) : (
+						<Text type="secondary">-</Text>
+					),
+				title: t("adminShell.users.columns.roles"),
+				width: token.controlHeight * userColumnWidthMultipliers.roles,
+			},
+			{
+				dataIndex: "phone",
+				key: "phone",
+				render: (phone: string) => phone || <Text type="secondary">-</Text>,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("phone"),
+				title: t("adminShell.users.columns.phone"),
+				width: token.controlHeight * userColumnWidthMultipliers.phone,
 			},
 			{
 				dataIndex: "email",
@@ -392,7 +515,7 @@ export function UsersPage() {
 				sorter: true,
 				sortOrder: sortOrder("email"),
 				title: t("adminShell.users.columns.email"),
-				width: token.controlHeight * 7,
+				width: token.controlHeight * userColumnWidthMultipliers.email,
 			},
 			{
 				dataIndex: "status",
@@ -407,7 +530,83 @@ export function UsersPage() {
 					/>
 				),
 				title: t("adminShell.users.columns.status"),
-				width: token.controlHeightLG * 2,
+				width: token.controlHeight * userColumnWidthMultipliers.status,
+			},
+			{
+				dataIndex: "authSource",
+				key: "authSource",
+				render: (authSource: PlatformUser["authSource"]) => (
+					<Tag color={userAuthSourceTagColor[authSource]}>
+						{t(`adminShell.users.authSources.${authSource}`)}
+					</Tag>
+				),
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("auth_source"),
+				title: t("adminShell.users.columns.authSource"),
+				width: token.controlHeight * userColumnWidthMultipliers.authSource,
+			},
+			{
+				dataIndex: "mfaEnabled",
+				key: "mfaEnabled",
+				render: (enabled: boolean) => (
+					<Badge
+						status={enabled ? "success" : "default"}
+						text={t(
+							enabled
+								? "adminShell.users.columnValues.enabled"
+								: "adminShell.users.columnValues.disabled",
+						)}
+					/>
+				),
+				title: t("adminShell.users.columns.mfaEnabled"),
+				width: token.controlHeight * userColumnWidthMultipliers.mfaEnabled,
+			},
+			{
+				dataIndex: "mustChangePassword",
+				key: "mustChangePassword",
+				render: (mustChangePassword?: boolean) => (
+					<Badge
+						status={mustChangePassword ? "warning" : "success"}
+						text={t(
+							mustChangePassword
+								? "adminShell.users.columnValues.changeRequired"
+								: "adminShell.users.columnValues.normal",
+						)}
+					/>
+				),
+				title: t("adminShell.users.columns.mustChangePassword"),
+				width:
+					token.controlHeight * userColumnWidthMultipliers.mustChangePassword,
+			},
+			{
+				dataIndex: "lastLoginAt",
+				key: "lastLoginAt",
+				render: (lastLoginAt: string | null) =>
+					lastLoginAt ? (
+						formatDateTime(lastLoginAt, formatPreferences)
+					) : (
+						<Text type="secondary">
+							{t("adminShell.users.columnValues.never")}
+						</Text>
+					),
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("last_login_at"),
+				title: t("adminShell.users.columns.lastLoginAt"),
+				width: token.controlHeight * userColumnWidthMultipliers.lastLoginAt,
+			},
+			{
+				dataIndex: "lastLoginIp",
+				key: "lastLoginIp",
+				render: (lastLoginIp: string | null) =>
+					lastLoginIp ? (
+						<Text code>{lastLoginIp}</Text>
+					) : (
+						<Text type="secondary">-</Text>
+					),
+				title: t("adminShell.users.columns.lastLoginIp"),
+				width: token.controlHeight * userColumnWidthMultipliers.lastLoginIp,
 			},
 			{
 				dataIndex: "createdAt",
@@ -418,7 +617,18 @@ export function UsersPage() {
 				sorter: true,
 				sortOrder: sortOrder("created_at"),
 				title: t("adminShell.users.columns.createdAt"),
-				width: token.controlHeight * 5,
+				width: token.controlHeight * userColumnWidthMultipliers.createdAt,
+			},
+			{
+				dataIndex: "updatedAt",
+				key: "updatedAt",
+				render: (updatedAt: string) =>
+					formatDateTime(updatedAt, formatPreferences),
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("updated_at"),
+				title: t("adminShell.users.columns.updatedAt"),
+				width: token.controlHeight * userColumnWidthMultipliers.updatedAt,
 			},
 		];
 
@@ -472,7 +682,7 @@ export function UsersPage() {
 				</Space>
 			),
 			title: t("adminShell.users.columns.actions"),
-			width: token.controlHeight * 8,
+			width: token.controlHeight * userColumnWidthMultipliers.actions,
 		});
 
 		const dataColumnByKey = new Map(
@@ -495,7 +705,7 @@ export function UsersPage() {
 		roleMutation,
 		t,
 		token.controlHeight,
-		token.controlHeightLG,
+		token.marginXXS,
 		token.marginXS,
 		updateUserMutation,
 		userColumnOrder,
@@ -628,9 +838,15 @@ export function UsersPage() {
 				checked={availableUserColumnKeys.every((columnKey) =>
 					visibleAvailableUserColumnKeys.includes(columnKey),
 				)}
+				indeterminate={
+					visibleAvailableUserColumnKeys.length > 0 &&
+					visibleAvailableUserColumnKeys.length < availableUserColumnKeys.length
+				}
 				onChange={(event) => {
 					setVisibleUserColumnKeys(
-						event.target.checked ? [...availableUserColumnKeys] : ["username"],
+						event.target.checked
+							? [...availableUserColumnKeys]
+							: [...requiredUserColumnKeys],
 					);
 				}}
 			>
@@ -639,7 +855,7 @@ export function UsersPage() {
 			<Button
 				onClick={() => {
 					setUserColumnOrder([...userColumnKeys]);
-					setVisibleUserColumnKeys([...availableUserColumnKeys]);
+					setVisibleUserColumnKeys([...defaultVisibleUserColumnKeys]);
 				}}
 				size="small"
 				type="link"
@@ -670,13 +886,14 @@ export function UsersPage() {
 						const nextCheckedKeys = Array.isArray(checkedKeys)
 							? checkedKeys
 							: checkedKeys.checked;
-						setVisibleUserColumnKeys(
-							availableUserColumnKeys.filter(
-								(columnKey) =>
-									columnKey === "username" ||
-									nextCheckedKeys.includes(columnKey),
-							),
-						);
+					setVisibleUserColumnKeys(
+						availableUserColumnKeys.filter((columnKey) => {
+							const isRequired = requiredUserColumnKeys.some(
+								(requiredColumnKey) => requiredColumnKey === columnKey,
+							);
+							return isRequired || nextCheckedKeys.includes(columnKey);
+						}),
+					);
 					}}
 					onDrop={({ dragNode, node, dropPosition }) => {
 						const dragKey = dragNode.key;
@@ -700,8 +917,10 @@ export function UsersPage() {
 					showLine={false}
 					treeData={userColumnOrder
 						.filter((columnKey) => availableUserColumnKeys.includes(columnKey))
-						.map((columnKey) => ({
-							disabled: columnKey === "username",
+					.map((columnKey) => ({
+						disabled: requiredUserColumnKeys.some(
+							(requiredColumnKey) => requiredColumnKey === columnKey,
+						),
 							key: columnKey,
 							title: t(`adminShell.users.columns.${columnKey}`),
 						}))}

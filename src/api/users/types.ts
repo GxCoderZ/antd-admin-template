@@ -1,12 +1,27 @@
 import type { PlatformUserRole } from "../types";
 
 type PlatformUserStatus = "active" | "disabled" | "locked";
+type PlatformUserAuthSource = "ldap" | "local" | "sso";
+type PlatformUserDepartment =
+	| "finance"
+	| "hr"
+	| "operations"
+	| "platform"
+	| "risk";
 
 export interface PlatformUser {
+	authSource: PlatformUserAuthSource;
+	department: PlatformUserDepartment;
 	id: string;
 	username: string;
 	email: string;
 	displayName: string;
+	jobTitle: string;
+	lastLoginAt: string | null;
+	lastLoginIp: string | null;
+	mfaEnabled: boolean;
+	phone: string;
+	roles: PlatformUserRole[];
 	status: PlatformUserStatus;
 	createdAt: string;
 	updatedAt: string;
@@ -14,14 +29,22 @@ export interface PlatformUser {
 	version?: number;
 }
 
-export interface PlatformUserDetail extends PlatformUser {
-	roles: PlatformUserRole[];
-}
+export type PlatformUserDetail = PlatformUser;
 
 export interface ListPlatformUsersInput {
 	page: number;
 	pageSize: number;
-	sort?: "username" | "email" | "status" | "created_at";
+	sort?:
+		| "auth_source"
+		| "created_at"
+		| "department"
+		| "display_name"
+		| "email"
+		| "last_login_at"
+		| "phone"
+		| "status"
+		| "updated_at"
+		| "username";
 	order?: "asc" | "desc";
 	q?: string;
 	status?: PlatformUserStatus;

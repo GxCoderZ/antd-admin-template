@@ -27,10 +27,22 @@ export default defineFakeRoute([
 			const order = routeParam(query.order) ?? "desc";
 			const sortValue = (user: PlatformUserDetail) => {
 				switch (sort) {
+					case "auth_source":
+						return user.authSource;
+					case "department":
+						return user.department;
+					case "display_name":
+						return user.displayName;
 					case "email":
 						return user.email;
+					case "last_login_at":
+						return user.lastLoginAt ?? "";
+					case "phone":
+						return user.phone;
 					case "status":
 						return user.status;
+					case "updated_at":
+						return user.updatedAt;
 					case "username":
 						return user.username;
 					default:
@@ -41,7 +53,10 @@ export default defineFakeRoute([
 				(user) =>
 					(!keyword ||
 						user.username.toLowerCase().includes(keyword) ||
-						user.email.toLowerCase().includes(keyword)) &&
+						user.displayName.toLowerCase().includes(keyword) ||
+						user.email.toLowerCase().includes(keyword) ||
+						user.phone.toLowerCase().includes(keyword) ||
+						user.jobTitle.toLowerCase().includes(keyword)) &&
 					(!status || user.status === status),
 			);
 			const sorted = [...filtered].sort((left, right) => {
@@ -69,10 +84,17 @@ export default defineFakeRoute([
 			}
 			const timestamp = new Date().toISOString();
 			const user: PlatformUserDetail = {
+				authSource: "local",
+				department: "platform",
 				id: `user-${Date.now()}`,
 				username: input.username,
 				email: input.email,
 				displayName: input.displayName,
+				jobTitle: "",
+				lastLoginAt: null,
+				lastLoginIp: null,
+				mfaEnabled: false,
+				phone: "",
 				status: "active",
 				createdAt: timestamp,
 				updatedAt: timestamp,

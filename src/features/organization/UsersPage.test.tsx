@@ -54,10 +54,25 @@ vi.mock("../../app/PlatformUserAvatar", () => ({
 }));
 
 const adminUser = {
+	authSource: "local" as const,
 	createdAt: "2026-08-01T00:00:00.000Z",
+	department: "platform" as const,
 	displayName: "Platform Admin",
 	email: "admin@example.com",
 	id: "user-admin",
+	jobTitle: "平台管理员",
+	lastLoginAt: "2026-08-25T08:30:00.000Z",
+	lastLoginIp: "192.168.1.10",
+	mfaEnabled: true,
+	mustChangePassword: false,
+	phone: "13800138000",
+	roles: [
+		{
+			displayName: "超级管理员",
+			id: "role-admin",
+			roleKey: "admin",
+		},
+	],
 	status: "active" as const,
 	updatedAt: "2026-08-25T00:00:00.000Z",
 	username: "admin",
@@ -127,7 +142,10 @@ describe("UsersPage", () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
-		await user.type(screen.getByPlaceholderText("搜索用户名或邮箱"), "olivia");
+		await user.type(
+			screen.getByPlaceholderText("搜索用户名、显示名称、邮箱或手机号"),
+			"olivia",
+		);
 		await user.click(screen.getByRole("button", { name: /查\s*询/ }));
 
 		await waitFor(() => {
@@ -136,5 +154,44 @@ describe("UsersPage", () => {
 				expect.any(AbortSignal),
 			);
 		});
+	});
+
+	it("provides required, recommended, and optional user columns", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		await user.click(screen.getByRole("button", { name: "表格设置" }));
+
+		const requiredColumns = ["用户名", "状态", "操作"];
+		const optionalColumns = [
+			"用户 ID",
+			"岗位",
+			"账号来源",
+			"MFA 状态",
+			"密码状态",
+			"最近登录 IP",
+			"更新时间",
+		];
+
+		for (const column of requiredColumns) {
+			expect(screen.getByRole("checkbox", { name: column })).toHaveAttribute(
+				"aria-disabled",
+				"true",
+			);
+		}
+		for (const column of optionalColumns) {
+			expect(
+				screen.getByRole("checkbox", { name: new RegExp(`${column}$`) }),
+			).toBeInTheDocument();
+		}
+
+		const userIdCheckbox = screen.getByRole("checkbox", {
+			name: /用户 ID$/,
+		});
+		expect(userIdCheckbox).not.toBeChecked();
+		await user.click(userIdCheckbox);
+		expect(
+			screen.getByRole("columnheader", { name: "用户 ID" }),
+		).toBeVisible();
 	});
 });

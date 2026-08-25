@@ -51,6 +51,11 @@ describe("Fake users", () => {
 			page_size: "100",
 			q: "chen",
 		});
+		const phoneUsers = listUsers({
+			page: "1",
+			page_size: "100",
+			q: "13800138000",
+		});
 
 		expect(disabledUsers.data.items.length).toBeGreaterThan(1);
 		expect(
@@ -59,8 +64,26 @@ describe("Fake users", () => {
 		expect(keywordUsers.data.items.length).toBeGreaterThan(1);
 		expect(
 			keywordUsers.data.items.every((user) =>
-				`${user.username} ${user.email}`.toLowerCase().includes("chen"),
+				`${user.username} ${user.displayName} ${user.email} ${user.phone}`
+					.toLowerCase()
+					.includes("chen"),
 			),
 		).toBe(true);
+		expect(phoneUsers.data.items).toHaveLength(1);
+		expect(phoneUsers.data.items[0]?.username).toBe("admin");
+	});
+
+	it("returns complete generic account metadata for table columns", () => {
+		const firstUser = listUsers({ page: "1", page_size: "1" }).data.items[0];
+
+		expect(firstUser).toBeDefined();
+		expect(typeof firstUser?.authSource).toBe("string");
+		expect(typeof firstUser?.department).toBe("string");
+		expect(typeof firstUser?.jobTitle).toBe("string");
+		expect(typeof firstUser?.lastLoginAt).toBe("string");
+		expect(typeof firstUser?.lastLoginIp).toBe("string");
+		expect(typeof firstUser?.mfaEnabled).toBe("boolean");
+		expect(typeof firstUser?.phone).toBe("string");
+		expect(Array.isArray(firstUser?.roles)).toBe(true);
 	});
 });

@@ -7,10 +7,19 @@ import { i18n } from "../../../i18n";
 import { UserEditModal } from "./UserEditModal";
 
 const userRecord = {
+	authSource: "local" as const,
 	createdAt: "2026-08-01T00:00:00.000Z",
+	department: "platform" as const,
 	displayName: "Platform Admin",
 	email: "admin@example.com",
 	id: "user-admin",
+	jobTitle: "平台管理员",
+	lastLoginAt: "2026-08-25T08:30:00.000Z",
+	lastLoginIp: "192.168.1.10",
+	mfaEnabled: true,
+	mustChangePassword: false,
+	phone: "13800138000",
+	roles: [],
 	status: "active" as const,
 	updatedAt: "2026-08-25T00:00:00.000Z",
 	username: "admin",
