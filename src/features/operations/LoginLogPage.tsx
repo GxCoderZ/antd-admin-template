@@ -8,7 +8,9 @@ import { useTranslation } from "react-i18next";
 import { formatDeviceInfo, getPrimaryLanguage } from "../../app/deviceInfo";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { resolveTableSort } from "../../app/tableSorting";
+import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	TableActionButton,
 	TableActionMenu,
@@ -38,6 +40,17 @@ const loginTableSortToContractSort: Record<string, LoginLogSort> = {
 	identifier: "identifier",
 	result: "result",
 };
+const loginLogColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
+	[
+		{ key: "identifier", priority: "compact", required: true },
+		{ key: "result", priority: "compact" },
+		{ key: "userAgent", priority: "regular" },
+		{ key: "requestIp", priority: "regular" },
+		{ key: "acceptLanguage", priority: "spacious" },
+		{ key: "timeZone", priority: "spacious" },
+		{ key: "created_at", priority: "compact" },
+		{ key: "actions", priority: "compact", required: true },
+	];
 
 const loginResultStatus = {
 	invalid: "error",
@@ -240,6 +253,10 @@ export function LoginLogPage() {
 		<Flex gap={token.marginLG} vertical>
 			{messageContextHolder}
 			<LogTablePanel<PlatformLoginLog>
+				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+					"login-logs",
+				)}
+				columnVisibility={loginLogColumnVisibility}
 				columns={columns}
 				dataSource={query.data?.items ?? []}
 				emptyText={t("adminShell.logs.login.empty")}

@@ -1,4 +1,5 @@
 import type { ListPlatformUsersInput, PlatformUser } from "#src/api/users";
+import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 
 export interface UserFilterValues {
 	q?: string;
@@ -33,24 +34,6 @@ export const userColumnKeys = [
 	"actions",
 ] as const;
 export type UserColumnKey = (typeof userColumnKeys)[number];
-export const requiredUserColumnKeys = [
-	"username",
-	"status",
-	"actions",
-] as const;
-export const defaultVisibleUserColumnKeys = [
-	"username",
-	"displayName",
-	"department",
-	"roles",
-	"phone",
-	"email",
-	"status",
-	"lastLoginAt",
-	"createdAt",
-	"actions",
-] satisfies readonly UserColumnKey[];
-
 export const userColumnWidthMultipliers: Record<UserColumnKey, number> = {
 	actions: 4,
 	authSource: 3,
@@ -70,6 +53,27 @@ export const userColumnWidthMultipliers: Record<UserColumnKey, number> = {
 	updatedAt: 5,
 	username: 4,
 };
+
+export const userColumnVisibility: readonly ResponsiveTableColumnConfig<UserColumnKey>[] =
+	[
+		{ key: "id", priority: "optional" },
+		{ key: "username", priority: "compact", required: true },
+		{ key: "displayName", priority: "compact" },
+		{ key: "department", priority: "compact" },
+		{ key: "jobTitle", priority: "optional" },
+		{ key: "roles", priority: "regular" },
+		{ key: "phone", priority: "spacious" },
+		{ key: "email", priority: "spacious" },
+		{ key: "status", priority: "compact", required: true },
+		{ key: "authSource", priority: "optional" },
+		{ key: "mfaEnabled", priority: "optional" },
+		{ key: "mustChangePassword", priority: "optional" },
+		{ key: "lastLoginAt", priority: "regular" },
+		{ key: "lastLoginIp", priority: "optional" },
+		{ key: "createdAt", priority: "spacious" },
+		{ key: "updatedAt", priority: "optional" },
+		{ key: "actions", priority: "compact", required: true },
+	];
 
 export const userTableSortToContractSort: Record<
 	string,

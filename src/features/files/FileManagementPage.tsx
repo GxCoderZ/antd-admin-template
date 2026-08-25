@@ -36,7 +36,9 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { resolveTableSort } from "../../app/tableSorting";
+import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
 
 const { Text } = Typography;
@@ -57,6 +59,14 @@ const fileSortMap = {
 	name: "name",
 	size: "size",
 } as const;
+const fileColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
+	{ key: "name", priority: "compact", required: true },
+	{ key: "type", priority: "compact" },
+	{ key: "size", priority: "compact" },
+	{ key: "uploader", priority: "regular" },
+	{ key: "createdAt", priority: "regular" },
+	{ key: "actions", priority: "compact", required: true },
+];
 
 function formatFileSize(size: number) {
 	if (size < 1024) return `${size} B`;
@@ -266,6 +276,8 @@ export function FileManagementPage() {
 		<>
 			{messageContext}
 			<LogTablePanel
+				columnSettingsStorageKey={getTableColumnSettingsStorageKey("files")}
+				columnVisibility={fileColumnVisibility}
 				columns={columns}
 				dataSource={query.data?.items ?? []}
 				description={

@@ -1,6 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+	cleanup,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -86,6 +92,11 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	localStorage.clear();
+	Object.defineProperty(document.body, "clientWidth", {
+		configurable: true,
+		value: 1_100,
+	});
 	mocks.deletePlatformUser.mockReset().mockResolvedValue(undefined);
 	mocks.listPlatformUsers.mockReset().mockResolvedValue({
 		items: [adminUser],
@@ -236,5 +247,57 @@ describe("UsersPage", () => {
 		expect(userIdCheckbox).not.toBeChecked();
 		await user.click(userIdCheckbox);
 		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+	});
+
+	it("keeps the desktop default readable without secondary contact columns", async () => {
+		renderUsersPage();
+
+		await screen.findByText("admin");
+
+		for (const column of [
+			"用户名",
+			"显示名称",
+			"部门",
+			"角色",
+			"状态",
+			"最近登录",
+			"操作",
+		]) {
+			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
+		}
+		for (const column of ["手机号", "邮箱", "创建时间"]) {
+			expect(
+				screen.queryByRole("columnheader", { name: column }),
+			).not.toBeInTheDocument();
+		}
+	});
+
+	it("persists manually enabled optional user columns", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		await user.click(screen.getByRole("button", { name: "表格设置" }));
+		await user.click(screen.getByRole("checkbox", { name: /用户 ID$/ }));
+		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+
+		cleanup();
+		renderUsersPage();
+
+		await screen.findByText("admin");
+		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+	});
+
+	it("adds secondary contact columns on spacious screens", async () => {
+		Object.defineProperty(document.body, "clientWidth", {
+			configurable: true,
+			value: 1_520,
+		});
+
+		renderUsersPage();
+
+		await screen.findByText("admin");
+		for (const column of ["手机号", "邮箱", "创建时间"]) {
+			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
+		}
 	});
 });

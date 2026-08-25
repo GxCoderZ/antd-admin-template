@@ -22,7 +22,9 @@ import {
 	TableActionButton,
 	TableActionMenu,
 } from "../../../app/TableActionButton";
+import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
 import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
+import type { ResponsiveTableColumnConfig } from "../../../app/tableColumnVisibility";
 import { LogQueryPanel, LogTablePanel } from "../../operations/LogTablePanel";
 import type { ListPlatformRolesInput, PlatformRole } from "#src/api/roles";
 import { permissionGroups } from "../rolePermissions";
@@ -30,6 +32,13 @@ import { getRoleErrorTitleKey, getRoleProblemDetail } from "../roleProblems";
 
 const { Text } = Typography;
 type RoleSort = NonNullable<ListPlatformRolesInput["sort"]>;
+const roleColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
+	{ key: "displayName", priority: "compact", required: true },
+	{ key: "roleKey", priority: "compact" },
+	{ key: "memberCount", priority: "compact" },
+	{ key: "permissions", priority: "regular" },
+	{ key: "actions", priority: "compact", required: true },
+];
 
 export interface RoleFilterValues {
 	q?: string;
@@ -239,6 +248,8 @@ export function RoleTablePanel({
 				/>
 			) : null}
 			<LogTablePanel<PlatformRole>
+				columnSettingsStorageKey={getTableColumnSettingsStorageKey("roles")}
+				columnVisibility={roleColumnVisibility}
 				columns={columns}
 				dataSource={data}
 				description={

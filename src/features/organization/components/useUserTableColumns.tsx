@@ -18,7 +18,6 @@ import {
 } from "../../../app/TableActionButton";
 import type { ListPlatformUsersInput, PlatformUser } from "#src/api/users";
 import {
-	type UserColumnKey,
 	type UserTableState,
 	userColumnWidthMultipliers,
 } from "../userTableTypes";
@@ -50,8 +49,6 @@ interface UseUserTableColumnsInput {
 	onManageRoles: (user: PlatformUser) => void;
 	onResetPassword: (user: PlatformUser) => void;
 	tableState: UserTableState;
-	userColumnOrder: UserColumnKey[];
-	visibleColumnKeys: UserColumnKey[];
 }
 
 export function useUserTableColumns({
@@ -63,8 +60,6 @@ export function useUserTableColumns({
 	onManageRoles,
 	onResetPassword,
 	tableState,
-	userColumnOrder,
-	visibleColumnKeys,
 }: UseUserTableColumnsInput) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
@@ -347,13 +342,7 @@ export function useUserTableColumns({
 			width: token.controlHeight * userColumnWidthMultipliers.actions,
 		});
 
-		const dataColumnByKey = new Map(
-			dataColumns.map((column) => [column.key as UserColumnKey, column]),
-		);
-		return userColumnOrder.flatMap((columnKey) => {
-			const column = dataColumnByKey.get(columnKey);
-			return column && visibleColumnKeys.includes(columnKey) ? [column] : [];
-		});
+		return dataColumns;
 	}, [
 		canManageUsers,
 		currentUserId,
@@ -369,7 +358,5 @@ export function useUserTableColumns({
 		token.controlHeight,
 		token.marginXXS,
 		token.marginXS,
-		userColumnOrder,
-		visibleColumnKeys,
 	]);
 }

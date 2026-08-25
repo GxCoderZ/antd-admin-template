@@ -10,6 +10,7 @@ export const preferenceStorageKeys = {
 	themeColor: `${APP_PREFERENCE_PREFIX}theme-color`,
 	themeMode: `${APP_PREFERENCE_PREFIX}theme-mode`,
 	timeZone: `${APP_PREFERENCE_PREFIX}time-zone`,
+	tableColumnSettings: `${APP_PREFERENCE_PREFIX}table-column-settings.`,
 	userTableDensity: `${APP_PREFERENCE_PREFIX}user-table-density`,
 } as const;
 
@@ -293,4 +294,79 @@ export function readUserTableDensityPreference() {
 
 export function writeUserTableDensityPreference(value: UserTableDensity) {
 	writeValue(preferenceStorageKeys.userTableDensity, value);
+}
+
+interface TableColumnSettingsPreference<Key extends string> {
+	columnOrder: Key[];
+	visibleColumnKeys: Key[];
+}
+
+function readStringArray(value: unknown): string[] {
+	return Array.isArray(value)
+		? value.filter((item): item is string => typeof item === "string")
+		: [];
+}
+
+function filterKnownValues<Key extends string>(
+	values: readonly string[],
+	allowedValues: readonly Key[],
+) {
+	return allowedValues.filter((allowedValue) => values.includes(allowedValue));
+}
+
+export function getTableColumnSettingsStorageKey(tableId: string) {
+	return `${preferenceStorageKeys.tableColumnSettings}${tableId}`;
+}
+
+export function readTableColumnSettingsPreference<Key extends string>(
+	key: string,
+	allowedValues: readonly Key[],
+): TableColumnSettingsPreference<Key> | undefined {
+	try {
+		const rawValue = globalThis.localStorage.getItem(key);
+		if (!rawValue) {
+			return undefined;
+		}
+
+		const parsedValue: unknown = JSON.parse(rawValue);
+		if (!parsedValue || typeof parsedValue !== "object") {
+			return undefined;
+		}
+
+		const value = parsedValue as Record<string, unknown>;
+		const columnOrder = filterKnownValues(
+			readStringArray(value.columnOrder),
+			allowedValues,
+		);
+		const visibleColumnKeys = filterKnownValues(
+			readStringArray(value.visibleColumnKeys),
+			allowedValues,
+		);
+
+		return {
+			columnOrder: [
+				...columnOrder,
+				...allowedValues.filter((value) => !columnOrder.includes(value)),
+			],
+			visibleColumnKeys,
+		};
+	} catch {
+		return undefined;
+	}
+}
+
+export function writeTableColumnSettingsPreference<Key extends string>(
+	key: string,
+	value: TableColumnSettingsPreference<Key>,
+) {
+	writeValue(key, JSON.stringify(value));
+}
+
+export function clearTableColumnSettingsPreference(key: string) {
+	try {
+		globalThis.localStorage.removeItem(key);
+		preferenceChangeListeners.forEach((listener) => listener());
+	} catch {
+		// Preferences are optional; storage failures must not block the application.
+	}
 }
