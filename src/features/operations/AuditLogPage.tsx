@@ -72,6 +72,19 @@ function formatTarget(log: PlatformAuditLog) {
 	return log.targetId ? `${log.targetType}:${log.targetId}` : log.targetType;
 }
 
+function formatAuditRecordValue(
+	value: Record<string, unknown> | undefined,
+	emptyText: string,
+) {
+	return value && Object.keys(value).length > 0 ? (
+		<Text code style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+			{JSON.stringify(value, null, 2)}
+		</Text>
+	) : (
+		<Text type="secondary">{emptyText}</Text>
+	);
+}
+
 export function AuditLogPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
@@ -120,6 +133,7 @@ export function AuditLogPage() {
 	});
 	const sortOrder = (column: AuditLogSort) =>
 		sort === column && order ? (order === "asc" ? "ascend" : "descend") : null;
+	const notRecorded = t("adminShell.deviceInfo.notRecorded");
 	const columns: TableColumnsType<PlatformAuditLog> = [
 		{
 			dataIndex: "actorUsername",
@@ -368,20 +382,50 @@ export function AuditLogPage() {
 									children: selectedLog.actorUsername,
 								},
 								{
+									key: "actorId",
+									label: t("adminShell.logs.audit.columns.actorId"),
+									children: selectedLog.actorId || (
+										<Text type="secondary">{notRecorded}</Text>
+									),
+								},
+								{
 									key: "action",
 									label: t("adminShell.logs.audit.columns.action"),
 									children: selectedLog.action,
 								},
 								{
-									key: "target",
-									label: t("adminShell.logs.audit.columns.target"),
-									children: formatTarget(selectedLog),
+									key: "targetType",
+									label: t("adminShell.logs.audit.columns.targetType"),
+									children: selectedLog.targetType,
+								},
+								{
+									key: "targetId",
+									label: t("adminShell.logs.audit.columns.targetId"),
+									children: selectedLog.targetId || (
+										<Text type="secondary">{notRecorded}</Text>
+									),
 								},
 								{
 									key: "result",
 									label: t("adminShell.logs.audit.columns.result"),
 									children: t(
 										`adminShell.logs.common.results.${selectedLog.result}`,
+									),
+								},
+								{
+									key: "before",
+									label: t("adminShell.logs.audit.columns.before"),
+									children: formatAuditRecordValue(
+										selectedLog.before,
+										notRecorded,
+									),
+								},
+								{
+									key: "after",
+									label: t("adminShell.logs.audit.columns.after"),
+									children: formatAuditRecordValue(
+										selectedLog.after,
+										notRecorded,
 									),
 								},
 								{
