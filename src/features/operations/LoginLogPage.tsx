@@ -37,6 +37,7 @@ import {
 
 type LoginLogSort = "created_at" | "identifier" | "result";
 type SortOrder = "asc" | "desc";
+const loginRequiredColumnKeys = ["identifier"] as const;
 const loginTableSortToContractSort: Record<string, LoginLogSort> = {
 	created_at: "created_at",
 	identifier: "identifier",
@@ -308,6 +309,7 @@ export function LoginLogPage() {
 					</LogQueryPanel>
 				}
 				refreshing={query.isFetching && !query.isPending}
+				requiredColumnKeys={loginRequiredColumnKeys}
 				testId="login-log-table-card"
 				title={t("adminShell.logs.login.tableTitle")}
 				total={query.data?.total ?? 0}

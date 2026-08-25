@@ -83,6 +83,7 @@ interface LogTablePanelProps<Row extends { id: string }> {
 	pageSize: number;
 	queryPanel: ReactNode;
 	refreshing: boolean;
+	requiredColumnKeys: readonly string[];
 	testId: string;
 	title: string;
 	total: number;
@@ -232,6 +233,7 @@ export function LogTablePanel<Row extends { id: string }>({
 	pageSize,
 	queryPanel,
 	refreshing,
+	requiredColumnKeys,
 	testId,
 	title,
 	total,
@@ -243,6 +245,16 @@ export function LogTablePanel<Row extends { id: string }>({
 	const allColumnKeys = useMemo(
 		() => columns.map((column) => String(column.key)),
 		[columns],
+	);
+	const requiredColumnKeySet = useMemo(
+		() => new Set(requiredColumnKeys),
+		[requiredColumnKeys],
+	);
+	const requiredColumnKeysInOrder = allColumnKeys.filter((columnKey) =>
+		requiredColumnKeySet.has(columnKey),
+	);
+	const optionalColumnKeys = allColumnKeys.filter(
+		(columnKey) => !requiredColumnKeySet.has(columnKey),
 	);
 	const [visibleColumnKeys, setVisibleColumnKeys] =
 		useState<string[]>(allColumnKeys);
@@ -275,13 +287,21 @@ export function LogTablePanel<Row extends { id: string }>({
 		>
 			<Flex align="center" justify="space-between">
 				<Checkbox
-					checked={visibleColumnKeys.length === allColumnKeys.length}
+					checked={optionalColumnKeys.every((columnKey) =>
+						visibleColumnKeys.includes(columnKey),
+					)}
 					indeterminate={
-						visibleColumnKeys.length > 0 &&
-						visibleColumnKeys.length < allColumnKeys.length
+						optionalColumnKeys.some((columnKey) =>
+							visibleColumnKeys.includes(columnKey),
+						) &&
+						!optionalColumnKeys.every((columnKey) =>
+							visibleColumnKeys.includes(columnKey),
+						)
 					}
 					onChange={(event) => {
-						setVisibleColumnKeys(event.target.checked ? allColumnKeys : []);
+						setVisibleColumnKeys(
+							event.target.checked ? allColumnKeys : requiredColumnKeysInOrder,
+						);
 					}}
 				>
 					{t("adminShell.logs.common.columnDisplay")}
@@ -295,12 +315,26 @@ export function LogTablePanel<Row extends { id: string }>({
 				</Button>
 			</Flex>
 			<Checkbox.Group
-				onChange={(keys) => setVisibleColumnKeys(keys.map(String))}
+				onChange={(keys) => {
+					const selectedColumnKeys = new Set([
+						...keys.map(String),
+						...requiredColumnKeysInOrder,
+					]);
+					setVisibleColumnKeys(
+						allColumnKeys.filter((columnKey) =>
+							selectedColumnKeys.has(columnKey),
+						),
+					);
+				}}
 				value={visibleColumnKeys}
 			>
 				<Flex gap={token.marginXS} vertical>
 					{columns.map((column) => (
-						<Checkbox key={String(column.key)} value={String(column.key)}>
+						<Checkbox
+							disabled={requiredColumnKeySet.has(String(column.key))}
+							key={String(column.key)}
+							value={String(column.key)}
+						>
 							{column.title as ReactNode}
 						</Checkbox>
 					))}

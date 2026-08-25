@@ -39,6 +39,7 @@ import {
 const { Text } = Typography;
 type AuditLogSort = "action" | "created_at" | "result";
 type SortOrder = "asc" | "desc";
+const auditRequiredColumnKeys = ["actorUsername"] as const;
 const auditTableSortToContractSort: Record<string, AuditLogSort> = {
 	action: "action",
 	created_at: "created_at",
@@ -309,6 +310,7 @@ export function AuditLogPage() {
 					</LogQueryPanel>
 				}
 				refreshing={query.isFetching && !query.isPending}
+				requiredColumnKeys={auditRequiredColumnKeys}
 				testId="audit-log-table-card"
 				title={t("adminShell.logs.audit.tableTitle")}
 				total={query.data?.total ?? 0}
