@@ -280,20 +280,6 @@ export function AdminShellPage({
 		) : (
 			<MoonOutlined aria-hidden />
 		);
-	const currentTabIndex = openTabKeys.indexOf(currentPage.key);
-	const hasClosableCurrentTab = currentPage.key !== dashboardPath;
-	const hasClosableLeftTabs = openTabKeys
-		.slice(0, Math.max(currentTabIndex, 0))
-		.some((tabKey) => tabKey !== dashboardPath);
-	const hasClosableRightTabs = openTabKeys
-		.slice(currentTabIndex + 1)
-		.some((tabKey) => tabKey !== dashboardPath);
-	const hasClosableOtherTabs = openTabKeys.some(
-		(tabKey) => tabKey !== dashboardPath && tabKey !== currentPage.key,
-	);
-	const hasClosableTabs = openTabKeys.some(
-		(tabKey) => tabKey !== dashboardPath,
-	);
 	const closeTab = (targetKey: string) => {
 		if (targetKey === dashboardPath) {
 			return;
@@ -336,8 +322,8 @@ export function AdminShellPage({
 		setMobileNavigationOpen(true);
 	};
 
-	const reloadCurrentTab = () => {
-		void navigate(currentPage.key, { replace: true });
+	const reloadTab = (targetKey: string) => {
+		void navigate(targetKey, { replace: true });
 	};
 
 	const toggleFullscreen = () => {
@@ -349,36 +335,128 @@ export function AdminShellPage({
 		void tabWorkspaceRef.current?.requestFullscreen?.();
 	};
 
-	const closeLeftTabs = () => {
-		setOpenTabKeys((existingTabKeys) =>
-			existingTabKeys.filter(
-				(tabKey, tabIndex) =>
-					tabKey === dashboardPath || tabIndex >= currentTabIndex,
-			),
+	const closeLeftTabs = (targetKey: string) => {
+		const targetIndex = openTabKeys.indexOf(targetKey);
+		if (targetIndex < 0) {
+			return;
+		}
+
+		const nextTabKeys = openTabKeys.filter(
+			(tabKey, tabIndex) => tabKey === dashboardPath || tabIndex >= targetIndex,
 		);
+		setOpenTabKeys(nextTabKeys);
+		if (!nextTabKeys.includes(currentPage.key)) {
+			void navigate(targetKey);
+		}
 	};
 
-	const closeRightTabs = () => {
-		setOpenTabKeys((existingTabKeys) =>
-			existingTabKeys.filter(
-				(tabKey, tabIndex) =>
-					tabKey === dashboardPath || tabIndex <= currentTabIndex,
-			),
+	const closeRightTabs = (targetKey: string) => {
+		const targetIndex = openTabKeys.indexOf(targetKey);
+		if (targetIndex < 0) {
+			return;
+		}
+
+		const nextTabKeys = openTabKeys.filter(
+			(tabKey, tabIndex) => tabKey === dashboardPath || tabIndex <= targetIndex,
 		);
+		setOpenTabKeys(nextTabKeys);
+		if (!nextTabKeys.includes(currentPage.key)) {
+			void navigate(targetKey);
+		}
 	};
 
-	const closeOtherTabs = () => {
-		setOpenTabKeys(
-			currentPage.key === dashboardPath
+	const closeOtherTabs = (targetKey: string) => {
+		const nextTabKeys =
+			targetKey === dashboardPath
 				? [dashboardPath]
-				: [dashboardPath, currentPage.key],
-		);
+				: [dashboardPath, targetKey];
+		setOpenTabKeys(nextTabKeys);
+		if (!nextTabKeys.includes(currentPage.key)) {
+			void navigate(targetKey);
+		}
 	};
 
 	const closeAllTabs = () => {
 		setOpenTabKeys([dashboardPath]);
 		if (currentPage.key !== dashboardPath) {
 			void navigate(dashboardPath);
+		}
+	};
+	const createTabActionMenuItems = (
+		targetKey: string,
+	): NonNullable<MenuProps["items"]> => {
+		const targetIndex = openTabKeys.indexOf(targetKey);
+		const hasClosableLeftTabs = openTabKeys
+			.slice(0, Math.max(targetIndex, 0))
+			.some((tabKey) => tabKey !== dashboardPath);
+		const hasClosableRightTabs = openTabKeys
+			.slice(targetIndex + 1)
+			.some((tabKey) => tabKey !== dashboardPath);
+		const hasClosableOtherTabs = openTabKeys.some(
+			(tabKey) => tabKey !== dashboardPath && tabKey !== targetKey,
+		);
+		const hasClosableTabs = openTabKeys.some(
+			(tabKey) => tabKey !== dashboardPath,
+		);
+
+		return [
+			{
+				key: "reload",
+				icon: <ReloadOutlined aria-hidden />,
+				label: t("adminShell.tabs.reload"),
+			},
+			{
+				key: "closeCurrent",
+				disabled: targetKey === dashboardPath,
+				icon: <CloseOutlined aria-hidden />,
+				label: t("adminShell.tabs.closeCurrent"),
+			},
+			{ type: "divider" },
+			{
+				key: "closeLeft",
+				disabled: !hasClosableLeftTabs,
+				icon: <VerticalLeftOutlined aria-hidden />,
+				label: t("adminShell.tabs.closeLeft"),
+			},
+			{
+				key: "closeRight",
+				disabled: !hasClosableRightTabs,
+				icon: <VerticalRightOutlined aria-hidden />,
+				label: t("adminShell.tabs.closeRight"),
+			},
+			{ type: "divider" },
+			{
+				key: "closeOthers",
+				disabled: !hasClosableOtherTabs,
+				icon: <CompressOutlined aria-hidden />,
+				label: t("adminShell.tabs.closeOthers"),
+			},
+			{
+				key: "closeAll",
+				disabled: !hasClosableTabs,
+				icon: <ClearOutlined aria-hidden />,
+				label: t("adminShell.tabs.closeAll"),
+			},
+		];
+	};
+	const runTabAction = (targetKey: string, actionKey: string) => {
+		if (actionKey === "reload") {
+			reloadTab(targetKey);
+		}
+		if (actionKey === "closeCurrent") {
+			closeTab(targetKey);
+		}
+		if (actionKey === "closeLeft") {
+			closeLeftTabs(targetKey);
+		}
+		if (actionKey === "closeRight") {
+			closeRightTabs(targetKey);
+		}
+		if (actionKey === "closeOthers") {
+			closeOtherTabs(targetKey);
+		}
+		if (actionKey === "closeAll") {
+			closeAllTabs();
 		}
 	};
 
@@ -388,7 +466,18 @@ export function AdminShellPage({
 
 		return {
 			key: tabPage.key,
-			label: t(tabPage.titleKey),
+			label: (
+				<Dropdown
+					getPopupContainer={() => tabWorkspaceRef.current ?? document.body}
+					menu={{
+						items: createTabActionMenuItems(tabPage.key),
+						onClick: ({ key }) => runTabAction(tabPage.key, key),
+					}}
+					trigger={["contextMenu"]}
+				>
+					<span>{t(tabPage.titleKey)}</span>
+				</Dropdown>
+			),
 			closable: tabPage.key !== dashboardPath,
 		};
 	});
@@ -1142,7 +1231,7 @@ export function AdminShellPage({
 								<Button
 									aria-label={t("adminShell.tabs.reload")}
 									icon={<ReloadOutlined aria-hidden />}
-									onClick={reloadCurrentTab}
+									onClick={() => reloadTab(currentPage.key)}
 									type="text"
 								/>
 								<Button
@@ -1156,65 +1245,8 @@ export function AdminShellPage({
 										tabWorkspaceRef.current ?? document.body
 									}
 									menu={{
-										items: [
-											{
-												key: "reload",
-												icon: <ReloadOutlined aria-hidden />,
-												label: t("adminShell.tabs.reload"),
-											},
-											{
-												key: "closeCurrent",
-												disabled: !hasClosableCurrentTab,
-												icon: <CloseOutlined aria-hidden />,
-												label: t("adminShell.tabs.closeCurrent"),
-											},
-											{ type: "divider" },
-											{
-												key: "closeLeft",
-												disabled: !hasClosableLeftTabs,
-												icon: <VerticalLeftOutlined aria-hidden />,
-												label: t("adminShell.tabs.closeLeft"),
-											},
-											{
-												key: "closeRight",
-												disabled: !hasClosableRightTabs,
-												icon: <VerticalRightOutlined aria-hidden />,
-												label: t("adminShell.tabs.closeRight"),
-											},
-											{ type: "divider" },
-											{
-												key: "closeOthers",
-												disabled: !hasClosableOtherTabs,
-												icon: <CompressOutlined aria-hidden />,
-												label: t("adminShell.tabs.closeOthers"),
-											},
-											{
-												key: "closeAll",
-												disabled: !hasClosableTabs,
-												icon: <ClearOutlined aria-hidden />,
-												label: t("adminShell.tabs.closeAll"),
-											},
-										],
-										onClick: ({ key }) => {
-											if (key === "reload") {
-												reloadCurrentTab();
-											}
-											if (key === "closeCurrent") {
-												closeTab(currentPage.key);
-											}
-											if (key === "closeLeft") {
-												closeLeftTabs();
-											}
-											if (key === "closeRight") {
-												closeRightTabs();
-											}
-											if (key === "closeOthers") {
-												closeOtherTabs();
-											}
-											if (key === "closeAll") {
-												closeAllTabs();
-											}
-										},
+										items: createTabActionMenuItems(currentPage.key),
+										onClick: ({ key }) => runTabAction(currentPage.key, key),
 									}}
 									trigger={["click"]}
 								>

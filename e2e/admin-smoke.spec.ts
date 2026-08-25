@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
+async function signIn(page: Page) {
 	await page.goto("/login");
 
 	await page.locator('input[autocomplete="username"]').fill("admin");
@@ -8,7 +8,13 @@ test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 	await page.locator('button[type="submit"]').click();
 
 	await expect(page).toHaveURL(/\/dashboard$/);
-	const currentUserButton = page.getByRole("button", { name: "Platform Admin" });
+}
+
+test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
+	await signIn(page);
+	const currentUserButton = page.getByRole("button", {
+		name: "Platform Admin",
+	});
 	await expect(currentUserButton.locator(".ant-avatar img")).toHaveCount(0);
 	await expect(currentUserButton.locator(".anticon-user")).toBeVisible();
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
@@ -23,4 +29,24 @@ test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 		page.getByTestId("about-technology-item-Playwright"),
 	).toBeVisible();
 	await expect(page.getByTestId("about-technology-item-Knip")).toBeVisible();
+});
+
+test("页面标签支持右键菜单关闭目标标签", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
+	await expect(page).toHaveURL(/\/organization\/users$/);
+
+	const usersTab = page.getByRole("tab", { name: /用户管理/ });
+	await usersTab.click({ button: "right" });
+
+	const closeCurrent = page.getByRole("menuitem", {
+		name: "关闭当前标签页",
+	});
+	await expect(closeCurrent).toBeVisible();
+	await closeCurrent.click();
+
+	await expect(page).toHaveURL(/\/dashboard$/);
+	await expect(usersTab).toHaveCount(0);
 });
