@@ -29,6 +29,7 @@ describe("admin route template", () => {
 			"/result/success",
 			"/result/fail",
 			"/examples/files",
+			"/examples/import-export",
 			"/examples/forms/basic",
 			"/examples/forms/step",
 			"/system/settings",

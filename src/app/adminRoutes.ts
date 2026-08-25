@@ -21,6 +21,7 @@ export type AdminRouteIconKey =
 	| "positions"
 	| "dictionaries"
 	| "announcements"
+	| "importExport"
 	| "auditLogs"
 	| "loginLogs"
 	| "basicForm"
@@ -39,11 +40,7 @@ export type AdminRouteIconKey =
 	| "about";
 
 export type AdminGroupIconKey =
-	| "examples"
-	| "operations"
-	| "results"
-	| "exceptions"
-	| "system";
+	"examples" | "operations" | "results" | "exceptions" | "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -137,7 +134,8 @@ const loadSearchArticlesPage = async (): Promise<LazyAdminRouteModule> => {
 };
 
 const loadDepartmentsPage = async (): Promise<LazyAdminRouteModule> => {
-	const { DepartmentsPage } = await import("../features/departments/DepartmentsPage");
+	const { DepartmentsPage } =
+		await import("../features/departments/DepartmentsPage");
 	return { Component: DepartmentsPage };
 };
 
@@ -147,7 +145,8 @@ const loadPositionsPage = async (): Promise<LazyAdminRouteModule> => {
 };
 
 const loadDictionariesPage = async (): Promise<LazyAdminRouteModule> => {
-	const { DictionariesPage } = await import("../features/dictionaries/DictionariesPage");
+	const { DictionariesPage } =
+		await import("../features/dictionaries/DictionariesPage");
 	return { Component: DictionariesPage };
 };
 
@@ -169,11 +168,12 @@ const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
 	return { Component: CardListPage };
 };
 
-const loadContentCategoryManagementPage = async (): Promise<LazyAdminRouteModule> => {
-	const { ContentCategoryManagementPage } =
-		await import("../features/content-categories/ContentCategoryManagementPage");
-	return { Component: ContentCategoryManagementPage };
-};
+const loadContentCategoryManagementPage =
+	async (): Promise<LazyAdminRouteModule> => {
+		const { ContentCategoryManagementPage } =
+			await import("../features/content-categories/ContentCategoryManagementPage");
+		return { Component: ContentCategoryManagementPage };
+	};
 
 const loadPreviewWorkbenchPage = async (): Promise<LazyAdminRouteModule> => {
 	const { PreviewWorkbenchPage } =
@@ -203,6 +203,12 @@ const loadFileManagementPage = async (): Promise<LazyAdminRouteModule> => {
 	const { FileManagementPage } =
 		await import("../features/files/FileManagementPage");
 	return { Component: FileManagementPage };
+};
+
+const loadImportExportPage = async (): Promise<LazyAdminRouteModule> => {
+	const { ImportExportPage } =
+		await import("../features/import-export/ImportExportPage");
+	return { Component: ImportExportPage };
 };
 
 const loadNotificationCenterPage = async (): Promise<LazyAdminRouteModule> => {
@@ -351,9 +357,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.basicList",
 	},
 	{
-		aliases: [
-			{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" },
-		],
+		aliases: [{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" }],
 		groupKey: "examples",
 		iconKey: "searchArticles",
 		key: "/examples/lists/search/articles",
@@ -442,6 +446,15 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		lazy: loadFileManagementPage,
 		sectionKey: "adminShell.navigation.examples",
 		titleKey: "adminShell.navigation.fileManagement",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "importExport",
+		key: "/examples/import-export",
+		lazy: loadImportExportPage,
+		requiredPermission: platformPermissions.importExportManage,
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.importExport",
 	},
 	{
 		groupKey: "examples",
@@ -570,6 +583,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/examples/preview-panel" },
 			{ routeKey: "/examples/detail" },
 			{ routeKey: "/examples/files" },
+			{ routeKey: "/examples/import-export" },
 			{
 				key: "example-forms",
 				titleKey: "adminShell.navigation.formExamples",
@@ -585,10 +599,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 		defaultRouteKey: "/result/success",
 		iconKey: "results",
 		key: "results",
-		nodes: [
-			{ routeKey: "/result/success" },
-			{ routeKey: "/result/fail" },
-		],
+		nodes: [{ routeKey: "/result/success" }, { routeKey: "/result/fail" }],
 		titleKey: "adminShell.navigation.resultExamples",
 	},
 	{

@@ -11,6 +11,11 @@ import type {
 	PlatformDictionaryType,
 } from "../src/api/dictionaries";
 import type { PlatformFile } from "../src/api/files";
+import type {
+	ExportTask,
+	ImportPreview,
+	ImportTemplate,
+} from "../src/api/import-export";
 import type { PlatformNotification } from "../src/api/notifications";
 import type {
 	ExampleListItem,
@@ -30,6 +35,7 @@ export const allPermissions = [
 	"platform.announcements.read",
 	"platform.departments.manage",
 	"platform.dictionaries.manage",
+	"platform.import-export.manage",
 	"platform.logs.read",
 	"platform.positions.manage",
 	"platform.roles.manage",
@@ -858,6 +864,46 @@ export const platformFiles: PlatformFile[] = Array.from(
 		uploader: users[index % 6]!.displayName,
 	}),
 );
+
+export const importTemplates: ImportTemplate[] = [
+	{
+		description: "标准用户资料导入模板，包含姓名、邮箱、部门和状态列。",
+		fileName: "user-import-template.csv",
+		id: "template-users",
+		name: "用户资料导入模板",
+		updatedAt: iso(320),
+	},
+	{
+		description: "组织基础资料导入模板，用于演示多模板下载入口。",
+		fileName: "organization-import-template.csv",
+		id: "template-organization",
+		name: "组织资料导入模板",
+		updatedAt: iso(640),
+	},
+];
+
+export const importPreviews: ImportPreview[] = [];
+
+export const exportTasks: ExportTask[] = [
+	{
+		createdAt: iso(45),
+		fileName: "platform-users-20260826.csv",
+		finishedAt: iso(38),
+		id: "export-success",
+		name: "用户资料导出",
+		progress: 100,
+		status: "succeeded",
+	},
+	{
+		createdAt: iso(24),
+		errorMessage: "导出条件包含已停用字段，请调整后重试。",
+		finishedAt: iso(20),
+		id: "export-failed",
+		name: "异常明细导出",
+		progress: 68,
+		status: "failed",
+	},
+];
 
 export const session: PlatformSession = {
 	permissions: [...allPermissions],
