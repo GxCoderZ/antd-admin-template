@@ -17,6 +17,9 @@ export type AdminRouteIconKey =
 	| "dashboard"
 	| "users"
 	| "roles"
+	| "departments"
+	| "positions"
+	| "dictionaries"
 	| "announcements"
 	| "auditLogs"
 	| "loginLogs"
@@ -131,6 +134,21 @@ const loadSearchArticlesPage = async (): Promise<LazyAdminRouteModule> => {
 	const { SearchArticlesPage } =
 		await import("../features/page-examples/SearchListPages");
 	return { Component: SearchArticlesPage };
+};
+
+const loadDepartmentsPage = async (): Promise<LazyAdminRouteModule> => {
+	const { DepartmentsPage } = await import("../features/departments/DepartmentsPage");
+	return { Component: DepartmentsPage };
+};
+
+const loadPositionsPage = async (): Promise<LazyAdminRouteModule> => {
+	const { PositionsPage } = await import("../features/positions/PositionsPage");
+	return { Component: PositionsPage };
+};
+
+const loadDictionariesPage = async (): Promise<LazyAdminRouteModule> => {
+	const { DictionariesPage } = await import("../features/dictionaries/DictionariesPage");
+	return { Component: DictionariesPage };
 };
 
 const loadSearchProjectsPage = async (): Promise<LazyAdminRouteModule> => {
@@ -268,6 +286,33 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		requiredPermission: platformPermissions.rolesManage,
 		sectionKey: "adminShell.navigation.system",
 		titleKey: "adminShell.navigation.roles",
+	},
+	{
+		groupKey: "system",
+		iconKey: "departments",
+		key: "/organization/departments",
+		lazy: loadDepartmentsPage,
+		requiredPermission: platformPermissions.departmentsManage,
+		sectionKey: "adminShell.navigation.system",
+		titleKey: "adminShell.navigation.departments",
+	},
+	{
+		groupKey: "system",
+		iconKey: "positions",
+		key: "/organization/positions",
+		lazy: loadPositionsPage,
+		requiredPermission: platformPermissions.positionsManage,
+		sectionKey: "adminShell.navigation.system",
+		titleKey: "adminShell.navigation.positions",
+	},
+	{
+		groupKey: "system",
+		iconKey: "dictionaries",
+		key: "/system/dictionaries",
+		lazy: loadDictionariesPage,
+		requiredPermission: platformPermissions.dictionariesManage,
+		sectionKey: "adminShell.navigation.system",
+		titleKey: "adminShell.navigation.dictionaries",
 	},
 	{
 		groupKey: "system",
@@ -564,6 +609,9 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 		nodes: [
 			{ routeKey: "/organization/users" },
 			{ routeKey: "/access/roles" },
+			{ routeKey: "/organization/departments" },
+			{ routeKey: "/organization/positions" },
+			{ routeKey: "/system/dictionaries" },
 			{ routeKey: "/system/announcements" },
 			{ routeKey: "/system/settings" },
 			{ routeKey: "/system/about" },

@@ -110,7 +110,7 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	).toBeVisible();
 	await expect(permissionDrawer.getByText("系统管理菜单")).toBeVisible();
 	await expect(permissionDrawer.getByText("用户管理页面")).toBeVisible();
-	await expect(permissionDrawer.getByText(/已选 \d+\/7 项/)).toBeVisible();
+	await expect(permissionDrawer.getByText(/已选 \d+\/10 项/)).toBeVisible();
 	await expect(
 		permissionDrawer.getByRole("button", { name: /保\s*存/ }),
 	).toBeVisible();

@@ -21,10 +21,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router";
 
-import {
-	TableActionButton,
-	TableActionMenu,
-} from "../../../app/TableActionButton";
+import { TableActionButton } from "../../../app/TableActionButton";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
 import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
 import type { ResponsiveTableColumnConfig } from "../../../app/tableColumnVisibility";

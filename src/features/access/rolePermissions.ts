@@ -4,17 +4,34 @@ import {
 } from "../../app/permissions";
 
 type PermissionGroupKey =
-	"announcements" | "roles" | "users" | "logs" | "settings";
+	| "announcements"
+	| "departments"
+	| "dictionaries"
+	| "roles"
+	| "users"
+	| "logs"
+	| "positions"
+	| "settings";
 type PermissionMenuKey = "operations" | "system";
 type PermissionPageKey =
-	"announcements" | "logs" | "roles" | "settings" | "users";
+	| "announcements"
+	| "departments"
+	| "dictionaries"
+	| "logs"
+	| "positions"
+	| "roles"
+	| "settings"
+	| "users";
 
 interface PermissionDefinition {
 	groupKey: PermissionGroupKey;
 	i18nKey:
 		| "announcementsManage"
 		| "announcementsRead"
+		| "departmentsManage"
+		| "dictionariesManage"
 		| "rolesManage"
+		| "positionsManage"
 		| "usersManage"
 		| "usersRead"
 		| "logsRead"
@@ -51,6 +68,21 @@ const permissionDefinitionByValue = {
 		i18nKey: "announcementsManage",
 		permission: platformPermissions.announcementsManage,
 	},
+	[platformPermissions.departmentsManage]: {
+		groupKey: "departments",
+		i18nKey: "departmentsManage",
+		permission: platformPermissions.departmentsManage,
+	},
+	[platformPermissions.positionsManage]: {
+		groupKey: "positions",
+		i18nKey: "positionsManage",
+		permission: platformPermissions.positionsManage,
+	},
+	[platformPermissions.dictionariesManage]: {
+		groupKey: "dictionaries",
+		i18nKey: "dictionariesManage",
+		permission: platformPermissions.dictionariesManage,
+	},
 	[platformPermissions.rolesManage]: {
 		groupKey: "roles",
 		i18nKey: "rolesManage",
@@ -79,7 +111,16 @@ const permissionDefinitionByValue = {
 } satisfies Record<PlatformPermission, PermissionDefinition>;
 
 export const permissionGroups = (
-	["roles", "users", "announcements", "logs", "settings"] as const
+	[
+		"roles",
+		"users",
+		"departments",
+		"positions",
+		"dictionaries",
+		"announcements",
+		"logs",
+		"settings",
+	] as const
 ).map((groupKey) => ({
 	groupKey,
 	permissions: Object.values(permissionDefinitionByValue).filter(
@@ -98,9 +139,21 @@ const permissionPageGroups: Record<
 		],
 		titleKey: "adminShell.roles.permissions.pages.announcements",
 	},
+	departments: {
+		permissions: [platformPermissions.departmentsManage],
+		titleKey: "adminShell.roles.permissions.pages.departments",
+	},
+	dictionaries: {
+		permissions: [platformPermissions.dictionariesManage],
+		titleKey: "adminShell.roles.permissions.pages.dictionaries",
+	},
 	logs: {
 		permissions: [platformPermissions.logsRead],
 		titleKey: "adminShell.roles.permissions.pages.logs",
+	},
+	positions: {
+		permissions: [platformPermissions.positionsManage],
+		titleKey: "adminShell.roles.permissions.pages.positions",
 	},
 	roles: {
 		permissions: [platformPermissions.rolesManage],
@@ -128,7 +181,15 @@ const permissionMenuGroups: Record<
 		titleKey: "adminShell.roles.permissions.menus.operations",
 	},
 	system: {
-		pages: ["users", "roles", "announcements", "settings"],
+		pages: [
+			"users",
+			"roles",
+			"departments",
+			"positions",
+			"dictionaries",
+			"announcements",
+			"settings",
+		],
 		titleKey: "adminShell.roles.permissions.menus.system",
 	},
 };

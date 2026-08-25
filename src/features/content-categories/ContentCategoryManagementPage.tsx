@@ -359,7 +359,7 @@ export function ContentCategoryManagementPage() {
 				style={{ display: filtersExpanded || queryLayout.collapsedFieldCount > 1 ? undefined : "none" }}
 			>
 				<Form.Item label={t("adminShell.contentCategories.filters.status")} name="status">
-					<Select
+					<Select<FilterValues["status"]>
 						onChange={(status) => setDraftFilters((current) => ({ ...current, status }))}
 						options={[
 							{ label: t("adminShell.contentCategories.itemStatuses.all"), value: "all" },

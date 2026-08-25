@@ -20,6 +20,9 @@ export const zhTWTranslation = {
 			dashboard: "儀表板",
 			users: "使用者管理",
 			roles: "角色管理",
+			departments: "部門管理",
+			positions: "職位管理",
+			dictionaries: "字典管理",
 			announcements: "公告管理",
 			operations: "稽核日誌",
 			auditLogs: "操作稽核",
@@ -249,6 +252,21 @@ export const zhTWTranslation = {
 				categoryNotEmpty: "請先刪除該分類的下級分類和內容", categorySaved: "分類已儲存", contentSaved: "內容已儲存",
 				categoryDeleted: "分類已刪除", contentDeleted: "內容已刪除",
 			},
+		},
+		departments: {
+			tableTitle: "部門列表", create: "新增部門", createChild: "新增下級", createTitle: "新增部門", edit: "編輯", editTitle: "編輯部門", delete: "刪除", deleteTitle: "刪除部門", deleteDescription: "刪除部門「{{name}}」後無法復原。", confirmDelete: "確認刪除", enable: "啟用", disable: "停用", more: "更多", cancel: "取消", save: "儲存", empty: "暫無部門", allStatuses: "全部狀態",
+			filters: { name: "部門名稱", status: "狀態" }, fields: { name: "部門名稱", code: "部門識別碼", parent: "上級部門", status: "狀態" }, placeholders: { name: "搜尋部門名稱", nameInput: "請輸入部門名稱", code: "請輸入部門識別碼", parent: "請選擇上級部門" }, statuses: { active: "啟用", disabled: "停用" },
+			columns: { name: "部門名稱", code: "部門識別碼", status: "狀態", memberCount: "成員數", positionCount: "職位數", updatedAt: "更新時間", actions: "操作" }, validation: { nameLength: "請輸入 1 至 64 個字元的部門名稱", codeLength: "請輸入 1 至 64 個字元的部門識別碼" }, feedback: { saved: "部門已儲存", statusUpdated: "部門狀態已更新", deleted: "部門已刪除" }, errors: { save: "部門儲存失敗", delete: "部門刪除失敗", deleteProtected: "請先移除下級部門、職位或成員", fallback: "請求失敗，請稍後再試。" },
+		},
+		positions: {
+			tableTitle: "職位列表", create: "新增職位", createTitle: "新增職位", edit: "編輯", editTitle: "編輯職位", delete: "刪除", deleteTitle: "刪除職位", deleteDescription: "刪除職位「{{name}}」後無法復原。", confirmDelete: "確認刪除", enable: "啟用", disable: "停用", more: "更多", cancel: "取消", save: "儲存", empty: "暫無職位", allStatuses: "全部狀態",
+			filters: { name: "職位名稱", code: "職位識別碼", department: "所屬部門", status: "狀態" }, fields: { name: "職位名稱", code: "職位識別碼", department: "所屬部門", status: "狀態" }, placeholders: { name: "搜尋職位名稱", nameInput: "請輸入職位名稱", code: "請輸入職位識別碼", codeFilter: "搜尋職位識別碼", department: "請選擇部門" }, statuses: { active: "啟用", disabled: "停用" },
+			columns: { name: "職位名稱", code: "職位識別碼", department: "所屬部門", memberCount: "成員數", status: "狀態", updatedAt: "更新時間", actions: "操作" }, validation: { nameLength: "請輸入 1 至 64 個字元的職位名稱", codeLength: "請輸入 1 至 64 個字元的職位識別碼" }, feedback: { saved: "職位已儲存", statusUpdated: "職位狀態已更新", deleted: "職位已刪除" }, errors: { save: "職位儲存失敗", delete: "職位刪除失敗", fallback: "請求失敗，請稍後再試。" },
+		},
+		dictionaries: {
+			typeTableTitle: "字典類型", itemTableTitle: "字典項目", itemTableHint: "目前類型：{{name}}", noTypeSelected: "請先選擇字典類型", createType: "新增類型", createTypeTitle: "新增字典類型", editTypeTitle: "編輯字典類型", createItem: "新增字典項目", createItemTitle: "新增字典項目", editItemTitle: "編輯字典項目", manageItems: "管理字典項目", edit: "編輯", delete: "刪除", deleteTypeTitle: "刪除字典類型", deleteTypeDescription: "刪除類型「{{name}}」及其項目後無法復原。", deleteItemTitle: "刪除字典項目", deleteItemDescription: "刪除字典項目「{{label}}」後無法復原。", confirmDelete: "確認刪除", enable: "啟用", disable: "停用", more: "更多", cancel: "取消", save: "儲存", allStatuses: "全部狀態", typeEmpty: "暫無字典類型", itemEmpty: "暫無字典項目", toggleSuccess: "狀態已更新", toggleError: "狀態更新失敗",
+			filters: { q: "關鍵字", status: "狀態", itemQuery: "字典項目關鍵字" }, fields: { name: "類型名稱", code: "類型識別碼", description: "說明", status: "狀態", label: "顯示標籤", value: "字典值", color: "標籤顏色", sort: "排序" }, placeholders: { query: "搜尋類型名稱或識別碼", name: "請輸入類型名稱", code: "請輸入類型識別碼", description: "請輸入說明", itemQuery: "搜尋標籤或字典值", label: "請輸入顯示標籤", value: "請輸入字典值", sort: "請輸入排序值" }, statuses: { active: "啟用", disabled: "停用" }, colors: { default: "預設", blue: "藍色", cyan: "青色", green: "綠色", orange: "橙色", purple: "紫色", red: "紅色" },
+			columns: { name: "類型名稱", code: "類型識別碼", status: "狀態", itemCount: "項目數", updatedAt: "更新時間", actions: "操作", label: "顯示標籤", value: "字典值", color: "標籤顏色", sort: "排序" }, validation: { nameLength: "請輸入 1 至 64 個字元的類型名稱", codeLength: "請輸入 1 至 64 個字元的類型識別碼", labelLength: "請輸入 1 至 64 個字元的顯示標籤", valueLength: "請輸入 1 至 128 個字元的字典值" }, errors: { load: "字典資料載入失敗", save: "字典儲存失敗", delete: "字典刪除失敗", fallback: "請求失敗，請稍後再試。" },
 		},
 		previewWorkbench: {
 			editorTitle: "預覽內容設定", previewTitle: "即時預覽", zoom: "預覽縮放", refresh: "重新整理預覽",
@@ -563,6 +581,9 @@ export const zhTWTranslation = {
 				pages: {
 					roles: "角色管理頁面",
 					users: "使用者管理頁面",
+					departments: "部門管理頁面",
+					positions: "職位管理頁面",
+					dictionaries: "字典管理頁面",
 					announcements: "公告管理頁面",
 					logs: "日誌頁面",
 					settings: "系統設定頁面",
@@ -570,6 +591,9 @@ export const zhTWTranslation = {
 				groups: {
 					roles: "角色管理",
 					users: "使用者管理",
+					departments: "部門管理",
+					positions: "職位管理",
+					dictionaries: "字典管理",
 					announcements: "公告管理",
 					logs: "日誌",
 					settings: "系統設定",
@@ -583,6 +607,9 @@ export const zhTWTranslation = {
 						name: "管理公告",
 						description: "新增、編輯、發布或刪除公告。",
 					},
+					departmentsManage: { name: "管理部門", description: "新增、編輯、啟停和刪除組織部門。" },
+					positionsManage: { name: "管理職位", description: "維護部門職位及其啟用狀態。" },
+					dictionariesManage: { name: "管理字典", description: "維護字典類型、字典項和顯示屬性。" },
 					rolesManage: {
 						name: "管理角色",
 						description: "建立或刪除角色、設定權限項目並指派使用者角色。",

@@ -7,7 +7,10 @@ export type { PlatformPermission } from "#src/api/types";
 export const platformPermissions = {
 	announcementsManage: "platform.announcements.manage",
 	announcementsRead: "platform.announcements.read",
+	departmentsManage: "platform.departments.manage",
+	dictionariesManage: "platform.dictionaries.manage",
 	logsRead: "platform.logs.read",
+	positionsManage: "platform.positions.manage",
 	settingsManage: "platform.settings.manage",
 	rolesManage: "platform.roles.manage",
 	usersManage: "platform.users.manage",

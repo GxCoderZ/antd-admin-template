@@ -1,7 +1,10 @@
 export type PlatformPermission =
 	| "platform.announcements.manage"
 	| "platform.announcements.read"
+	| "platform.departments.manage"
+	| "platform.dictionaries.manage"
 	| "platform.logs.read"
+	| "platform.positions.manage"
 	| "platform.roles.manage"
 	| "platform.settings.manage"
 	| "platform.users.read"
