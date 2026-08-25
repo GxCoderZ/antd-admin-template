@@ -1,39 +1,46 @@
 import type { AuditItemType } from "#src/api/audit";
+import type { QueryFilterField } from "#src/components/query-filter-panel";
 import type { ProColumns } from "@ant-design/pro-components";
-
 import type { TFunction } from "i18next";
-import { Tag } from "antd";
 
-export function getAuditColumns(t: TFunction): ProColumns<AuditItemType>[] {
+import { transformDateTimeRange } from "#src/components/query-filter-panel/utils";
+
+import { Badge, Typography } from "antd";
+
+export function createAuditSearchFields(t: TFunction): QueryFilterField[] {
 	return [
-		{ title: t("audit.operator"), dataIndex: "operator", key: "keyword" },
+		{ label: t("audit.action"), name: "keyword", placeholder: t("audit.searchPlaceholder"), type: "text" },
 		{
-			title: t("audit.module"),
-			dataIndex: "module",
-			valueType: "select",
-			valueEnum: {
-				用户管理: { text: t("audit.modules.user") },
-				角色管理: { text: t("audit.modules.role") },
-				权限管理: { text: t("audit.modules.permission") },
-			},
+			label: t("audit.result"),
+			name: "result",
+			options: [
+				{ label: t("audit.success"), value: "success" },
+				{ label: t("audit.failed"), value: "failed" },
+			],
+			type: "select",
 		},
-		{ title: t("audit.action"), dataIndex: "action", search: false },
-		{ title: t("audit.target"), dataIndex: "target", search: false },
+		{
+			label: t("audit.timeRange"),
+			name: "time_range",
+			transform: transformDateTimeRange,
+			type: "date-time-range",
+		},
+	];
+}
+
+export function createAuditColumns(t: TFunction): ProColumns<AuditItemType>[] {
+	return [
+		{ title: t("audit.operator"), dataIndex: "operator", width: 160, ellipsis: true },
+		{ title: t("audit.action"), dataIndex: "action", width: 180, ellipsis: true, sorter: true, render: (_, record) => <Typography.Text code>{record.action}</Typography.Text> },
+		{ title: t("audit.target"), dataIndex: "target", width: 240, ellipsis: true, render: (_, record) => <Typography.Text code>{record.target}</Typography.Text> },
 		{
 			title: t("audit.result"),
 			dataIndex: "result",
-			valueType: "select",
-			valueEnum: {
-				success: { text: t("audit.success") },
-				failed: { text: t("audit.failed") },
-			},
-			render: (_, record) => (
-				<Tag color={record.result === "success" ? "success" : "error"}>
-					{record.result === "success" ? t("audit.success") : t("audit.failed")}
-				</Tag>
-			),
+			width: 100,
+			sorter: true,
+			render: (_, record) => <Badge status={record.result === "success" ? "success" : "error"} text={record.result === "success" ? t("audit.success") : t("audit.failed")} />,
 		},
-		{ title: "IP", dataIndex: "ip", search: false },
-		{ title: t("common.createdAt"), dataIndex: "created_at", valueType: "dateTime", search: false },
+		{ title: t("audit.ipAddress"), dataIndex: "ip", width: 150 },
+		{ title: t("audit.occurredAt"), dataIndex: "created_at", width: 180, sorter: true },
 	];
 }

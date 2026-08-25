@@ -18,4 +18,6 @@ export interface LoginLogListReq {
 	result?: LoginResultStatus
 	sort?: "identifier" | "result" | "ip" | "created_at"
 	order?: "ascend" | "descend"
+	date_from?: string
+	date_to?: string
 }

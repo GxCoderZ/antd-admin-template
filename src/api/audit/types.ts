@@ -17,4 +17,6 @@ export interface AuditListReq {
 	result?: "success" | "failed"
 	sort?: "operator" | "module" | "action" | "result" | "created_at"
 	order?: "ascend" | "descend"
+	date_from?: string
+	date_to?: string
 }

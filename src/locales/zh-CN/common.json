@@ -1,7 +1,9 @@
 {
 	"menu": {
 		"dashboard": "工作台",
+		"operations": "运营与审计",
 		"audit": "审计日志",
+		"loginLog": "登录日志",
 		"system": "系统管理",
 		"systemRole": "角色管理",
 		"systemUser": "用户管理",

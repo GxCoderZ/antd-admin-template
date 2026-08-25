@@ -1,0 +1,15 @@
+{
+	"title": "Login Log",
+	"identifier": "Identifier",
+	"result": "Result",
+	"success": "Success",
+	"failed": "Failed",
+	"device": "Device",
+	"ipAddress": "IP address",
+	"language": "Language",
+	"timeZone": "Time zone",
+	"timeRange": "Occurred at",
+	"occurredAt": "Occurred at",
+	"recordId": "Record ID",
+	"detailTitle": "Login log details"
+}

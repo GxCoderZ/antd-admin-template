@@ -86,7 +86,7 @@ export default defineFakeRoute([
 		response: ({ body, headers }) => {
 			const currentPassword = String(body.current_password ?? "");
 			const newPassword = String(body.new_password ?? "");
-			if (newPassword.length < 8)
+			if (newPassword.length < 12)
 				return resultError("新密码至少需要 8 位");
 			if (currentPassword === newPassword)
 				return resultError("新密码不能与当前密码相同");

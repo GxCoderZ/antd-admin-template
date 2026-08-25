@@ -7,6 +7,11 @@
 	"result": "Result",
 	"success": "Success",
 	"failed": "Failed",
+	"searchPlaceholder": "Enter an action",
+	"timeRange": "Occurred at",
+	"ipAddress": "IP address",
+	"occurredAt": "Occurred at",
+	"detailTitle": "Audit log details",
 	"modules": {
 		"user": "Users",
 		"role": "Roles",

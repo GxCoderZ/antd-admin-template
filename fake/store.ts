@@ -422,8 +422,9 @@ export function updatePlatformSettings(siteTitle: string) {
 
 export function listAuditLogs(params: AuditListReq) {
 	const filtered = state.auditLogs.filter(item => (!params.module || item.module === params.module) && (!params.result || item.result === params.result) && (!params.keyword || `${item.operator}${item.action}${item.target}`.toLocaleLowerCase().includes(params.keyword.toLocaleLowerCase())));
+	const ranged = filtered.filter(item => (!params.date_from || item.created_at >= params.date_from) && (!params.date_to || item.created_at <= params.date_to));
 	const sort = params.sort ?? "created_at";
-	const sorted = [...filtered].sort((left, right) => {
+	const sorted = [...ranged].sort((left, right) => {
 		switch (sort) {
 			case "operator": return compareValues(left.operator, right.operator, params.order);
 			case "module": return compareValues(left.module, right.module, params.order);
@@ -438,8 +439,9 @@ export function listAuditLogs(params: AuditListReq) {
 
 export function listLoginLogs(params: LoginLogListReq) {
 	const filtered = state.loginLogs.filter(item => (!params.result || item.result === params.result) && (!params.keyword || `${item.identifier}${item.device}${item.ip}`.toLocaleLowerCase().includes(params.keyword.toLocaleLowerCase())));
+	const ranged = filtered.filter(item => (!params.date_from || item.created_at >= params.date_from) && (!params.date_to || item.created_at <= params.date_to));
 	const sort = params.sort ?? "created_at";
-	const sorted = [...filtered].sort((left, right) => {
+	const sorted = [...ranged].sort((left, right) => {
 		switch (sort) {
 			case "identifier": return compareValues(left.identifier, right.identifier, params.order);
 			case "result": return compareValues(left.result, right.result, params.order);

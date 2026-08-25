@@ -1,7 +1,9 @@
 {
 	"menu": {
 		"dashboard": "Dashboard",
+		"operations": "Operations",
 		"audit": "Audit Log",
+		"loginLog": "Login Log",
 		"system": "System",
 		"systemRole": "Roles",
 		"systemUser": "Users",

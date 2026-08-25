@@ -1,38 +1,45 @@
-import type { AuditItemType } from "#src/api/audit";
+import type { AuditItemType, AuditListReq } from "#src/api/audit";
+import type { LogTableQuery } from "#src/components/log-table-panel";
 
 import { fetchAuditList } from "#src/api/audit";
-import { BasicContent } from "#src/components/basic-content";
-import { BasicTable } from "#src/components/basic-table";
+import { LogTablePanel } from "#src/components/log-table-panel";
 
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getAuditColumns } from "./constants";
+import { AuditDetailDrawer } from "./components/audit-detail-drawer";
+import { createAuditColumns, createAuditSearchFields } from "./constants";
+
+type AuditLogQuery = AuditListReq & LogTableQuery;
+
+const initialQuery: AuditLogQuery = { page: 1, page_size: 10, sort: "created_at", order: "descend" };
 
 export default function Audit() {
 	const { t } = useTranslation();
+	const [detailRecord, setDetailRecord] = useState<AuditItemType>();
+	const columns = useMemo(() => createAuditColumns(t), [t]);
+	const searchFields = useMemo(() => createAuditSearchFields(t), [t]);
 
 	return (
-		<BasicContent className="h-full">
-			<BasicTable<AuditItemType>
-				adaptive
-				columns={getAuditColumns(t)}
-				headerTitle={t("audit.title")}
-				request={async (params) => {
-					const response = await fetchAuditList({
-						page: params.current || 1,
-						page_size: params.pageSize || 10,
-						keyword: params.keyword,
-						module: params.module,
-						result: params.result,
-					});
-					if (response.code !== 0) {
-						window.$message?.error(response.msg || t("common.fail"));
-						return { data: [], total: 0, success: false };
-					}
-					return { data: response.data.items, total: response.data.total, success: true };
+		<>
+			<LogTablePanel<AuditItemType, AuditLogQuery>
+				columns={columns}
+				initialQuery={initialQuery}
+				minimumWidth={1160}
+				onOpenDetail={setDetailRecord}
+				persistenceKey={`${import.meta.env.VITE_GLOB_APP_TITLE}:audit-log:columns`}
+				queryKey="audit-logs"
+				request={async (query) => {
+					const response = await fetchAuditList(query);
+					if (response.code !== 0)
+						throw new Error(response.msg);
+					return response.data;
 				}}
-				toolBarRender={false}
+				searchFields={searchFields}
+				sortFields={["action", "result", "created_at"]}
+				title={t("audit.title")}
 			/>
-		</BasicContent>
+			<AuditDetailDrawer onClose={() => setDetailRecord(undefined)} open={Boolean(detailRecord)} record={detailRecord} />
+		</>
 	);
 }

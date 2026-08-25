@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-const fakeModules = import.meta.glob("../fake/{dashboard,audit}.fake.ts", { eager: true });
+const fakeModules = import.meta.glob("../fake/{dashboard,audit,login-log}.fake.ts", { eager: true });
 
 function getRoutes(modulePath: string) {
 	const fakeModule = fakeModules[modulePath] as { default?: any[] } | undefined;
@@ -36,5 +36,20 @@ describe("common Fake domains", () => {
 		expect(response.data.items).toHaveLength(2);
 		expect(response.data.items.every((item: any) => item.module === "用户管理")).toBe(true);
 		expect(response.data.total).toBeGreaterThanOrEqual(2);
+	});
+
+	it("filters login records by result and time range", () => {
+		const routes = getRoutes("../fake/login-log.fake.ts");
+		const response = callRoute(routes, "/login-log/list", {
+			page: 1,
+			page_size: 10,
+			result: "failed",
+			date_from: "2026-08-24 00:00:00",
+			date_to: "2026-08-24 23:59:59",
+		});
+
+		expect(response.code).toBe(0);
+		expect(response.data.items).toHaveLength(1);
+		expect(response.data.items[0]).toMatchObject({ identifier: "unknown@example.local", result: "failed" });
 	});
 });

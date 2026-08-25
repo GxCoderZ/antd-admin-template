@@ -61,7 +61,7 @@ export default defineFakeRoute([
 		response: ({ body }) => {
 			const data = body as UserCreateReq;
 			const email = data.email?.trim() || `${data.username}@example.local`;
-			if (!data.username?.trim() || !data.password || data.password.length < 8)
+			if (!data.username?.trim() || !data.password || data.password.length < 12)
 				return resultError("请填写用户名和至少 8 位密码");
 			if (!isValidEmail(email))
 				return resultError("邮箱格式不正确");

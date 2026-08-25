@@ -101,7 +101,7 @@ describe("admin experience Fake HTTP validation", () => {
 
 	it("rejects duplicate users and protected current-user actions", () => {
 		const routes = getRoutes("../fake/system.fake.ts");
-		const duplicate = callRoute(routes, "/system/users/create", { username: "admin", password: "password123", email: "other@example.local" });
+		const duplicate = callRoute(routes, "/system/users/create", { username: "admin", password: "password1234", email: "other@example.local" });
 		const forceCurrent = callRoute(routes, "/system/users/force-logout", { id: 1 });
 
 		expect(duplicate.code).toBe(409);
