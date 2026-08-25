@@ -43,13 +43,7 @@ pnpm preview
 初始化脚本可重复执行，并只改模板元数据、展示名称、本地 favicon 和权限字符串前缀；它不会更改 Vite Fake Server 配置或添加任何真实 API。先使用 dry-run 审阅将要变更的文件和 SHA-256，再去掉该参数执行。
 
 ```bash
-pnpm init:template -- \
-  --project-name warehouse-console \
-  --display-name "仓储控制台" \
-  --permission-prefix warehouse \
-  --logo ./brand.svg \
-  --logo-sha256 <brand.svg 的 SHA-256> \
-  --dry-run
+pnpm init:template -- --project-name warehouse-console --display-name "仓储控制台" --permission-prefix warehouse --logo ./brand.svg --logo-sha256 <brand.svg 的 SHA-256> --dry-run
 ```
 
 `--logo-sha256` 可选；提供后脚本会在写入前校验素材。执行成功会生成 `.template-init.json`，记录最终文件与 logo 的校验和，便于复核。支持 `.png`、`.svg` 和 `.ico` 图标。
