@@ -28,5 +28,16 @@ describe("admin route template", () => {
 		expect(getAdminRouteMetadata("/system/settings/appearance").key).toBe(
 			"/system/settings",
 		);
+
+		const settingsRoute = adminRouteDefinitions.find(
+			(route) => route.key === "/system/settings",
+		);
+		const appearanceRoute = settingsRoute?.aliases?.find(
+			(alias) => alias.path === "/system/settings/appearance",
+		);
+
+		expect(appearanceRoute).toBeDefined();
+		expect(appearanceRoute?.lazy).toEqual(expect.any(Function));
+		expect(appearanceRoute?.lazy).not.toBe(settingsRoute?.lazy);
 	});
 });

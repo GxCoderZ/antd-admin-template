@@ -318,10 +318,13 @@ export function App() {
 					HydrateFallback: ApplicationSkeleton,
 					children: [
 						...adminRouteDefinitions.flatMap((route) =>
-							[route.key, ...(route.aliases ?? [])].map((path) => ({
-								path,
+							[
+								{ lazy: route.lazy, path: route.key },
+								...(route.aliases ?? []),
+							].map(({ lazy, path }) => ({
 								handle: route,
-								lazy: route.lazy,
+								lazy,
+								path,
 								ErrorBoundary: RouteErrorPage,
 							})),
 						),
