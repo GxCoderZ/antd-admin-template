@@ -35,8 +35,8 @@ export function PlatformUserAvatar({
 		() => new Set(),
 	);
 	const initial = getInitial(displayName);
-	const fallbackContent =
-		fallback === "icon" || !initial ? <UserOutlined aria-hidden /> : initial;
+	const fallbackIcon =
+		fallback === "icon" || !initial ? <UserOutlined aria-hidden /> : undefined;
 	const source =
 		customSource && !failedSources.has(customSource) ? customSource : undefined;
 
@@ -45,6 +45,7 @@ export function PlatformUserAvatar({
 	return (
 		<Avatar
 			alt=""
+			icon={fallbackIcon}
 			onError={() => {
 				if (source) {
 					setFailedSources((currentSources) => {
@@ -58,7 +59,7 @@ export function PlatformUserAvatar({
 			size={size}
 			src={source}
 		>
-			{fallbackContent}
+			{fallbackIcon ? undefined : initial}
 		</Avatar>
 	);
 }
