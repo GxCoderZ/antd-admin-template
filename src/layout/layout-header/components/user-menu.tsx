@@ -6,7 +6,7 @@ import { useAuthStore } from "#src/store/auth";
 import { useUserStore } from "#src/store/user";
 import { cn } from "#src/utils/cn";
 
-import { LogoutOutlined } from "@ant-design/icons";
+import { LogoutOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import { Avatar, Dropdown } from "antd";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -18,6 +18,10 @@ export function UserMenu({ ...restProps }: ButtonProps) {
 	const logout = useAuthStore(state => state.logout);
 
 	const onClick: MenuProps["onClick"] = async ({ key }) => {
+		if (key === "/account/profile" || key === "/account/settings") {
+			navigate(key);
+			return;
+		}
 		if (key === "logout") {
 			await logout();
 			navigate(loginPath);
@@ -25,6 +29,16 @@ export function UserMenu({ ...restProps }: ButtonProps) {
 	};
 
 	const items: MenuProps["items"] = [
+		{
+			label: t("account.profileTitle"),
+			key: "/account/profile",
+			icon: <UserOutlined />,
+		},
+		{
+			label: t("account.settingsTitle"),
+			key: "/account/settings",
+			icon: <SettingOutlined />,
+		},
 		{
 			label: t("authority.logout"),
 			key: "logout",
