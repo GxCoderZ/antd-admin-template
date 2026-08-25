@@ -31,8 +31,7 @@ quality:
 
 browser-smoke:
   stage: e2e
-  variables:
-    PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
+  image: mcr.microsoft.com/playwright:v1.62.1-noble
   cache:
     key:
       files:
@@ -40,9 +39,7 @@ browser-smoke:
       prefix: playwright
     paths:
       - .pnpm-store
-      - .cache/ms-playwright
   script:
-    - pnpm exec playwright install --with-deps chromium
     - pnpm run test:e2e
 
 deploy_pages:
