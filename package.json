@@ -13,11 +13,13 @@
 	},
 	"scripts": {
 		"dev": "vite --host 127.0.0.1",
+		"init:template": "node scripts/init-template.mjs",
 		"build": "tsc -b && vite build",
 		"build:prod": "tsc -b && vite build --mode production",
 		"preview": "vite preview --host 127.0.0.1",
 		"typecheck": "tsc -b --pretty false",
 		"test": "vitest",
+		"test:template": "vitest run scripts/init-template.test.mjs",
 		"test:e2e": "playwright test",
 		"lint": "eslint src fake e2e vite.config.ts playwright.config.ts --max-warnings=0",
 		"format": "prettier --write .",
