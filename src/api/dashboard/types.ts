@@ -1,4 +1,4 @@
-export interface DashboardLoginTrendPoint {
+interface DashboardLoginTrendPoint {
 	date: string;
 	failure: number;
 	success: number;

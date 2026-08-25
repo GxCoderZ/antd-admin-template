@@ -1,4 +1,4 @@
-export type ContentCategoryStatus = "active" | "disabled";
+type ContentCategoryStatus = "active" | "disabled";
 export type ContentCategoryItemStatus = "draft" | "published";
 
 export interface ContentCategory {
