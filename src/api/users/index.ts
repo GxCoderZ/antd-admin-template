@@ -66,6 +66,10 @@ export function updatePlatformUser({
 	});
 }
 
+export function deletePlatformUser(userId: string) {
+	return request<void>(`/platform/users/${userId}`, { method: "DELETE" });
+}
+
 export function resetPlatformUserPassword({
 	input,
 	userId,

@@ -85,7 +85,7 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	await expect(page.getByRole("table")).not.toContainText("平台管理员");
 });
 
-test("所有数据表使用主要操作和更多菜单", async ({ page }) => {
+test("数据表按操作数量展示主要操作或更多菜单", async ({ page }) => {
 	await signIn(page);
 
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
@@ -111,9 +111,9 @@ test("所有数据表使用主要操作和更多菜单", async ({ page }) => {
 	await expect(
 		page.getByRole("button", { name: "编辑" }).first(),
 	).toBeVisible();
-	await page.getByRole("button", { name: "更多", exact: true }).first().click();
-	await expect(page.getByRole("menuitem", { name: "删除" })).toBeVisible();
-	await page.keyboard.press("Escape");
+	await expect(
+		page.getByRole("button", { name: "删除" }).first(),
+	).toBeVisible();
 
 	await page.getByRole("menuitem", { name: "审计日志", exact: true }).click();
 	await page.getByRole("menuitem", { name: "操作审计", exact: true }).click();

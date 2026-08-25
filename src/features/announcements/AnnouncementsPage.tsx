@@ -58,10 +58,7 @@ import {
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
 import { resolveTableSort } from "../../app/tableSorting";
-import {
-	TableActionButton,
-	TableActionMenu,
-} from "../../app/TableActionButton";
+import { TableActionButton } from "../../app/TableActionButton";
 import {
 	createPlatformAnnouncement,
 	deletePlatformAnnouncement,
@@ -310,20 +307,15 @@ export function AnnouncementsPage() {
 						>
 							{t("adminShell.announcements.edit")}
 						</TableActionButton>
-						<TableActionMenu
-							items={[
-								{
-									danger: true,
-									key: "delete",
-									label: t("adminShell.announcements.delete"),
-									onClick: () => {
-										deleteMutation.reset();
-										setDeletingAnnouncement(announcement);
-									},
-								},
-							]}
-							label={t("adminShell.tableActions.more")}
-						/>
+						<TableActionButton
+							danger
+							onClick={() => {
+								deleteMutation.reset();
+								setDeletingAnnouncement(announcement);
+							}}
+						>
+							{t("adminShell.announcements.delete")}
+						</TableActionButton>
 					</Space>
 				),
 				title: t("adminShell.announcements.columns.actions"),

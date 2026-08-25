@@ -5,7 +5,7 @@ import type {
 	PlatformUserDetail,
 	UpdatePlatformUserInput,
 } from "../src/api/users";
-import { roles, userAvatarDataUrls, users } from "./store";
+import { roles, session, userAvatarDataUrls, users } from "./store";
 import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
 
 function getUser(userId: string | undefined) {
@@ -126,6 +126,30 @@ export default defineFakeRoute([
 			user.updatedAt = new Date().toISOString();
 			user.version = (user.version ?? 0) + 1;
 			return resultSuccess(user);
+		},
+	},
+	{
+		url: "/platform/users/:userId",
+		method: "delete",
+		response: ({ params }) => {
+			const userId = routeParam(params.userId);
+			const userIndex = users.findIndex((user) => user.id === userId);
+			if (userIndex < 0) return resultError("User not found", 404);
+			if (userId === session.user.id) {
+				return resultError("Current user cannot be deleted", 409);
+			}
+
+			const [deletedUser] = users.splice(userIndex, 1);
+			for (const assignedRole of deletedUser?.roles ?? []) {
+				const role = roles.find((item) => item.id === assignedRole.id);
+				if (role) {
+					role.memberCount = Math.max(0, (role.memberCount ?? 0) - 1);
+				}
+			}
+			if (userId) {
+				delete userAvatarDataUrls[userId];
+			}
+			return resultSuccess(null);
 		},
 	},
 	{

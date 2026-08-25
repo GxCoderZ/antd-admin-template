@@ -626,6 +626,7 @@ export const zhCNTranslation = {
 			exitFullscreen: "退出表格全屏",
 			allStatuses: "全部状态",
 			create: "新建用户",
+			delete: "删除",
 			edit: "编辑",
 			resetPassword: "重置密码",
 			retry: "重试",
@@ -655,6 +656,13 @@ export const zhCNTranslation = {
 				disableImpact: "该用户的全部活跃会话将立即失效，且无法继续登录。",
 				submit: "保存",
 				title: "编辑 {{name}}",
+			},
+			deleteForm: {
+				cancel: "取消",
+				confirm: "确认删除",
+				error: "删除用户失败",
+				impact: "该用户将无法继续登录，账号及角色关联将被移除，且无法恢复。",
+				title: "删除用户",
 			},
 			resetPasswordForm: {
 				cancel: "取消",

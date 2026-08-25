@@ -626,6 +626,7 @@ export const zhTWTranslation = {
 			exitFullscreen: "退出表格全螢幕",
 			allStatuses: "全部狀態",
 			create: "新增使用者",
+			delete: "刪除",
 			edit: "編輯",
 			resetPassword: "重設密碼",
 			retry: "重試",
@@ -656,6 +657,13 @@ export const zhTWTranslation = {
 					"該使用者的全部作用中工作階段將立即失效，且無法繼續登入。",
 				submit: "儲存",
 				title: "編輯 {{name}}",
+			},
+			deleteForm: {
+				cancel: "取消",
+				confirm: "確認刪除",
+				error: "刪除使用者失敗",
+				impact: "該使用者將無法繼續登入，帳號及角色關聯將被移除，且無法復原。",
+				title: "刪除使用者",
 			},
 			resetPasswordForm: {
 				cancel: "取消",

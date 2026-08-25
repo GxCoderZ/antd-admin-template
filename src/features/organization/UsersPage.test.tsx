@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,7 @@ import { i18n } from "../../i18n";
 import { UsersPage } from "./UsersPage";
 
 const mocks = vi.hoisted(() => ({
+	deletePlatformUser: vi.fn(),
 	listPlatformUsers: vi.fn(),
 	updatePlatformUser: vi.fn(),
 }));
@@ -23,7 +24,7 @@ vi.mock("#src/api/auth", () => ({
 		],
 		user: {
 			email: "admin@example.com",
-			id: "user-admin",
+			id: "user-session",
 			username: "admin",
 		},
 	}),
@@ -38,6 +39,7 @@ vi.mock("#src/api/roles", () => ({
 
 vi.mock("#src/api/users", () => ({
 	createPlatformUser: vi.fn(),
+	deletePlatformUser: mocks.deletePlatformUser,
 	forceLogoutPlatformUser: vi.fn(),
 	getPlatformUser: vi.fn().mockResolvedValue({ roles: [] }),
 	listPlatformUsers: mocks.listPlatformUsers,
@@ -84,6 +86,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	mocks.deletePlatformUser.mockReset().mockResolvedValue(undefined);
 	mocks.listPlatformUsers.mockReset().mockResolvedValue({
 		items: [adminUser],
 		page: 1,
@@ -152,6 +155,32 @@ describe("UsersPage", () => {
 		expect(
 			screen.getByRole("menuitem", { name: "重置密码" }),
 		).toBeInTheDocument();
+	});
+
+	it("requires the exact username before deleting another user", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		await user.click(screen.getByRole("button", { name: "更多" }));
+		await user.click(screen.getByRole("menuitem", { name: "删除" }));
+
+		await screen.findByText("删除用户");
+		const dialog = screen.getByRole("dialog");
+		const confirmationInput = within(dialog).getByRole("textbox", {
+			name: "确认目标名称",
+		});
+		const deleteButton = within(dialog).getByRole("button", {
+			name: "确认删除",
+		});
+
+		expect(deleteButton).toBeDisabled();
+		await user.type(confirmationInput, adminUser.username);
+		expect(deleteButton).toBeEnabled();
+		await user.click(deleteButton);
+
+		await waitFor(() => {
+			expect(mocks.deletePlatformUser).toHaveBeenCalledWith(adminUser.id);
+		});
 	});
 
 	it("submits keyword filters through the users API", async () => {

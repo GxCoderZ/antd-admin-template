@@ -639,6 +639,7 @@ export const enTranslation = {
 			exitFullscreen: "Exit table fullscreen",
 			allStatuses: "All statuses",
 			create: "New user",
+			delete: "Delete",
 			edit: "Edit",
 			resetPassword: "Reset password",
 			retry: "Retry",
@@ -669,6 +670,14 @@ export const enTranslation = {
 					"All active sessions for this user will be invalidated immediately, and the user will no longer be able to sign in.",
 				submit: "Save",
 				title: "Edit {{name}}",
+			},
+			deleteForm: {
+				cancel: "Cancel",
+				confirm: "Delete",
+				error: "Unable to delete user",
+				impact:
+					"The user will no longer be able to sign in. Their account and role assignments will be removed permanently.",
+				title: "Delete user",
 			},
 			resetPasswordForm: {
 				cancel: "Cancel",

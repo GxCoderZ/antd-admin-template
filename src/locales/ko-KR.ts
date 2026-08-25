@@ -633,6 +633,7 @@ export const koKRTranslation = {
 			exitFullscreen: "표 전체 화면 종료",
 			allStatuses: "전체 상태",
 			create: "사용자 추가",
+			delete: "삭제",
 			edit: "편집",
 			resetPassword: "비밀번호 재설정",
 			retry: "다시 시도",
@@ -663,6 +664,14 @@ export const koKRTranslation = {
 					"이 사용자의 모든 활성 세션이 즉시 만료되며 더 이상 로그인할 수 없습니다.",
 				submit: "저장",
 				title: "{{name}} 편집",
+			},
+			deleteForm: {
+				cancel: "취소",
+				confirm: "삭제 확인",
+				error: "사용자 삭제 실패",
+				impact:
+					"이 사용자는 더 이상 로그인할 수 없으며 계정과 역할 연결이 영구적으로 제거됩니다.",
+				title: "사용자 삭제",
 			},
 			resetPasswordForm: {
 				cancel: "취소",

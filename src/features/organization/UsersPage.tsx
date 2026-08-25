@@ -1,11 +1,15 @@
 import {
 	ColumnHeightOutlined,
 	CopyOutlined,
+	DeleteOutlined,
 	FullscreenExitOutlined,
 	FullscreenOutlined,
+	KeyOutlined,
+	LogoutOutlined,
 	PlusOutlined,
 	ReloadOutlined,
 	SettingOutlined,
+	TeamOutlined,
 } from "@ant-design/icons";
 import {
 	keepPreviousData,
@@ -89,6 +93,7 @@ import {
 	getUserMutationErrorTitleKey as getMutationErrorTitleKey,
 } from "./userProblems";
 import {
+	deletePlatformUser,
 	forceLogoutPlatformUser,
 	getPlatformUser,
 	listPlatformUsers,
@@ -238,6 +243,7 @@ export function UsersPage() {
 	const [forceLogoutUser, setForceLogoutUser] = useState<PlatformUser | null>(
 		null,
 	);
+	const [deletingUser, setDeletingUser] = useState<PlatformUser | null>(null);
 	const [roleUser, setRoleUser] = useState<PlatformUser | null>(null);
 	const [resetPasswordForm] = Form.useForm<ResetPasswordFormValues>();
 	const [userFilterForm] = Form.useForm<UserFilterValues>();
@@ -353,6 +359,16 @@ export function UsersPage() {
 			return user;
 		},
 		onSuccess: () => setForceLogoutUser(null),
+	});
+	const deleteUserMutation = useMutation({
+		mutationFn: async (user: PlatformUser) => {
+			await deletePlatformUser(user.id);
+			return user;
+		},
+		onSuccess: async () => {
+			setDeletingUser(null);
+			await refreshUsers();
+		},
 	});
 	const roleMutation = useMutation({
 		mutationFn: setPlatformUserRole,
@@ -652,6 +668,7 @@ export function UsersPage() {
 					<TableActionMenu
 						items={[
 							{
+								icon: <TeamOutlined aria-hidden />,
 								key: "roles",
 								label: t("adminShell.users.roles.action"),
 								onClick: () => {
@@ -662,6 +679,7 @@ export function UsersPage() {
 							...(canManageUsers
 								? [
 										{
+											icon: <KeyOutlined aria-hidden />,
 											key: "resetPassword",
 											label: t("adminShell.users.resetPassword"),
 											onClick: () => {
@@ -679,11 +697,26 @@ export function UsersPage() {
 								? [
 										{
 											danger: true,
+											icon: <LogoutOutlined aria-hidden />,
 											key: "forceLogout",
 											label: t("adminShell.users.forceLogout.action"),
 											onClick: () => {
 												forceLogoutMutation.reset();
 												setForceLogoutUser(row);
+											},
+										},
+									]
+								: []),
+							...(canManageUsers && currentUserId && row.id !== currentUserId
+								? [
+										{
+											danger: true,
+											icon: <DeleteOutlined aria-hidden />,
+											key: "delete",
+											label: t("adminShell.users.delete"),
+											onClick: () => {
+												deleteUserMutation.reset();
+												setDeletingUser(row);
 											},
 										},
 									]
@@ -710,6 +743,7 @@ export function UsersPage() {
 	}, [
 		canManageUsers,
 		currentUserId,
+		deleteUserMutation,
 		forceLogoutMutation,
 		formatPreferences,
 		resetPasswordForm,
@@ -1145,6 +1179,35 @@ export function UsersPage() {
 					title={t("adminShell.users.forceLogout.title", {
 						name: forceLogoutUser.username,
 					})}
+				/>
+			) : null}
+
+			{deletingUser ? (
+				<DangerConfirmationModal
+					cancelText={t("adminShell.users.deleteForm.cancel")}
+					confirmText={t("adminShell.users.deleteForm.confirm")}
+					feedback={
+						deleteUserMutation.isError ? (
+							<Alert
+								description={getProblemFallback(
+									deleteUserMutation.error,
+									t("adminShell.users.errors.fallback"),
+								)}
+								showIcon
+								title={t("adminShell.users.deleteForm.error")}
+								type="error"
+							/>
+						) : undefined
+					}
+					impact={t("adminShell.users.deleteForm.impact")}
+					loading={deleteUserMutation.isPending}
+					onCancel={() => {
+						deleteUserMutation.reset();
+						setDeletingUser(null);
+					}}
+					onConfirm={() => deleteUserMutation.mutate(deletingUser)}
+					targetName={deletingUser.username}
+					title={t("adminShell.users.deleteForm.title")}
 				/>
 			) : null}
 

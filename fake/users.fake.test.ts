@@ -12,9 +12,18 @@ interface UserListPayload {
 	};
 }
 
+interface UserMutationPayload {
+	code: number;
+	data: PlatformUser | null;
+}
+
 interface TestRoute {
 	method?: string;
-	response?: (request: { query: Record<string, string> }) => unknown;
+	response?: (request: {
+		body?: unknown;
+		params?: Record<string, string>;
+		query?: Record<string, string>;
+	}) => unknown;
 	url: string;
 }
 
@@ -85,5 +94,54 @@ describe("Fake users", () => {
 		expect(typeof firstUser?.mfaEnabled).toBe("boolean");
 		expect(typeof firstUser?.phone).toBe("string");
 		expect(Array.isArray(firstUser?.roles)).toBe(true);
+	});
+
+	it("keeps user deletion in the current Fake preview session", () => {
+		const routes = userRoutes as unknown as TestRoute[];
+		const createUser = routes.find(
+			(route) => route.method === "post" && route.url === "/platform/users",
+		)?.response;
+		const deleteUser = routes.find(
+			(route) =>
+				route.method === "delete" && route.url === "/platform/users/:userId",
+		)?.response;
+		expect(createUser).toBeDefined();
+		expect(deleteUser).toBeDefined();
+
+		const username = `delete-test-${Date.now()}`;
+		const created = createUser?.({
+			body: {
+				displayName: "Delete Test",
+				email: `${username}@example.com`,
+				password: "test-password",
+				username,
+			},
+		}) as UserMutationPayload;
+		expect(created.code).toBe(0);
+		expect(created.data).not.toBeNull();
+
+		const deleted = deleteUser?.({
+			params: { userId: created.data!.id },
+		}) as UserMutationPayload;
+		expect(deleted.code).toBe(0);
+		expect(
+			listUsers({ page: "1", page_size: "100", q: username }).data.items,
+		).toHaveLength(0);
+	});
+
+	it("rejects deleting the current signed-in user", () => {
+		const deleteUser = (userRoutes as unknown as TestRoute[]).find(
+			(route) =>
+				route.method === "delete" && route.url === "/platform/users/:userId",
+		)?.response;
+		expect(deleteUser).toBeDefined();
+
+		const result = deleteUser?.({
+			params: { userId: "user-admin" },
+		}) as UserMutationPayload;
+		expect(result.code).toBe(409);
+		expect(
+			listUsers({ page: "1", page_size: "100", q: "admin" }).data.items,
+		).toContainEqual(expect.objectContaining({ id: "user-admin" }));
 	});
 });
