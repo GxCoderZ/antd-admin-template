@@ -28,6 +28,9 @@ export const i18nResources = {
 export const i18nInitOptions: InitOptions = {
 	lng: "zh-CN",
 	resources: i18nResources,
+	interpolation: {
+		escapeValue: false,
+	},
 	saveMissing: import.meta.env.DEV,
 	missingKeyHandler: async (languages, namespace, translationKey) => {
 		if (import.meta.env.PROD) {

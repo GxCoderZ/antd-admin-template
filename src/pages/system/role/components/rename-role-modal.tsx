@@ -21,8 +21,6 @@ export function RenameRoleModal({ loading = false, onClose, onSubmit, open, role
 	useEffect(() => {
 		if (open && role)
 			form.setFieldsValue({ name: role.name });
-		else if (!open)
-			form.resetFields();
 	}, [form, open, role]);
 
 	return (

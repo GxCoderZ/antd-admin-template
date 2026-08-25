@@ -28,7 +28,7 @@
 		"type": "Role type",
 		"custom": "Custom",
 		"manageMembers": "Manage members",
-		"memberGuide": "Membership is maintained in User Management. Opening it filters the list to this role.",
+		"memberGuide": "Membership is maintained in User Management.",
 		"permissionsNotConfigured": "Not configured"
 	},
 	"user": {

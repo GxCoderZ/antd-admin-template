@@ -41,25 +41,25 @@ export function createRoleColumns({ onConfigure, onDelete, onRename, permissions
 		{
 			title: t("system.role.name"),
 			dataIndex: "name",
-			width: 180,
+			width: 160,
 			ellipsis: true,
 		},
 		{
 			title: t("system.role.key"),
 			dataIndex: "key",
-			width: 180,
+			width: 160,
 			render: (_, role) => <Typography.Text code>{role.key}</Typography.Text>,
 		},
 		{
 			title: t("system.role.memberCount"),
 			dataIndex: "user_count",
-			width: 120,
+			width: 128,
 			align: "right",
 		},
 		{
 			title: t("system.role.permissionSummary"),
 			dataIndex: "permission_codes",
-			width: 450,
+			width: 448,
 			render: (_, role) => {
 				const summaries = Object.entries(role.permission_codes.reduce<Record<string, number>>((result, code) => {
 					const module = getPermissionModule(code);
@@ -78,8 +78,7 @@ export function createRoleColumns({ onConfigure, onDelete, onRename, permissions
 			title: t("common.action"),
 			valueType: "option",
 			key: "option",
-			width: 330,
-			fixed: "right",
+			width: 288,
 			render: (_, role) => {
 				const deleteButton = permissions.delete
 					? (

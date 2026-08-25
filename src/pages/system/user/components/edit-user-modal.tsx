@@ -29,9 +29,6 @@ export function EditUserModal({ loading = false, onClose, onSubmit, open, user }
 		if (open && user) {
 			form.setFieldsValue({ display_name: user.display_name, email: user.email, status: user.status });
 		}
-		else if (!open) {
-			form.resetFields();
-		}
 	}, [form, open, user]);
 
 	return (

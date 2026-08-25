@@ -4,7 +4,7 @@ import { BasicModal } from "#src/components/basic-modal";
 import { DangerConfirmationContent } from "#src/components/danger-confirmation";
 
 import { Form, Input } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface ResetPasswordModalProps {
@@ -21,12 +21,6 @@ export function ResetPasswordModal({ loading = false, onClose, onSubmit, open, u
 	const [confirmationState, setConfirmationState] = useState({ targetName: "", value: "" });
 	const targetName = user?.username ?? "";
 	const confirmation = confirmationState.targetName === targetName ? confirmationState.value : "";
-
-	useEffect(() => {
-		if (!open) {
-			form.resetFields();
-		}
-	}, [form, open]);
 
 	return (
 		<BasicModal

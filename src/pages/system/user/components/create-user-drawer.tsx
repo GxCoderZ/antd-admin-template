@@ -4,7 +4,6 @@ import { BasicButton } from "#src/components/basic-button";
 import { BasicDrawer } from "#src/components/basic-drawer";
 
 import { Flex, Form, Input } from "antd";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 interface CreateUserDrawerProps {
@@ -17,11 +16,6 @@ interface CreateUserDrawerProps {
 export function CreateUserDrawer({ loading = false, onClose, onSubmit, open }: CreateUserDrawerProps) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<UserCreateReq>();
-
-	useEffect(() => {
-		if (!open)
-			form.resetFields();
-	}, [form, open]);
 
 	return (
 		<BasicDrawer

@@ -4,7 +4,7 @@ import { forgotPasswordPath } from "#src/router/extra-info";
 import { useAuthStore } from "#src/store/auth";
 
 import { DownOutlined, LockOutlined, SafetyCertificateFilled, UserOutlined } from "@ant-design/icons";
-import { Alert, Dropdown, Flex, Form, Input, message, theme, Typography } from "antd";
+import { Alert, Dropdown, Flex, Form, Input, theme, Typography } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
@@ -20,7 +20,6 @@ export function PasswordLogin() {
 	const [passwordLoginForm] = Form.useForm<PasswordLoginValues>();
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const [messageApi, contextHolder] = message.useMessage();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const login = useAuthStore(state => state.login);
@@ -28,17 +27,17 @@ export function PasswordLogin() {
 	const handleFinish = async (values: PasswordLoginValues) => {
 		setLoading(true);
 		setErrorMessage("");
-		const loadingMessage = messageApi.loading(t("authority.loginInProgress"), 0);
+		const loadingMessage = window.$message?.loading(t("authority.loginInProgress"), 0);
 
 		try {
 			await login(values);
-			loadingMessage();
-			messageApi.success(t("authority.loginSuccess"));
+			loadingMessage?.();
+			window.$message?.success(t("authority.loginSuccess"));
 			const targetPath = searchParams.get("redirect") || import.meta.env.VITE_BASE_HOME_PATH;
 			navigate(targetPath, { replace: true });
 		}
 		catch (error) {
-			loadingMessage();
+			loadingMessage?.();
 			setErrorMessage(error instanceof Error ? error.message : t("authority.loginFailed"));
 		}
 		finally {
@@ -56,7 +55,6 @@ export function PasswordLogin() {
 
 	return (
 		<>
-			{contextHolder}
 			<section aria-labelledby="login-title">
 				<Typography.Title id="login-title" level={3} className="!mb-2">
 					{t("authority.welcomeBack")}

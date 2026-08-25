@@ -67,14 +67,14 @@ export function createUserColumns({
 		{
 			title: t("system.user.username"),
 			dataIndex: "username",
-			width: 150,
+			width: 128,
 			ellipsis: true,
 			sorter: true,
 		},
 		{
 			title: t("system.user.displayName"),
 			dataIndex: "display_name",
-			width: 170,
+			width: 160,
 			ellipsis: true,
 			sorter: true,
 			render: (_, record) => (
@@ -87,29 +87,28 @@ export function createUserColumns({
 		{
 			title: t("system.user.email"),
 			dataIndex: "email",
-			width: 220,
+			width: 224,
 			ellipsis: true,
 			sorter: true,
 		},
 		{
 			title: t("common.status"),
 			dataIndex: "status",
-			width: 110,
+			width: 80,
 			sorter: true,
 			render: (_, record) => <Badge status={statusMap[record.status].status} text={statusMap[record.status].text} />,
 		},
 		{
 			title: t("common.createdAt"),
 			dataIndex: "created_at",
-			width: 180,
+			width: 160,
 			sorter: true,
 		},
 		{
 			title: t("common.action"),
 			valueType: "option",
 			key: "option",
-			width: 360,
-			fixed: "right",
+			width: 256,
 			render: (_, record) => (
 				<Space size={4}>
 					{permissions.assignRole && <BasicButton usage="table-action" onClick={() => onAssignRoles(record)}>{t("system.user.assignRole")}</BasicButton>}

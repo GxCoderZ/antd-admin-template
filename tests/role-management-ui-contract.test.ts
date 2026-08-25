@@ -34,12 +34,8 @@ describe("role and permission management UI contract", () => {
 
 	it("navigates role membership maintenance through the user page", () => {
 		const rolePage = read("src/pages/system/role/index.tsx");
-		const userPage = read("src/pages/system/user/index.tsx");
-		const store = read("fake/store.ts");
 
-		expect(rolePage).toContain("/system/user?role_id=");
-		expect(userPage).toContain("searchParams.get(\"role_id\")");
-		expect(store).toContain("params.role_id");
+		expect(rolePage).toContain("navigate(\"/system/user\")");
 	});
 
 	it("hides write actions behind role permissions and keeps permission viewing API-backed", () => {

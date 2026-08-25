@@ -40,13 +40,13 @@ describe("user management UI contract", () => {
 		for (const functionName of [
 			"fetchCreateUser",
 			"fetchUpdateUser",
-			"fetchDeleteUser",
 			"fetchBindUserRoles",
 			"fetchResetUserPassword",
 			"fetchForceLogoutUser",
 		]) {
 			expect(page).toContain(functionName);
 		}
+		expect(page).not.toContain("fetchDeleteUser");
 
 		for (const permission of [
 			"system:user:add",

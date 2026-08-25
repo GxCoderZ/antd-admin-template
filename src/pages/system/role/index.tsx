@@ -142,8 +142,8 @@ export default function Role() {
 				/>
 			</Flex>
 
-			<CreateRoleModal loading={createMutation.isPending} onClose={() => setCreateOpen(false)} onSubmit={handleCreate} open={createOpen} />
-			<RenameRoleModal loading={updateMutation.isPending} onClose={() => setRenameRole(undefined)} onSubmit={handleRename} open={Boolean(renameRole)} role={renameRole} />
+			{createOpen && <CreateRoleModal loading={createMutation.isPending} onClose={() => setCreateOpen(false)} onSubmit={handleCreate} open />}
+			{renameRole && <RenameRoleModal loading={updateMutation.isPending} onClose={() => setRenameRole(undefined)} onSubmit={handleRename} open role={renameRole} />}
 			<PermissionDrawer onClose={() => setPermissionRole(undefined)} onSuccess={refreshRoles} open={Boolean(permissionRole)} role={permissionRole} />
 			<DeleteRoleModal loading={deleteMutation.isPending} onClose={() => setDeleteRole(undefined)} onSubmit={handleDelete} open={Boolean(deleteRole)} role={deleteRole} />
 		</BasicContent>

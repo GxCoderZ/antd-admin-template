@@ -3,7 +3,6 @@ import type { RoleCreateReq } from "#src/api/system/role";
 import { BasicModal } from "#src/components/basic-modal";
 
 import { Form, Input } from "antd";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 interface CreateRoleModalProps {
@@ -16,11 +15,6 @@ interface CreateRoleModalProps {
 export function CreateRoleModal({ loading = false, onClose, onSubmit, open }: CreateRoleModalProps) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<RoleCreateReq>();
-
-	useEffect(() => {
-		if (!open)
-			form.resetFields();
-	}, [form, open]);
 
 	return (
 		<BasicModal cancelButtonProps={{ disabled: loading }} cancelText={t("common.cancel")} confirmLoading={loading} onCancel={onClose} onOk={() => form.submit()} okText={t("common.confirm")} open={open} title={t("system.role.addRole")}>

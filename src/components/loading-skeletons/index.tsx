@@ -8,8 +8,8 @@ interface DataTableSkeletonProps {
 
 export function DataTableSkeleton({ columnCount, minimumWidth, rowCount = 5 }: DataTableSkeletonProps) {
 	const { token } = theme.useToken();
-	const columns = Array.from({ length: columnCount });
-	const rows = Array.from({ length: rowCount });
+	const columns = Array.from({ length: columnCount }, (_, index) => `column-${index}`);
+	const rows = Array.from({ length: rowCount }, (_, index) => `row-${index}`);
 	const renderRow = (rowKey: string, header = false) => (
 		<Flex
 			align="center"
@@ -22,8 +22,8 @@ export function DataTableSkeleton({ columnCount, minimumWidth, rowCount = 5 }: D
 				paddingInline: token.padding,
 			}}
 		>
-			{columns.map((_, columnIndex) => (
-				<div key={`${rowKey}-${columnIndex}`} style={{ flex: columnIndex === 0 ? "1.25 1 0" : "1 1 0", minWidth: 0 }}>
+			{columns.map((columnKey, columnIndex) => (
+				<div key={`${rowKey}-${columnKey}`} style={{ flex: columnIndex === 0 ? "1.25 1 0" : "1 1 0", minWidth: 0 }}>
 					<Skeleton.Input active block size="small" />
 				</div>
 			))}
@@ -34,7 +34,7 @@ export function DataTableSkeleton({ columnCount, minimumWidth, rowCount = 5 }: D
 		<div data-testid="data-table-skeleton" className="overflow-x-auto">
 			<div style={{ minWidth: minimumWidth }}>
 				{renderRow("header", true)}
-				{rows.map((_, rowIndex) => renderRow(`row-${rowIndex}`))}
+				{rows.map(rowKey => renderRow(rowKey))}
 			</div>
 			<Flex gap={token.marginXS} justify="flex-end" style={{ paddingBlockStart: token.padding }}>
 				<Skeleton.Button active size="small" />

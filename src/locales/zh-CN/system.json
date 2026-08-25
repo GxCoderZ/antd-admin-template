@@ -28,7 +28,7 @@
 		"type": "角色类型",
 		"custom": "自定义",
 		"manageMembers": "维护成员",
-		"memberGuide": "成员维护在用户管理中完成，打开后将只显示当前角色的成员。",
+		"memberGuide": "成员维护在用户管理中完成。",
 		"permissionsNotConfigured": "暂未配置"
 	},
 	"user": {

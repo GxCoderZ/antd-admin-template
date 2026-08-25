@@ -241,7 +241,7 @@ export default function User() {
 
 					<BasicTable<UserItemType>
 						columns={columns}
-						columnsState={{ persistenceKey: `${import.meta.env.VITE_GLOB_APP_TITLE}:system-users:columns`, persistenceType: "localStorage" }}
+						columnsState={{ persistenceKey: `${import.meta.env.VITE_GLOB_APP_TITLE}:system-users:columns:v2`, persistenceType: "localStorage" }}
 						dataSource={usersQuery.data?.items ?? []}
 						headerTitle={t("common.menu.user")}
 						loading={usersQuery.isFetching && !usersQuery.isLoading}
@@ -266,11 +266,11 @@ export default function User() {
 				</Flex>
 			</ConfigProvider>
 
-			<CreateUserDrawer loading={createMutation.isPending} onClose={() => setCreateOpen(false)} onSubmit={handleCreate} open={createOpen} />
+			{createOpen && <CreateUserDrawer loading={createMutation.isPending} onClose={() => setCreateOpen(false)} onSubmit={handleCreate} open />}
 			<Detail onClose={() => setDetailUser(undefined)} open={Boolean(detailUser)} user={detailUser} />
-			<EditUserModal loading={updateMutation.isPending} onClose={() => setEditUser(undefined)} onSubmit={handleUpdate} open={Boolean(editUser)} user={editUser} />
+			{editUser && <EditUserModal loading={updateMutation.isPending} onClose={() => setEditUser(undefined)} onSubmit={handleUpdate} open user={editUser} />}
 			<RoleAssign loading={bindRolesMutation.isPending} onClose={() => setRoleUser(undefined)} onSubmit={handleBindRoles} open={Boolean(roleUser)} user={roleUser} />
-			<ResetPasswordModal loading={resetMutation.isPending} onClose={() => setResetUser(undefined)} onSubmit={handleResetPassword} open={Boolean(resetUser)} user={resetUser} />
+			{resetUser && <ResetPasswordModal loading={resetMutation.isPending} onClose={() => setResetUser(undefined)} onSubmit={handleResetPassword} open user={resetUser} />}
 			<ResetPasswordResult onClose={() => setResetResult(undefined)} open={Boolean(resetResult)} password={resetResult?.password ?? ""} username={resetResult?.username ?? ""} />
 			<ForceLogoutModal loading={forceLogoutMutation.isPending} onClose={() => setForceLogoutUser(undefined)} onSubmit={handleForceLogout} open={Boolean(forceLogoutUser)} user={forceLogoutUser} />
 		</BasicContent>
