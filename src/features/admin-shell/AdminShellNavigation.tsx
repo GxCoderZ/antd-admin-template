@@ -1,10 +1,12 @@
 import {
 	AntDesignOutlined,
 	AppstoreOutlined,
+	CheckCircleOutlined,
 	MenuFoldOutlined,
 	MenuUnfoldOutlined,
 	ProfileOutlined,
 	SettingOutlined,
+	WarningOutlined,
 } from "@ant-design/icons";
 import {
 	Breadcrumb,
@@ -46,7 +48,9 @@ const sidebarRootKeys: readonly string[] = adminSidebarGroupKeys;
 
 const groupIconByKey: Record<AdminGroupIconKey, ReactNode> = {
 	examples: <AppstoreOutlined aria-hidden />,
+	exceptions: <WarningOutlined aria-hidden />,
 	operations: <ProfileOutlined aria-hidden />,
+	results: <CheckCircleOutlined aria-hidden />,
 	system: <SettingOutlined aria-hidden />,
 };
 

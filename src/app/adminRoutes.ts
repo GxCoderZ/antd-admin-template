@@ -5,7 +5,13 @@ import { platformPermissions, type PlatformPermission } from "./permissions";
 export const dashboardPath = "/dashboard";
 
 export type AdminRouteGroupKey =
-	"dashboard" | "operations" | "examples" | "system" | "account";
+	| "dashboard"
+	| "operations"
+	| "examples"
+	| "results"
+	| "exceptions"
+	| "system"
+	| "account";
 
 export type AdminRouteIconKey =
 	| "dashboard"
@@ -16,10 +22,23 @@ export type AdminRouteIconKey =
 	| "loginLogs"
 	| "basicForm"
 	| "stepForm"
+	| "searchArticles"
+	| "searchProjects"
+	| "searchApplications"
+	| "resultSuccess"
+	| "resultFailure"
+	| "exceptionForbidden"
+	| "exceptionNotFound"
+	| "exceptionServerError"
 	| "settings"
 	| "about";
 
-export type AdminGroupIconKey = "examples" | "operations" | "system";
+export type AdminGroupIconKey =
+	| "examples"
+	| "operations"
+	| "results"
+	| "exceptions"
+	| "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -106,10 +125,22 @@ const loadBasicListPage = async (): Promise<LazyAdminRouteModule> => {
 	return { Component: BasicListPage };
 };
 
-const loadSearchListPage = async (): Promise<LazyAdminRouteModule> => {
-	const { SearchListPage } =
-		await import("../features/page-examples/ListExamplePages");
-	return { Component: SearchListPage };
+const loadSearchArticlesPage = async (): Promise<LazyAdminRouteModule> => {
+	const { SearchArticlesPage } =
+		await import("../features/page-examples/SearchListPages");
+	return { Component: SearchArticlesPage };
+};
+
+const loadSearchProjectsPage = async (): Promise<LazyAdminRouteModule> => {
+	const { SearchProjectsPage } =
+		await import("../features/page-examples/SearchListPages");
+	return { Component: SearchProjectsPage };
+};
+
+const loadSearchApplicationsPage = async (): Promise<LazyAdminRouteModule> => {
+	const { SearchApplicationsPage } =
+		await import("../features/page-examples/SearchListPages");
+	return { Component: SearchApplicationsPage };
 };
 
 const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
@@ -261,13 +292,34 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.basicList",
 	},
 	{
+		aliases: [
+			{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" },
+		],
 		groupKey: "examples",
-		iconKey: "loginLogs",
-		key: "/examples/lists/search",
-		lazy: loadSearchListPage,
-		navigationParentKeys: ["example-lists"],
+		iconKey: "searchArticles",
+		key: "/examples/lists/search/articles",
+		lazy: loadSearchArticlesPage,
+		navigationParentKeys: ["example-lists", "example-search-lists"],
 		sectionKey: "adminShell.navigation.examples",
-		titleKey: "adminShell.navigation.searchList",
+		titleKey: "adminShell.navigation.searchArticles",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "searchProjects",
+		key: "/examples/lists/search/projects",
+		lazy: loadSearchProjectsPage,
+		navigationParentKeys: ["example-lists", "example-search-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.searchProjects",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "searchApplications",
+		key: "/examples/lists/search/applications",
+		lazy: loadSearchApplicationsPage,
+		navigationParentKeys: ["example-lists", "example-search-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.searchApplications",
 	},
 	{
 		groupKey: "examples",
@@ -287,21 +339,25 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.genericDetail",
 	},
 	{
-		groupKey: "examples",
-		iconKey: "announcements",
-		key: "/examples/results/success",
+		aliases: [
+			{ lazy: loadSuccessResultPage, path: "/examples/results/success" },
+		],
+		groupKey: "results",
+		iconKey: "resultSuccess",
+		key: "/result/success",
 		lazy: loadSuccessResultPage,
-		navigationParentKeys: ["example-results"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.resultExamples",
 		titleKey: "adminShell.navigation.successResult",
 	},
 	{
-		groupKey: "examples",
-		iconKey: "announcements",
-		key: "/examples/results/failure",
+		aliases: [
+			{ lazy: loadFailureResultPage, path: "/examples/results/failure" },
+		],
+		groupKey: "results",
+		iconKey: "resultFailure",
+		key: "/result/fail",
 		lazy: loadFailureResultPage,
-		navigationParentKeys: ["example-results"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.resultExamples",
 		titleKey: "adminShell.navigation.failureResult",
 	},
 	{
@@ -353,21 +409,24 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.about",
 	},
 	{
-		groupKey: "system",
+		groupKey: "exceptions",
+		iconKey: "exceptionForbidden",
 		key: "/exception/403",
 		lazy: loadForbiddenPage,
 		sectionKey: "adminShell.exceptions.section",
 		titleKey: "adminShell.exceptions.forbiddenTitle",
 	},
 	{
-		groupKey: "system",
+		groupKey: "exceptions",
+		iconKey: "exceptionNotFound",
 		key: "/exception/404",
 		lazy: loadNotFoundPage,
 		sectionKey: "adminShell.exceptions.section",
 		titleKey: "adminShell.exceptions.notFoundTitle",
 	},
 	{
-		groupKey: "system",
+		groupKey: "exceptions",
+		iconKey: "exceptionServerError",
 		key: "/exception/500",
 		lazy: loadServerErrorPage,
 		sectionKey: "adminShell.exceptions.section",
@@ -420,19 +479,19 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 				titleKey: "adminShell.navigation.listExamples",
 				children: [
 					{ routeKey: "/examples/lists/basic" },
-					{ routeKey: "/examples/lists/search" },
+					{
+						key: "example-search-lists",
+						titleKey: "adminShell.navigation.searchList",
+						children: [
+							{ routeKey: "/examples/lists/search/articles" },
+							{ routeKey: "/examples/lists/search/projects" },
+							{ routeKey: "/examples/lists/search/applications" },
+						],
+					},
 					{ routeKey: "/examples/lists/cards" },
 				],
 			},
 			{ routeKey: "/examples/detail" },
-			{
-				key: "example-results",
-				titleKey: "adminShell.navigation.resultExamples",
-				children: [
-					{ routeKey: "/examples/results/success" },
-					{ routeKey: "/examples/results/failure" },
-				],
-			},
 			{ routeKey: "/examples/files" },
 			{
 				key: "example-forms",
@@ -444,6 +503,27 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			},
 		],
 		titleKey: "adminShell.navigation.examples",
+	},
+	{
+		defaultRouteKey: "/result/success",
+		iconKey: "results",
+		key: "results",
+		nodes: [
+			{ routeKey: "/result/success" },
+			{ routeKey: "/result/fail" },
+		],
+		titleKey: "adminShell.navigation.resultExamples",
+	},
+	{
+		defaultRouteKey: "/exception/403",
+		iconKey: "exceptions",
+		key: "exceptions",
+		nodes: [
+			{ routeKey: "/exception/403" },
+			{ routeKey: "/exception/404" },
+			{ routeKey: "/exception/500" },
+		],
+		titleKey: "adminShell.exceptions.section",
 	},
 	{
 		defaultRouteKey: "/organization/users",

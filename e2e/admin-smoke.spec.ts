@@ -278,7 +278,7 @@ test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) 
 	await expect(page.getByText("暂无站内通知")).toBeVisible();
 });
 
-test("页面示例按官方 Ant Design Pro 页面结构提供列表详情和结果页", async ({
+test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", async ({
 	page,
 }) => {
 	await signIn(page);
@@ -294,13 +294,53 @@ test("页面示例按官方 Ant Design Pro 页面结构提供列表详情和结�
 	await expect(page).toHaveURL(/\/examples\/lists\/cards$/);
 	await expect(page.getByRole("button", { name: /新增产品/ })).toBeVisible();
 
+	await page.getByRole("menuitem", { name: "搜索列表", exact: true }).click();
+	await page.getByRole("menuitem", { name: "文章", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/search\/articles$/);
+	const searchContent = page.getByTestId("admin-shell-page-content");
+	await expect(searchContent.getByRole("tab", { name: "文章" })).toHaveAttribute(
+		"aria-selected",
+		"true",
+	);
+	await expect(page.getByText("所属类目", { exact: true })).toBeVisible();
+
+	await searchContent.getByRole("tab", { name: "项目" }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/search\/projects$/);
+	await expect(page.getByTestId("search-project-grid")).toBeVisible();
+
+	await searchContent.getByRole("tab", { name: "应用" }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/search\/applications$/);
+	await expect(page.getByText("活跃用户").first()).toBeVisible();
+
 	await page.getByRole("menuitem", { name: "通用详情页", exact: true }).click();
 	await expect(page.getByText("记录摘要", { exact: true })).toBeVisible();
 	await expect(page.getByText("处理进度", { exact: true })).toBeVisible();
 
 	await page.getByRole("menuitem", { name: "结果页", exact: true }).click();
 	await page.getByRole("menuitem", { name: "成功结果页", exact: true }).click();
-	await expect(page.getByText("操作成功", { exact: true })).toBeVisible();
+	await expect(page).toHaveURL(/\/result\/success$/);
+	await expect(page.getByText("提交成功", { exact: true })).toBeVisible();
+
+	await page.getByRole("menuitem", { name: "异常页", exact: true }).click();
+	await page.getByRole("menuitem", { name: "403", exact: true }).click();
+	await expect(page).toHaveURL(/\/exception\/403$/);
+	await expect(page.getByText("403", { exact: true })).toBeVisible();
+});
+
+test("搜索列表在窄屏下保持完整且无页面级横向溢出", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "搜索列表", exact: true }).click();
+	await page.getByRole("menuitem", { name: "文章", exact: true }).click();
+
+	await expect(
+		page.getByTestId("admin-shell-page-content").getByRole("tab", { name: "文章" }),
+	).toBeVisible();
+	await expect(page.getByText("所属类目", { exact: true })).toBeVisible();
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });
 
 test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async ({ page }) => {

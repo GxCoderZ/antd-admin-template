@@ -1,13 +1,12 @@
 import {
-	CheckCircleOutlined,
 	CloseCircleOutlined,
+	DingdingOutlined,
 	RightOutlined,
 } from "@ant-design/icons";
 import {
 	Button,
 	Card,
 	Descriptions,
-	Flex,
 	Result,
 	Steps,
 	theme,
@@ -21,9 +20,8 @@ export function SuccessResultPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	return (
-		<Card>
+		<Card variant="borderless">
 			<Result
-				icon={<CheckCircleOutlined style={{ color: token.colorSuccess }} />}
 				status="success"
 				title={t("adminShell.pageExamples.results.successTitle")}
 				subTitle={t("adminShell.pageExamples.results.successDescription")}
@@ -38,13 +36,12 @@ export function SuccessResultPage() {
 						{t("adminShell.pageExamples.results.print")}
 					</Button>,
 				]}
+				style={{ marginBottom: token.margin }}
 			>
-				<Flex gap={token.marginLG} vertical>
-					<Title level={4}>
-						{t("adminShell.pageExamples.results.projectName")}
-					</Title>
+				<div>
 					<Descriptions
 						column={{ xs: 1, sm: 3 }}
+						title={t("adminShell.pageExamples.results.projectName")}
 						items={[
 							{
 								key: "id",
@@ -63,17 +60,43 @@ export function SuccessResultPage() {
 							},
 						]}
 					/>
+					<div style={{ height: token.marginLG }} />
 					<Steps
 						current={1}
 						items={[
-							{ title: t("adminShell.pageExamples.results.created") },
-							{ title: t("adminShell.pageExamples.results.review") },
+							{
+								content: (
+									<div style={{ color: token.colorText, fontSize: 12, textAlign: "center" }}>
+										<div style={{ margin: "8px 0 4px" }}>
+											曲丽丽
+											<DingdingOutlined style={{ color: "#00a0e9", marginInlineStart: 8 }} />
+										</div>
+										<div>2016-12-12 12:32</div>
+									</div>
+								),
+								title: t("adminShell.pageExamples.results.created"),
+							},
+							{
+								content: (
+									<div style={{ color: token.colorText, fontSize: 12, textAlign: "center" }}>
+										<div style={{ margin: "8px 0 4px" }}>
+											周毛毛
+											<Button style={{ padding: 0 }} type="link">
+												<DingdingOutlined style={{ color: "#00a0e9", marginInlineStart: 8 }} />
+												{t("adminShell.pageExamples.results.nudge")}
+											</Button>
+										</div>
+									</div>
+								),
+								title: t("adminShell.pageExamples.results.review"),
+							},
 							{ title: t("adminShell.pageExamples.results.financeReview") },
 							{ title: t("adminShell.pageExamples.results.completed") },
 						]}
 						responsive
+						type="dot"
 					/>
-				</Flex>
+				</div>
 			</Result>
 		</Card>
 	);
@@ -83,7 +106,7 @@ export function FailureResultPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	return (
-		<Card>
+		<Card variant="borderless">
 			<Result
 				icon={<CloseCircleOutlined style={{ color: token.colorError }} />}
 				status="error"
@@ -94,15 +117,16 @@ export function FailureResultPage() {
 						{t("adminShell.pageExamples.results.returnEdit")}
 					</Button>
 				}
+				style={{ marginBottom: token.margin, marginTop: token.marginXL }}
 			>
-				<Flex gap={token.marginSM} vertical>
-					<Text strong>
+				<div>
+					<Title level={5} style={{ marginBottom: token.margin }}>
 						{t("adminShell.pageExamples.results.errorHeading")}
-					</Text>
+					</Title>
 					{["frozen", "ineligible"].map((key) => (
-						<Flex align="center" gap={token.marginXS} key={key} wrap>
+						<div key={key} style={{ marginBottom: token.margin }}>
 							<CloseCircleOutlined style={{ color: token.colorError }} />
-							<Text style={{ flex: "1 1 10rem" }}>
+							<Text style={{ marginInlineStart: token.marginXS }}>
 								{t(`adminShell.pageExamples.results.errors.${key}`)}
 							</Text>
 							<Button
@@ -113,9 +137,9 @@ export function FailureResultPage() {
 							>
 								{t(`adminShell.pageExamples.results.actions.${key}`)}
 							</Button>
-						</Flex>
+						</div>
 					))}
-				</Flex>
+				</div>
 			</Result>
 		</Card>
 	);

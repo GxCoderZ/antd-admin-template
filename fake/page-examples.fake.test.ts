@@ -30,7 +30,7 @@ describe("Fake page examples", () => {
 			data: { items: ExampleListItem[]; total: number };
 		};
 		const searched = list({
-			query: { page: "1", page_size: "10", q: "客户" },
+			query: { page: "1", page_size: "10", q: "Ant" },
 		}) as typeof normal;
 		const empty = list({
 			query: { page: "1", page_size: "10", q: "不存在的页面资产" },

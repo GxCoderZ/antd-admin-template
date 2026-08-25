@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { adminRouteDefinitions, getAdminRouteMetadata } from "./adminRoutes";
+import {
+	adminNavigationGroups,
+	adminRouteDefinitions,
+	getAdminRouteMetadata,
+} from "./adminRoutes";
 
 describe("admin route template", () => {
 	it("contains the complete reference administration surface", () => {
@@ -12,11 +16,13 @@ describe("admin route template", () => {
 			"/operations/audit-logs",
 			"/operations/login-logs",
 			"/examples/lists/basic",
-			"/examples/lists/search",
+			"/examples/lists/search/articles",
+			"/examples/lists/search/projects",
+			"/examples/lists/search/applications",
 			"/examples/lists/cards",
 			"/examples/detail",
-			"/examples/results/success",
-			"/examples/results/failure",
+			"/result/success",
+			"/result/fail",
 			"/examples/files",
 			"/examples/forms/basic",
 			"/examples/forms/step",
@@ -29,6 +35,12 @@ describe("admin route template", () => {
 			"/account/profile",
 			"/account/settings",
 		]);
+	});
+
+	it("keeps result and exception pages as first-level navigation groups", () => {
+		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
+			expect.arrayContaining(["results", "exceptions"]),
+		);
 	});
 
 	it("maps unknown authenticated locations to the 404 page metadata", () => {

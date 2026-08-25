@@ -559,22 +559,82 @@ export const notifications: PlatformNotification[] = Array.from(
 );
 
 const exampleTitles = [
-	"客户成功计划",
-	"季度运营复盘",
-	"产品体验优化",
-	"数据质量治理",
-	"内部知识库整理",
+	"Alipay",
+	"Angular",
+	"Ant Design",
+	"Ant Design Pro",
+	"Bootstrap",
+	"React",
+	"Vue",
+	"Webpack",
+] as const;
+
+const exampleAvatars = [
+	"/pro-search/WdGqmHpayyMjiEhcKoVE.png",
+	"/pro-search/zOsKZmFRdUtvpqCImOVY.png",
+	"/pro-search/dURIMkkrRFpPgTuzkwnB.png",
+	"/pro-search/sfjbOqnsXXJgNCjCzDBL.png",
+	"/pro-search/siCrBXXhmvTQGWPNLBow.png",
+	"/pro-search/kZzEzemZyKLKFsojXItE.png",
+	"/pro-search/ComBAopevLwENQdKWiIn.png",
+	"/pro-search/nxkuOJlFJuAUhzlMTCEe.png",
+] as const;
+
+const exampleCovers = [
+	"/pro-search/uMfMFlvUuceEyPpotzlq.png",
+	"/pro-search/iZBVOIhGJiAnhplqjvZW.png",
+	"/pro-search/iXjVmWVHbCJAyqvDxdtx.png",
+	"/pro-search/gLaIAoVWTtLbBWZNYEMg.png",
+] as const;
+
+const exampleDescriptions = [
+	"那是一种内在的东西，他们到达不了，也无法触及的",
+	"希望是一个好东西，也许是最好的，好东西是不会消亡的",
+	"生命就像一盒巧克力，结果往往出人意料",
+	"城镇中有那么多的酒馆，她却偏偏走进了我的酒馆",
+	"那时候我只会想自己想要什么，从不想自己拥有什么",
+] as const;
+
+const exampleMembers = [
+	{
+		avatar: "/pro-search/ZiESqWwCXBRQoaPONSJe.png",
+		id: "member-1",
+		name: "曲丽丽",
+	},
+	{
+		avatar: "/pro-search/tBOxZPlITHqwlGjsJWaF.png",
+		id: "member-2",
+		name: "王昭君",
+	},
+	{
+		avatar: "/pro-search/sBxjgqiuHMGRkIjqlQCd.png",
+		id: "member-3",
+		name: "董娜娜",
+	},
 ] as const;
 
 export const exampleItems: ExampleListItem[] = Array.from(
 	{ length: 24 },
 	(_, index): ExampleListItem => ({
+		activeUser: 100_000 + index * 7_913,
+		avatar: exampleAvatars[index % exampleAvatars.length]!,
+		category: `category-${(index % 12) + 1}`,
+		cover: exampleCovers[index % exampleCovers.length]!,
 		createdAt: iso(18_000 - index * 240),
-		description: `用于演示标准列表、搜索列表和卡片列表的通用内容 ${index + 1}。`,
+		description:
+			"在中台产品的研发过程中，会出现不同的设计规范和实现方式，但其中往往存在很多类似的页面和组件，这些类似的组件会被抽离成一套标准规范。",
 		id: `example-${index + 1}`,
+		like: 128 + index * 3,
+		members: [...exampleMembers],
+		message: 12 + (index % 10),
+		newUser: 1_000 + index * 73,
 		owner: users[index % 6]!.displayName,
+		rate: index % 2 === 0 ? "good" : "normal",
+		star: 146 + index * 2,
 		status: (["active", "pending", "archived"] as const)[index % 3]!,
-		title: `${exampleTitles[index % exampleTitles.length]} ${index + 1}`,
+		subDescription: exampleDescriptions[index % exampleDescriptions.length]!,
+		title: exampleTitles[index % exampleTitles.length]!,
+		updatedAt: iso(index * 120),
 	}),
 );
 

@@ -14,9 +14,14 @@ export function listExampleItems(
 	input: ListExampleItemsInput,
 	signal?: AbortSignal,
 ) {
-	const { pageSize, ...query } = input;
+	const { category, owner, pageSize, ...query } = input;
 	return request<ApiPage<ExampleListItem>>("/examples/items", {
-		query: { ...query, page_size: pageSize },
+		query: {
+			...query,
+			...(category?.length ? { category: category.join(",") } : {}),
+			...(owner?.length ? { owner: owner.join(",") } : {}),
+			page_size: pageSize,
+		},
 		signal,
 	}).then(({ items, page, page_size, total }) => ({
 		items,

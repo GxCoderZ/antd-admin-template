@@ -45,8 +45,6 @@ export function ServerErrorPage() {
 			backHomeLabel={t("adminShell.exceptions.backHome")}
 			description={t("adminShell.exceptions.serverErrorDescription")}
 			onBackHome={backHome}
-			onReload={() => window.location.reload()}
-			reloadLabel={t("adminShell.exceptions.reload")}
 			status="500"
 		/>
 	);

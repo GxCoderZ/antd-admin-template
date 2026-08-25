@@ -14,13 +14,25 @@ export default defineFakeRoute([
 				.trim()
 				.toLowerCase();
 			const status = routeParam(query.status);
+			const categories = String(query.category ?? "")
+				.split(",")
+				.filter(Boolean);
+			const owners = String(query.owner ?? "")
+				.split(",")
+				.filter(Boolean);
+			const author = routeParam(query.author);
+			const rate = routeParam(query.rate);
 			const filtered = exampleItems.filter(
 				(item) =>
 					(!keyword ||
 						item.title.toLowerCase().includes(keyword) ||
 						item.description.toLowerCase().includes(keyword) ||
 						item.owner.toLowerCase().includes(keyword)) &&
-					(!status || item.status === status),
+					(!status || item.status === status) &&
+					(categories.length === 0 || categories.includes(item.category)) &&
+					(owners.length === 0 || owners.includes(item.owner)) &&
+					(!author || item.owner === author) &&
+					(!rate || item.rate === rate),
 			);
 			const start = (page - 1) * pageSize;
 			return resultSuccess({

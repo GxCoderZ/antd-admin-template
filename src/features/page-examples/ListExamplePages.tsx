@@ -1,8 +1,5 @@
 import {
-	LikeOutlined,
-	MessageOutlined,
 	PlusOutlined,
-	StarOutlined,
 } from "@ant-design/icons";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
@@ -19,11 +16,9 @@ import {
 	Progress,
 	Row,
 	Segmented,
-	Select,
 	Skeleton,
 	Space,
 	Statistic,
-	Tabs,
 	Tag,
 	theme,
 	Typography,
@@ -226,125 +221,6 @@ export function BasicListPage() {
 							/>
 						</Flex>
 					</>
-				)}
-			</Card>
-		</Flex>
-	);
-}
-
-export function SearchListPage() {
-	const { t } = useTranslation();
-	const { token } = theme.useToken();
-	const [q, setQ] = useState("");
-	const [draft, setDraft] = useState("");
-	const query = useQuery({
-		queryFn: ({ signal }) =>
-			listExampleItems({ page: 1, pageSize: 10, ...(q ? { q } : {}) }, signal),
-		queryKey: [...exampleItemsQueryKey, "search", q],
-	});
-	return (
-		<Flex gap={token.marginLG} vertical>
-			<Title level={2} style={{ margin: 0 }}>
-				{t("adminShell.pageExamples.searchList.title")}
-			</Title>
-			<Flex justify="center">
-				<Input.Search
-					enterButton={t("adminShell.pageExamples.search")}
-					onChange={(event) => setDraft(event.target.value)}
-					onSearch={() => setQ(draft.trim())}
-					placeholder={t("adminShell.pageExamples.searchPlaceholder")}
-					size="large"
-					style={{ maxWidth: token.controlHeightLG * 12, width: "100%" }}
-					value={draft}
-				/>
-			</Flex>
-			<Tabs
-				items={["articles", "projects", "applications"].map((key) => ({
-					key,
-					label: t(`adminShell.pageExamples.searchList.tabs.${key}`),
-				}))}
-			/>
-			<Card>
-				<Flex gap={token.margin} vertical>
-					<Flex align="center" gap={token.marginSM} wrap>
-						<Text>{t("adminShell.pageExamples.searchList.category")}</Text>
-						{["all", "one", "two", "three", "four"].map((key) => (
-							<Button key={key} type={key === "all" ? "link" : "text"}>
-								{t(`adminShell.pageExamples.searchList.categories.${key}`)}
-							</Button>
-						))}
-					</Flex>
-					<Flex align="center" gap={token.marginSM} wrap>
-						<Text>{t("adminShell.pageExamples.owner")}</Text>
-						<Select
-							allowClear
-							mode="multiple"
-							options={[
-								{ label: "Platform Admin", value: "Platform Admin" },
-								{ label: "Olivia Chen", value: "Olivia Chen" },
-							]}
-							style={{ minWidth: token.controlHeight * 6 }}
-						/>
-						<Button type="link">
-							{t("adminShell.pageExamples.searchList.onlyMine")}
-						</Button>
-					</Flex>
-				</Flex>
-			</Card>
-			<Card>
-				{query.isPending ? (
-					<Skeleton active paragraph={{ rows: 9 }} />
-				) : query.isError ? (
-					<ErrorState onRetry={() => void query.refetch()} />
-				) : query.data.items.length === 0 ? (
-					<Empty description={t("adminShell.pageExamples.empty")} />
-				) : (
-					<List
-						dataSource={query.data.items}
-						renderItem={(item, index) => (
-							<List.Item>
-								<List.Item.Meta
-									description={
-										<Space orientation="vertical" size={token.marginXS}>
-											<Space wrap>
-												<Tag>Ant Design</Tag>
-												<Tag>
-													{t(
-														"adminShell.pageExamples.searchList.designLanguage",
-													)}
-												</Tag>
-												<Tag>
-													{t("adminShell.pageExamples.searchList.enterprise")}
-												</Tag>
-											</Space>
-											<Paragraph
-												ellipsis={{ rows: 2 }}
-												style={{ marginBottom: 0 }}
-											>
-												{item.description} {item.description}
-											</Paragraph>
-											<Text type="secondary">
-												{item.owner} ·{" "}
-												{new Date(item.createdAt).toLocaleDateString()}
-											</Text>
-											<Space split={<span />}>
-												<Text type="secondary">
-													<StarOutlined /> {20 + index}
-												</Text>
-												<Text type="secondary">
-													<LikeOutlined /> {50 + index}
-												</Text>
-												<Text type="secondary">
-													<MessageOutlined /> {30 + index}
-												</Text>
-											</Space>
-										</Space>
-									}
-									title={<Text strong>{item.title}</Text>}
-								/>
-							</List.Item>
-						)}
-					/>
 				)}
 			</Card>
 		</Flex>
