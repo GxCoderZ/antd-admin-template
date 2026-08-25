@@ -7,7 +7,6 @@ import {
 	ReloadOutlined,
 	SettingOutlined,
 } from "@ant-design/icons";
-import { ApiProblemError } from "#src/api/client";
 import {
 	keepPreviousData,
 	useMutation,
@@ -80,6 +79,14 @@ import {
 } from "../../app/queryFilterLayout";
 import { CreateUserDrawer } from "./CreateUserDrawer";
 import {
+	UserEditModal,
+	type UserEditFormValues,
+} from "./components/UserEditModal";
+import {
+	getProblemFallback,
+	getUserMutationErrorTitleKey as getMutationErrorTitleKey,
+} from "./userProblems";
+import {
 	forceLogoutPlatformUser,
 	getPlatformUser,
 	listPlatformUsers,
@@ -91,7 +98,6 @@ import {
 	type PlatformUser,
 	type ResetPlatformUserPasswordInput,
 	type ResetPlatformUserPasswordResult,
-	type UpdatePlatformUserInput,
 } from "#src/api/users";
 
 const { Link, Text } = Typography;
@@ -137,11 +143,6 @@ interface UserTableState {
 	sort: ListPlatformUsersInput["sort"];
 }
 
-interface EditUserFormValues {
-	displayName: string;
-	status: UpdatePlatformUserInput["status"];
-}
-
 type ResetPasswordFormValues = ResetPlatformUserPasswordInput;
 
 interface ResetPasswordResultView extends ResetPlatformUserPasswordResult {
@@ -153,39 +154,6 @@ interface ResetPasswordMutationInput {
 	input: ResetPlatformUserPasswordInput;
 	userId: string;
 	username: string;
-}
-
-function getProblemDetail(error: unknown) {
-	return error instanceof ApiProblemError ? error.problem?.detail : undefined;
-}
-
-function getMutationErrorTitleKey(
-	error: unknown,
-	invalidTitleKey = "adminShell.users.errors.invalid",
-	conflictTitleKey = "adminShell.users.errors.conflict",
-) {
-	if (!(error instanceof ApiProblemError)) {
-		return "adminShell.users.errors.request";
-	}
-
-	switch (error.status) {
-		case 400:
-			return invalidTitleKey;
-		case 403:
-			return "adminShell.users.errors.forbidden";
-		case 409:
-			return conflictTitleKey;
-		default:
-			return "adminShell.users.errors.request";
-	}
-}
-
-function getProblemFallback(error: unknown, fallback: string) {
-	return getProblemDetail(error) ?? fallback;
-}
-
-function isApiProblemStatus(error: unknown, status: number) {
-	return error instanceof ApiProblemError && error.status === status;
 }
 
 export function UsersPage() {
@@ -213,9 +181,7 @@ export function UsersPage() {
 		null,
 	);
 	const [roleUser, setRoleUser] = useState<PlatformUser | null>(null);
-	const [editForm] = Form.useForm<EditUserFormValues>();
 	const [resetPasswordForm] = Form.useForm<ResetPasswordFormValues>();
-	const editingStatus = Form.useWatch("status", editForm);
 	const [userDraftFilters, setUserDraftFilters] = useState<UserFilterValues>(
 		defaultUserFilterValues,
 	);
@@ -299,7 +265,6 @@ export function UsersPage() {
 		onSuccess: async () => {
 			await refreshUsers();
 			setEditingUser(null);
-			editForm.resetFields();
 		},
 	});
 	const resetPasswordMutation = useMutation({
@@ -333,11 +298,6 @@ export function UsersPage() {
 	});
 	const userRows = userQuery.data?.items ?? [];
 	const currentUserId = sessionQuery.data?.user.id;
-	const showsDisableWarning =
-		editingUser !== null &&
-		editingUser.status !== "disabled" &&
-		editingStatus === "disabled";
-	const updateUserConflict = isApiProblemStatus(updateUserMutation.error, 409);
 	const userTableSize = useSyncExternalStore(
 		subscribeToPreferenceChanges,
 		readUserTableDensityPreference,
@@ -383,16 +343,6 @@ export function UsersPage() {
 			),
 		[availableUserColumnKeys, visibleUserColumnKeys],
 	);
-
-	useEffect(() => {
-		if (editingUser) {
-			editForm.setFieldsValue({
-				displayName: editingUser.displayName,
-				status:
-					editingUser.status === "locked" ? "disabled" : editingUser.status,
-			});
-		}
-	}, [editForm, editingUser]);
 
 	const userTableColumns = useMemo<
 		NonNullable<TableProps<PlatformUser>["columns"]>
@@ -815,7 +765,7 @@ export function UsersPage() {
 			};
 		});
 	};
-	const updateCurrentUser = (values: EditUserFormValues) => {
+	const updateCurrentUser = (values: UserEditFormValues) => {
 		if (!editingUser || editingUser.version === undefined) {
 			void userQuery.refetch();
 			return;
@@ -962,110 +912,18 @@ export function UsersPage() {
 				/>
 			) : null}
 
-			<Modal
-				cancelText={t("adminShell.users.editForm.cancel")}
-				confirmLoading={updateUserMutation.isPending}
-				destroyOnHidden
-				okButtonProps={{
-					disabled: updateUserMutation.isPending || updateUserConflict,
-				}}
-				okText={t("adminShell.users.editForm.submit")}
+			<UserEditModal
+				error={updateUserMutation.error}
+				loading={updateUserMutation.isPending}
 				onCancel={() => {
 					updateUserMutation.reset();
 					setEditingUser(null);
 				}}
-				onOk={() => editForm.submit()}
-				open={editingUser !== null}
-				title={t("adminShell.users.editForm.title", {
-					name: editingUser?.username,
-				})}
-			>
-				<Flex gap={token.margin} vertical>
-					{updateUserMutation.isError ? (
-						<Alert
-							action={
-								updateUserConflict ? (
-									<Button onClick={reloadUsersAfterConflict} size="small">
-										{t("optimisticLock.reload")}
-									</Button>
-								) : undefined
-							}
-							description={
-								updateUserConflict
-									? t("optimisticLock.description")
-									: getProblemFallback(
-											updateUserMutation.error,
-											t("adminShell.users.errors.fallback"),
-										)
-							}
-							showIcon
-							title={
-								updateUserConflict
-									? t("optimisticLock.title")
-									: t(
-											getMutationErrorTitleKey(
-												updateUserMutation.error,
-												updateUserMutation.variables?.input.status ===
-													"disabled"
-													? "adminShell.users.errors.selfDisable"
-													: "adminShell.users.errors.invalid",
-											),
-										)
-							}
-							type="error"
-						/>
-					) : null}
-					<Form<EditUserFormValues>
-						form={editForm}
-						layout="vertical"
-						onFinish={updateCurrentUser}
-					>
-						<Form.Item
-							label={t("adminShell.users.createForm.displayName")}
-							name="displayName"
-							rules={[
-								{
-									max: 128,
-									message: t(
-										"adminShell.users.createForm.validation.displayNameRequired",
-									),
-									required: true,
-									whitespace: true,
-								},
-							]}
-						>
-							<Input autoComplete="name" />
-						</Form.Item>
-						<Form.Item
-							label={t("adminShell.users.columns.status")}
-							name="status"
-							rules={[{ required: true }]}
-						>
-							<Select
-								aria-label={t("adminShell.users.columns.status")}
-								options={[
-									{
-										label: t("adminShell.users.statuses.active"),
-										value: "active",
-									},
-									{
-										label: t("adminShell.users.statuses.disabled"),
-										value: "disabled",
-									},
-								]}
-							/>
-						</Form.Item>
-						{showsDisableWarning ? (
-							<Alert
-								description={t("adminShell.users.editForm.disableImpact")}
-								showIcon
-								title={t("dangerConfirmation.impactTitle")}
-								type="warning"
-							/>
-						) : null}
-					</Form>
-				</Flex>
-			</Modal>
+				onReloadConflict={reloadUsersAfterConflict}
+				onSubmit={updateCurrentUser}
+				requestedStatus={updateUserMutation.variables?.input.status}
+				user={editingUser}
+			/>
 
 			<Modal
 				cancelText={t("adminShell.users.resetPasswordForm.cancel")}

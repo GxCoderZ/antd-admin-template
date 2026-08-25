@@ -1,0 +1,60 @@
+import { ConfigProvider } from "antd";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import { i18n } from "../../../i18n";
+import { UserEditModal } from "./UserEditModal";
+
+const userRecord = {
+	createdAt: "2026-08-01T00:00:00.000Z",
+	displayName: "Platform Admin",
+	email: "admin@example.com",
+	id: "user-admin",
+	status: "active" as const,
+	updatedAt: "2026-08-25T00:00:00.000Z",
+	username: "admin",
+	version: 3,
+};
+
+beforeAll(async () => {
+	await i18n.changeLanguage("zh-CN");
+});
+
+describe("UserEditModal", () => {
+	it("saves routine edits without typed-name confirmation", async () => {
+		const onSubmit = vi.fn();
+		const user = userEvent.setup();
+
+		render(
+			<ConfigProvider>
+				<UserEditModal
+					error={null}
+					loading={false}
+					onCancel={vi.fn()}
+					onReloadConflict={vi.fn()}
+					onSubmit={onSubmit}
+					requestedStatus={undefined}
+					user={userRecord}
+				/>
+			</ConfigProvider>,
+		);
+
+		const dialog = await screen.findByRole("dialog", {
+			name: /编\s*辑 admin/,
+		});
+		expect(
+			within(dialog).queryByText(/输入.*admin.*确认/),
+		).not.toBeInTheDocument();
+
+		const displayNameInput = within(dialog).getByLabelText("显示名称");
+		await user.clear(displayNameInput);
+		await user.type(displayNameInput, "平台管理员");
+		await user.click(within(dialog).getByRole("button", { name: /保\s*存/ }));
+
+		expect(onSubmit).toHaveBeenCalledWith({
+			displayName: "平台管理员",
+			status: "active",
+		});
+	});
+});
