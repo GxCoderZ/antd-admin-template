@@ -9,7 +9,9 @@
 		"systemUser": "Users",
 		"role": "Roles",
 		"user": "Users",
-		"permission": "Permissions"
+		"permission": "Permissions",
+		"settings": "Platform Settings",
+		"about": "About System"
 	},
 	"appLoading": "Loading Resources...",
 	"back": "Back",

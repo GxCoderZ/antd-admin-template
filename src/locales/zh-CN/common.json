@@ -9,7 +9,9 @@
 		"systemUser": "用户管理",
 		"role": "角色管理",
 		"user": "用户管理",
-		"permission": "权限管理"
+		"permission": "权限管理",
+		"settings": "平台设置",
+		"about": "关于系统"
 	},
 	"appLoading": "资源正在加载中...",
 	"back": "返回",
