@@ -75,6 +75,7 @@ export default defineFakeRoute([
 				displayName: input.displayName,
 				status: "active",
 				createdAt: timestamp,
+				lastLoginAt: null,
 				updatedAt: timestamp,
 				mustChangePassword: true,
 				version: 1,

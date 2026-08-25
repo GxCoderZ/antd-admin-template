@@ -9,6 +9,7 @@ export interface PlatformUser {
 	displayName: string;
 	status: PlatformUserStatus;
 	createdAt: string;
+	lastLoginAt?: string | null;
 	updatedAt: string;
 	mustChangePassword?: boolean;
 	version?: number;

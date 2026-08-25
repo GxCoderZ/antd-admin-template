@@ -1,11 +1,14 @@
 import type { PlatformPermission } from "../types";
 
 export interface PlatformRole {
+	builtIn: boolean;
+	createdAt: string;
 	id: string;
 	roleKey: string;
 	displayName: string;
 	memberCount?: number;
 	permissions: PlatformPermission[];
+	updatedAt: string;
 	version?: number;
 }
 

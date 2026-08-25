@@ -1,5 +1,6 @@
 import {
 	EditOutlined,
+	EyeOutlined,
 	PlusOutlined,
 	SafetyCertificateOutlined,
 } from "@ant-design/icons";
@@ -10,9 +11,11 @@ import {
 	Button,
 	Card,
 	Checkbox,
+	Descriptions,
 	Drawer,
 	Flex,
 	Form,
+	Grid,
 	Input,
 	Modal,
 	Space,
@@ -29,11 +32,14 @@ import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router";
 
 import { DangerConfirmationModal } from "../../app/DangerConfirmation";
+import { formatDateTime } from "../../app/formatting";
+import { useLocalePreferences } from "../../app/localePreferences";
 import {
 	platformPermissions,
 	type PlatformPermission,
 } from "../../app/permissions";
 import { TableActionButton } from "../../app/TableActionButton";
+import { TableColumnSettings } from "../../app/TableColumnSettings";
 import { platformSessionQueryKey } from "#src/api/auth";
 import {
 	createPlatformRole,
@@ -47,9 +53,36 @@ import {
 	updatePlatformRole,
 } from "#src/api/roles";
 
-const { Text } = Typography;
+const { Link, Text } = Typography;
 type PermissionGroupKey = "roles" | "users" | "logs" | "settings";
 type RenameRoleFormValues = Pick<UpdatePlatformRoleInput, "displayName">;
+
+const roleColumnKeys = [
+	"id",
+	"displayName",
+	"roleKey",
+	"builtIn",
+	"memberCount",
+	"permissions",
+	"createdAt",
+	"updatedAt",
+	"version",
+	"actions",
+] as const;
+const defaultVisibleRoleColumnKeys: RoleColumnKey[] = [
+	"displayName",
+	"roleKey",
+	"builtIn",
+	"memberCount",
+	"actions",
+];
+const requiredRoleColumnKeys: RoleColumnKey[] = [
+	"displayName",
+	"roleKey",
+	"actions",
+];
+
+type RoleColumnKey = (typeof roleColumnKeys)[number];
 
 interface PermissionDefinition {
 	groupKey: PermissionGroupKey;
@@ -133,13 +166,19 @@ function isApiProblemStatus(error: unknown, status: number) {
 export function RolesPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const screens = Grid.useBreakpoint();
 	const queryClient = useQueryClient();
+	const formatPreferences = useLocalePreferences();
 	const [createForm] = Form.useForm<CreatePlatformRoleInput>();
 	const [renameForm] = Form.useForm<RenameRoleFormValues>();
 	const [createOpen, setCreateOpen] = useState(false);
 	const [renamingRole, setRenamingRole] = useState<PlatformRole | null>(null);
 	const [deletingRole, setDeletingRole] = useState<PlatformRole | null>(null);
+	const [viewingRole, setViewingRole] = useState<PlatformRole | null>(null);
 	const [permissionRoleId, setPermissionRoleId] = useState<string | null>(null);
+	const [visibleRoleColumnKeys, setVisibleRoleColumnKeys] = useState<
+		RoleColumnKey[]
+	>(defaultVisibleRoleColumnKeys);
 	const rolesQuery = useQuery({
 		queryFn: ({ signal }) => listPlatformRoles(signal),
 		queryKey: platformRolesQueryKey,
@@ -256,8 +295,26 @@ export function RolesPage() {
 	const columns = useMemo<NonNullable<TableProps<PlatformRole>["columns"]>>(
 		() => [
 			{
+				dataIndex: "id",
+				key: "id",
+				render: (id: string) => <Text code>{id}</Text>,
+				title: t("adminShell.roles.columns.id"),
+				width: token.controlHeight * 5,
+			},
+			{
 				dataIndex: "displayName",
 				key: "displayName",
+				render: (displayName: string, role: PlatformRole) => (
+					<Link
+						href="#role-details"
+						onClick={(event) => {
+							event.preventDefault();
+							setViewingRole(role);
+						}}
+					>
+						{displayName}
+					</Link>
+				),
 				title: t("adminShell.roles.columns.displayName"),
 				width: token.controlHeight * 5,
 			},
@@ -267,6 +324,17 @@ export function RolesPage() {
 				render: (roleKey: string) => <Text code>{roleKey}</Text>,
 				title: t("adminShell.roles.columns.roleKey"),
 				width: token.controlHeight * 5,
+			},
+			{
+				dataIndex: "builtIn",
+				key: "builtIn",
+				render: (builtIn: boolean) => (
+					<Tag {...(builtIn ? { color: "processing" } : {})}>
+						{t(`adminShell.roles.types.${builtIn ? "builtIn" : "custom"}`)}
+					</Tag>
+				),
+				title: t("adminShell.roles.columns.builtIn"),
+				width: token.controlHeight * 3,
 			},
 			{
 				align: "right",
@@ -307,9 +375,33 @@ export function RolesPage() {
 				width: token.controlHeight * 14,
 			},
 			{
+				dataIndex: "createdAt",
+				key: "createdAt",
+				render: (createdAt: string) =>
+					formatDateTime(createdAt, formatPreferences),
+				title: t("adminShell.roles.columns.createdAt"),
+				width: token.controlHeight * 5,
+			},
+			{
+				dataIndex: "updatedAt",
+				key: "updatedAt",
+				render: (updatedAt: string) =>
+					formatDateTime(updatedAt, formatPreferences),
+				title: t("adminShell.roles.columns.updatedAt"),
+				width: token.controlHeight * 5,
+			},
+			{
+				align: "right",
+				dataIndex: "version",
+				key: "version",
+				render: (version?: number) => version ?? "-",
+				title: t("adminShell.roles.columns.version"),
+				width: token.controlHeight * 3,
+			},
+			{
 				key: "actions",
 				render: (_: unknown, role: PlatformRole) => {
-					const isBuiltIn = role.roleKey === "super-admin";
+					const isBuiltIn = role.builtIn;
 					const deleteButton = (
 						<TableActionButton
 							danger
@@ -325,6 +417,12 @@ export function RolesPage() {
 
 					return (
 						<Space size={token.marginXS}>
+							<TableActionButton
+								icon={<EyeOutlined aria-hidden />}
+								onClick={() => setViewingRole(role)}
+							>
+								{t("adminShell.roles.view")}
+							</TableActionButton>
 							<TableActionButton
 								icon={<SafetyCertificateOutlined aria-hidden />}
 								onClick={() => {
@@ -356,11 +454,12 @@ export function RolesPage() {
 					);
 				},
 				title: t("adminShell.roles.columns.actions"),
-				width: token.controlHeight * 9,
+				width: token.controlHeight * 11,
 			},
 		],
 		[
 			deleteMutation,
+			formatPreferences,
 			permissionMutation,
 			renameForm,
 			renameMutation,
@@ -370,6 +469,13 @@ export function RolesPage() {
 			token.marginXS,
 		],
 	);
+	const visibleRoleColumns = columns.filter((column) =>
+		visibleRoleColumnKeys.includes(String(column.key) as RoleColumnKey),
+	);
+	const roleColumnOptions = roleColumnKeys.map((key) => ({
+		key,
+		label: t(`adminShell.roles.columns.${key}`),
+	}));
 
 	return (
 		<>
@@ -562,6 +668,94 @@ export function RolesPage() {
 
 			<Drawer
 				destroyOnHidden
+				onClose={() => setViewingRole(null)}
+				open={viewingRole !== null}
+				title={t("adminShell.roles.detailsTitle")}
+			>
+				{viewingRole ? (
+					<Descriptions
+						bordered
+						column={1}
+						items={[
+							{
+								key: "id",
+								label: t("adminShell.roles.columns.id"),
+								children: <Text code>{viewingRole.id}</Text>,
+							},
+							{
+								key: "displayName",
+								label: t("adminShell.roles.columns.displayName"),
+								children: viewingRole.displayName,
+							},
+							{
+								key: "roleKey",
+								label: t("adminShell.roles.columns.roleKey"),
+								children: <Text code>{viewingRole.roleKey}</Text>,
+							},
+							{
+								key: "builtIn",
+								label: t("adminShell.roles.columns.builtIn"),
+								children: t(
+									`adminShell.roles.types.${viewingRole.builtIn ? "builtIn" : "custom"}`,
+								),
+							},
+							{
+								key: "memberCount",
+								label: t("adminShell.roles.columns.memberCount"),
+								children: viewingRole.memberCount ?? 0,
+							},
+							{
+								key: "permissions",
+								label: t("adminShell.roles.columns.permissions"),
+								children:
+									viewingRole.permissions.length > 0 ? (
+										<Flex gap={token.marginXXS} wrap>
+											{viewingRole.permissions.map((permission) => {
+												const definition =
+													permissionDefinitionByValue[permission];
+
+												return (
+													<Tag key={permission}>
+														{t(
+															`adminShell.roles.permissions.items.${definition.i18nKey}.name`,
+														)}
+													</Tag>
+												);
+											})}
+										</Flex>
+									) : (
+										t("adminShell.roles.permissions.notConfigured")
+									),
+							},
+							{
+								key: "createdAt",
+								label: t("adminShell.roles.columns.createdAt"),
+								children: formatDateTime(
+									viewingRole.createdAt,
+									formatPreferences,
+								),
+							},
+							{
+								key: "updatedAt",
+								label: t("adminShell.roles.columns.updatedAt"),
+								children: formatDateTime(
+									viewingRole.updatedAt,
+									formatPreferences,
+								),
+							},
+							{
+								key: "version",
+								label: t("adminShell.roles.columns.version"),
+								children: viewingRole.version ?? "-",
+							},
+						]}
+						size="small"
+					/>
+				) : null}
+			</Drawer>
+
+			<Drawer
+				destroyOnHidden
 				onClose={() => {
 					permissionMutation.reset();
 					setPermissionRoleId(null);
@@ -661,16 +855,33 @@ export function RolesPage() {
 				) : null}
 				<Card
 					extra={
-						<Button
-							icon={<PlusOutlined aria-hidden />}
-							onClick={() => {
-								createMutation.reset();
-								setCreateOpen(true);
-							}}
-							type="primary"
-						>
-							{t("adminShell.roles.create")}
-						</Button>
+						<Space size={token.marginXXS}>
+							<TableColumnSettings
+								ariaLabel={t("adminShell.roles.tableSettings")}
+								columns={roleColumnOptions}
+								defaultVisibleKeys={defaultVisibleRoleColumnKeys}
+								onChange={(keys) =>
+									setVisibleRoleColumnKeys(keys as RoleColumnKey[])
+								}
+								requiredKeys={requiredRoleColumnKeys}
+								resetLabel={t("adminShell.roles.columnSettings.reset")}
+								selectAllLabel={t("adminShell.roles.columnSettings.title")}
+								visibleKeys={visibleRoleColumnKeys}
+							/>
+							<Tooltip title={t("adminShell.roles.create")}>
+								<Button
+									aria-label={t("adminShell.roles.create")}
+									icon={<PlusOutlined aria-hidden />}
+									onClick={() => {
+										createMutation.reset();
+										setCreateOpen(true);
+									}}
+									type="primary"
+								>
+									{screens.sm ? t("adminShell.roles.create") : null}
+								</Button>
+							</Tooltip>
+						</Space>
 					}
 					title={t("adminShell.roles.tableTitle")}
 				>
@@ -682,7 +893,7 @@ export function RolesPage() {
 							</RouterLink>
 						</Flex>
 						<Table<PlatformRole>
-							columns={columns}
+							columns={visibleRoleColumns}
 							dataSource={rolesQuery.data ?? []}
 							loading={rolesQuery.isFetching}
 							locale={{ emptyText: t("adminShell.roles.empty") }}

@@ -13,9 +13,11 @@ import {
 import type { TableColumnsType } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import { TableColumnSettings } from "../../app/TableColumnSettings";
 import { getSystemInfo, systemInfoQueryKey } from "#src/api/system";
 
 const { Text, Title } = Typography;
@@ -57,6 +59,15 @@ interface ProductionDependency {
 	name: string;
 	version: string;
 }
+
+const dependencyColumnKeys = ["name", "version"] as const;
+const defaultVisibleDependencyColumnKeys: DependencyColumnKey[] = [
+	"name",
+	"version",
+];
+const requiredDependencyColumnKeys: DependencyColumnKey[] = ["name"];
+
+type DependencyColumnKey = (typeof dependencyColumnKeys)[number];
 
 const technologyGroups: TechnologyGroup[] = [
 	{
@@ -208,6 +219,8 @@ export function AboutSystemPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const formatPreferences = useLocalePreferences();
+	const [visibleDependencyColumnKeys, setVisibleDependencyColumnKeys] =
+		useState<DependencyColumnKey[]>(defaultVisibleDependencyColumnKeys);
 	const systemInfoQuery = useQuery({
 		queryKey: [systemInfoQueryKey],
 		queryFn: ({ signal }) => getSystemInfo(signal),
@@ -225,6 +238,19 @@ export function AboutSystemPage() {
 			width: token.controlHeight * 4,
 		},
 	];
+	const visibleDependencyColumns = dependencyColumns.filter((column) =>
+		visibleDependencyColumnKeys.includes(
+			String(column.key) as DependencyColumnKey,
+		),
+	);
+	const dependencyColumnOptions = dependencyColumnKeys.map((key) => ({
+		key,
+		label: t(
+			key === "name"
+				? "adminShell.about.nameColumn"
+				: "adminShell.about.versionColumn",
+		),
+	}));
 	const statusColor = (status: TechnologyStatus) =>
 		status === "enabled"
 			? "success"
@@ -357,9 +383,25 @@ export function AboutSystemPage() {
 				</Row>
 			</section>
 
-			<Card title={t("adminShell.about.dependenciesTitle")}>
+			<Card
+				extra={
+					<TableColumnSettings
+						ariaLabel={t("adminShell.about.tableSettings")}
+						columns={dependencyColumnOptions}
+						defaultVisibleKeys={defaultVisibleDependencyColumnKeys}
+						onChange={(keys) =>
+							setVisibleDependencyColumnKeys(keys as DependencyColumnKey[])
+						}
+						requiredKeys={requiredDependencyColumnKeys}
+						resetLabel={t("adminShell.about.columnSettings.reset")}
+						selectAllLabel={t("adminShell.about.columnSettings.title")}
+						visibleKeys={visibleDependencyColumnKeys}
+					/>
+				}
+				title={t("adminShell.about.dependenciesTitle")}
+			>
 				<Table<ProductionDependency>
-					columns={dependencyColumns}
+					columns={visibleDependencyColumns}
 					data-testid="about-production-dependencies"
 					dataSource={productionDependencies}
 					pagination={false}

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import * as systemApi from "#src/api/system";
@@ -68,5 +69,28 @@ describe("AboutSystemPage", () => {
 		expect(screen.getByText(/服务端状态与请求缓存/)).toBeVisible();
 		expect(screen.queryByText("Zustand")).not.toBeInTheDocument();
 		expect(screen.queryByText("Ant Design Plots")).not.toBeInTheDocument();
+	});
+
+	it("keeps dependency names required and lets users hide the version column", async () => {
+		vi.spyOn(systemApi, "getSystemInfo").mockResolvedValue({
+			builtAt: "2026-08-25T10:00:00.000Z",
+			commitSha: "93376d3f00ab",
+			environment: "local-development",
+			service: "antd-admin-template-fake-ui",
+			version: "0.1.0",
+		});
+		const user = userEvent.setup();
+		renderAboutSystemPage();
+
+		await screen.findByRole("columnheader", { name: "版本" });
+		await user.click(screen.getByRole("button", { name: "列设置" }));
+
+		expect(screen.getByRole("checkbox", { name: "依赖" })).toBeDisabled();
+		expect(screen.getByRole("checkbox", { name: "版本" })).toBeChecked();
+
+		await user.click(screen.getByRole("checkbox", { name: "版本" }));
+		expect(
+			screen.queryByRole("columnheader", { name: "版本" }),
+		).not.toBeInTheDocument();
 	});
 });

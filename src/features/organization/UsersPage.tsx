@@ -21,10 +21,12 @@ import {
 	Checkbox,
 	Col,
 	ConfigProvider,
+	Descriptions,
 	Drawer,
 	Dropdown,
 	Flex,
 	Form,
+	Grid,
 	Input,
 	type MenuProps,
 	Modal,
@@ -96,6 +98,7 @@ import {
 	updatePlatformUser,
 	type ListPlatformUsersInput,
 	type PlatformUser,
+	type PlatformUserDetail,
 	type ResetPlatformUserPasswordInput,
 	type ResetPlatformUserPasswordResult,
 } from "#src/api/users";
@@ -104,13 +107,33 @@ const { Link, Text } = Typography;
 const defaultUserFilterValues: UserFilterValues = { status: "all" };
 const userQueryFilterFieldCount = 2;
 const userColumnKeys = [
+	"id",
 	"username",
 	"displayName",
 	"email",
 	"status",
+	"roles",
+	"lastLoginAt",
 	"createdAt",
+	"updatedAt",
+	"mustChangePassword",
+	"version",
 	"actions",
 ] as const;
+const defaultVisibleUserColumnKeys: UserColumnKey[] = [
+	"username",
+	"displayName",
+	"email",
+	"status",
+	"roles",
+	"lastLoginAt",
+	"actions",
+];
+const requiredUserColumnKeys: UserColumnKey[] = [
+	"username",
+	"status",
+	"actions",
+];
 const userStatusBadgeByStatus: Record<
 	PlatformUser["status"],
 	"default" | "error" | "success"
@@ -159,6 +182,7 @@ interface ResetPasswordMutationInput {
 export function UsersPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const screens = Grid.useBreakpoint();
 	const queryClient = useQueryClient();
 	const formatPreferences = useLocalePreferences();
 	const canManageUsers = usePermission(platformPermissions.usersManage);
@@ -180,7 +204,7 @@ export function UsersPage() {
 	const [forceLogoutUser, setForceLogoutUser] = useState<PlatformUser | null>(
 		null,
 	);
-	const [roleUser, setRoleUser] = useState<PlatformUser | null>(null);
+	const [roleUser, setRoleUser] = useState<PlatformUserDetail | null>(null);
 	const [resetPasswordForm] = Form.useForm<ResetPasswordFormValues>();
 	const [userDraftFilters, setUserDraftFilters] = useState<UserFilterValues>(
 		defaultUserFilterValues,
@@ -309,7 +333,7 @@ export function UsersPage() {
 	]);
 	const [visibleUserColumnKeys, setVisibleUserColumnKeys] = useState<
 		UserColumnKey[]
-	>([...userColumnKeys]);
+	>(defaultVisibleUserColumnKeys);
 	const userTableWorkspaceRef = useRef<HTMLDivElement>(null);
 	const userSelectionColumnWidth = token.controlHeightSM + token.marginXXS;
 	const userTableMinimumWidth =
@@ -345,7 +369,7 @@ export function UsersPage() {
 	);
 
 	const userTableColumns = useMemo<
-		NonNullable<TableProps<PlatformUser>["columns"]>
+		NonNullable<TableProps<PlatformUserDetail>["columns"]>
 	>(() => {
 		const sortOrder = (column: ListPlatformUsersInput["sort"]) =>
 			userTableState.sort === column && userTableState.order
@@ -353,74 +377,151 @@ export function UsersPage() {
 					? "ascend"
 					: "descend"
 				: null;
-		const dataColumns: NonNullable<TableProps<PlatformUser>["columns"]> = [
-			{
-				dataIndex: "username",
-				key: "username",
-				sortDirections: ["ascend", "descend"],
-				sorter: true,
-				sortOrder: sortOrder("username"),
-				title: t("adminShell.users.columns.username"),
-				width: token.controlHeight * 4,
-			},
-			{
-				dataIndex: "displayName",
-				key: "displayName",
-				render: (displayName: string, row: PlatformUser) => (
-					<Space size={token.marginXS}>
-						<PlatformUserAvatar
-							displayName={displayName || row.username}
-							revision={row.updatedAt}
-							size="small"
-							userId={row.id}
+		const dataColumns: NonNullable<TableProps<PlatformUserDetail>["columns"]> =
+			[
+				{
+					dataIndex: "id",
+					key: "id",
+					render: (id: string) => <Text code>{id}</Text>,
+					title: t("adminShell.users.columns.id"),
+					width: token.controlHeight * 5,
+				},
+				{
+					dataIndex: "username",
+					key: "username",
+					sortDirections: ["ascend", "descend"],
+					sorter: true,
+					sortOrder: sortOrder("username"),
+					title: t("adminShell.users.columns.username"),
+					width: token.controlHeight * 4,
+				},
+				{
+					dataIndex: "displayName",
+					key: "displayName",
+					render: (displayName: string, row: PlatformUserDetail) => (
+						<Space size={token.marginXS}>
+							<PlatformUserAvatar
+								displayName={displayName || row.username}
+								revision={row.updatedAt}
+								size="small"
+								userId={row.id}
+							/>
+							<Link
+								href="#user-details"
+								onClick={(event) => {
+									event.preventDefault();
+									roleMutation.reset();
+									setRoleUser(row);
+								}}
+							>
+								{displayName}
+							</Link>
+						</Space>
+					),
+					title: t("adminShell.users.columns.displayName"),
+					width: token.controlHeight * 5,
+				},
+				{
+					dataIndex: "email",
+					key: "email",
+					sortDirections: ["ascend", "descend"],
+					sorter: true,
+					sortOrder: sortOrder("email"),
+					title: t("adminShell.users.columns.email"),
+					width: token.controlHeight * 7,
+				},
+				{
+					dataIndex: "status",
+					key: "status",
+					sortDirections: ["ascend", "descend"],
+					sorter: true,
+					sortOrder: sortOrder("status"),
+					render: (status: PlatformUser["status"]) => (
+						<Badge
+							status={userStatusBadgeByStatus[status]}
+							text={t(`adminShell.users.statuses.${status}`)}
 						/>
-						<Link>{displayName}</Link>
-					</Space>
-				),
-				title: t("adminShell.users.columns.displayName"),
-				width: token.controlHeight * 5,
-			},
-			{
-				dataIndex: "email",
-				key: "email",
-				sortDirections: ["ascend", "descend"],
-				sorter: true,
-				sortOrder: sortOrder("email"),
-				title: t("adminShell.users.columns.email"),
-				width: token.controlHeight * 7,
-			},
-			{
-				dataIndex: "status",
-				key: "status",
-				sortDirections: ["ascend", "descend"],
-				sorter: true,
-				sortOrder: sortOrder("status"),
-				render: (status: PlatformUser["status"]) => (
-					<Badge
-						status={userStatusBadgeByStatus[status]}
-						text={t(`adminShell.users.statuses.${status}`)}
-					/>
-				),
-				title: t("adminShell.users.columns.status"),
-				width: token.controlHeightLG * 2,
-			},
-			{
-				dataIndex: "createdAt",
-				key: "createdAt",
-				render: (createdAt: string) =>
-					formatDateTime(createdAt, formatPreferences),
-				sortDirections: ["ascend", "descend"],
-				sorter: true,
-				sortOrder: sortOrder("created_at"),
-				title: t("adminShell.users.columns.createdAt"),
-				width: token.controlHeight * 5,
-			},
-		];
+					),
+					title: t("adminShell.users.columns.status"),
+					width: token.controlHeightLG * 2,
+				},
+				{
+					dataIndex: "roles",
+					key: "roles",
+					render: (roles: PlatformUserDetail["roles"]) =>
+						roles.length > 0 ? (
+							<Space size={token.marginXXS} wrap>
+								{roles.map((role) => (
+									<Tag key={role.id}>{role.displayName}</Tag>
+								))}
+							</Space>
+						) : (
+							<Text type="secondary">{t("adminShell.users.roles.empty")}</Text>
+						),
+					title: t("adminShell.users.columns.roles"),
+					width: token.controlHeight * 5,
+				},
+				{
+					dataIndex: "lastLoginAt",
+					key: "lastLoginAt",
+					render: (lastLoginAt?: string | null) =>
+						lastLoginAt
+							? formatDateTime(lastLoginAt, formatPreferences)
+							: t("adminShell.users.notRecorded"),
+					title: t("adminShell.users.columns.lastLoginAt"),
+					width: token.controlHeight * 5,
+				},
+				{
+					dataIndex: "createdAt",
+					key: "createdAt",
+					render: (createdAt: string) =>
+						formatDateTime(createdAt, formatPreferences),
+					sortDirections: ["ascend", "descend"],
+					sorter: true,
+					sortOrder: sortOrder("created_at"),
+					title: t("adminShell.users.columns.createdAt"),
+					width: token.controlHeight * 5,
+				},
+				{
+					dataIndex: "updatedAt",
+					key: "updatedAt",
+					render: (updatedAt: string) =>
+						formatDateTime(updatedAt, formatPreferences),
+					title: t("adminShell.users.columns.updatedAt"),
+					width: token.controlHeight * 5,
+				},
+				{
+					align: "center",
+					dataIndex: "mustChangePassword",
+					key: "mustChangePassword",
+					render: (mustChangePassword?: boolean) =>
+						t(`adminShell.users.${mustChangePassword ? "yes" : "no"}`),
+					title: t("adminShell.users.columns.mustChangePassword"),
+					width: token.controlHeight * 5,
+				},
+				{
+					align: "right",
+					dataIndex: "version",
+					key: "version",
+					render: (version?: number) =>
+						version ?? t("adminShell.users.notRecorded"),
+					title: t("adminShell.users.columns.version"),
+					width: token.controlHeight * 3,
+				},
+			];
 
 		dataColumns.push({
 			key: "actions",
-			render: (_: unknown, row: PlatformUser) => (
+			render: (_: unknown, row: PlatformUserDetail) => (
 				<Space size={token.marginXS}>
+					<TableActionButton
+						onClick={() => {
+							roleMutation.reset();
+							setRoleUser(row);
+						}}
+					>
+						{t("adminShell.users.view")}
+					</TableActionButton>
 					<TableActionButton
 						onClick={() => {
 							roleMutation.reset();
@@ -467,7 +568,7 @@ export function UsersPage() {
 				</Space>
 			),
 			title: t("adminShell.users.columns.actions"),
-			width: token.controlHeight * 8,
+			width: token.controlHeight * 9,
 		});
 
 		const dataColumnByKey = new Map(
@@ -491,6 +592,7 @@ export function UsersPage() {
 		t,
 		token.controlHeight,
 		token.controlHeightLG,
+		token.marginXXS,
 		token.marginXS,
 		updateUserMutation,
 		userColumnOrder,
@@ -545,6 +647,88 @@ export function UsersPage() {
 						),
 					)}
 					type="error"
+				/>
+			) : null}
+			{userDetailQuery.data ? (
+				<Descriptions
+					bordered
+					column={1}
+					items={[
+						{
+							key: "id",
+							label: t("adminShell.users.columns.id"),
+							children: <Text code>{userDetailQuery.data.id}</Text>,
+						},
+						{
+							key: "username",
+							label: t("adminShell.users.columns.username"),
+							children: userDetailQuery.data.username,
+						},
+						{
+							key: "displayName",
+							label: t("adminShell.users.columns.displayName"),
+							children: userDetailQuery.data.displayName,
+						},
+						{
+							key: "email",
+							label: t("adminShell.users.columns.email"),
+							children: userDetailQuery.data.email,
+						},
+						{
+							key: "status",
+							label: t("adminShell.users.columns.status"),
+							children: (
+								<Badge
+									status={userStatusBadgeByStatus[userDetailQuery.data.status]}
+									text={t(
+										`adminShell.users.statuses.${userDetailQuery.data.status}`,
+									)}
+								/>
+							),
+						},
+						{
+							key: "lastLoginAt",
+							label: t("adminShell.users.columns.lastLoginAt"),
+							children: userDetailQuery.data.lastLoginAt
+								? formatDateTime(
+										userDetailQuery.data.lastLoginAt,
+										formatPreferences,
+									)
+								: t("adminShell.users.notRecorded"),
+						},
+						{
+							key: "mustChangePassword",
+							label: t("adminShell.users.columns.mustChangePassword"),
+							children: t(
+								`adminShell.users.${userDetailQuery.data.mustChangePassword ? "yes" : "no"}`,
+							),
+						},
+						{
+							key: "createdAt",
+							label: t("adminShell.users.columns.createdAt"),
+							children: formatDateTime(
+								userDetailQuery.data.createdAt,
+								formatPreferences,
+							),
+						},
+						{
+							key: "updatedAt",
+							label: t("adminShell.users.columns.updatedAt"),
+							children: formatDateTime(
+								userDetailQuery.data.updatedAt,
+								formatPreferences,
+							),
+						},
+						{
+							key: "version",
+							label: t("adminShell.users.columns.version"),
+							children:
+								userDetailQuery.data.version ??
+								t("adminShell.users.notRecorded"),
+						},
+					]}
+					size="small"
+					title={t("adminShell.users.accountDetails")}
 				/>
 			) : null}
 			<Flex gap={token.marginXS} vertical>
@@ -623,9 +807,19 @@ export function UsersPage() {
 				checked={availableUserColumnKeys.every((columnKey) =>
 					visibleAvailableUserColumnKeys.includes(columnKey),
 				)}
+				indeterminate={
+					availableUserColumnKeys.some((columnKey) =>
+						visibleAvailableUserColumnKeys.includes(columnKey),
+					) &&
+					!availableUserColumnKeys.every((columnKey) =>
+						visibleAvailableUserColumnKeys.includes(columnKey),
+					)
+				}
 				onChange={(event) => {
 					setVisibleUserColumnKeys(
-						event.target.checked ? [...availableUserColumnKeys] : ["username"],
+						event.target.checked
+							? [...availableUserColumnKeys]
+							: [...requiredUserColumnKeys],
 					);
 				}}
 			>
@@ -634,7 +828,7 @@ export function UsersPage() {
 			<Button
 				onClick={() => {
 					setUserColumnOrder([...userColumnKeys]);
-					setVisibleUserColumnKeys([...availableUserColumnKeys]);
+					setVisibleUserColumnKeys([...defaultVisibleUserColumnKeys]);
 				}}
 				size="small"
 				type="link"
@@ -668,7 +862,7 @@ export function UsersPage() {
 						setVisibleUserColumnKeys(
 							availableUserColumnKeys.filter(
 								(columnKey) =>
-									columnKey === "username" ||
+									requiredUserColumnKeys.includes(columnKey) ||
 									nextCheckedKeys.includes(columnKey),
 							),
 						);
@@ -696,7 +890,7 @@ export function UsersPage() {
 					treeData={userColumnOrder
 						.filter((columnKey) => availableUserColumnKeys.includes(columnKey))
 						.map((columnKey) => ({
-							disabled: columnKey === "username",
+							disabled: requiredUserColumnKeys.includes(columnKey),
 							key: columnKey,
 							title: t(`adminShell.users.columns.${columnKey}`),
 						}))}
@@ -744,7 +938,7 @@ export function UsersPage() {
 
 		void userTableWorkspace.requestFullscreen?.();
 	};
-	const handleTableChange: TableProps<PlatformUser>["onChange"] = (
+	const handleTableChange: TableProps<PlatformUserDetail>["onChange"] = (
 		pagination,
 		_filters,
 		sorter,
@@ -1009,9 +1203,7 @@ export function UsersPage() {
 					setRoleUser(null);
 				}}
 				open={roleUser !== null}
-				title={t("adminShell.users.roles.title", {
-					name: roleUser?.username,
-				})}
+				title={t("adminShell.users.detailsTitle")}
 			>
 				{roleDrawerContent}
 			</Drawer>
@@ -1150,15 +1342,18 @@ export function UsersPage() {
 				<Card
 					data-testid="admin-users-table-card"
 					extra={
-						<Space>
+						<Space size={token.marginXXS}>
 							{canManageUsers ? (
-								<Button
-									icon={<PlusOutlined aria-hidden />}
-									onClick={() => setCreateUserOpen(true)}
-									type="primary"
-								>
-									{t("adminShell.users.create")}
-								</Button>
+								<Tooltip title={t("adminShell.users.create")}>
+									<Button
+										aria-label={t("adminShell.users.create")}
+										icon={<PlusOutlined aria-hidden />}
+										onClick={() => setCreateUserOpen(true)}
+										type="primary"
+									>
+										{screens.sm ? t("adminShell.users.create") : null}
+									</Button>
+								</Tooltip>
 							) : null}
 							<Tooltip title={t("adminShell.users.reload")}>
 								<Button
@@ -1249,7 +1444,7 @@ export function UsersPage() {
 					}}
 					title={t("adminShell.users.tableTitle")}
 				>
-					<Table<PlatformUser>
+					<Table<PlatformUserDetail>
 						columns={userTableColumns}
 						dataSource={userRows}
 						loading={userQuery.isFetching}

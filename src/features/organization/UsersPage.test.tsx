@@ -10,6 +10,7 @@ import { i18n } from "../../i18n";
 import { UsersPage } from "./UsersPage";
 
 const mocks = vi.hoisted(() => ({
+	getPlatformUser: vi.fn(),
 	listPlatformUsers: vi.fn(),
 	updatePlatformUser: vi.fn(),
 }));
@@ -39,7 +40,7 @@ vi.mock("#src/api/roles", () => ({
 vi.mock("#src/api/users", () => ({
 	createPlatformUser: vi.fn(),
 	forceLogoutPlatformUser: vi.fn(),
-	getPlatformUser: vi.fn().mockResolvedValue({ roles: [] }),
+	getPlatformUser: mocks.getPlatformUser,
 	listPlatformUsers: mocks.listPlatformUsers,
 	platformUserDetailQueryKey: (userId: string) => ["platform-users", userId],
 	platformUsersQueryKey: ["platform-users"],
@@ -58,7 +59,16 @@ const adminUser = {
 	displayName: "Platform Admin",
 	email: "admin@example.com",
 	id: "user-admin",
+	lastLoginAt: "2026-08-25T12:00:00.000Z",
+	roles: [
+		{
+			displayName: "超级管理员",
+			id: "role-admin",
+			roleKey: "super-admin",
+		},
+	],
 	status: "active" as const,
+	mustChangePassword: true,
 	updatedAt: "2026-08-25T00:00:00.000Z",
 	username: "admin",
 	version: 3,
@@ -69,6 +79,16 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	mocks.getPlatformUser.mockReset().mockResolvedValue({
+		...adminUser,
+		roles: [
+			{
+				displayName: "超级管理员",
+				id: "role-admin",
+				roleKey: "super-admin",
+			},
+		],
+	});
 	mocks.listPlatformUsers.mockReset().mockResolvedValue({
 		items: [adminUser],
 		page: 1,
@@ -136,5 +156,64 @@ describe("UsersPage", () => {
 				expect.any(AbortSignal),
 			);
 		});
+	});
+
+	it("keeps frequent columns visible and offers every account field in column settings", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		expect(
+			screen.queryByRole("columnheader", { name: "用户 ID" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("columnheader", { name: "更新时间" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("columnheader", { name: "创建时间" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.getByRole("columnheader", { name: "已分配角色" }),
+		).toBeVisible();
+		expect(
+			screen.getByRole("columnheader", { name: "最近登录" }),
+		).toBeVisible();
+
+		await user.click(screen.getByRole("button", { name: "表格设置" }));
+
+		expect(screen.getByRole("checkbox", { name: "用户名" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("checkbox", { name: "状态" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("checkbox", { name: "操作" })).toHaveAttribute(
+			"aria-disabled",
+			"true",
+		);
+		expect(screen.getByRole("checkbox", { name: /用户 ID/ })).not.toBeChecked();
+		expect(
+			screen.getByRole("checkbox", { name: /下次登录修改密码/ }),
+		).not.toBeChecked();
+		expect(
+			screen.getByRole("checkbox", { name: /数据版本/ }),
+		).not.toBeChecked();
+
+		await user.click(screen.getByRole("checkbox", { name: /用户 ID/ }));
+		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+	});
+
+	it("shows the complete account contract from the user details entry", async () => {
+		const user = renderUsersPage();
+
+		await user.click(
+			await screen.findByRole("link", { name: "Platform Admin" }),
+		);
+
+		expect(await screen.findByText("用户详情")).toBeVisible();
+		expect(screen.getByText("user-admin")).toBeVisible();
+		expect(screen.getByText("下次登录修改密码")).toBeVisible();
+		expect(screen.getAllByText("超级管理员").length).toBeGreaterThan(0);
 	});
 });

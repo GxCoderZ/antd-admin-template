@@ -4,7 +4,6 @@ import type {
 	CreatePlatformUserInput,
 	ListPlatformUsersInput,
 	PlatformUserDetail,
-	PlatformUser,
 	ResetPlatformUserPasswordInput,
 	ResetPlatformUserPasswordResult,
 	UpdatePlatformUserInput,
@@ -25,7 +24,7 @@ export function listPlatformUsers(
 	signal?: AbortSignal,
 ) {
 	const { pageSize, ...query } = input;
-	return request<ApiPage<PlatformUser>>("/platform/users", {
+	return request<ApiPage<PlatformUserDetail>>("/platform/users", {
 		query: { ...query, page_size: pageSize },
 		signal,
 	}).then(({ items, page, page_size, total }) => ({
