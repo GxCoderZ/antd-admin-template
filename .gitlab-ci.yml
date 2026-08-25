@@ -1,0 +1,43 @@
+default:
+  image: node:24.17.0-bookworm
+  interruptible: true
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store
+  before_script:
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
+
+stages:
+  - verify
+  - e2e
+
+quality:
+  stage: verify
+  script:
+    - pnpm run typecheck
+    - pnpm test -- --run
+    - pnpm run lint
+    - pnpm run check:circular-deps
+    - pnpm run check:unused
+    - pnpm run build:prod
+
+browser-smoke:
+  stage: e2e
+  variables:
+    PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+      prefix: playwright
+    paths:
+      - .pnpm-store
+      - .cache/ms-playwright
+  script:
+    - pnpm exec playwright install --with-deps chromium
+    - pnpm run test:e2e

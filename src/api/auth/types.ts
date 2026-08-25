@@ -1,6 +1,6 @@
 import type { PlatformPermission } from "../types";
 
-export interface PlatformSessionUser {
+interface PlatformSessionUser {
 	id: string;
 	username: string;
 	email: string;

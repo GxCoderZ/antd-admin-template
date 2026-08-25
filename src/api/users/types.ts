@@ -1,6 +1,6 @@
 import type { PlatformUserRole } from "../types";
 
-export type PlatformUserStatus = "active" | "disabled" | "locked";
+type PlatformUserStatus = "active" | "disabled" | "locked";
 
 export interface PlatformUser {
 	id: string;
@@ -16,13 +16,6 @@ export interface PlatformUser {
 
 export interface PlatformUserDetail extends PlatformUser {
 	roles: PlatformUserRole[];
-}
-
-export interface PlatformUserList {
-	items: PlatformUser[];
-	page: number;
-	pageSize: number;
-	total: number;
 }
 
 export interface ListPlatformUsersInput {

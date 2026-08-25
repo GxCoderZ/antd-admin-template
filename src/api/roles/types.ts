@@ -1,7 +1,5 @@
 import type { PlatformPermission } from "../types";
 
-export type { PlatformPermission } from "../types";
-
 export interface PlatformRole {
 	id: string;
 	roleKey: string;

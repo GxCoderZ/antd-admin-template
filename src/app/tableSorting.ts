@@ -1,4 +1,4 @@
-export type ApiSortOrder = "asc" | "desc";
+type ApiSortOrder = "asc" | "desc";
 
 type TableSortOrder = "ascend" | "descend" | null | undefined;
 

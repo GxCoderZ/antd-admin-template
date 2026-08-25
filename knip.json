@@ -1,0 +1,5 @@
+{
+	"$schema": "https://unpkg.com/knip@6/schema.json",
+	"entry": ["fake/*.fake.ts"],
+	"project": ["src/**/*.{ts,tsx}", "fake/**/*.ts", "e2e/**/*.ts"]
+}

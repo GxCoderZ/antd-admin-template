@@ -1,0 +1,24 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended"],
+	"labels": ["dependencies"],
+	"rangeStrategy": "pin",
+	"timezone": "Asia/Shanghai",
+	"packageRules": [
+		{
+			"description": "Keep TypeScript on the supported 6.x line",
+			"matchPackageNames": ["typescript"],
+			"allowedVersions": "<7.0.0"
+		},
+		{
+			"description": "Keep the MIT-licensed UAParser v1 release line",
+			"matchPackageNames": ["ua-parser-js"],
+			"allowedVersions": "<2.0.0"
+		},
+		{
+			"groupName": "non-major dependencies",
+			"groupSlug": "non-major",
+			"matchUpdateTypes": ["minor", "patch"]
+		}
+	]
+}

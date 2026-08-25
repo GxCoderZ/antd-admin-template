@@ -22,7 +22,7 @@ interface LazyAdminRouteModule {
 	Component: ComponentType;
 }
 
-export interface AdminRouteAlias {
+interface AdminRouteAlias {
 	lazy: () => Promise<LazyAdminRouteModule>;
 	path: string;
 }

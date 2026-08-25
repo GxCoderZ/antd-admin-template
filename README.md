@@ -5,9 +5,9 @@
 ## Stack
 
 - React 19, TypeScript 6, Vite 8, React Router 8
-- Ant Design 6, Ant Design Plots 2
-- TanStack Query 5, Zustand 5
-- i18next, vite-plugin-fake-server, Vitest
+- Ant Design 6, TanStack Query 5
+- i18next, vite-plugin-fake-server
+- Vitest, Testing Library, Playwright, Knip
 
 ## Commands
 
@@ -16,8 +16,10 @@ pnpm install --frozen-lockfile
 pnpm dev
 pnpm run typecheck
 pnpm test -- --run
+pnpm run test:e2e
 pnpm run lint
 pnpm run check:circular-deps
+pnpm run check:unused
 pnpm run build:prod
 pnpm preview
 ```

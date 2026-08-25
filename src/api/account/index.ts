@@ -65,10 +65,6 @@ export async function uploadPlatformAccountAvatar(file: File) {
 	});
 }
 
-export function deletePlatformAccountAvatar() {
-	return request<void>("/platform/account/avatar", { method: "DELETE" });
-}
-
 export function getPlatformAccountNotifications(signal?: AbortSignal) {
 	return request<PlatformAccountNotifications>(
 		"/platform/account/notifications",

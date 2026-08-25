@@ -31,9 +31,8 @@ product-ui/
 ## 技术栈和命令
 
 - React 19、TypeScript、Vite 8、React Router 8。
-- Ant Design 6、Ant Design Plots 2。
-- TanStack Query 5、Zustand 5。
-- `vite-plugin-fake-server`、Vitest、Testing Library。
+- Ant Design 6、TanStack Query 5。
+- `vite-plugin-fake-server`、Vitest、Testing Library、Playwright、Knip。
 - 包管理器固定使用 pnpm。
 
 ```bash
@@ -41,8 +40,10 @@ pnpm install --frozen-lockfile
 pnpm dev
 pnpm run typecheck
 pnpm test -- --run
+pnpm run test:e2e
 pnpm run lint
 pnpm run check:circular-deps
+pnpm run check:unused
 pnpm run build:prod
 pnpm preview
 ```
@@ -102,7 +103,7 @@ src/features/<feature>/
 - `enableProd: true` 时 Fake 文件不能使用 Node 专属模块。
 - Fake CRUD 应保留当前预览会话内的内存变化，不能所有写操作都只返回成功但页面不变化。
 - 页面不得知道数据来自 Fake；将来正式项目复制页面后，由正式项目自己的 `src/api` 接真实数据。
-- Zustand 只用于跨页面状态。普通列表、表单和抽屉不为套层而新增 Store。
+- 跨页面状态优先使用现有 React Context 和 TanStack Query；普通列表、表单和抽屉不新增全局 Store。
 
 ## 路由、菜单和权限
 
@@ -240,8 +241,10 @@ export default defineFakeRoute([
 ```bash
 pnpm run typecheck
 pnpm test -- --run
+pnpm run test:e2e
 pnpm run lint
 pnpm run check:circular-deps
+pnpm run check:unused
 pnpm run build:prod
 ```
 

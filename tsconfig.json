@@ -10,8 +10,8 @@
 		"forceConsistentCasingInFileNames": true,
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
-    "paths": {
-      "#src/*": ["./src/*"]
+		"paths": {
+			"#src/*": ["./src/*"]
 		},
 		"resolveJsonModule": true,
 		"isolatedModules": true,
@@ -23,5 +23,5 @@
 		"noFallthroughCasesInSwitch": true,
 		"types": ["node", "vitest/globals", "@testing-library/jest-dom"]
 	},
-	"include": ["src", "fake", "vite.config.ts"]
+	"include": ["src", "fake", "e2e", "vite.config.ts", "playwright.config.ts"]
 }

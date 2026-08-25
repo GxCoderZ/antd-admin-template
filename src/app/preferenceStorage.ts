@@ -13,14 +13,9 @@ export const preferenceStorageKeys = {
 	userTableDensity: `${APP_PREFERENCE_PREFIX}user-table-density`,
 } as const;
 
-export const supportedLanguageCodes = [
-	"zh-CN",
-	"zh-TW",
-	"en",
-	"ko-KR",
-] as const;
-export const themeModes = ["light", "dark", "system"] as const;
-export const themeColors = [
+const supportedLanguageCodes = ["zh-CN", "zh-TW", "en", "ko-KR"] as const;
+const themeModes = ["light", "dark", "system"] as const;
+const themeColors = [
 	"#1677ff",
 	"#f5222d",
 	"#fa8c16",
@@ -28,15 +23,15 @@ export const themeColors = [
 	"#13c2c2",
 	"#722ed1",
 ] as const;
-export const navigationModes = ["side", "top", "mixed"] as const;
-export const menuTypes = [
+const navigationModes = ["side", "top", "mixed"] as const;
+const menuTypes = [
 	"single",
 	"serviceGrid",
 	"twoColumn",
 	"splitServiceGrid",
 ] as const;
-export const userTableDensities = ["large", "middle", "small"] as const;
-export const supportedCurrencies = [
+const userTableDensities = ["large", "middle", "small"] as const;
+const supportedCurrencies = [
 	"CNY",
 	"USD",
 	"EUR",

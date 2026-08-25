@@ -1,6 +1,7 @@
 import {
 	Card,
 	Col,
+	Descriptions,
 	Divider,
 	Flex,
 	Row,
@@ -23,9 +24,11 @@ type TechnologyGroupKey = "fake" | "frontend" | "platform";
 type TechnologyStatus = "approved" | "enabled" | "reserved";
 type TechnologyType =
 	| "apiClient"
+	| "architecture"
 	| "build"
 	| "ci"
 	| "componentLibrary"
+	| "deployment"
 	| "dependencyAutomation"
 	| "i18n"
 	| "language"
@@ -33,9 +36,8 @@ type TechnologyType =
 	| "packageManager"
 	| "routing"
 	| "runtime"
-	| "stateManagement"
+	| "serverState"
 	| "testing"
-	| "visualization"
 	| "webFramework";
 
 interface TechnologyItem {
@@ -91,22 +93,10 @@ const technologyGroups: TechnologyGroup[] = [
 				versionPackages: ["antd"],
 			},
 			{
-				name: "Ant Design Plots",
-				status: "enabled",
-				type: "visualization",
-				versionPackages: ["@ant-design/plots"],
-			},
-			{
 				name: "TanStack Query",
 				status: "enabled",
-				type: "stateManagement",
+				type: "serverState",
 				versionPackages: ["@tanstack/react-query"],
-			},
-			{
-				name: "Zustand",
-				status: "enabled",
-				type: "stateManagement",
-				versionPackages: ["zustand"],
 			},
 			{
 				name: "i18next / react-i18next",
@@ -133,13 +123,19 @@ const technologyGroups: TechnologyGroup[] = [
 			{
 				name: "In-memory Fake domain state",
 				status: "enabled",
-				type: "stateManagement",
+				type: "architecture",
 			},
 			{
 				name: "Vitest / Testing Library",
 				status: "enabled",
 				type: "testing",
 				versionPackages: ["vitest", "@testing-library/react"],
+			},
+			{
+				name: "Playwright",
+				status: "enabled",
+				type: "testing",
+				versionPackages: ["@playwright/test"],
 			},
 		],
 	},
@@ -160,6 +156,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{ name: "GitLab CI/CD", status: "enabled", type: "ci" },
 			{
+				name: "Cloudflare Pages / GitHub",
+				status: "enabled",
+				type: "deployment",
+			},
+			{
 				name: "ESLint / Prettier",
 				status: "enabled",
 				type: "build",
@@ -172,6 +173,12 @@ const technologyGroups: TechnologyGroup[] = [
 				versionPackages: ["dependency-cruiser"],
 			},
 			{
+				name: "Knip",
+				status: "enabled",
+				type: "build",
+				versionPackages: ["knip"],
+			},
+			{
 				name: "Renovate",
 				status: "approved",
 				type: "dependencyAutomation",
@@ -182,7 +189,9 @@ const technologyGroups: TechnologyGroup[] = [
 
 const productionDependencies: ProductionDependency[] = Object.entries(
 	__ADMIN_WEB_DEPENDENCIES__,
-).map(([name, version]) => ({ name, version }));
+)
+	.map(([name, version]) => ({ name, version }))
+	.sort((left, right) => left.name.localeCompare(right.name));
 
 function resolveTechnologyVersion(item: TechnologyItem) {
 	if (item.workspaceTool) {
@@ -222,6 +231,43 @@ export function AboutSystemPage() {
 			: status === "approved"
 				? "processing"
 				: "default";
+	const systemInfoItems = systemInfoQuery.data
+		? [
+				{
+					key: "service",
+					label: t("adminShell.about.runtime.service"),
+					children: systemInfoQuery.data.service,
+				},
+				{
+					key: "version",
+					label: t("adminShell.about.runtime.version"),
+					children: systemInfoQuery.data.version,
+				},
+				{
+					key: "environment",
+					label: t("adminShell.about.runtime.environment"),
+					children: t(
+						`adminShell.about.runtime.environments.${systemInfoQuery.data.environment}`,
+					),
+				},
+				{
+					key: "commit",
+					label: t("adminShell.about.runtime.commit"),
+					children:
+						systemInfoQuery.data.commitSha === "local"
+							? t("adminShell.about.runtime.localCommit")
+							: systemInfoQuery.data.commitSha.slice(0, 8),
+				},
+				{
+					key: "builtAt",
+					label: t("adminShell.about.runtime.builtAt"),
+					children: formatDateTime(
+						systemInfoQuery.data.builtAt,
+						formatPreferences,
+					),
+				},
+			]
+		: [];
 
 	return (
 		<Flex gap={token.marginLG} vertical>
@@ -235,27 +281,11 @@ export function AboutSystemPage() {
 						{t("adminShell.about.runtime.loadError")}
 					</Text>
 				) : (
-					<Flex gap={token.marginXL} wrap>
-						<Text>
-							{t("adminShell.about.runtime.service")}：
-							<Text strong>{systemInfoQuery.data?.service ?? "—"}</Text>
-						</Text>
-						<Text>
-							{t("adminShell.about.runtime.version")}：
-							<Text strong>{systemInfoQuery.data?.version ?? "—"}</Text>
-						</Text>
-						<Text>
-							{t("adminShell.about.runtime.startedAt")}：
-							<Text strong>
-								{systemInfoQuery.data
-									? formatDateTime(
-											systemInfoQuery.data.startedAt,
-											formatPreferences,
-										)
-									: "—"}
-							</Text>
-						</Text>
-					</Flex>
+					<Descriptions
+						column={{ xs: 1, sm: 2, lg: 3 }}
+						items={systemInfoItems}
+						size="small"
+					/>
 				)}
 			</Card>
 			<section aria-labelledby="about-technology-landscape-title">

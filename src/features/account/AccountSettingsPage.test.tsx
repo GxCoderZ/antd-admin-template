@@ -11,7 +11,6 @@ import { i18n } from "../../i18n";
 import { AccountSettingsPage } from "./AccountSettingsPage";
 
 vi.mock("#src/api/account", () => ({
-	deletePlatformAccountAvatar: vi.fn(),
 	getPlatformAccount: vi.fn().mockResolvedValue({
 		address: "西湖区工专路 77 号",
 		bio: "专注于企业级产品设计与研发",
