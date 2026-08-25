@@ -1,5 +1,9 @@
 import type { PlatformSession } from "../src/api/auth";
 import type { PlatformAnnouncement } from "../src/api/announcements";
+import type {
+	PlatformDictionaryItem,
+	PlatformDictionaryType,
+} from "../src/api/dictionaries";
 import type { PlatformFile } from "../src/api/files";
 import type { PlatformNotification } from "../src/api/notifications";
 import type {
@@ -286,6 +290,79 @@ export const announcements: PlatformAnnouncement[] = Array.from(
 		updatedAt: iso(2_000 - index * 37),
 	}),
 );
+
+const dictionaryTypeSeeds = [
+	["dict-user-status", "user_status", "用户状态", "用户账号状态"],
+	["dict-order-status", "order_status", "订单状态", "订单处理状态"],
+	["dict-ticket-priority", "ticket_priority", "工单优先级", "服务工单优先级"],
+	["dict-invoice-type", "invoice_type", "发票类型", "财务发票类型"],
+	["dict-payment-method", "payment_method", "支付方式", "订单支付方式"],
+	["dict-shipping-channel", "shipping_channel", "物流渠道", "物流渠道标签"],
+	["dict-device-type", "device_type", "设备类型", "登录设备类型"],
+	["dict-content-status", "content_status", "内容状态", "内容审核状态"],
+	["dict-risk-level", "risk_level", "风险等级", "风险评估等级"],
+	["dict-member-level", "member_level", "会员等级", "客户会员等级"],
+	["dict-region", "business_region", "业务区域", "业务区域分组"],
+	["dict-notice-kind", "notice_kind", "通知类型", "站内通知类型"],
+	["dict-approval-result", "approval_result", "审批结果", "审批流结果"],
+	["dict-asset-status", "asset_status", "资产状态", "内部资产状态"],
+	["dict-refund-reason", "refund_reason", "退款原因", "售后退款原因"],
+	["dict-contract-type", "contract_type", "合同类型", "合同分类"],
+	["dict-data-source", "data_source", "数据来源", "数据接入来源"],
+	["dict-export-status", "export_status", "导出状态", "导出任务状态"],
+] as const;
+
+const dictionaryItemTemplates = [
+	[
+		["active", "启用", "green"],
+		["disabled", "停用", "red"],
+		["locked", "锁定", "orange"],
+	],
+	[
+		["pending", "待处理", "blue"],
+		["paid", "已支付", "green"],
+		["closed", "已关闭", "default"],
+	],
+	[
+		["low", "低", "cyan"],
+		["medium", "中", "orange"],
+		["high", "高", "red"],
+	],
+] as const;
+
+export const dictionaryItems: PlatformDictionaryItem[] =
+	dictionaryTypeSeeds.flatMap(([typeId], typeIndex) => {
+		const templates =
+			dictionaryItemTemplates[typeIndex % dictionaryItemTemplates.length]!;
+		return templates.map(
+			([value, label, color], itemIndex): PlatformDictionaryItem => ({
+				color,
+				createdAt: iso(16_000 - typeIndex * 120 - itemIndex * 8),
+				description: `${label} 字典项用于演示颜色标签和排序值。`,
+				id: `${typeId}-item-${value}`,
+				label,
+				sort: (itemIndex + 1) * 10,
+				status: itemIndex === 2 && typeIndex % 4 === 0 ? "disabled" : "active",
+				typeId,
+				updatedAt: iso(1_600 - typeIndex * 22 - itemIndex * 5),
+				value,
+			}),
+		);
+	});
+
+export const dictionaryTypes: PlatformDictionaryType[] =
+	dictionaryTypeSeeds.map(
+		([id, code, name, description], index): PlatformDictionaryType => ({
+			code,
+			createdAt: iso(18_000 - index * 200),
+			description,
+			id,
+			itemCount: dictionaryItems.filter((item) => item.typeId === id).length,
+			name,
+			status: index % 6 === 5 ? "disabled" : "active",
+			updatedAt: iso(1_800 - index * 29),
+		}),
+	);
 
 const notificationTitles = [
 	"账号安全检查完成",
