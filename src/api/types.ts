@@ -3,6 +3,7 @@ export type PlatformPermission =
 	| "platform.announcements.read"
 	| "platform.departments.manage"
 	| "platform.dictionaries.manage"
+	| "platform.import-export.manage"
 	| "platform.logs.read"
 	| "platform.positions.manage"
 	| "platform.roles.manage"

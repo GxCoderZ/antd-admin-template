@@ -117,7 +117,7 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	).toBeVisible();
 	await expect(permissionDrawer.getByText("系统管理菜单")).toBeVisible();
 	await expect(permissionDrawer.getByText("用户管理页面")).toBeVisible();
-	await expect(permissionDrawer.getByText(/已选 \d+\/10 项/)).toBeVisible();
+	await expect(permissionDrawer.getByText(/已选 \d+\/11 项/)).toBeVisible();
 	await expect(
 		permissionDrawer.getByRole("button", { name: /保\s*存/ }),
 	).toBeVisible();
@@ -567,6 +567,61 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 	await expect(page.getByText("确认批量删除")).toBeVisible();
 	await page.getByRole("button", { name: "确认删除" }).click();
 	await expect(page.getByText("已删除 1 项记录")).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
+});
+
+test("导入导出页面演示 Fake 校验、确认导入和异步导出", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "导入导出", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/import-export$/);
+	await expect(
+		page.getByText("用户资料导入模板", { exact: true }),
+	).toBeVisible();
+	await expect(page.getByText("异常明细导出", { exact: true })).toBeVisible();
+	await expect(
+		page.getByText("导出条件包含已停用字段，请调整后重试。"),
+	).toBeVisible();
+
+	await page.locator('input[type="file"]').setInputFiles({
+		buffer: Buffer.from("name,email"),
+		mimeType: "text/csv",
+		name: "users.csv",
+	});
+	await expect(page.getByText("校验失败明细", { exact: true })).toBeVisible();
+	await expect(page.getByText("邮箱格式不正确。")).toBeVisible();
+	await page.getByRole("button", { name: "确认导入" }).click();
+	await expect(page.getByText("导入完成", { exact: true })).toBeVisible();
+
+	await page.getByRole("button", { name: "创建导出" }).click();
+	await expect(page.getByText("导出任务已创建")).toBeVisible();
+	await expect(
+		page.getByRole("row").filter({ hasText: "用户资料导出" }).first(),
+	).toBeVisible();
+	await expect(page.getByText("已完成").first()).toBeVisible();
+});
+
+test("导入导出页面在 390px 深色模式下不溢出", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await page.addInitScript(() => {
+		window.localStorage.setItem(
+			"react-antd-admin.preference.theme-mode",
+			"dark",
+		);
+	});
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "导入导出", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/import-export$/);
+	await expect(page.getByTestId("import-export-workspace")).toBeVisible();
+	await expect(page.getByText("导入校验", { exact: true })).toBeVisible();
+	await expect(page.getByText("异步导出任务", { exact: true })).toBeVisible();
+	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),
 	).toBeLessThanOrEqual(390);

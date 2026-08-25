@@ -21,6 +21,7 @@ export type AdminRouteIconKey =
 	| "positions"
 	| "dictionaries"
 	| "announcements"
+	| "importExport"
 	| "auditLogs"
 	| "loginLogs"
 	| "basicForm"
@@ -224,6 +225,12 @@ const loadFileManagementPage = async (): Promise<LazyAdminRouteModule> => {
 	const { FileManagementPage } =
 		await import("../features/files/FileManagementPage");
 	return { Component: FileManagementPage };
+};
+
+const loadImportExportPage = async (): Promise<LazyAdminRouteModule> => {
+	const { ImportExportPage } =
+		await import("../features/import-export/ImportExportPage");
+	return { Component: ImportExportPage };
 };
 
 const loadNotificationCenterPage = async (): Promise<LazyAdminRouteModule> => {
@@ -482,6 +489,15 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 	},
 	{
 		groupKey: "examples",
+		iconKey: "importExport",
+		key: "/examples/import-export",
+		lazy: loadImportExportPage,
+		requiredPermission: platformPermissions.importExportManage,
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.importExport",
+	},
+	{
+		groupKey: "examples",
 		iconKey: "basicForm",
 		key: "/examples/forms/basic",
 		lazy: loadBasicFormPage,
@@ -618,6 +634,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/examples/preview-panel" },
 			{ routeKey: "/examples/detail" },
 			{ routeKey: "/examples/files" },
+			{ routeKey: "/examples/import-export" },
 			{
 				key: "example-forms",
 				titleKey: "adminShell.navigation.formExamples",

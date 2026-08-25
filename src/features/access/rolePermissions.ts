@@ -7,6 +7,7 @@ type PermissionGroupKey =
 	| "announcements"
 	| "departments"
 	| "dictionaries"
+	| "importExport"
 	| "roles"
 	| "users"
 	| "logs"
@@ -17,6 +18,7 @@ type PermissionPageKey =
 	| "announcements"
 	| "departments"
 	| "dictionaries"
+	| "importExport"
 	| "logs"
 	| "positions"
 	| "roles"
@@ -30,6 +32,7 @@ interface PermissionDefinition {
 		| "announcementsRead"
 		| "departmentsManage"
 		| "dictionariesManage"
+		| "importExportManage"
 		| "rolesManage"
 		| "positionsManage"
 		| "usersManage"
@@ -83,6 +86,11 @@ const permissionDefinitionByValue = {
 		i18nKey: "dictionariesManage",
 		permission: platformPermissions.dictionariesManage,
 	},
+	[platformPermissions.importExportManage]: {
+		groupKey: "importExport",
+		i18nKey: "importExportManage",
+		permission: platformPermissions.importExportManage,
+	},
 	[platformPermissions.rolesManage]: {
 		groupKey: "roles",
 		i18nKey: "rolesManage",
@@ -117,6 +125,7 @@ export const permissionGroups = (
 		"departments",
 		"positions",
 		"dictionaries",
+		"importExport",
 		"announcements",
 		"logs",
 		"settings",
@@ -146,6 +155,10 @@ const permissionPageGroups: Record<
 	dictionaries: {
 		permissions: [platformPermissions.dictionariesManage],
 		titleKey: "adminShell.roles.permissions.pages.dictionaries",
+	},
+	importExport: {
+		permissions: [platformPermissions.importExportManage],
+		titleKey: "adminShell.roles.permissions.pages.importExport",
 	},
 	logs: {
 		permissions: [platformPermissions.logsRead],
@@ -187,6 +200,7 @@ const permissionMenuGroups: Record<
 			"departments",
 			"positions",
 			"dictionaries",
+			"importExport",
 			"announcements",
 			"settings",
 		],
