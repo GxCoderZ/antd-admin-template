@@ -145,6 +145,7 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 	await page.keyboard.press("Escape");
 
 	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
+	await expect(page.getByRole("table")).toContainText("系统维护通知");
 	await expect(
 		page.getByRole("button", { name: "编辑" }).first(),
 	).toBeVisible();
@@ -185,15 +186,21 @@ test("用户管理角色抽屉通过草稿选择统一保存", async ({ page }) 
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/organization\/users$/);
-	await page.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号").fill("admin");
+	await page
+		.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号")
+		.fill("admin");
 	await page.getByRole("button", { name: /查\s*询/ }).click();
 	await expect(page.getByRole("table")).toContainText("admin");
 
 	await page.getByRole("button", { name: "更多", exact: true }).first().click();
 	await page.getByRole("menuitem", { name: "角色", exact: true }).click();
 
-	const drawer = page.locator(".ant-drawer").filter({ hasText: "admin 的角色" });
-	await expect(drawer.getByRole("combobox", { name: "角色选择" })).toBeVisible();
+	const drawer = page
+		.locator(".ant-drawer")
+		.filter({ hasText: "admin 的角色" });
+	await expect(
+		drawer.getByRole("combobox", { name: "角色选择" }),
+	).toBeVisible();
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),
 	).toBeLessThanOrEqual(await page.evaluate(() => window.innerWidth));
@@ -214,7 +221,9 @@ test("用户管理角色抽屉在 390px 窄屏下不溢出", async ({ page }) =>
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/organization\/users$/);
-	await page.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号").fill("admin");
+	await page
+		.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号")
+		.fill("admin");
 	await page.getByRole("button", { name: /查\s*询/ }).click();
 	await expect(page.getByRole("table")).toContainText("admin");
 
@@ -266,13 +275,7 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await expect(
-		page.getByRole("menuitem", { name: "表单示例", exact: true }),
-	).toBeVisible();
 	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
-	await expect(
-		page.getByRole("menuitem", { name: "基础表单", exact: true }),
-	).toBeVisible();
 	await page.getByRole("menuitem", { name: "基础表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
 	await expect(page.getByLabel("标题")).toBeVisible();
@@ -283,13 +286,7 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await expect(
-		page.getByRole("menuitem", { name: "表单示例", exact: true }),
-	).toBeVisible();
 	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
-	await expect(
-		page.getByRole("menuitem", { name: "分步表单", exact: true }),
-	).toBeVisible();
 	await page.getByRole("menuitem", { name: "分步表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
 	await expect(
@@ -352,6 +349,51 @@ test("公告管理在窄屏下保持可导航和可编辑", async ({ page }) => 
 	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
 });
 
+test("可编辑表格支持通过 Fake API 新增并查询行", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
+	await expect(page.getByRole("table")).toContainText("月度预算复核");
+	for (const actionName of ["刷新", "表格密度", "表格设置", "表格全屏"]) {
+		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
+	}
+
+	await page.getByRole("button", { name: "新增行" }).click();
+	const editingRow = page.getByRole("row").filter({
+		has: page.getByRole("button", { name: "保存" }),
+	});
+	await editingRow.getByRole("textbox").nth(0).fill("端到端可编辑行");
+	await editingRow.getByRole("textbox").nth(1).fill("Sophia Sun");
+	await editingRow.getByRole("spinbutton").nth(0).fill("66");
+	await editingRow.getByRole("spinbutton").nth(1).fill("42");
+	await editingRow.getByRole("button", { name: "保存" }).click();
+
+	await page.getByPlaceholder("搜索事项名称或负责人").fill("端到端可编辑行");
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await expect(page.getByText("端到端可编辑行", { exact: true })).toBeVisible();
+});
+
+test("可编辑表格在 390px 窄屏下保留横向滚动且页面不溢出", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
+	await expect(page.getByRole("button", { name: "新增行" })).toBeVisible();
+	await expect(page.getByRole("combobox", { name: "状态" })).toHaveCount(0);
+	await page.getByText("展开", { exact: true }).click();
+	await expect(page.getByRole("combobox", { name: "状态" })).toBeVisible();
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
+});
+
 test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) => {
 	await signIn(page);
 
@@ -370,9 +412,7 @@ test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) 
 	await expect(page.getByText("暂无站内通知")).toBeVisible();
 });
 
-test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", async ({
-	page,
-}) => {
+test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", async ({ page }) => {
 	await signIn(page);
 
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
@@ -390,10 +430,9 @@ test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", asyn
 	await page.getByRole("menuitem", { name: "文章", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/lists\/search\/articles$/);
 	const searchContent = page.getByTestId("admin-shell-page-content");
-	await expect(searchContent.getByRole("tab", { name: "文章" })).toHaveAttribute(
-		"aria-selected",
-		"true",
-	);
+	await expect(
+		searchContent.getByRole("tab", { name: "文章" }),
+	).toHaveAttribute("aria-selected", "true");
 	await expect(page.getByText("所属类目", { exact: true })).toBeVisible();
 
 	await searchContent.getByRole("tab", { name: "项目" }).click();
@@ -429,10 +468,14 @@ test("搜索列表在窄屏下保持完整且无页面级横向溢出", async ({
 	await page.getByRole("menuitem", { name: "文章", exact: true }).click();
 
 	await expect(
-		page.getByTestId("admin-shell-page-content").getByRole("tab", { name: "文章" }),
+		page
+			.getByTestId("admin-shell-page-content")
+			.getByRole("tab", { name: "文章" }),
 	).toBeVisible();
 	await expect(page.getByText("所属类目", { exact: true })).toBeVisible();
-	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+	expect(
+		await page.evaluate(() => document.documentElement.scrollWidth),
+	).toBeLessThanOrEqual(390);
 });
 
 test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async ({ page }) => {

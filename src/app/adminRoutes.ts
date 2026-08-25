@@ -28,6 +28,7 @@ export type AdminRouteIconKey =
 	| "searchArticles"
 	| "searchProjects"
 	| "searchApplications"
+	| "editableTable"
 	| "treeCategory"
 	| "previewPanel"
 	| "resultSuccess"
@@ -39,11 +40,7 @@ export type AdminRouteIconKey =
 	| "about";
 
 export type AdminGroupIconKey =
-	| "examples"
-	| "operations"
-	| "results"
-	| "exceptions"
-	| "system";
+	"examples" | "operations" | "results" | "exceptions" | "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -137,7 +134,8 @@ const loadSearchArticlesPage = async (): Promise<LazyAdminRouteModule> => {
 };
 
 const loadDepartmentsPage = async (): Promise<LazyAdminRouteModule> => {
-	const { DepartmentsPage } = await import("../features/departments/DepartmentsPage");
+	const { DepartmentsPage } =
+		await import("../features/departments/DepartmentsPage");
 	return { Component: DepartmentsPage };
 };
 
@@ -147,7 +145,8 @@ const loadPositionsPage = async (): Promise<LazyAdminRouteModule> => {
 };
 
 const loadDictionariesPage = async (): Promise<LazyAdminRouteModule> => {
-	const { DictionariesPage } = await import("../features/dictionaries/DictionariesPage");
+	const { DictionariesPage } =
+		await import("../features/dictionaries/DictionariesPage");
 	return { Component: DictionariesPage };
 };
 
@@ -163,17 +162,24 @@ const loadSearchApplicationsPage = async (): Promise<LazyAdminRouteModule> => {
 	return { Component: SearchApplicationsPage };
 };
 
+const loadEditableTablePage = async (): Promise<LazyAdminRouteModule> => {
+	const { EditableTablePage } =
+		await import("../features/editable-table-examples/EditableTablePage");
+	return { Component: EditableTablePage };
+};
+
 const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
 	const { CardListPage } =
 		await import("../features/page-examples/ListExamplePages");
 	return { Component: CardListPage };
 };
 
-const loadContentCategoryManagementPage = async (): Promise<LazyAdminRouteModule> => {
-	const { ContentCategoryManagementPage } =
-		await import("../features/content-categories/ContentCategoryManagementPage");
-	return { Component: ContentCategoryManagementPage };
-};
+const loadContentCategoryManagementPage =
+	async (): Promise<LazyAdminRouteModule> => {
+		const { ContentCategoryManagementPage } =
+			await import("../features/content-categories/ContentCategoryManagementPage");
+		return { Component: ContentCategoryManagementPage };
+	};
 
 const loadPreviewWorkbenchPage = async (): Promise<LazyAdminRouteModule> => {
 	const { PreviewWorkbenchPage } =
@@ -351,9 +357,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.basicList",
 	},
 	{
-		aliases: [
-			{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" },
-		],
+		aliases: [{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" }],
 		groupKey: "examples",
 		iconKey: "searchArticles",
 		key: "/examples/lists/search/articles",
@@ -379,6 +383,15 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		navigationParentKeys: ["example-lists", "example-search-lists"],
 		sectionKey: "adminShell.navigation.examples",
 		titleKey: "adminShell.navigation.searchApplications",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "editableTable",
+		key: "/examples/lists/editable-table",
+		lazy: loadEditableTablePage,
+		navigationParentKeys: ["example-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.editableTable",
 	},
 	{
 		groupKey: "examples",
@@ -564,6 +577,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 						],
 					},
 					{ routeKey: "/examples/lists/cards" },
+					{ routeKey: "/examples/lists/editable-table" },
 				],
 			},
 			{ routeKey: "/examples/tree-category" },
@@ -585,10 +599,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 		defaultRouteKey: "/result/success",
 		iconKey: "results",
 		key: "results",
-		nodes: [
-			{ routeKey: "/result/success" },
-			{ routeKey: "/result/fail" },
-		],
+		nodes: [{ routeKey: "/result/success" }, { routeKey: "/result/fail" }],
 		titleKey: "adminShell.navigation.resultExamples",
 	},
 	{
