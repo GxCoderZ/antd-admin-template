@@ -167,13 +167,15 @@ export function BasicTable<
 				rowKey="id"
 				dateFormatter="string"
 				{...props}
-				options={{
-					density: true,
-					fullScreen: true,
-					reload: true,
-					setting: true,
-					...props.options,
-				}}
+				options={props.options === false
+					? false
+					: {
+						density: true,
+						fullScreen: true,
+						reload: true,
+						setting: true,
+						...props.options,
+					}}
 				locale={{
 					emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />,
 					...props.locale,

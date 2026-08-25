@@ -1,11 +1,16 @@
-import { Alert, Flex, Input, Modal, Typography } from "antd";
+import type { ReactNode } from "react";
+
+import { BasicModal } from "#src/components/basic-modal";
+
+import { Alert, Flex, Input, theme, Typography } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const { Text } = Typography;
 
 export interface DangerConfirmationProps {
-	impact: string
+	feedback?: ReactNode
+	impact: ReactNode
 	loading?: boolean
 	onCancel: () => void
 	onConfirm: () => Promise<void> | void
@@ -14,8 +19,40 @@ export interface DangerConfirmationProps {
 	title: string
 }
 
+interface DangerConfirmationContentProps {
+	disabled?: boolean
+	feedback?: ReactNode
+	impact: ReactNode
+	onChange: (value: string) => void
+	targetName: string
+	value: string
+}
+
+export function DangerConfirmationContent({ disabled = false, feedback, impact, onChange, targetName, value }: DangerConfirmationContentProps) {
+	const { t } = useTranslation();
+	const { token } = theme.useToken();
+	return (
+		<Flex gap={token.margin} vertical>
+			{feedback}
+			<Alert description={impact} message={t("common.dangerConfirmation.impactTitle")} showIcon type="warning" />
+			<Flex gap={token.marginXS} vertical>
+				<Text>{t("common.dangerConfirmation.inputHint", { targetName })}</Text>
+				<Input
+					aria-label={t("common.dangerConfirmation.inputLabel")}
+					autoComplete="off"
+					disabled={disabled}
+					placeholder={t("common.dangerConfirmation.placeholder")}
+					onChange={event => onChange(event.target.value)}
+					value={value}
+				/>
+			</Flex>
+		</Flex>
+	);
+}
+
 export function DangerConfirmation({
 	impact,
+	feedback,
 	loading = false,
 	onCancel,
 	onConfirm,
@@ -38,7 +75,7 @@ export function DangerConfirmation({
 	};
 
 	return (
-		<Modal
+		<BasicModal
 			afterOpenChange={(nextOpen) => {
 				if (!nextOpen)
 					resetConfirmation();
@@ -66,22 +103,14 @@ export function DangerConfirmation({
 			open={open}
 			title={title}
 		>
-			<Flex gap="middle" vertical>
-				<Alert description={impact} showIcon type="error" />
-				<Flex gap="small" vertical>
-					<Text>{t("common.dangerConfirmation.inputHint", { targetName })}</Text>
-					<Input
-						aria-label={t("common.dangerConfirmation.inputLabel")}
-						autoComplete="off"
-						disabled={loading}
-						onChange={event => setConfirmationState({
-							targetName,
-							value: event.target.value,
-						})}
-						value={confirmation}
-					/>
-				</Flex>
-			</Flex>
-		</Modal>
+			<DangerConfirmationContent
+				disabled={loading}
+				feedback={feedback}
+				impact={impact}
+				onChange={value => setConfirmationState({ targetName, value })}
+				targetName={targetName}
+				value={confirmation}
+			/>
+		</BasicModal>
 	);
 }

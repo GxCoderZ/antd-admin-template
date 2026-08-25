@@ -92,7 +92,9 @@
 	"done": "Done",
 	"retry": "Retry",
 	"dangerConfirmation": {
+		"impactTitle": "This action may have irreversible effects",
 		"inputLabel": "Confirmation target",
-		"inputHint": "Enter “{{targetName}}” to confirm this action"
+		"inputHint": "Enter “{{targetName}}” to confirm this action",
+		"placeholder": "Enter the full name"
 	}
 }

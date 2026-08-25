@@ -95,7 +95,9 @@
 	"done": "完成",
 	"retry": "重试",
 	"dangerConfirmation": {
+		"impactTitle": "此操作可能产生不可逆影响",
 		"inputLabel": "确认对象",
-		"inputHint": "请输入“{{targetName}}”以确认此操作"
+		"inputHint": "请输入“{{targetName}}”以确认此操作",
+		"placeholder": "请输入完整名称"
 	}
 }

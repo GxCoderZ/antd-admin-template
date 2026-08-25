@@ -5,7 +5,7 @@ import { Button } from "antd";
 
 export interface BasicButtonProps extends ButtonProps {
 	children?: ReactNode
-	usage?: "default" | "table-action" | "toolbar"
+	usage?: "default" | "table-action" | "toolbar" | "toolbar-icon"
 }
 
 export function BasicButton(props: BasicButtonProps) {
@@ -15,15 +15,21 @@ export function BasicButton(props: BasicButtonProps) {
 		usage = "default",
 		...antdButtonProps
 	} = props;
+	const usageProps: ButtonProps = usage === "table-action"
+		? { size: "small", type: "link" }
+		: usage === "toolbar-icon"
+			? { type: "text" }
+			: {};
 
 	return (
 		<Button
-			type="primary"
+			{...usageProps}
 			{...antdButtonProps}
 			className={cn(
 				className,
 				usage === "table-action" && "h-auto px-0",
 				usage === "toolbar" && "inline-flex items-center justify-center",
+				usage === "toolbar-icon" && "inline-flex items-center justify-center",
 			)}
 		>
 			{children}
