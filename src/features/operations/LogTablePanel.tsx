@@ -75,6 +75,8 @@ interface LogTablePanelProps<Row extends { id: string }> {
 	description?: ReactNode;
 	emptyText: string;
 	error: unknown;
+	errorFallback?: string;
+	errorTitle?: string;
 	initialLoading: boolean;
 	minimumWidth: number;
 	onPageChange: (page: number, pageSize: number) => void;
@@ -226,6 +228,8 @@ export function LogTablePanel<Row extends { id: string }>({
 	description,
 	emptyText,
 	error,
+	errorFallback,
+	errorTitle,
 	initialLoading,
 	minimumWidth,
 	onPageChange,
@@ -348,84 +352,94 @@ export function LogTablePanel<Row extends { id: string }>({
 				{queryPanel}
 				<Card
 					data-testid={testId}
-					extra={
-						<Space>
-							{primaryAction}
-							<Tooltip title={t("adminShell.logs.common.reload")}>
-								<Button
-									aria-label={t("adminShell.logs.common.reload")}
-									color="default"
-									icon={<ReloadOutlined aria-hidden />}
-									loading={refreshing}
-									onClick={onReload}
-									variant="link"
-								/>
-							</Tooltip>
-							<Dropdown
-								menu={{
-									items: densityItems,
-									onClick: ({ key }) =>
-										setTableSize(key as TableProps<Row>["size"]),
-									selectedKeys: [tableSize ?? "middle"],
-								}}
-								placement="bottomRight"
-								trigger={["click"]}
-							>
-								<Tooltip title={t("adminShell.logs.common.density")}>
+					title={
+						<Flex
+							align="center"
+							gap={token.marginXS}
+							justify="space-between"
+							wrap
+						>
+							<span>{title}</span>
+							<Space>
+								{primaryAction}
+								<Tooltip title={t("adminShell.logs.common.reload")}>
 									<Button
-										aria-label={t("adminShell.logs.common.density")}
+										aria-label={t("adminShell.logs.common.reload")}
 										color="default"
-										icon={<ColumnHeightOutlined aria-hidden />}
+										icon={<ReloadOutlined aria-hidden />}
+										loading={refreshing}
+										onClick={onReload}
 										variant="link"
 									/>
 								</Tooltip>
-							</Dropdown>
-							<Popover
-								arrow={false}
-								content={columnSettings}
-								placement="bottomRight"
-								trigger="click"
-							>
-								<Tooltip title={t("adminShell.logs.common.tableSettings")}>
-									<Button
-										aria-label={t("adminShell.logs.common.tableSettings")}
-										color="default"
-										icon={<SettingOutlined aria-hidden />}
-										variant="link"
-									/>
-								</Tooltip>
-							</Popover>
-							<Tooltip
-								title={t(
-									isFullscreen
-										? "adminShell.logs.common.exitFullscreen"
-										: "adminShell.logs.common.fullscreen",
-								)}
-							>
-								<Button
-									aria-label={t(
+								<Dropdown
+									menu={{
+										items: densityItems,
+										onClick: ({ key }) =>
+											setTableSize(key as TableProps<Row>["size"]),
+										selectedKeys: [tableSize ?? "middle"],
+									}}
+									placement="bottomRight"
+									trigger={["click"]}
+								>
+									<Tooltip title={t("adminShell.logs.common.density")}>
+										<Button
+											aria-label={t("adminShell.logs.common.density")}
+											color="default"
+											icon={<ColumnHeightOutlined aria-hidden />}
+											variant="link"
+										/>
+									</Tooltip>
+								</Dropdown>
+								<Popover
+									arrow={false}
+									content={columnSettings}
+									placement="bottomRight"
+									trigger="click"
+								>
+									<Tooltip title={t("adminShell.logs.common.tableSettings")}>
+										<Button
+											aria-label={t("adminShell.logs.common.tableSettings")}
+											color="default"
+											icon={<SettingOutlined aria-hidden />}
+											variant="link"
+										/>
+									</Tooltip>
+								</Popover>
+								<Tooltip
+									title={t(
 										isFullscreen
 											? "adminShell.logs.common.exitFullscreen"
 											: "adminShell.logs.common.fullscreen",
 									)}
-									color="default"
-									icon={
-										isFullscreen ? (
-											<FullscreenExitOutlined aria-hidden />
-										) : (
-											<FullscreenOutlined aria-hidden />
-										)
-									}
-									onClick={() => void toggleFullscreen()}
-									variant="link"
-								/>
-							</Tooltip>
-						</Space>
+								>
+									<Button
+										aria-label={t(
+											isFullscreen
+												? "adminShell.logs.common.exitFullscreen"
+												: "adminShell.logs.common.fullscreen",
+										)}
+										color="default"
+										icon={
+											isFullscreen ? (
+												<FullscreenExitOutlined aria-hidden />
+											) : (
+												<FullscreenOutlined aria-hidden />
+											)
+										}
+										onClick={() => void toggleFullscreen()}
+										variant="link"
+									/>
+								</Tooltip>
+							</Space>
+						</Flex>
 					}
 					styles={{
-						header: { minHeight: token.controlHeightLG + token.marginLG },
+						header: {
+							minHeight: token.controlHeightLG + token.marginLG,
+						},
+						title: { overflow: "visible" },
 					}}
-					title={title}
 				>
 					{description ? (
 						<div style={{ marginBottom: token.margin }}>{description}</div>
@@ -439,9 +453,10 @@ export function LogTablePanel<Row extends { id: string }>({
 							}
 							description={
 								getProblemDetail(error) ??
+								errorFallback ??
 								t("adminShell.logs.common.errorFallback")
 							}
-							message={t("adminShell.logs.common.loadError")}
+							title={errorTitle ?? t("adminShell.logs.common.loadError")}
 							showIcon
 							type="error"
 						/>

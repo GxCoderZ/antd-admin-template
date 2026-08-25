@@ -36,6 +36,7 @@ export interface AdminRouteMetadata {
 	iconKey?: AdminRouteIconKey;
 	key: string;
 	lazy: () => Promise<LazyAdminRouteModule>;
+	navigationParentKeys?: readonly string[];
 	requiredPermission?: PlatformPermission;
 	sectionKey: string;
 	titleKey: string;
@@ -97,6 +98,54 @@ const loadStepFormPage = async (): Promise<LazyAdminRouteModule> => {
 	const { StepFormPage } =
 		await import("../features/form-examples/StepFormPage");
 	return { Component: StepFormPage };
+};
+
+const loadBasicListPage = async (): Promise<LazyAdminRouteModule> => {
+	const { BasicListPage } =
+		await import("../features/page-examples/ListExamplePages");
+	return { Component: BasicListPage };
+};
+
+const loadSearchListPage = async (): Promise<LazyAdminRouteModule> => {
+	const { SearchListPage } =
+		await import("../features/page-examples/ListExamplePages");
+	return { Component: SearchListPage };
+};
+
+const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
+	const { CardListPage } =
+		await import("../features/page-examples/ListExamplePages");
+	return { Component: CardListPage };
+};
+
+const loadGenericDetailPage = async (): Promise<LazyAdminRouteModule> => {
+	const { GenericDetailPage } =
+		await import("../features/page-examples/GenericDetailPage");
+	return { Component: GenericDetailPage };
+};
+
+const loadSuccessResultPage = async (): Promise<LazyAdminRouteModule> => {
+	const { SuccessResultPage } =
+		await import("../features/page-examples/ResultPages");
+	return { Component: SuccessResultPage };
+};
+
+const loadFailureResultPage = async (): Promise<LazyAdminRouteModule> => {
+	const { FailureResultPage } =
+		await import("../features/page-examples/ResultPages");
+	return { Component: FailureResultPage };
+};
+
+const loadFileManagementPage = async (): Promise<LazyAdminRouteModule> => {
+	const { FileManagementPage } =
+		await import("../features/files/FileManagementPage");
+	return { Component: FileManagementPage };
+};
+
+const loadNotificationCenterPage = async (): Promise<LazyAdminRouteModule> => {
+	const { NotificationCenterPage } =
+		await import("../features/notifications/NotificationCenterPage");
+	return { Component: NotificationCenterPage };
 };
 
 const loadPlatformSettingsPage = async (): Promise<LazyAdminRouteModule> => {
@@ -204,9 +253,71 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 	},
 	{
 		groupKey: "examples",
+		iconKey: "auditLogs",
+		key: "/examples/lists/basic",
+		lazy: loadBasicListPage,
+		navigationParentKeys: ["example-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.basicList",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "loginLogs",
+		key: "/examples/lists/search",
+		lazy: loadSearchListPage,
+		navigationParentKeys: ["example-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.searchList",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "about",
+		key: "/examples/lists/cards",
+		lazy: loadCardListPage,
+		navigationParentKeys: ["example-lists"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.cardList",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "users",
+		key: "/examples/detail",
+		lazy: loadGenericDetailPage,
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.genericDetail",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "announcements",
+		key: "/examples/results/success",
+		lazy: loadSuccessResultPage,
+		navigationParentKeys: ["example-results"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.successResult",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "announcements",
+		key: "/examples/results/failure",
+		lazy: loadFailureResultPage,
+		navigationParentKeys: ["example-results"],
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.failureResult",
+	},
+	{
+		groupKey: "examples",
+		iconKey: "settings",
+		key: "/examples/files",
+		lazy: loadFileManagementPage,
+		sectionKey: "adminShell.navigation.examples",
+		titleKey: "adminShell.navigation.fileManagement",
+	},
+	{
+		groupKey: "examples",
 		iconKey: "basicForm",
 		key: "/examples/forms/basic",
 		lazy: loadBasicFormPage,
+		navigationParentKeys: ["example-forms"],
 		sectionKey: "adminShell.navigation.examples",
 		titleKey: "adminShell.navigation.basicForm",
 	},
@@ -215,6 +326,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		iconKey: "stepForm",
 		key: "/examples/forms/step",
 		lazy: loadStepFormPage,
+		navigationParentKeys: ["example-forms"],
 		sectionKey: "adminShell.navigation.examples",
 		titleKey: "adminShell.navigation.stepForm",
 	},
@@ -263,6 +375,14 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 	},
 	{
 		groupKey: "account",
+		iconKey: "announcements",
+		key: "/account/notifications",
+		lazy: loadNotificationCenterPage,
+		sectionKey: "adminShell.account.section",
+		titleKey: "adminShell.navigation.notificationCenter",
+	},
+	{
+		groupKey: "account",
 		iconKey: "users",
 		key: "/account/profile",
 		lazy: loadAccountProfilePage,
@@ -291,12 +411,37 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 		titleKey: "adminShell.navigation.operations",
 	},
 	{
-		defaultRouteKey: "/examples/forms/basic",
+		defaultRouteKey: "/examples/lists/basic",
 		iconKey: "examples",
 		key: "examples",
 		nodes: [
-			{ routeKey: "/examples/forms/basic" },
-			{ routeKey: "/examples/forms/step" },
+			{
+				key: "example-lists",
+				titleKey: "adminShell.navigation.listExamples",
+				children: [
+					{ routeKey: "/examples/lists/basic" },
+					{ routeKey: "/examples/lists/search" },
+					{ routeKey: "/examples/lists/cards" },
+				],
+			},
+			{ routeKey: "/examples/detail" },
+			{
+				key: "example-results",
+				titleKey: "adminShell.navigation.resultExamples",
+				children: [
+					{ routeKey: "/examples/results/success" },
+					{ routeKey: "/examples/results/failure" },
+				],
+			},
+			{ routeKey: "/examples/files" },
+			{
+				key: "example-forms",
+				titleKey: "adminShell.navigation.formExamples",
+				children: [
+					{ routeKey: "/examples/forms/basic" },
+					{ routeKey: "/examples/forms/step" },
+				],
+			},
 		],
 		titleKey: "adminShell.navigation.examples",
 	},
@@ -351,5 +496,5 @@ export function getAdminRouteOpenKeys(route: AdminRouteMetadata) {
 		return [];
 	}
 
-	return [route.groupKey];
+	return [route.groupKey, ...(route.navigationParentKeys ?? [])];
 }

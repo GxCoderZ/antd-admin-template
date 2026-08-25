@@ -146,6 +146,7 @@ test("表单示例通过 Fake API 完成基础与分步提交", async ({ page })
 	await signIn(page);
 
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "基础表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
 	await page.getByLabel("标题").fill("端到端客户目标");
@@ -173,6 +174,7 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "基础表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
 	await expect(page.getByLabel("标题")).toBeVisible();
@@ -183,6 +185,7 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "分步表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
 	await expect(
@@ -243,4 +246,76 @@ test("公告管理在窄屏下保持可导航和可编辑", async ({ page }) => 
 	await expect(drawer).toBeVisible();
 	const drawerBounds = await drawer.boundingBox();
 	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
+});
+
+test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) => {
+	await signIn(page);
+
+	await page.getByRole("button", { name: "Platform Admin" }).click();
+	await page.getByRole("menuitem", { name: "通知中心" }).click();
+	await expect(page).toHaveURL(/\/account\/notifications$/);
+	await expect(page.getByRole("heading", { name: "通知中心" })).toBeVisible();
+	const markReadButtons = page.getByRole("button", { name: "标记已读" });
+	await expect(markReadButtons.first()).toBeVisible();
+	const unreadCount = await markReadButtons.count();
+	await markReadButtons.first().click();
+	await expect(markReadButtons).toHaveCount(unreadCount - 1);
+	await page.getByText("未读", { exact: true }).click();
+	await expect(page.getByText("暂无站内通知")).toHaveCount(0);
+	await page.getByRole("button", { name: /全部已读/ }).click();
+	await expect(page.getByText("暂无站内通知")).toBeVisible();
+});
+
+test("页面示例按官方 Ant Design Pro 页面结构提供列表详情和结果页", async ({
+	page,
+}) => {
+	await signIn(page);
+
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "标准列表", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/basic$/);
+	await expect(page.getByText("我的待办", { exact: true })).toBeVisible();
+	await expect(page.getByText("基本列表", { exact: true })).toBeVisible();
+
+	await page.getByRole("menuitem", { name: "卡片列表", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/lists\/cards$/);
+	await expect(page.getByRole("button", { name: /新增产品/ })).toBeVisible();
+
+	await page.getByRole("menuitem", { name: "通用详情页", exact: true }).click();
+	await expect(page.getByText("记录摘要", { exact: true })).toBeVisible();
+	await expect(page.getByText("处理进度", { exact: true })).toBeVisible();
+
+	await page.getByRole("menuitem", { name: "结果页", exact: true }).click();
+	await page.getByRole("menuitem", { name: "成功结果页", exact: true }).click();
+	await expect(page.getByText("操作成功", { exact: true })).toBeVisible();
+});
+
+test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async ({ page }) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	await page.getByRole("button", { name: "打开菜单" }).click();
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await page.getByRole("menuitem", { name: "文件管理", exact: true }).click();
+	await expect(page).toHaveURL(/\/examples\/files$/);
+	await expect(page.getByText("Fake 文件列表", { exact: true })).toBeVisible();
+	await expect(page.getByText("文件类型", { exact: true })).toHaveCount(0);
+	await page.getByText("展开", { exact: true }).click();
+	await expect(page.getByRole("combobox", { name: "文件类型" })).toBeVisible();
+
+	await page.locator('input[type="file"]').setInputFiles({
+		buffer: Buffer.from("fake-only demo"),
+		mimeType: "text/plain",
+		name: "端到端验收.txt",
+	});
+	await expect(page.getByText("Fake 文件已上传")).toBeVisible();
+	await page.getByPlaceholder("搜索文件名").fill("端到端验收");
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await expect(page.getByRole("table")).toContainText("端到端验收.txt");
+	const uploadedRow = page.getByRole("row").filter({ hasText: "端到端验收.txt" });
+	await uploadedRow.getByRole("button", { name: /删除/ }).click();
+	await page.getByRole("button", { name: /确认删除/ }).click();
+	await expect(page.getByText("暂无文件")).toBeVisible();
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });

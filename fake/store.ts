@@ -1,5 +1,11 @@
 import type { PlatformSession } from "../src/api/auth";
 import type { PlatformAnnouncement } from "../src/api/announcements";
+import type { PlatformFile } from "../src/api/files";
+import type { PlatformNotification } from "../src/api/notifications";
+import type {
+	ExampleListItem,
+	ExampleRecordDetail,
+} from "../src/api/page-examples";
 import type { PlatformAuditLog, PlatformLoginLog } from "../src/api/operations";
 import type { PlatformRole } from "../src/api/roles";
 import type { PlatformUserDetail } from "../src/api/users";
@@ -234,13 +240,9 @@ export const users: PlatformUserDetail[] = [
 	...generatedUserSeeds.map(
 		([username, displayName], index): PlatformUserDetail => ({
 			authSource: index % 7 === 3 ? "ldap" : index % 3 === 1 ? "sso" : "local",
-			department: [
-				"platform",
-				"operations",
-				"finance",
-				"hr",
-				"risk",
-			][index % 5] as PlatformUserDetail["department"],
+			department: ["platform", "operations", "finance", "hr", "risk"][
+				index % 5
+			] as PlatformUserDetail["department"],
 			id: `user-demo-${index + 1}`,
 			username,
 			email: `${username}@example.com`,
@@ -282,6 +284,84 @@ export const announcements: PlatformAnnouncement[] = Array.from(
 		status: index % 4 === 0 ? "draft" : "published",
 		title: `${announcementTitles[index % announcementTitles.length]} ${index + 1}`,
 		updatedAt: iso(2_000 - index * 37),
+	}),
+);
+
+const notificationTitles = [
+	"账号安全检查完成",
+	"待办事项即将到期",
+	"平台功能更新",
+	"同事提到了你",
+] as const;
+
+export const notifications: PlatformNotification[] = Array.from(
+	{ length: 18 },
+	(_, index): PlatformNotification => ({
+		content: `这是第 ${index + 1} 条站内通知，用于演示未读筛选和会话内已读状态。`,
+		createdAt: iso(index * 47),
+		id: `notification-${index + 1}`,
+		kind: (["system", "task", "user"] as const)[index % 3]!,
+		readAt: index % 4 === 0 ? iso(index * 42) : null,
+		title: `${notificationTitles[index % notificationTitles.length]} ${index + 1}`,
+	}),
+);
+
+const exampleTitles = [
+	"客户成功计划",
+	"季度运营复盘",
+	"产品体验优化",
+	"数据质量治理",
+	"内部知识库整理",
+] as const;
+
+export const exampleItems: ExampleListItem[] = Array.from(
+	{ length: 24 },
+	(_, index): ExampleListItem => ({
+		createdAt: iso(18_000 - index * 240),
+		description: `用于演示标准列表、搜索列表和卡片列表的通用内容 ${index + 1}。`,
+		id: `example-${index + 1}`,
+		owner: users[index % 6]!.displayName,
+		status: (["active", "pending", "archived"] as const)[index % 3]!,
+		title: `${exampleTitles[index % exampleTitles.length]} ${index + 1}`,
+	}),
+);
+
+export const exampleRecord: ExampleRecordDetail = {
+	...exampleItems[0]!,
+	activity: [
+		{ at: iso(20), content: "更新了项目进度", id: "activity-1" },
+		{ at: iso(180), content: "补充了验收说明", id: "activity-2" },
+		{ at: iso(1_440), content: "创建了记录", id: "activity-3" },
+	],
+	id: "record-001",
+	participants: ["Platform Admin", "Olivia Chen", "Noah Wang"],
+	progress: 72,
+	updatedAt: iso(20),
+};
+
+const fileNames = [
+	"运营周报.pdf",
+	"客户清单.xlsx",
+	"产品截图.png",
+	"上线检查表.docx",
+	"数据字典.csv",
+] as const;
+
+export const platformFiles: PlatformFile[] = Array.from(
+	{ length: 23 },
+	(_, index): PlatformFile => ({
+		createdAt: iso(index * 95),
+		id: `file-${index + 1}`,
+		name: `${index + 1}-${fileNames[index % fileNames.length]}`,
+		size: 12_000 + index * 8_192,
+		type: [
+			"application/pdf",
+			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			"image/png",
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+			"text/csv",
+		][index % 5]!,
+		uploader: users[index % 6]!.displayName,
 	}),
 );
 
