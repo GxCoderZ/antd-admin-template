@@ -1,0 +1,313 @@
+import { PlusOutlined } from "@ant-design/icons";
+import {
+	Alert,
+	Button,
+	Col,
+	Flex,
+	Form,
+	Input,
+	Space,
+	Tag,
+	type FormInstance,
+	type TableProps,
+	theme,
+	Tooltip,
+	Typography,
+} from "antd";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { Link as RouterLink } from "react-router";
+
+import {
+	TableActionButton,
+	TableActionMenu,
+} from "../../../app/TableActionButton";
+import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
+import { LogQueryPanel, LogTablePanel } from "../../operations/LogTablePanel";
+import type { ListPlatformRolesInput, PlatformRole } from "#src/api/roles";
+import { permissionGroups } from "../rolePermissions";
+import { getRoleErrorTitleKey, getRoleProblemDetail } from "../roleProblems";
+
+const { Text } = Typography;
+type RoleSort = NonNullable<ListPlatformRolesInput["sort"]>;
+
+export interface RoleFilterValues {
+	q?: string;
+}
+
+interface RoleTablePanelProps {
+	data: PlatformRole[];
+	deletePending: boolean;
+	draftFilters: RoleFilterValues;
+	error: unknown;
+	filterForm: FormInstance<RoleFilterValues>;
+	initialLoading: boolean;
+	onConfigurePermissions: (role: PlatformRole) => void;
+	onCreate: () => void;
+	onDelete: (role: PlatformRole) => void;
+	onDraftFiltersChange: (filters: RoleFilterValues) => void;
+	onPageChange: (page: number, pageSize: number) => void;
+	onQuery: () => void;
+	onReload: () => void;
+	onRename: (role: PlatformRole) => void;
+	onResetFilters: () => void;
+	onTableChange: NonNullable<TableProps<PlatformRole>["onChange"]>;
+	page: number;
+	pageSize: number;
+	refreshing: boolean;
+	roleOrder: ListPlatformRolesInput["order"];
+	roleSort: ListPlatformRolesInput["sort"];
+	renamePending: boolean;
+	total: number;
+}
+
+const defaultRoleFilterValues: RoleFilterValues = {};
+
+export function RoleTablePanel({
+	data,
+	deletePending,
+	draftFilters,
+	error,
+	filterForm,
+	initialLoading,
+	onConfigurePermissions,
+	onCreate,
+	onDelete,
+	onDraftFiltersChange,
+	onPageChange,
+	onQuery,
+	onReload,
+	onRename,
+	onResetFilters,
+	onTableChange,
+	page,
+	pageSize,
+	refreshing,
+	roleOrder,
+	roleSort,
+	renamePending,
+	total,
+}: RoleTablePanelProps) {
+	const { t } = useTranslation();
+	const { token } = theme.useToken();
+	const { canExpand, columnSpan, containerRef, formLayout, submitterOffset } =
+		useQueryFilterLayout({ expanded: false, fieldCount: 1 });
+	const columns = useMemo<
+		NonNullable<TableProps<PlatformRole>["columns"]>
+	>(() => {
+		const sortOrder = (column: RoleSort) =>
+			roleSort === column && roleOrder
+				? roleOrder === "asc"
+					? "ascend"
+					: "descend"
+				: null;
+
+		return [
+			{
+				dataIndex: "displayName",
+				key: "displayName",
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("display_name"),
+				title: t("adminShell.roles.columns.displayName"),
+				width: token.controlHeight * 5,
+			},
+			{
+				dataIndex: "roleKey",
+				key: "roleKey",
+				render: (roleKey: string) => <Text code>{roleKey}</Text>,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("role_key"),
+				title: t("adminShell.roles.columns.roleKey"),
+				width: token.controlHeight * 5,
+			},
+			{
+				align: "right",
+				dataIndex: "memberCount",
+				key: "memberCount",
+				render: (memberCount?: number) => memberCount ?? 0,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("member_count"),
+				title: t("adminShell.roles.columns.memberCount"),
+				width: token.controlHeight * 4,
+			},
+			{
+				key: "permissions",
+				render: (_: unknown, role: PlatformRole) => {
+					const summaries = permissionGroups
+						.map((group) => ({
+							count: group.permissions.filter((definition) =>
+								role.permissions.includes(definition.permission),
+							).length,
+							groupKey: group.groupKey,
+						}))
+						.filter((summary) => summary.count > 0);
+
+					return summaries.length > 0 ? (
+						<Space size={token.marginXXS} style={{ whiteSpace: "nowrap" }}>
+							{summaries.map((summary) => (
+								<Tag key={summary.groupKey}>
+									{t(`adminShell.roles.permissions.groups.${summary.groupKey}`)}{" "}
+									{summary.count}
+								</Tag>
+							))}
+						</Space>
+					) : (
+						<Text type="secondary">
+							{t("adminShell.roles.permissions.notConfigured")}
+						</Text>
+					);
+				},
+				title: t("adminShell.roles.columns.permissions"),
+				width: token.controlHeight * 14,
+			},
+			{
+				key: "actions",
+				render: (_: unknown, role: PlatformRole) => {
+					const isBuiltIn = role.roleKey === "super-admin";
+
+					return (
+						<Space size="medium">
+							<TableActionButton
+								disabled={renamePending}
+								onClick={() => onRename(role)}
+							>
+								{t("adminShell.roles.rename")}
+							</TableActionButton>
+							<TableActionMenu
+								items={[
+									{
+										key: "permissions",
+										label: t("adminShell.roles.configurePermissions"),
+										onClick: () => onConfigurePermissions(role),
+									},
+									{
+										danger: true,
+										disabled: isBuiltIn || deletePending,
+										key: "delete",
+										label: isBuiltIn ? (
+											<Tooltip
+												title={t("adminShell.roles.builtInDeleteReason")}
+											>
+												<span>{t("adminShell.roles.delete")}</span>
+											</Tooltip>
+										) : (
+											t("adminShell.roles.delete")
+										),
+										onClick: () => onDelete(role),
+									},
+								]}
+								label={t("adminShell.tableActions.more")}
+							/>
+						</Space>
+					);
+				},
+				title: t("adminShell.roles.columns.actions"),
+				width: token.controlHeight * 4,
+			},
+		];
+	}, [
+		onConfigurePermissions,
+		onDelete,
+		onRename,
+		deletePending,
+		renamePending,
+		roleOrder,
+		roleSort,
+		t,
+		token.controlHeight,
+		token.marginXXS,
+	]);
+
+	return (
+		<Flex gap={token.marginLG} vertical>
+			{error ? (
+				<Alert
+					action={
+						<Button onClick={onReload} size="small">
+							{t("adminShell.roles.retry")}
+						</Button>
+					}
+					description={
+						getRoleProblemDetail(error) ?? t("adminShell.roles.errors.fallback")
+					}
+					showIcon
+					title={t(getRoleErrorTitleKey(error))}
+					type="error"
+				/>
+			) : null}
+			<LogTablePanel<PlatformRole>
+				columns={columns}
+				dataSource={data}
+				description={
+					<Flex align="baseline" gap={token.marginXS} wrap>
+						<Text type="secondary">{t("adminShell.roles.memberGuide")}</Text>
+						<RouterLink to="/organization/users">
+							{t("adminShell.roles.memberGuideLink")}
+						</RouterLink>
+					</Flex>
+				}
+				emptyText={t("adminShell.roles.empty")}
+				error={undefined}
+				initialLoading={initialLoading}
+				minimumWidth={token.controlHeight * 39}
+				onPageChange={onPageChange}
+				onReload={onReload}
+				onTableChange={onTableChange}
+				page={page}
+				pageSize={pageSize}
+				primaryAction={
+					<Button
+						icon={<PlusOutlined aria-hidden />}
+						onClick={onCreate}
+						type="primary"
+					>
+						{t("adminShell.roles.create")}
+					</Button>
+				}
+				queryPanel={
+					<LogQueryPanel<RoleFilterValues>
+						actionsTestId="admin-roles-query-actions"
+						canExpand={canExpand}
+						columnSpan={columnSpan}
+						containerRef={containerRef}
+						expanded={false}
+						form={filterForm}
+						formLayout={formLayout}
+						initialValues={defaultRoleFilterValues}
+						loading={refreshing}
+						onFinish={onQuery}
+						onReset={onResetFilters}
+						onToggle={() => undefined}
+						submitterOffset={submitterOffset}
+						testId="admin-roles-query-form"
+					>
+						<Col span={columnSpan}>
+							<Form.Item
+								label={t("adminShell.roles.filters.q")}
+								style={{ marginBottom: 0 }}
+							>
+								<Input
+									allowClear
+									onChange={(event) =>
+										onDraftFiltersChange({ q: event.target.value })
+									}
+									placeholder={t("adminShell.roles.placeholders.q")}
+									style={{ width: "100%" }}
+									value={draftFilters.q}
+								/>
+							</Form.Item>
+						</Col>
+					</LogQueryPanel>
+				}
+				refreshing={refreshing}
+				testId="admin-roles-table-card"
+				title={t("adminShell.roles.tableTitle")}
+				total={total}
+				workspaceTestId="admin-roles-table-workspace"
+			/>
+		</Flex>
+	);
+}
