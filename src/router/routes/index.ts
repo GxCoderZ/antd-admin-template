@@ -1,6 +1,6 @@
 import type { AppRouteRecordRaw, RouteFileModule } from "#src/router/types";
 
-import { loginPath } from "#src/router/extra-info";
+import { forgotPasswordPath, loginPath } from "#src/router/extra-info";
 import { ascending } from "#src/router/utils/ascending";
 import { mergeRouteModules } from "#src/router/utils/merge-route-modules";
 import { traverseTreeValues } from "#src/utils/tree";
@@ -40,6 +40,7 @@ const accessRoutes = [
  */
 const whiteRouteNames = [
 	loginPath,
+	forgotPasswordPath,
 	...traverseTreeValues(externalRoutes, route => route.path),
 ];
 

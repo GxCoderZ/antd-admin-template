@@ -1,4 +1,4 @@
-import type { MenuItemType, MenuListReq, MenuTreeReq } from "./types";
+import type { MenuItemType, MenuListReq, MenuTreeReq, PermissionGroupType } from "./types";
 import { request } from "#src/utils/request";
 
 export * from "./types";
@@ -18,5 +18,5 @@ export function fetchMenuList(data: MenuListReq) {
 export function fetchMenuTree(data: MenuTreeReq = {}) {
 	return request
 		.post("/api/system/permissions/list", { json: data })
-		.json<ApiResponse<{ tree: MenuItemType[] }>>();
+		.json<ApiResponse<{ tree: PermissionGroupType[] }>>();
 }

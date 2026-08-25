@@ -6,6 +6,13 @@
 	"demoAccounts": "模拟账号",
 	"administratorAccount": "管理员 · admin / admin123",
 	"viewerAccount": "只读用户 · viewer / viewer123",
+	"shellDescription": "安全、专注的后台管理体验",
+	"changeTheme": "切换主题",
+	"changeLanguage": "切换语言",
+	"copyright": "© 2026 {{app}}",
+	"authorizedOnly": "仅限已授权的产品体验账号使用",
+	"contactAdministrator": "当前为离线产品 UI，请联系管理员重置体验账号密码。",
+	"backToLogin": "返回登录",
 	"layout": {
 		"alignLeft": "左对齐",
 		"alignCenter": "居中对齐",

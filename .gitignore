@@ -41,3 +41,4 @@ yarn.lock
 analyzer
 circular-deps.json
 TODO.md
+/.worktrees/

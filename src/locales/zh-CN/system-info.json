@@ -1,0 +1,22 @@
+{
+	"runtimeTitle": "运行时服务",
+	"runtimeLoadError": "运行时信息暂时无法加载",
+	"service": "服务",
+	"version": "版本",
+	"startedAt": "启动时间",
+	"stackTitle": "技术能力概览",
+	"groups": {
+		"frontend": "前端基础",
+		"dataFlow": "界面与数据流",
+		"quality": "离线与质量"
+	},
+	"typeLabel": "类型：{{value}}",
+	"versionLabel": "版本：{{value}}",
+	"status": {
+		"enabled": "已启用",
+		"approved": "已采用"
+	},
+	"dependenciesTitle": "生产依赖",
+	"nameColumn": "名称",
+	"versionColumn": "版本"
+}

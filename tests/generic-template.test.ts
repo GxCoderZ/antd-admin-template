@@ -33,12 +33,13 @@ describe("generic template cleanup", () => {
 		expect(read("src/pages/login/components/password-login.tsx")).toContain("viewer123");
 	});
 
-	it("contains no tenant backend paths or tenant-only page", () => {
+	it("contains no tenant backend paths and keeps account UI local", () => {
 		const source = `${collectSourceText("src")}\n${collectSourceText("fake")}`;
 
 		expect(source).not.toContain("/api/tenant");
 		expect(source).not.toContain("/tenant/");
 		expect(fs.existsSync(path.join(root, "src/pages/tenant-info"))).toBe(false);
-		expect(fs.existsSync(path.join(root, "src/router/routes/static/account.ts"))).toBe(false);
+		expect(fs.existsSync(path.join(root, "src/router/routes/static/account.ts"))).toBe(true);
+		expect(read("src/router/routes/static/account.ts")).not.toContain("http");
 	});
 });

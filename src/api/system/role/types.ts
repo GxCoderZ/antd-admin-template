@@ -3,10 +3,12 @@
  */
 export interface RoleItemType {
 	id: number
+	key: string
 	name: string // 角色名称
 	is_system: boolean // 是否系统角色（不可删除）
 	status: number // 状态：1=启用 2=禁用
 	user_count: number // 已分配用户数
+	permission_codes: string[]
 	remark: string // 备注
 	created_at: string // 创建时间
 }
@@ -19,12 +21,15 @@ export interface RoleListReq {
 	page_size: number
 	name?: string // 角色名称（模糊搜索）
 	status?: number // 状态：0=全部 1=启用 2=禁用
+	sort?: "name" | "status" | "user_count" | "created_at"
+	order?: "ascend" | "descend"
 }
 
 /**
  * 创建角色请求
  */
 export interface RoleCreateReq {
+	key?: string
 	name: string // 角色名称
 	remark?: string // 备注
 }
@@ -34,6 +39,7 @@ export interface RoleCreateReq {
  */
 export interface RoleUpdateReq {
 	id: number // 角色ID
+	key?: string
 	name: string // 角色名称
 	status: number // 状态：1=启用 2=禁用
 	remark?: string // 备注

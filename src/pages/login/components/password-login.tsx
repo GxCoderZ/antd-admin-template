@@ -1,111 +1,128 @@
+import { fetchLogin } from "#src/api/auth";
+import { BasicButton } from "#src/components/basic-button";
 import { PASSWORD_RULES, USERNAME_RULES } from "#src/constants/rules";
+import { forgotPasswordPath } from "#src/router/extra-info";
 import { useAuthStore } from "#src/store/auth";
 
-import {
-	Button,
-	Card,
-	Form,
-	Input,
-	message,
-	Space,
-} from "antd";
+import { DownOutlined, LockOutlined, SafetyCertificateFilled, UserOutlined } from "@ant-design/icons";
+import { Alert, Dropdown, Flex, Form, Input, theme, Typography } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 
+interface PasswordLoginValues {
+	password: string
+	username: string
+}
+
 export function PasswordLogin() {
 	const [loading, setLoading] = useState(false);
-	const [passwordLoginForm] = Form.useForm();
+	const [errorMessage, setErrorMessage] = useState("");
+	const [passwordLoginForm] = Form.useForm<PasswordLoginValues>();
 	const { t } = useTranslation();
-	const [messageLoadingApi, contextLoadingHolder] = message.useMessage();
+	const { token } = theme.useToken();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const login = useAuthStore(state => state.login);
+	const setTokens = useAuthStore(state => state.setTokens);
 
-	const handleFinish = async (values: { username: string, password: string }) => {
+	const handleFinish = async (values: PasswordLoginValues) => {
 		setLoading(true);
-		messageLoadingApi?.loading(t("authority.loginInProgress"), 0);
+		setErrorMessage("");
+		const loadingMessage = window.$message?.loading(t("authority.loginInProgress"), 0);
 
 		try {
-			await login({
-				username: values.username,
-				password: values.password,
+			const response = await fetchLogin(values);
+			if (response.code !== 0 || !response.data) {
+				throw new Error(response.msg || t("authority.loginFailed"));
+			}
+			setTokens({
+				token: response.data.access_token,
+				refreshToken: response.data.refresh_token || "",
 			});
-			messageLoadingApi?.destroy();
+			loadingMessage?.();
 			window.$message?.success(t("authority.loginSuccess"));
-			const redirect = searchParams.get("redirect");
-			const targetPath = redirect || import.meta.env.VITE_BASE_HOME_PATH;
+			const targetPath = searchParams.get("redirect") || import.meta.env.VITE_BASE_HOME_PATH;
 			navigate(targetPath, { replace: true });
 		}
-		catch (err: any) {
-			messageLoadingApi?.destroy();
-			window.$message?.error(err?.message || "登录失败");
+		catch (error) {
+			loadingMessage?.();
+			setErrorMessage(error instanceof Error ? error.message : t("authority.loginFailed"));
 		}
 		finally {
 			setLoading(false);
 		}
 	};
 
+	const fillIdentity = (username: "admin" | "viewer") => {
+		passwordLoginForm.setFieldsValue({
+			username,
+			password: username === "admin" ? "admin123" : "viewer123",
+		});
+		setErrorMessage("");
+	};
+
 	return (
 		<>
-			{contextLoadingHolder}
-			<Space direction="vertical">
-				<h2 className="text-colorText mb-3 text-3xl font-bold leading-9 tracking-tight lg:text-4xl">
+			<section aria-labelledby="login-title">
+				<Typography.Title id="login-title" level={3} className="!mb-2">
 					{t("authority.welcomeBack")}
-					&nbsp;
-					👋
-				</h2>
-				<p className="lg:text-base text-sm text-colorTextSecondary">
+				</Typography.Title>
+				<Typography.Paragraph type="secondary" className="!mb-6">
 					{t("authority.loginDescription")}
-				</p>
-			</Space>
+				</Typography.Paragraph>
 
-			<Form
-				name="passwordLoginForm"
-				form={passwordLoginForm}
-				layout="vertical"
-				initialValues={{ username: "admin", password: "admin123" }}
-				onFinish={handleFinish}
-			>
-				<Form.Item
-					label={t("authority.username")}
-					name="username"
-					rules={USERNAME_RULES(t)}
+				<Form<PasswordLoginValues>
+					form={passwordLoginForm}
+					initialValues={{ username: "admin", password: "admin123" }}
+					layout="vertical"
+					onFinish={handleFinish}
+					requiredMark={false}
 				>
-					<Input placeholder={t("form.username.required")} />
-				</Form.Item>
+					<Form.Item label={t("authority.username")} name="username" rules={USERNAME_RULES(t)}>
+						<Input autoComplete="username" placeholder={t("form.username.required")} prefix={<UserOutlined />} size="large" />
+					</Form.Item>
 
-				<Form.Item
-					label={t("authority.password")}
-					name="password"
-					rules={PASSWORD_RULES(t)}
-				>
-					<Input.Password placeholder={t("form.password.required")} />
-				</Form.Item>
+					<Form.Item label={t("authority.password")} name="password" rules={PASSWORD_RULES(t)}>
+						<Input.Password autoComplete="current-password" placeholder={t("form.password.required")} prefix={<LockOutlined />} size="large" />
+					</Form.Item>
 
-				<Form.Item>
-					<Button block type="primary" htmlType="submit" loading={loading}>
+					<Flex align="center" justify="space-between" className="-mt-2 mb-4">
+						<Dropdown
+							menu={{
+								items: [
+									{ key: "admin", label: t("authority.administratorAccount") },
+									{ key: "viewer", label: t("authority.viewerAccount") },
+								],
+								onClick: ({ key }) => fillIdentity(key as "admin" | "viewer"),
+							}}
+							trigger={["click"]}
+						>
+							<BasicButton type="text" size="small" usage="table-action">
+								{t("authority.demoAccounts")}
+								<DownOutlined />
+							</BasicButton>
+						</Dropdown>
+						<BasicButton type="link" size="small" onClick={() => navigate(forgotPasswordPath)}>
+							{t("authority.forgotPassword")}
+						</BasicButton>
+					</Flex>
+
+					{errorMessage && (
+						<Alert className="mb-4" description={errorMessage} showIcon type="error" />
+					)}
+
+					<BasicButton block htmlType="submit" loading={loading} size="large" type="primary">
 						{t("authority.login")}
-					</Button>
-				</Form.Item>
+					</BasicButton>
+				</Form>
+			</section>
 
-				<Card size="small" title={t("authority.demoAccounts")}>
-					<Space wrap>
-						<Button
-							size="small"
-							onClick={() => passwordLoginForm.setFieldsValue({ username: "admin", password: "admin123" })}
-						>
-							{t("authority.administratorAccount")}
-						</Button>
-						<Button
-							size="small"
-							onClick={() => passwordLoginForm.setFieldsValue({ username: "viewer", password: "viewer123" })}
-						>
-							{t("authority.viewerAccount")}
-						</Button>
-					</Space>
-				</Card>
-			</Form>
+			<Flex align="center" gap={6} justify="center">
+				<SafetyCertificateFilled style={{ color: token.colorSuccess }} />
+				<Typography.Text type="secondary" className="text-xs">
+					{t("authority.authorizedOnly")}
+				</Typography.Text>
+			</Flex>
 		</>
 	);
 }

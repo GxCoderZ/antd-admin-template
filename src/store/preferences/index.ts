@@ -27,7 +27,7 @@ export const DEFAULT_PREFERENCES = {
 	theme: "auto",
 	colorBlindMode: false,
 	colorGrayMode: false,
-	themeRadius: 6,
+	themeRadius: 8,
 	builtinTheme: "blue",
 	themeColorPrimary: "#1677ff",
 

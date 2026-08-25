@@ -3,6 +3,7 @@ import {
 	DashboardOutlined,
 	InfoCircleOutlined,
 	MenuOutlined,
+	ProfileOutlined,
 	SettingOutlined,
 	TeamOutlined,
 	UserOutlined,
@@ -18,5 +19,6 @@ export const menuIcons: Record<string, any> = {
 	UserOutlined,
 	TeamOutlined,
 	MenuOutlined,
+	ProfileOutlined,
 	InfoCircleOutlined,
 };

@@ -1,10 +1,10 @@
 import type { ButtonProps } from "antd";
 
+import { clearSession } from "#src/application/session";
 import { BasicButton } from "#src/components/basic-button";
 import { useDeviceType } from "#src/hooks/use-device-type";
 import { usePreferences } from "#src/hooks/use-preferences";
 import { loginPath } from "#src/router/extra-info";
-import { useAuthStore } from "#src/store/auth";
 import { usePreferencesStore } from "#src/store/preferences";
 
 import { CopyOutlined, RedoOutlined, RocketOutlined, SettingOutlined } from "@ant-design/icons";
@@ -32,10 +32,9 @@ export function Preferences({ ...restProps }: ButtonProps) {
 	const { isMobile } = useDeviceType();
 	const { reset, isDefault, isDark } = usePreferences();
 	const preferences = usePreferencesStore();
-	const logout = useAuthStore(state => state.logout);
 
-	const clearAndLogout = async () => {
-		await logout();
+	const clearAndLogout = () => {
+		clearSession();
 		usePreferencesStore.persist.clearStorage();
 		navigate(loginPath);
 	};

@@ -1,13 +1,17 @@
 {
 	"menu": {
 		"dashboard": "工作台",
+		"operations": "运营与审计",
 		"audit": "审计日志",
+		"loginLog": "登录日志",
 		"system": "系统管理",
 		"systemRole": "角色管理",
 		"systemUser": "用户管理",
 		"role": "角色管理",
 		"user": "用户管理",
-		"permission": "权限管理"
+		"permission": "权限管理",
+		"settings": "平台设置",
+		"about": "关于系统"
 	},
 	"appLoading": "资源正在加载中...",
 	"back": "返回",
@@ -89,5 +93,15 @@
 	"day": "天",
 	"startDate": "开始日期",
 	"endDate": "结束日期",
-	"save": "保存"
+	"save": "保存",
+	"keyword": "关键词",
+	"more": "更多操作",
+	"done": "完成",
+	"retry": "重试",
+	"dangerConfirmation": {
+		"impactTitle": "此操作可能产生不可逆影响",
+		"inputLabel": "确认对象",
+		"inputHint": "请输入“{{targetName}}”以确认此操作",
+		"placeholder": "请输入完整名称"
+	}
 }

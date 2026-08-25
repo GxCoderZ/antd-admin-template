@@ -1,41 +1,40 @@
-// ========== 用户管理相关类型 ==========
+export type UserStatus = 1 | 2 | 3;
+export type UserSortField = "username" | "display_name" | "email" | "status" | "created_at";
 
-/**
- * 用户项
- */
 export interface UserItemType {
 	id: number
 	uuid: string
 	username: string
-	status: number // 1=启用 2=禁用
+	display_name: string
+	email: string
+	status: UserStatus
 	created_at: string
 }
 
-/**
- * 用户列表请求
- */
 export interface UserListReq {
 	page: number
 	page_size: number
-	username?: string // 用户名（模糊搜索）
-	status?: number // 0=全部 1=启用 2=禁用
+	keyword?: string
+	status?: UserStatus
+	sort?: UserSortField
+	order?: "ascend" | "descend"
+	role_id?: number
 }
 
-/**
- * 创建用户请求
- */
 export interface UserCreateReq {
 	username: string
 	password: string
+	display_name?: string
+	email?: string
+	role_ids?: number[]
 }
 
-/**
- * 更新用户请求
- */
 export interface UserUpdateReq {
 	id: number
-	username: string
-	status: number
+	username?: string
+	display_name?: string
+	email?: string
+	status?: UserStatus
 }
 
 /**
@@ -57,10 +56,20 @@ export interface UserDetailReq {
  */
 export interface UserResetPasswordReq {
 	id: number
-	new_password: string
+	new_password?: string
 }
 
-// ========== 用户角色关联相关类型 ==========
+export interface UserResetPasswordResp {
+	temporary_password: string
+}
+
+export interface UserForceLogoutReq {
+	id: number
+}
+
+export interface UserForceLogoutResp {
+	revoked_sessions: number
+}
 
 /**
  * 绑定用户角色请求

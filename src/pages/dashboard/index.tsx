@@ -1,15 +1,22 @@
 import { fetchDashboardSummary } from "#src/api/dashboard";
+import { BasicButton } from "#src/components/basic-button";
 import { BasicContent } from "#src/components/basic-content";
+import { usePermission } from "#src/hooks/use-permission";
+import { useUserStore } from "#src/store/user";
 
-import { ClockCircleOutlined } from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Card, Col, Empty, Flex, List, Row, Spin, Tag, Typography } from "antd";
+import { Card, Col, Empty, Flex, Result, Row, theme, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { OverviewCard } from "./components/overview-card";
+import { createDashboardMetrics } from "./constants";
 
 export default function Dashboard() {
 	const { t } = useTranslation();
+	const { token } = theme.useToken();
+	const username = useUserStore(state => state.nickname?.trim() || state.username);
+	const canViewAudit = usePermission("audit:view");
 	const summaryQuery = useQuery({
 		queryKey: ["dashboard-summary"],
 		queryFn: async () => {
@@ -19,55 +26,49 @@ export default function Dashboard() {
 			return response.data;
 		},
 	});
+	const metrics = createDashboardMetrics(summaryQuery.data?.metrics ?? [], canViewAudit);
 
 	return (
 		<BasicContent>
-			<Card className="mb-4" styles={{ body: { padding: 24 } }}>
-				<Flex justify="space-between" align="flex-start" gap={16} wrap>
-					<div>
-						<Typography.Title level={3} className="!mb-2">
-							{t("dashboard.title")}
-						</Typography.Title>
-						<Typography.Text type="secondary">{t("dashboard.description")}</Typography.Text>
-					</div>
-					<Tag color="processing" bordered={false}>{t("dashboard.fakeBadge")}</Tag>
-				</Flex>
-			</Card>
+			<Flex vertical gap={token.marginLG}>
+				<div>
+					<Typography.Title level={4} className="!mb-1">
+						{t("dashboard.greeting", { name: username || t("dashboard.defaultUser") })}
+					</Typography.Title>
+					<Typography.Text type="secondary">{t("dashboard.description")}</Typography.Text>
+				</div>
 
-			{summaryQuery.isError && (
-				<Alert className="mb-4" type="error" showIcon message={t("dashboard.loadFailed")} description={summaryQuery.error.message} />
-			)}
-
-			<Spin spinning={summaryQuery.isLoading}>
-				{summaryQuery.data
+				{summaryQuery.isError
 					? (
-						<>
-							<Row gutter={[16, 16]}>
-								{summaryQuery.data.metrics.map(metric => (
-									<Col key={metric.key} xs={24} sm={12} xl={6}>
-										<OverviewCard metric={metric} />
+						<Card>
+							<Result
+								extra={<BasicButton icon={<ReloadOutlined />} type="primary" onClick={() => summaryQuery.refetch()}>{t("dashboard.retry")}</BasicButton>}
+								status="error"
+								subTitle={summaryQuery.error.message}
+								title={t("dashboard.loadFailed")}
+							/>
+						</Card>
+					)
+					: (
+						<Row gutter={[token.marginLG, token.marginLG]}>
+							{summaryQuery.isLoading
+								? Array.from({ length: canViewAudit ? 4 : 3 }, (_, index) => (
+									<Col data-testid="dashboard-statistic-skeleton" key={index} lg={6} sm={12} xs={24}>
+										<Card loading className="h-full" />
+									</Col>
+								))
+								: metrics.map(({ meta, metric }) => (
+									<Col key={metric.key} lg={6} sm={12} xs={24}>
+										<OverviewCard meta={meta} metric={metric} />
 									</Col>
 								))}
-							</Row>
-							<Card className="mt-4" title={t("dashboard.recentActivity")}>
-								<List
-									dataSource={summaryQuery.data.activities}
-									locale={{ emptyText: <Empty description={t("common.noData")} /> }}
-									renderItem={item => (
-										<List.Item extra={<Typography.Text type="secondary">{item.created_at}</Typography.Text>}>
-											<List.Item.Meta
-												avatar={<ClockCircleOutlined className="text-colorPrimary" />}
-												title={item.actor}
-												description={`${item.action} · ${item.target}`}
-											/>
-										</List.Item>
-									)}
-								/>
-							</Card>
-						</>
-					)
-					: !summaryQuery.isLoading && <Empty description={t("common.noData")} />}
-			</Spin>
+						</Row>
+					)}
+
+				{!summaryQuery.isLoading && !summaryQuery.isError && metrics.length === 0 && (
+					<Card><Empty description={t("dashboard.noPermissionData")} /></Card>
+				)}
+			</Flex>
 		</BasicContent>
 	);
 }

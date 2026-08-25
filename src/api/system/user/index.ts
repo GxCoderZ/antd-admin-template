@@ -5,9 +5,12 @@ import type {
 	UserCreateReq,
 	UserDeleteReq,
 	UserDetailReq,
+	UserForceLogoutReq,
+	UserForceLogoutResp,
 	UserItemType,
 	UserListReq,
 	UserResetPasswordReq,
+	UserResetPasswordResp,
 	UserUpdateReq,
 } from "./types";
 import { request } from "#src/utils/request";
@@ -33,7 +36,7 @@ export function fetchUserList(data: UserListReq) {
 export function fetchCreateUser(data: UserCreateReq) {
 	return request
 		.post("/api/system/users/create", { json: data })
-		.json<ApiResponse<void>>();
+		.json<ApiResponse<UserItemType>>();
 }
 
 /**
@@ -73,7 +76,13 @@ export function fetchDeleteUser(data: UserDeleteReq) {
 export function fetchResetUserPassword(data: UserResetPasswordReq) {
 	return request
 		.post("/api/system/users/reset-password", { json: data })
-		.json<ApiResponse<void>>();
+		.json<ApiResponse<UserResetPasswordResp>>();
+}
+
+export function fetchForceLogoutUser(data: UserForceLogoutReq) {
+	return request
+		.post("/api/system/users/force-logout", { json: data })
+		.json<ApiResponse<UserForceLogoutResp>>();
 }
 
 // ========== 用户角色关联 ==========

@@ -1,0 +1,15 @@
+{
+	"title": "登录日志",
+	"identifier": "登录标识",
+	"result": "结果",
+	"success": "成功",
+	"failed": "失败",
+	"device": "设备",
+	"ipAddress": "IP 地址",
+	"language": "语言",
+	"timeZone": "时区",
+	"timeRange": "发生时间",
+	"occurredAt": "发生时间",
+	"recordId": "记录标识",
+	"detailTitle": "登录记录详情"
+}

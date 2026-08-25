@@ -1,5 +1,5 @@
+import { clearSession } from "#src/application/session";
 import { loginPath } from "#src/router/extra-info";
-import { useAuthStore } from "#src/store/auth";
 import { rememberRoute } from "#src/utils/remember-route";
 
 /**
@@ -8,7 +8,7 @@ import { rememberRoute } from "#src/utils/remember-route";
  */
 export function goLogin() {
 	// 重置登录状态
-	useAuthStore.getState().reset();
+	clearSession();
 
 	const remembered = rememberRoute();
 	// hash 模式下需要把 query 放在 # 后面

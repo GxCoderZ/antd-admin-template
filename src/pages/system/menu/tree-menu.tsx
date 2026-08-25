@@ -1,106 +1,70 @@
+import type { PermissionGroupType } from "#src/api/system/menu";
 import type { TreeDataNode } from "antd";
 
 import { BasicButton } from "#src/components/basic-button";
-import { BasicContent } from "#src/components/basic-content";
-import { getAllExpandedKeys } from "#src/utils/get-all-expanded-keys";
 
-import { MinusCircleOutlined, PlusCircleOutlined, SearchOutlined } from "@ant-design/icons";
-import { Card, Input, Radio, Tag, Tree } from "antd";
-import { useState } from "react";
+import { SearchOutlined } from "@ant-design/icons";
+import { Alert, Card, Empty, Flex, Input, Skeleton, Tree, Typography } from "antd";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-const treeData: TreeDataNode[] = [
-	{
-		title: "parent 1",
-		key: "0-0",
-		children: [
-			{
-				title: "parent 1-0",
-				key: "0-0-0",
-				disabled: true,
-				children: [
-					{
-						title: "leaf",
-						key: "0-0-0-0",
-						disableCheckbox: true,
-					},
-					{
-						title: "leaf",
-						key: "0-0-0-1",
-					},
-				],
-			},
-			{
-				title: "parent 1-1",
-				key: "0-0-1",
-				children: [{ title: <span style={{ color: "#1677ff" }}>sss</span>, key: "0-0-1-0" }],
-			},
-		],
-	},
-];
-export default function Menu() {
-	const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
-	const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+import { permissionModuleNames } from "./constants";
+
+interface TreeMenuProps {
+	error?: Error | null
+	groups: PermissionGroupType[]
+	loading?: boolean
+	onRetry?: () => void
+	onSelect: (module?: string) => void
+	selectedModule?: string
+}
+
+export default function TreeMenu({ error, groups, loading = false, onRetry, onSelect, selectedModule }: TreeMenuProps) {
+	const { t } = useTranslation();
+	const [keyword, setKeyword] = useState("");
+	const [expandedOverride, setExpandedOverride] = useState<React.Key[]>();
+	const treeData = useMemo<TreeDataNode[]>(() => groups
+		.filter(group => !keyword || `${permissionModuleNames[group.module] ?? group.module}${group.module}${group.permissions.map(item => `${item.name}${item.code}`).join("")}`.toLocaleLowerCase().includes(keyword.toLocaleLowerCase()))
+		.map(group => ({
+			key: group.module,
+			title: permissionModuleNames[group.module] ?? group.module,
+			children: group.permissions.map(permission => ({ key: `permission:${permission.id}`, selectable: false, title: permission.name })),
+		})), [groups, keyword]);
+	const allKeys = treeData.map(item => item.key);
+	const expandedKeys = expandedOverride ?? allKeys;
+
 	return (
-		<BasicContent className="h-full">
-			<Card
-				className="h-full [&_.ant-card-body]:h-full"
-			>
-				<div
-					className="relative h-full w-full overflow-hidden border-r-[1px] border-r-gray-200 pr-5 lg:w-4/12"
-				>
-					<div className="flex gap-3 mb-4">
-						<Input
-							placeholder="搜索"
-							className="flex-1"
-							prefix={<SearchOutlined />}
-						/>
-						<Radio.Group
-							onChange={(e) => {
-								const value = e.target.value;
-								if (value === "expand") {
-									setExpandedKeys(getAllExpandedKeys(treeData, "key"));
-								}
-								else {
-									setExpandedKeys([]);
-								}
-							}}
-						>
-							<Radio.Button value="expand">展开</Radio.Button>
-							<Radio.Button value="collapse">折叠</Radio.Button>
-						</Radio.Group>
-					</div>
-					<div className="flex flex-col gap-y-1">
-						<Tree
-							className="[&_.ant-tree-treenode-selected_.tree-actions]:flex"
-							blockNode
-							expandedKeys={expandedKeys}
-							onExpand={(keys) => {
-								setExpandedKeys(keys);
-							}}
-							selectedKeys={selectedKeys}
-							onSelect={(keys) => {
-								// console.log("onSelect", keys);
-								setSelectedKeys(keys);
-							}}
-							titleRender={(node: any) => (
-								<div className="group flex justify-between items-center">
-									<span>{node.title}</span>
-									<div className="tree-actions hidden group-hover:flex items-center gap-0.5">
-										<Tag color="processing" className="mr-0 h-fit text-xs">菜单</Tag>
-										<div>
-											<BasicButton color="primary" variant="text" size="small" icon={<PlusCircleOutlined />} />
-											<BasicButton danger type="text" size="small" icon={<MinusCircleOutlined />} />
-										</div>
-									</div>
-								</div>
-							)}
-							// onSelect={onSelect}
-							treeData={treeData}
-						/>
-					</div>
-
-				</div>
-			</Card>
-		</BasicContent>
+		<Card className="h-full" title={t("system.menu.permissionGroups")}>
+			<Flex gap="middle" vertical>
+				<Input allowClear placeholder={t("system.menu.searchModule")} prefix={<SearchOutlined />} value={keyword} onChange={event => setKeyword(event.target.value)} />
+				<Flex gap="small">
+					<BasicButton size="small" onClick={() => setExpandedOverride(allKeys)}>{t("common.expandAll")}</BasicButton>
+					<BasicButton size="small" onClick={() => setExpandedOverride([])}>{t("common.collapseAll")}</BasicButton>
+					{selectedModule && <BasicButton size="small" onClick={() => onSelect(undefined)}>{t("common.all")}</BasicButton>}
+				</Flex>
+				{error && (
+					<Alert
+						action={<BasicButton size="small" onClick={onRetry}>{t("common.retry")}</BasicButton>}
+						description={error.message}
+						showIcon
+						type="error"
+					/>
+				)}
+				{loading
+					? <Skeleton active paragraph={{ rows: 6 }} />
+					: treeData.length > 0
+						? (
+							<Tree
+								blockNode
+								expandedKeys={expandedKeys}
+								onExpand={setExpandedOverride}
+								onSelect={keys => onSelect(keys[0] ? String(keys[0]) : undefined)}
+								selectedKeys={selectedModule ? [selectedModule] : []}
+								treeData={treeData}
+							/>
+						)
+						: <Empty description={<Typography.Text type="secondary">{t("common.noData")}</Typography.Text>} image={Empty.PRESENTED_IMAGE_SIMPLE} />}
+			</Flex>
+		</Card>
 	);
 }

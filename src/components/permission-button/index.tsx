@@ -1,8 +1,7 @@
 import type { ButtonProps } from "antd";
 
+import { BasicButton } from "#src/components/basic-button";
 import { usePermission } from "#src/hooks/use-permission";
-
-import { Button } from "antd";
 
 export interface PermissionButtonProps extends ButtonProps {
 	/** 权限码，支持单个或多个（多个时满足任一即可） */
@@ -37,5 +36,5 @@ export function PermissionButton({
 		return null;
 	}
 
-	return <Button {...restProps}>{children}</Button>;
+	return <BasicButton {...restProps}>{children}</BasicButton>;
 }

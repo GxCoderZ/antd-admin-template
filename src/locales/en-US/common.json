@@ -1,13 +1,17 @@
 {
 	"menu": {
 		"dashboard": "Dashboard",
+		"operations": "Operations",
 		"audit": "Audit Log",
+		"loginLog": "Login Log",
 		"system": "System",
 		"systemRole": "Roles",
 		"systemUser": "Users",
 		"role": "Roles",
 		"user": "Users",
-		"permission": "Permissions"
+		"permission": "Permissions",
+		"settings": "Platform Settings",
+		"about": "About System"
 	},
 	"appLoading": "Loading Resources...",
 	"back": "Back",
@@ -86,5 +90,15 @@
 	"day": "days",
 	"startDate": "Start Date",
 	"endDate": "End Date",
-	"save": "Save"
+	"save": "Save",
+	"keyword": "Keyword",
+	"more": "More actions",
+	"done": "Done",
+	"retry": "Retry",
+	"dangerConfirmation": {
+		"impactTitle": "This action may have irreversible effects",
+		"inputLabel": "Confirmation target",
+		"inputHint": "Enter “{{targetName}}” to confirm this action",
+		"placeholder": "Enter the full name"
+	}
 }
