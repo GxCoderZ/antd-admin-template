@@ -66,8 +66,9 @@ pnpm preview
 | `fake/<domain>.fake.ts` | 对应领域的 Fake HTTP 接口 |
 | `src/components/` | 跨领域通用 UI 组件 |
 | `src/hooks/` | 跨领域、框架级 Hook |
+| `src/application/` | 跨 Store、路由和请求层的应用级流程编排 |
 | `src/router/routes/static/` | 产品 UI 的全部业务路由 |
-| `src/store/` | 认证、用户、权限、主题等跨页面状态 |
+| `src/store/` | 认证、用户、权限、主题等跨页面纯状态及其更新动作 |
 | `src/styles/` | 全局样式、基础样式和 AntD 主题 |
 | `src/locales/{zh-CN,en-US}/` | 双语文案，文件名即 namespace |
 
@@ -93,10 +94,12 @@ src/pages/<feature>/
 ## UI 和样式规则
 
 - AntD 是基础交互组件，不手写复刻 Button、Table、Form、Drawer、Modal。
-- 页面根容器使用 `BasicContent`，普通管理列表使用 `BasicTable`，操作使用 `BasicButton`。
+- 页面根容器使用 `BasicContent`，普通管理列表使用 `BasicTable`，操作使用 `BasicButton`；Card、Drawer、Modal 分别使用现有 `BasicCard`、`BasicDrawer`、`BasicModal`。
 - 主题 Token 在 `src/styles/theme/antd/antd-theme.ts` 和 `src/app.tsx` 的 `ConfigProvider` 修改。
 - 全局基础样式放 `src/styles/base.css`、`src/styles/global.css`；不要在页面散落全局 `.ant-*` 覆盖。
 - Button 的通用行为和样式入口是 `src/components/basic-button`；不创建平行按钮体系。
+- 查询面板、日志表格、危险操作确认、加载骨架等跨领域交互优先复用 `QueryFilterPanel`、`LogTablePanel`、`DangerConfirmation` 和 `LoadingSkeletons`。
+- 多处重复的 AntD 外观或交互应扩展现有薄封装；只有形成稳定跨领域复用时才新增 `src/components` 组件。
 - 页面专属样式留在对应页面或组件中，优先使用现有 Tailwind 工具类。
 - 所有可交互组件都要考虑 hover、focus、active、disabled、loading 和 danger 状态。
 - 关键页面必须覆盖加载、正常、空数据、失败和无权限状态，并核对桌面与窄屏。
@@ -111,6 +114,15 @@ src/pages/<feature>/
 - Fake CRUD 应保留当前预览会话内的内存变化，不能所有写操作都只返回成功但页面不变化。
 - 页面不得知道数据来自 Fake；将来正式项目复制页面后，由正式项目自己的 `src/api` 接真实数据。
 - Zustand 只用于跨页面状态。普通列表、表单和抽屉不为套层而新增 Store。
+
+## 状态、会话和依赖边界
+
+- Store 只保存跨页面状态和提供同步更新动作；不得在 Store 中发送请求、生成路由、执行导航或重置其他 Store。
+- 登录页、`AuthGuard` 等上层入口负责调用 API，再把结果写入对应 Store。
+- 跨 Store 的会话清理统一由 `src/application/session.ts` 编排；主动退出和 401 刷新失败都复用同一清理语义。
+- `access store` 只保存菜单、路由快照和权限；静态路由过滤及快照生成放在 `src/router/utils/create-access-snapshot.ts`。
+- Token 刷新使用 `src/utils/request/client.ts` 提供的叶子级 Ky 客户端，避免认证 API、统一请求客户端和认证 Store 形成反向依赖。
+- `pnpm run check:circular-deps` 是零容忍门禁：报告必须为 `[]`，不得通过忽略路径或保留基线绕过循环依赖。
 
 ## 路由、菜单和权限
 
@@ -225,7 +237,7 @@ handle: {
 5. 在 `src/pages/<domain>` 完成页面和领域组件。
 6. 注册静态路由、菜单顺序、图标、文案和模拟权限。
 7. 补齐加载、空数据、失败、无权限和响应式状态。
-8. 先写失败测试，再实现行为；最后执行完整验证。
+8. 实现完成后补齐与变更风险相称的回归测试；不强制采用 TDD；最后执行完整验证。
 
 ## 完成门槛
 
@@ -240,3 +252,5 @@ pnpm run build:prod
 ```
 
 涉及布局、主题、表格、Drawer、Modal 或响应式时，还要启动页面人工核对。没有新鲜命令输出和页面检查证据，不宣称完成。
+
+`pnpm run check:circular-deps` 必须扫描成功且输出 0 条循环路径；任何新增循环都视为完成门槛未通过。

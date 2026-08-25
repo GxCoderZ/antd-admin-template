@@ -1,6 +1,6 @@
 # Admin Temp
 
-`admin-temp` 是产品团队使用的纯前端管理端 UI 母版。它基于 React、Ant Design 和 Chatroom/Agg 已采用的前端工程模式，内置可交互的本地 Fake 数据，不需要启动任何后端。
+`admin-temp` 是产品团队使用的纯前端管理端 UI 母版。它基于 React、Ant Design 和统一的产品 UI 工程规范，内置可交互的本地 Fake 数据，不需要启动任何后端。
 
 ## 仓库使用方式
 
@@ -23,12 +23,15 @@ product-ui/
 
 - 模拟登录、退出和 Token 刷新
 - 管理员与只读用户两种模拟身份
-- 用户、角色、权限及角色绑定
+- 用户、角色、权限分配及角色绑定
 - 前端菜单、路由和按钮权限显示
-- 通用 Dashboard 和审计日志
+- 工作台、审计日志和登录日志
+- 个人资料、基本设置和会话安全
+- 平台设置和系统信息
 - 403、404、500 页面
 - AntD 主题、暗色模式、布局和标签页偏好
-- BasicContent、BasicButton、BasicTable、BasicForm
+- BasicContent、BasicButton、BasicTable、BasicForm、BasicCard、BasicDrawer、BasicModal
+- 查询面板、日志表格、危险操作确认和加载骨架等通用交互
 - 开发与构建预览都启用的 Fake Server
 - 完整 `AGENTS.md` 工程规则和领域开发示例
 
@@ -84,12 +87,22 @@ src/router/routes/static/<domain>.ts
 
 完整目录职责、Hook 放置规则、样式入口、公告领域示例和验证要求见 [AGENTS.md](./AGENTS.md)。
 
+## 会话与依赖边界
+
+- `src/store` 只保存跨页面纯状态，不发送请求、不生成路由，也不重置其他 Store。
+- `src/application/session.ts` 统一编排主动退出和 401 刷新失败后的会话清理。
+- `AuthGuard` 获取用户和权限后生成访问快照，再写入用户与权限 Store。
+- Token 刷新使用独立的叶子级请求客户端，避免认证 API、统一请求客户端和 Store 相互引用。
+- `pnpm run check:circular-deps` 是零容忍门禁，循环依赖报告必须为 `[]`。
+
 ## 样式入口
 
 - AntD Token：`src/styles/theme/antd/antd-theme.ts`、`src/app.tsx`
 - 全局 CSS：`src/styles/base.css`、`src/styles/global.css`
 - 通用按钮：`src/components/basic-button`
 - 通用表格：`src/components/basic-table`
+- 通用容器：`src/components/basic-card`、`src/components/basic-drawer`、`src/components/basic-modal`
+- 通用业务交互：`src/components/query-filter-panel`、`src/components/log-table-panel`、`src/components/danger-confirmation`
 - 页面专属样式：对应的 `src/pages/<domain>`
 
 ## 验证
@@ -102,3 +115,5 @@ pnpm run check:circular-deps
 pnpm run build:prod
 pnpm preview
 ```
+
+其中循环依赖检查必须扫描成功且保持 0 条路径；出现任何循环都会使命令失败。
