@@ -1,5 +1,6 @@
 import type { PlatformSession } from "../src/api/auth";
 import type { PlatformAnnouncement } from "../src/api/announcements";
+import type { PlatformDepartment } from "../src/api/departments";
 import type { PlatformFile } from "../src/api/files";
 import type { PlatformNotification } from "../src/api/notifications";
 import type {
@@ -7,6 +8,7 @@ import type {
 	ExampleRecordDetail,
 } from "../src/api/page-examples";
 import type { PlatformAuditLog, PlatformLoginLog } from "../src/api/operations";
+import type { PlatformPosition } from "../src/api/positions";
 import type { PlatformRole } from "../src/api/roles";
 import type { PlatformUserDetail } from "../src/api/users";
 
@@ -100,6 +102,256 @@ export const roles: PlatformRole[] = [
 		version: 1,
 	})),
 ];
+
+export const departments: PlatformDepartment[] = [
+	{
+		children: [],
+		code: "headquarters",
+		createdAt: iso(80_000),
+		id: "dept-headquarters",
+		memberCount: 6,
+		name: "总部职能",
+		parentId: null,
+		positionCount: 3,
+		status: "active",
+		updatedAt: iso(620),
+	},
+	{
+		children: [],
+		code: "platform",
+		createdAt: iso(78_000),
+		id: "dept-platform",
+		memberCount: 12,
+		name: "平台研发部",
+		parentId: null,
+		positionCount: 4,
+		status: "active",
+		updatedAt: iso(500),
+	},
+	{
+		children: [],
+		code: "frontend",
+		createdAt: iso(66_000),
+		id: "dept-frontend",
+		memberCount: 5,
+		name: "前端工程组",
+		parentId: "dept-platform",
+		positionCount: 2,
+		status: "active",
+		updatedAt: iso(400),
+	},
+	{
+		children: [],
+		code: "backend",
+		createdAt: iso(65_000),
+		id: "dept-backend",
+		memberCount: 7,
+		name: "后端工程组",
+		parentId: "dept-platform",
+		positionCount: 2,
+		status: "active",
+		updatedAt: iso(390),
+	},
+	{
+		children: [],
+		code: "operations",
+		createdAt: iso(74_000),
+		id: "dept-operations",
+		memberCount: 9,
+		name: "运营中心",
+		parentId: null,
+		positionCount: 4,
+		status: "active",
+		updatedAt: iso(470),
+	},
+	{
+		children: [],
+		code: "content",
+		createdAt: iso(54_000),
+		id: "dept-content",
+		memberCount: 4,
+		name: "内容运营组",
+		parentId: "dept-operations",
+		positionCount: 2,
+		status: "active",
+		updatedAt: iso(380),
+	},
+	{
+		children: [],
+		code: "customer_success",
+		createdAt: iso(53_000),
+		id: "dept-customer-success",
+		memberCount: 5,
+		name: "客户成功组",
+		parentId: "dept-operations",
+		positionCount: 2,
+		status: "active",
+		updatedAt: iso(360),
+	},
+	{
+		children: [],
+		code: "finance",
+		createdAt: iso(70_000),
+		id: "dept-finance",
+		memberCount: 6,
+		name: "财务管理部",
+		parentId: "dept-headquarters",
+		positionCount: 3,
+		status: "active",
+		updatedAt: iso(430),
+	},
+	{
+		children: [],
+		code: "hr",
+		createdAt: iso(68_000),
+		id: "dept-hr",
+		memberCount: 5,
+		name: "人力资源部",
+		parentId: "dept-headquarters",
+		positionCount: 3,
+		status: "active",
+		updatedAt: iso(420),
+	},
+	{
+		children: [],
+		code: "risk",
+		createdAt: iso(64_000),
+		id: "dept-risk",
+		memberCount: 4,
+		name: "风险合规部",
+		parentId: "dept-headquarters",
+		positionCount: 3,
+		status: "disabled",
+		updatedAt: iso(410),
+	},
+];
+
+const positionSeeds = [
+	[
+		"position-platform-admin",
+		"平台管理员",
+		"platform_admin",
+		"dept-platform",
+		2,
+	],
+	[
+		"position-frontend-engineer",
+		"前端工程师",
+		"frontend_engineer",
+		"dept-frontend",
+		5,
+	],
+	["position-ui-engineer", "界面工程师", "ui_engineer", "dept-frontend", 2],
+	[
+		"position-backend-engineer",
+		"后端工程师",
+		"backend_engineer",
+		"dept-backend",
+		5,
+	],
+	["position-api-engineer", "接口工程师", "api_engineer", "dept-backend", 2],
+	[
+		"position-operations-manager",
+		"运营经理",
+		"operations_manager",
+		"dept-operations",
+		2,
+	],
+	[
+		"position-operations-specialist",
+		"运营专员",
+		"operations_specialist",
+		"dept-operations",
+		4,
+	],
+	["position-content-editor", "内容编辑", "content_editor", "dept-content", 3],
+	[
+		"position-content-specialist",
+		"内容专员",
+		"content_specialist",
+		"dept-content",
+		2,
+	],
+	[
+		"position-customer-success",
+		"客户成功专员",
+		"customer_success",
+		"dept-customer-success",
+		4,
+	],
+	[
+		"position-service-specialist",
+		"客服专员",
+		"service_specialist",
+		"dept-customer-success",
+		3,
+	],
+	[
+		"position-finance-manager",
+		"财务经理",
+		"finance_manager",
+		"dept-finance",
+		1,
+	],
+	[
+		"position-finance-specialist",
+		"财务专员",
+		"finance_specialist",
+		"dept-finance",
+		4,
+	],
+	[
+		"position-billing-specialist",
+		"账单专员",
+		"billing_specialist",
+		"dept-finance",
+		2,
+	],
+	["position-hr-manager", "人事经理", "hr_manager", "dept-hr", 1],
+	["position-hr-specialist", "人事专员", "hr_specialist", "dept-hr", 4],
+	["position-recruiter", "招聘专员", "recruiter", "dept-hr", 2],
+	["position-risk-manager", "风控经理", "risk_manager", "dept-risk", 1],
+	["position-risk-specialist", "风控专员", "risk_specialist", "dept-risk", 3],
+	[
+		"position-compliance-reviewer",
+		"合规审核员",
+		"compliance_reviewer",
+		"dept-risk",
+		2,
+	],
+	["position-data-analyst", "数据分析师", "data_analyst", "dept-operations", 2],
+	[
+		"position-quality-auditor",
+		"质量审计员",
+		"quality_auditor",
+		"dept-operations",
+		1,
+	],
+	[
+		"position-product-operator",
+		"产品运营",
+		"product_operator",
+		"dept-operations",
+		2,
+	],
+	["position-project-owner", "项目负责人", "project_owner", "dept-platform", 2],
+] as const;
+
+export const positions: PlatformPosition[] = positionSeeds.map(
+	([id, name, code, departmentId, memberCount], index) => ({
+		code,
+		createdAt: iso(58_000 - index * 260),
+		departmentId,
+		departmentName:
+			departments.find((department) => department.id === departmentId)?.name ??
+			"",
+		id,
+		memberCount,
+		name,
+		status: index % 9 === 0 ? "disabled" : "active",
+		updatedAt: iso(760 + index * 31),
+	}),
+);
 
 const generatedUserSeeds = [
 	["avery.chen", "Avery Chen"],
