@@ -109,7 +109,6 @@ export function BasicFormPage() {
 					}}
 					requiredMark={false}
 					style={{ margin: "8px auto 0", maxWidth: 600 }}
-					variant="filled"
 				>
 					<Form.Item
 						label={t("adminShell.formExamples.basic.fields.title")}

@@ -156,7 +156,6 @@ export function StepFormPage() {
 								setCurrentStep(1);
 							}}
 							style={{ margin: "32px auto 0", maxWidth: 420, width: "100%" }}
-							variant="filled"
 						>
 							<Form.Item
 								label={t("adminShell.formExamples.step.fields.payAccount")}
@@ -325,7 +324,6 @@ export function StepFormPage() {
 							}
 							requiredMark={false}
 							style={{ ...resultStyle, margin: "32px auto 0" }}
-							variant="filled"
 						>
 							<Alert
 								closable

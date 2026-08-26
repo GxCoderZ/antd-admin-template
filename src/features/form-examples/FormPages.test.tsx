@@ -100,18 +100,40 @@ function renderPage(page: React.ReactNode) {
 	});
 	const user = userEvent.setup();
 
-	render(
+	const result = render(
 		<ConfigProvider>
 			<QueryClientProvider client={queryClient}>{page}</QueryClientProvider>
 		</ConfigProvider>,
 	);
 
-	return user;
+	return { ...result, user };
 }
 
 describe("form example pages", () => {
+	it("uses the default outlined control style across form examples", async () => {
+		const filledControlSelector = [
+			".ant-input-filled",
+			".ant-input-number-filled",
+			".ant-picker-filled",
+			".ant-select-filled",
+		].join(", ");
+
+		const basic = renderPage(<BasicFormPage />);
+		expect(basic.container.querySelector(filledControlSelector)).toBeNull();
+		basic.unmount();
+
+		const step = renderPage(<StepFormPage />);
+		expect(step.container.querySelector(filledControlSelector)).toBeNull();
+		step.unmount();
+
+		const advanced = renderPage(<AdvancedFormPage />);
+		await screen.findByRole("heading", { level: 1, name: "高级表单" });
+		expect(advanced.container.querySelector(filledControlSelector)).toBeNull();
+		advanced.unmount();
+	});
+
 	it("renders the Ant Design Pro basic form fields and validation", async () => {
-		const user = renderPage(<BasicFormPage />);
+		const { user } = renderPage(<BasicFormPage />);
 
 		expect(
 			screen.getByRole("heading", { level: 1, name: "基础表单" }),
@@ -151,7 +173,7 @@ describe("form example pages", () => {
 	});
 
 	it("matches the Ant Design Pro transfer steps and submits after confirmation", async () => {
-		const user = renderPage(<StepFormPage />);
+		const { user } = renderPage(<StepFormPage />);
 
 		expect(
 			screen.getByRole("heading", { level: 1, name: "分步表单" }),
@@ -192,7 +214,7 @@ describe("form example pages", () => {
 	});
 
 	it("renders the advanced form sections, linked fields, dynamic members, and async validation", async () => {
-		const user = renderPage(<AdvancedFormPage />);
+		const { user } = renderPage(<AdvancedFormPage />);
 
 		expect(
 			await screen.findByRole("heading", { level: 1, name: "高级表单" }),
@@ -231,7 +253,7 @@ describe("form example pages", () => {
 	});
 
 	it("saves an advanced form draft and submits through the API payload", async () => {
-		const user = renderPage(<AdvancedFormPage />);
+		const { user } = renderPage(<AdvancedFormPage />);
 
 		await screen.findByRole("heading", { name: "基础信息" });
 		await user.click(screen.getByRole("button", { name: "保存草稿" }));

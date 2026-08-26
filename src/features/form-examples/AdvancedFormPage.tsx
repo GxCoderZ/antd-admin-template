@@ -283,7 +283,6 @@ export function AdvancedFormPage() {
 					onFinishFailed={handleInvalid}
 					requiredMark={false}
 					style={{ margin: "8px auto 0", maxWidth: 880 }}
-					variant="filled"
 				>
 					{errorSummary ? (
 						<Alert
