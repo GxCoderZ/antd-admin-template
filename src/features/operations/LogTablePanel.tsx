@@ -5,6 +5,7 @@ import {
 	SettingOutlined,
 	UpOutlined,
 } from "@ant-design/icons";
+import { ListToolBar } from "@ant-design/pro-components";
 import { ApiProblemError } from "#src/api/client";
 import {
 	Alert,
@@ -377,6 +378,57 @@ export function LogTablePanel<Row extends { id: string }>({
 			</Checkbox.Group>
 		</Flex>
 	);
+	const toolbarSettings = [
+		<Tooltip key="reload" title={t("adminShell.logs.common.reload")}>
+			<Button
+				aria-label={t("adminShell.logs.common.reload")}
+				color="default"
+				icon={<ReloadOutlined aria-hidden />}
+				loading={refreshing}
+				onClick={onReload}
+				variant="link"
+			/>
+		</Tooltip>,
+		<Dropdown
+			key="density"
+			menu={{
+				items: densityItems,
+				onClick: ({ key }) => {
+					if (key === "large" || key === "middle" || key === "small") {
+						writeUserTableDensityPreference(key);
+					}
+				},
+				selectedKeys: [tableSize ?? "middle"],
+			}}
+			placement="bottomRight"
+			trigger={["click"]}
+		>
+			<Tooltip title={t("adminShell.logs.common.density")}>
+				<Button
+					aria-label={t("adminShell.logs.common.density")}
+					color="default"
+					icon={<ColumnHeightOutlined aria-hidden />}
+					variant="link"
+				/>
+			</Tooltip>
+		</Dropdown>,
+		<Popover
+			key="columns"
+			arrow={false}
+			content={columnSettings}
+			placement="bottomRight"
+			trigger="click"
+		>
+			<Tooltip title={t("adminShell.logs.common.tableSettings")}>
+				<Button
+					aria-label={t("adminShell.logs.common.tableSettings")}
+					color="default"
+					icon={<SettingOutlined aria-hidden />}
+					variant="link"
+				/>
+			</Tooltip>
+		</Popover>,
+	];
 
 	return (
 		<Flex
@@ -388,84 +440,23 @@ export function LogTablePanel<Row extends { id: string }>({
 			{queryPanel}
 			<Card
 				data-testid={testId}
-				title={
-					<Flex
-						align="center"
-						gap={token.marginXS}
-						justify="space-between"
-						wrap
-					>
-						<span>{title}</span>
-						<Space>
-							{primaryAction}
-							<Tooltip title={t("adminShell.logs.common.reload")}>
-								<Button
-									aria-label={t("adminShell.logs.common.reload")}
-									color="default"
-									icon={<ReloadOutlined aria-hidden />}
-									loading={refreshing}
-									onClick={onReload}
-									variant="link"
-								/>
-							</Tooltip>
-							<Dropdown
-								menu={{
-									items: densityItems,
-									onClick: ({ key }) => {
-										if (
-											key === "large" ||
-											key === "middle" ||
-											key === "small"
-										) {
-											writeUserTableDensityPreference(key);
-										}
-									},
-									selectedKeys: [tableSize ?? "middle"],
-								}}
-								placement="bottomRight"
-								trigger={["click"]}
-							>
-								<Tooltip title={t("adminShell.logs.common.density")}>
-									<Button
-										aria-label={t("adminShell.logs.common.density")}
-										color="default"
-										icon={<ColumnHeightOutlined aria-hidden />}
-										variant="link"
-									/>
-								</Tooltip>
-							</Dropdown>
-							<Popover
-								arrow={false}
-								content={columnSettings}
-								placement="bottomRight"
-								trigger="click"
-							>
-								<Tooltip title={t("adminShell.logs.common.tableSettings")}>
-									<Button
-										aria-label={t("adminShell.logs.common.tableSettings")}
-										color="default"
-										icon={<SettingOutlined aria-hidden />}
-										variant="link"
-									/>
-								</Tooltip>
-							</Popover>
-						</Space>
-					</Flex>
-				}
 				styles={{
 					body: {
 						paddingBlockEnd: token.padding,
 						paddingBlockStart: 0,
 					},
-					title: { overflow: "visible" },
 				}}
 			>
+				<ListToolBar
+					actions={primaryAction ? [primaryAction] : []}
+					settings={toolbarSettings}
+					title={title}
+				/>
 				{hasLeadingContent ? (
 					<Flex
 						gap={token.margin}
 						style={{
 							marginBlockEnd: token.margin,
-							marginBlockStart: token.marginLG,
 						}}
 						vertical
 					>
