@@ -4,7 +4,17 @@ import {
 	FolderOutlined,
 	PlusOutlined,
 } from "@ant-design/icons";
-import { Button, Card, Empty, Flex, Input, Skeleton, Space, Tree, Typography } from "antd";
+import {
+	Button,
+	Card,
+	Empty,
+	Flex,
+	Input,
+	Skeleton,
+	Space,
+	Tree,
+	Typography,
+} from "antd";
 import type { DataNode } from "antd/es/tree";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -44,10 +54,27 @@ export function CategoryTreePanel({
 				icon: <FolderOutlined aria-hidden />,
 				key: category.id,
 				title: (
-					<Flex gap="small" justify="space-between">
-						<span>{category.name}</span>
+					<span
+						style={{
+							alignItems: "center",
+							display: "inline-flex",
+							gap: 8,
+							maxWidth: "100%",
+							verticalAlign: "top",
+						}}
+					>
+						<span
+							style={{
+								minWidth: 0,
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								whiteSpace: "nowrap",
+							}}
+						>
+							{category.name}
+						</span>
 						<Text type="secondary">{category.itemCount}</Text>
-					</Flex>
+					</span>
 				),
 			}));
 		return [
