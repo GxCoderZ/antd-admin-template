@@ -1,29 +1,46 @@
-# AntD Admin Template 前端开发规则
+# AntD Admin Template - AI 执行规则
 
-## 项目边界
+## 1. 规则解释
 
-本仓库是公司内部使用的 `antd-admin-template` 产品 UI 母版。它是 **Fake-only 纯前端项目**：只负责页面、通用组件、主题、响应式、国际化、前端交互、测试，以及驱动这些能力所需的 Fake Server 状态。
+- `MUST` / “必须”：缺失即未完成。
+- `MUST NOT` / `NEVER` / “禁止”：不得以兼容、临时或保险为由绕过。
+- `SHOULD` / “应”：默认执行；不执行时必须说明可验证的原因。
+- 当需求与“项目边界”冲突时，停止实现并报告冲突，不得静默扩大项目职责。
+- 修改前读取相关所有者、调用链、测试和 `git status`；保留用户及无关改动。
+- 只调查和修改完成当前任务所需的范围。
 
-必须遵守：
+## 2. 项目边界
 
-- 禁止连接真实后端，禁止添加真实 API 地址、后端代理、数据库或 Fake/Real 开关。
-- 页面和领域组件必须调用 `src/api`；`src/api` 发出 `/api/*` 请求；`fake/*.fake.ts` 实现对应接口。
-- 页面禁止直接导入 Fake 数据或 Fake 文件。
-- Fake Server 在开发和生产预览中都必须启用，构建后的 UI 离线即可完整运行。
-- 前端权限只控制菜单、路由和操作显隐，不代表真实安全边界。
-- 不实现真实认证、Session、CSRF、服务端 RBAC、生产部署、SSR 或微前端。
-- 不加入 SS、Agg、Chatroom、游戏、租户等具体产品业务；具体产品从母版复制后独立演进。
-- 母版保持为公司后台页面资产库，不扩张成前后端生产底座。
+本仓库是公司内部的 `antd-admin-template` 产品 UI 母版，是 **Fake-only 纯前端项目**。
 
-## 技术与交付
+### 必须包含
 
-- `package.json` 和锁文件是版本事实来源；当前基线为 React 19、TypeScript 6、Vite 8、React Router 8、Ant Design 6、TanStack Query 5、Node.js 24 和 pnpm 11。
-- 主要配套包括 i18next、`vite-plugin-fake-server`、`@ant-design/pro-components`、`antd-style`、`antd-img-crop`、`@dnd-kit/*`、dayjs、Vitest、Testing Library 和 Playwright。除非已确认需求无法由现有技术满足，否则不增加平行框架或同类库。
-- 包管理器固定使用 pnpm；安装、开发和预览命令分别为 `pnpm install --frozen-lockfile`、`pnpm dev` 和 `pnpm preview`。
-- 唯一正式源码目录是 `D:\Dev\antd-admin-template`，用户验收地址统一为 `http://127.0.0.1:3003`。worktree 只用于隔离任务，不得直接复制覆盖正式仓库。
-- 隔离任务提交本地 Git 并报告 SHA；主任务负责合并、冲突处理和最终验证。默认不推送或部署，外部仓库、Cloudflare、Webhook 等操作须获得当次明确授权。
+- 页面、通用组件、主题、响应式、国际化、前端交互、测试。
+- 支撑完整演示所需的 Fake Server API 和当前预览会话内的内存状态。
+- 开发和生产预览都启用 Fake Server；构建产物离线可完整运行。
 
-## 架构与数据
+### 禁止包含
+
+- 真实后端、真实 API 地址、后端代理、数据库、Fake/Real 开关。
+- 真实认证、Session、CSRF、服务端 RBAC、生产部署、SSR、微前端。
+- SS、Agg、Chatroom、游戏、租户等具体产品业务。
+- 真实凭据、令牌、个人数据或看起来可用的生产数据。
+
+前端权限只控制菜单、路由和操作显隐，不是安全边界。安全改进不得把母版扩张成生产前后端底座。
+
+## 3. 技术事实与交付边界
+
+- `package.json` 和锁文件是版本事实来源。当前基线：React 19、TypeScript 6、Vite 8、React Router 8、Ant Design 6、TanStack Query 5、Node.js 24、pnpm 11。
+- 优先使用现有依赖：i18next、`vite-plugin-fake-server`、`@ant-design/pro-components`、`antd-style`、`antd-img-crop`、`@dnd-kit/*`、dayjs、Vitest、Testing Library、Playwright。
+- 仅在现有技术无法满足且有证据时增加依赖；禁止引入平行框架或同类库。
+- 包管理器固定为 pnpm。安装、开发、预览使用 `pnpm install --frozen-lockfile`、`pnpm dev`、`pnpm preview`。
+- 正式源码目录固定为 `D:\Dev\antd-admin-template`；统一验收地址为 `http://127.0.0.1:3003`。
+- worktree 只用于隔离任务，禁止复制覆盖正式仓库；主任务负责合并、冲突处理和最终验证。
+- 每个完成的逻辑修改必须提交本地 Git 并报告 SHA。默认禁止推送、部署或写入外部系统；这类操作需要当次明确授权。
+
+## 4. 架构与数据所有权
+
+唯一数据链路：
 
 ```text
 页面 / 领域组件
@@ -34,77 +51,140 @@
   -> fake/<domain>.fake.ts
 ```
 
-- `src/app/`：应用装配、静态路由、权限、Provider 和跨页面行为。
-- `src/features/<domain>/`：路由页面、领域组件及行为测试。
-- `src/api/<domain>/`：`index.ts` 放请求函数，`types.ts` 放领域契约；`src/api/client.ts` 是唯一请求边界。
-- `fake/`：领域 Fake HTTP 接口和共享内存状态；`src/locales/` 放全部用户文案；`e2e/` 放 Playwright 流程。
+### 目录职责
 
-路由页面负责 Query、Mutation、URL 状态和页面级编排；复杂表单、Drawer、筛选栏、表格及详情拆为领域组件。组件通过明确 Props 回传意图，本地 UI 优先使用局部状态。仅在重复模式稳定且能降低复杂度时提炼公共能力。
+- `src/app/`：应用装配、路由、权限、Provider、跨页面行为。
+- `src/features/<domain>/`：路由页面、领域组件、领域行为测试。
+- `src/api/<domain>/index.ts`：领域请求函数；`types.ts`：领域契约。
+- `src/api/client.ts`：唯一 HTTP 请求边界。
+- `fake/*.fake.ts`：Fake HTTP 接口和共享内存状态。
+- `src/locales/`：全部用户文案。
+- `e2e/`：高价值跨路由流程。
 
-不要新增已废弃的 `src/pages`、`src/router/routes/static` 或 `src/store` 体系。公告管理是完整 Fake CRUD 参考领域，新增管理领域应沿用其数据流和行为覆盖，不复制其页面实现。
+禁止新增废弃体系：`src/pages`、`src/router/routes/static`、`src/store`。
+
+### 页面与状态
+
+- 路由页面只负责 Query、Mutation、URL/路由会话状态和页面级编排。
+- 复杂表单、Drawer、筛选栏、表格、详情拆到领域组件；组件用明确 Props 回传意图。
+- 服务端数据只由 TanStack Query 持有。禁止通过 `useEffect` 抄入 Zustand 或本地 state 形成第二份真值。
+- 本地 state 只保存局部 UI 草稿；路由会话状态统一使用 `useRouteSessionState`。
+- 查询草稿、已应用条件、分页、排序、选择、表单草稿各有一个明确所有者，禁止双向同步两份可写状态。
+- 公告管理是完整 Fake CRUD 参考领域；复用其数据流和行为覆盖，禁止复制整页实现。
 
 ### API 与 Fake
 
-- 请求函数使用 `listPlatformUsers`、`getPlatformUser`、`updatePlatformUser` 等领域化命名，统一经过 `src/api/client.ts`；页面禁止直接调用 `fetch`。
-- 成功响应统一为 `{ code, msg, data }`。
-- HTTP 分页数据为 `{ items, total, page, page_size }`，领域 API 层可转换为前端命名。
-- Fake 文件以 `.fake.ts` 结尾，URL 不含 Vite 的 `/api` basename，且不得依赖 Node 专属运行时模块。
-- Fake CRUD 必须保留当前预览会话内的内存变化；写操作后再次查询必须看到变化。
-- 种子数据应足以演示分页、筛选、排序、空态和代表性状态。
+- 页面和领域组件必须调用 `src/api`，禁止直接调用 `fetch`、axios 或导入 `fake`。
+- 请求函数使用领域命名，如 `listPlatformUsers`、`getPlatformUser`、`updatePlatformUser`。
+- 成功响应固定为 `{ code, msg, data }`。
+- HTTP 分页固定为 `{ items, total, page, page_size }`；只在领域 API 层转换前端命名。
+- Fake URL 不含 Vite 的 `/api` basename，且不得依赖 Node 专属运行时模块。
+- Fake 接口文件必须以 `.fake.ts` 结尾；Fake 路由测试必须复用 `fake/route-helpers.ts`，禁止每个测试重复类型强转。
+- Fake CRUD 必须在当前预览会话内保留写入结果；写后查询必须可见。
+- Fake 必须校验代表性错误；种子数据覆盖分页、筛选、排序、空态和代表性状态。
 
-## 界面与交互
+## 5. 根因修复与反补丁
 
-- 标准控件和图标使用 Ant Design、`@ant-design/icons`；禁止手写复刻 Button、Table、Form、Drawer、Modal、Tabs、Result、Skeleton、Upload 或通知组件。
-- 用户指定 Ant Design 或 Pro 参考页时，先核对当前页面及可用源码，保持其信息结构、间距、加载与交互，只适配本项目版本、国际化、Fake API、主题和响应式。能由 `@ant-design/pro-components` 准确承载时直接复用，不维护平行仿制实现。
-- 尺寸、颜色、圆角、边框和阴影优先使用 Theme Token 与组件默认值；页面样式留在所属领域，跨页面覆盖集中在应用层。
-- 数据密集型管理页默认使用完整内容区宽度；表单、详情和设置页按官方参考保持可读宽度，不用一套全局最大宽度强行约束所有页面。
-- 卡片不增加重阴影、异常圆角或重复标题。Drawer、Modal 根据内容选择克制且响应式的宽度；长内容独立滚动、操作区固定，390px 下占满可用宽度。
-- 交互按需覆盖 hover、focus、active、disabled、loading、error 和 danger。
-- 路由和大内容区域加载使用 Ant Design Skeleton；表格刷新使用 Table 的 `loading`，不把表格行替换成骨架屏。
-- 关键页面覆盖加载、正常、空数据、失败和无权限状态；检查桌面与窄屏，避免重叠或溢出。
-- 普通编辑直接进入编辑流程，不要求确认。重置密码、强制下线、不可恢复删除等高影响操作必须保持 danger，并使用明确确认。
+### 必须流程
+
+1. 用最短路径复现问题，记录期望结果和可观察证据。
+2. 沿输入、状态、请求、布局或生命周期找到唯一责任层（owning layer）。
+3. 在责任层做最小完整修复；删除被替代的补丁、旧路径和过时测试。
+4. 先复验原问题，再跑相关回归；最后扫描触及范围是否仍有补丁和重复实现。
+5. 同一症状连续两次修复失败后，停止加代码，先审计相关 diff、历史和调用链。
+
+### 禁止模式
+
+- 禁止用 `data?.x ?? 默认值` 隐藏本应存在的数据；先修上游契约、初始化或响应转换。可选链只用于业务上确实可选的数据。
+- 禁止用 `setTimeout`、`setInterval`、轮询或重复刷新等待状态“稳定”。业务确需重试时，必须是有上限、可观察、只针对已证明的瞬时失败。
+- 禁止空 `catch {}` 或仅吞错。必须处理、报告，或调用命名清楚的降级函数。
+- 禁止 `as any`、`: any`、`as unknown as`、`@ts-ignore`、`@ts-expect-error` 和 `eslint-disable` 掩盖契约问题。
+- 禁止 `!important`、宽泛全局 CSS、Ant Design 内部类覆盖、重复硬编码颜色或无法解释的布局魔法数字。
+- 禁止旧/新实现并行、兼容分支长期共存、同一功能两套入口。明确迁移合同除外，但必须有删除条件。
+- 禁止绕开 `src/api/client.ts`、硬编码 API host、页面导入 Fake。
+- 禁止注释掉的代码、不可达文件、未用导出，以及 `utils` / `helpers` / `common` / `Manager` 式职责不明的杂物层。
+- 禁止为了通过测试而隐藏、禁用或延迟故障路径。
+
+### 当前唯一允许的例外
+
+- `fetch` 只允许存在于 `src/api/client.ts`。
+- 主题原始十六进制颜色只允许集中在 `src/app/preferenceStorage.ts`。
+- `src/app/preferenceStorage.ts` 和 `src/app/routeSessionState.ts` 的可选浏览器存储不可用时可降级；catch 必须调用各自的命名降级函数。
+- `src/features/admin-shell/TwoColumnServiceMenu.module.css` 可用最窄的 `:global(ul[role="menu"])` 布局 Ant Design 生成的二级菜单 DOM。
+- JSON Schema URL、SVG namespace，以及 Playwright/Vite 的本地预览 URL 不属于 API host。
+
+新增例外必须同时满足：上游或公开 API 无法控制、范围位于责任层、代码旁说明原因、行为有测试，并把具体文件和用途加入本节。未登记的例外一律不允许。
+
+## 6. 代码简洁与交接
+
+- 名称必须表达领域和意图；共享逻辑放在最小共同所有者，禁止建立万能工具层。
+- 只有重复模式已经稳定且抽象能减少真实复杂度时，才提取公共能力。
+- 注释只解释“为什么”和不可见约束，不复述代码。
+- 删除功能时同步删除路由、导航、API、Fake、文案、权限、测试和不可达残件。
+- 路由文件达到 800 行，或同时拥有查询、表单、表格、详情等 3 个以上职责时，新增功能前必须审查拆分；优先拆组件或 Hook。纯声明配置可保留，禁止只为行数进行无关重构。
+- 变更后，新开发者应能从路由定位到领域页面、API、Fake、文案、权限和测试，无需阅读职责混杂的巨型文件。
+
+## 7. 界面与交互
+
+### 通用
+
+- 标准控件和图标使用 Ant Design、`@ant-design/icons`；禁止手写复刻 Button、Table、Form、Drawer、Modal、Tabs、Result、Skeleton、Upload、通知。
+- 用户指定 Ant Design/Pro 参考页时，保持其信息结构、间距、加载和交互，只适配本项目版本、国际化、Fake API、主题、响应式。`@ant-design/pro-components` 能准确承载时直接复用。
+- 尺寸、颜色、圆角、边框、阴影优先使用 Theme Token 和组件默认值。领域样式留在领域内；跨页面规则归应用层。
+- 数据管理页默认使用完整内容区宽度；表单、详情、设置页保持可读宽度。
+- 卡片不增加重阴影、异常圆角或重复标题。Drawer/Modal 宽度响应内容；长内容独立滚动、操作区固定；390px 下占满可用宽度。
+- 覆盖必要的 hover、focus、active、disabled、loading、error、danger 状态。
+- 路由和大内容区域用 Skeleton；表格刷新只用 Table `loading`。
+- 关键页面覆盖加载、正常、空、失败、无权限状态；检查桌面和窄屏无重叠、溢出。
+- 普通编辑直接进入流程。重置密码、强制下线、不可恢复删除必须使用 danger 和明确确认。
 
 ### 管理表格
 
-- 复用 `LogQueryPanel`、`LogTablePanel`、`useQueryFilterLayout`、`QueryFilterSubmitter` 和 `resolveTableSort` 提供的查询、响应式及表格算法，不在领域页面重写。
-- 查询栏按容器宽度自适应：窄屏默认保留一个主要条件，其余通过标准展开/收起显示；查询与重置保持统一顺序、间距和靠右布局。
-- 管理表格默认提供 10/20/50/100 分页、升序/降序/取消排序三档排序，以及刷新、密度、列设置和全屏工具；领域页面只提供字段、列、权限和业务操作。
-- 管理表格以 1440px 桌面视口作为默认完整工作基线，1920px 只做空间增强；窄屏默认保留身份、状态、主操作等核心列，其余列可通过标准列设置恢复，必要时保留横向滚动，不为塞满单屏而压缩到不可读。
-- 管理表格统一复用 `useRouteSessionState` 保存查询草稿、已应用条件、展开状态、分页和三档排序；标签切换或刷新时恢复，重置时清空，关闭标签时删除。
-- 列显示、顺序和密度使用现有偏好存储；接口数据仍由 TanStack Query 管理。不要缓存整页、选中行、弹窗、未提交表单或危险确认；测试状态恢复、重置与关闭清理。
-- 行操作不超过两个且不溢出时直接展示；三个及以上时保留最常用的低风险操作，其余通过带图标的 Ant Design Dropdown 展示。复用 `TableActionButton` 和 `tableActions`，不另写溢出算法。
-- 主标识列和操作列不可隐藏，操作列始终位于最后；领域列只声明重要级别、最小宽度和是否必显，不改变公共排序、响应式和持久化算法。
-- 只有确有批量业务价值的表格才启用 `rowSelection`；批量删除必须确认，普通批量启停不要求输入名称，操作成功后清理失效选择并刷新对应 Fake 查询。
-- 新增表格页通过标准组件 Props 组合领域差异，不复制用户管理或日志页面。
+- 必须复用 `LogQueryPanel`、`LogTablePanel`、`useQueryFilterLayout`、`QueryFilterSubmitter`、`resolveTableSort`；领域页面不得重写公共查询、响应式、排序和工具栏算法。
+- 查询栏按容器宽度自适应；窄屏默认保留一个主要条件，其余标准展开/收起；查询、重置保持统一顺序、间距和靠右布局。
+- 默认提供 10/20/50/100 分页、升/降/取消三档排序、刷新、密度、列设置、全屏。
+- 1440px 是完整工作基线；1920px 只增强空间。窄屏保留身份、状态、主操作等核心列，必要时横向滚动，禁止为塞满单屏压缩到不可读。
+- `useRouteSessionState` 保存查询草稿、已应用条件、展开、分页、排序；切换/刷新恢复，重置清空，关闭标签删除；必须测试恢复、重置和关闭清理。
+- 列显示、顺序、密度使用现有偏好存储；禁止缓存整页、服务端数据、选中行、弹窗、未提交表单或危险确认。
+- 行操作不超过两个时直接展示；三个及以上时保留常用低风险操作，其余进入带图标的 Ant Design Dropdown。复用 `TableActionButton` 和 `tableActions`。
+- 主标识列和操作列不可隐藏；操作列始终最后。领域列只声明重要级别、最小宽度、是否必显，不得修改公共排序、响应式和持久化算法。
+- 只有真实批量价值时启用 `rowSelection`。批量删除必须确认；普通批量启停不要求输入名称；成功后清理失效选择并刷新 Fake 查询。
+- 新表格页通过标准组件 Props 组合差异，禁止复制用户管理或日志页。
 
 ### 标签与核心管理
 
-- 页面标签使用 Ant Design Tabs 和现有 `@dnd-kit/*` 横向换位；仪表盘固定首位，不允许关闭、拖动、让位或执行其它标签操作。
-- 标签右键菜单与右侧工具菜单复用同一套操作和状态。
-- 用户基础编辑、角色分配和密码重置保持独立流程；角色分配使用多选草稿统一保存并展示新增/移除差异，不恢复逐项即时提交。
-- 角色基础编辑与权限配置保持独立流程；权限配置使用完整 Ant Design Tree、抽屉内草稿和统一保存，不把角色名称或状态塞进权限抽屉。
+- 页面标签使用 Ant Design Tabs 和现有 `@dnd-kit/*` 横向换位。
+- 仪表盘固定首位，不可关闭、拖动、让位或执行其他标签操作。
+- 标签右键菜单和右侧工具菜单必须复用同一套状态与命令。
+- 用户基础编辑、角色分配、密码重置保持独立流程；角色分配使用多选草稿统一保存并展示新增/移除差异。
+- 角色基础编辑与权限配置保持独立流程；权限配置使用完整 Ant Design Tree、抽屉草稿、统一保存，禁止把角色名称或状态塞进权限抽屉。
 
-## 路由、权限与国际化
+## 8. 路由、权限、国际化与前端安全
 
-- 业务路由和导航统一注册在 `src/app/adminRoutes.ts` 并使用懒加载；新增路由同步增加标题、导航图标和全部语言文案。
-- 中文是主要产品语言；用户文案进入现有国际化体系并覆盖全部受支持语言。
-- 使用现有 `PlatformPermission`、`platformPermissions` 和权限 Hook 控制显隐。
-- 无权限操作直接隐藏。
-- 权限名沿用 `platform.*` 命名空间，除非另行批准全仓库统一改名。
-- 删除领域时同步删除路由、导航、API、Fake、文案、权限和测试，不保留不可达残件。
+- 业务路由和导航统一注册在 `src/app/adminRoutes.ts` 并懒加载。
+- 新增路由必须同时增加标题、导航图标和所有已支持语言的文案。
+- 中文是主要产品语言；禁止在组件内散落用户文案。
+- 权限统一使用 `PlatformPermission`、`platformPermissions` 和现有权限 Hook；无权限操作直接隐藏。
+- 权限名保持 `platform.*`，除非任务明确要求全仓库迁移。
+- 禁止 `eval`、`new Function` 和未经可信清洗的 `dangerouslySetInnerHTML`。
+- 本地存储只保存非敏感偏好和允许的路由会话状态；禁止保存凭据、模拟安全令牌或把前端权限当授权结果。
+- 新窗口外链必须防止 opener 劫持；错误信息和日志不得包含真实秘密或个人数据。
+- 依赖变更必须运行 `pnpm audit --prod`，处理或明确报告每个告警；禁止用全局 ignore 隐藏风险。
 
-## 测试与完成
+## 9. 测试与完成定义
+
+### 测试规则
 
 - 行为修改先写失败测试，再做最小实现。
-- 优先测试用户可见行为，避免以文件存在和源码字符串断言冒充功能测试。
-- API/Fake 测试覆盖响应契约、校验、错误和内存 Mutation；Testing Library 覆盖关键表单、筛选、弹窗、权限及页面状态。
-- Playwright 只覆盖高价值跨路由流程，不重复全部组件测试。
 - 重构前为即将移动的行为补特征测试。
-- 不锁定偶然 DOM 结构或 Ant Design 内部实现细节。
+- 测试用户可见行为、状态、响应契约和错误；禁止用文件存在、源码字符串或偶然 DOM 结构证明功能正确。
+- API/Fake 测试覆盖响应契约、校验、错误和内存 Mutation。
+- Testing Library 覆盖关键表单、筛选、弹窗、权限和页面状态。
+- Playwright 只覆盖高价值跨路由流程，不重复组件测试。
 
-### 验证命令
+### 必跑验证
 
-每次代码修改必须获得以下命令的新鲜通过结果：
+每次源码、配置或依赖修改必须获得以下命令的新鲜通过结果：
 
 ```bash
 pnpm run typecheck
@@ -115,6 +195,13 @@ pnpm run check:unused
 pnpm run build:prod
 ```
 
-涉及路由、壳层、导航、登录预览或跨页面流程时执行 `pnpm run test:e2e`。涉及布局、主题、表格、Drawer、Modal 或响应式时还要启动页面，人工检查桌面和窄屏。没有新鲜命令输出和页面检查证据，不宣称完成。
+- 涉及路由、壳层、导航、登录预览、跨页面流程：再运行 `pnpm run test:e2e`。
+- 涉及布局、主题、表格、Drawer、Modal、响应式：启动页面，人工检查桌面和 390px 窄屏。
+- 涉及依赖：再运行 `pnpm audit --prod`。
+- 仅文档修改至少运行 `git diff --check`；不得宣称应用行为已验证。
+- 交付前扫描触及范围：定时器/重试、吞错、类型逃逸、规则禁用、样式覆盖、API 越界、重复状态、旧实现、死代码；所有命中必须修复或符合“当前唯一允许的例外”。
+- 没有新鲜验证结果、必要页面证据和干净的相关 diff，不得宣称完成。
 
-每个完成的逻辑修改提交一个本地 Git 版本；开发服务器运行时提供统一验收地址。
+### 完成报告
+
+报告必须包含：根因或改动目的、责任层、删除的旧补丁/重复路径（没有则明确说明）、验证结果、本地提交 SHA、开发服务器验收地址（如已启动）。

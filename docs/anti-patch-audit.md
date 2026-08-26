@@ -1,41 +1,30 @@
-# Anti-Patch Audit Checklist
+# Anti-Patch Audit
 
-Use this checklist before handing off feature or cleanup work. The goal is to
-fix the owning layer, not to hide symptoms in downstream guards.
+本文件只提供执行清单；规范以根目录 `AGENTS.md` 的“根因修复与反补丁”为唯一来源。
 
-## Must Scan
+## 1. 自动扫描
 
-- Delayed state workarounds: `setTimeout`, `setInterval`.
-- Hidden errors: empty `catch {}`, or catches that only discard the error.
-- Type escapes: `as any`, `: any`, `as unknown as`, `@ts-ignore`,
-  `@ts-expect-error`.
-- Disabled rules: `eslint-disable`.
-- Style overrides: `!important`, broad global CSS, Ant Design internal class
-  overrides.
-- API boundary escapes: direct `fetch` outside `src/api/client.ts`, `axios`,
-  hard-coded API hosts, page imports from `fake`.
-- Duplicate truth: query results copied into unrelated local/global state.
-- Dead code: commented-out code blocks, unused files and exports from `knip`.
+在本次触及文件及责任层中搜索：
 
-## Current Boundaries
+- 延时和重试：`setTimeout`、`setInterval`、轮询、重复刷新。
+- 吞错：空 `catch`、只丢弃错误的 catch。
+- 类型和规则逃逸：`any`、`as unknown as`、`@ts-ignore`、`@ts-expect-error`、`eslint-disable`。
+- 样式覆盖：`!important`、宽泛 `:global`、Ant Design 内部类、重复硬编码颜色。
+- API 越界：`fetch`、axios、硬编码 API host、页面导入 `fake`。
+- 死代码：注释代码、未用文件/导出；同时运行项目 `check:unused`。
 
-- Direct `fetch` is allowed only in `src/api/client.ts`.
-- Theme color hex values are centralized in `src/app/preferenceStorage.ts`.
-- Fake route tests use `fake/route-helpers.ts` instead of per-file route casts.
-- Optional browser storage failures may fall back, but catch blocks must name the
-  degradation path explicitly.
-- Ant Design generated DOM may be targeted only from a narrow component-owned
-  CSS module when no component API can express the layout.
+## 2. 人工审查
 
-## Review Questions
+- 必填数据的默认值是否掩盖了上游契约错误。
+- Query 数据是否被复制成第二份可写状态。
+- 同一功能是否仍有新旧两套实现或兼容分支。
+- 通用管理页是否复用了项目公共查询、表格和操作组件。
+- 文件是否混合 3 个以上职责，或正在继续放大 800 行以上路由文件。
+- 测试是否验证用户行为，而不是补丁对象、源码字符串或偶然 DOM。
 
-- Is there one source of truth for server data, route session state, selected
-  rows, and drafts?
-- Is the page using the shared management table/query/action utilities when it
-  behaves like a management table?
-- Is a fallback fixing a missing contract upstream, or only protecting display
-  text from optional data?
-- Can a new developer find the route, API, Fake implementation, locale strings,
-  permissions, and tests without reading a giant mixed-responsibility file?
-- Does the test assert user-visible behavior rather than the presence of a
-  workaround?
+## 3. 结果处理
+
+- 命中即追踪责任层，修根因并删除旧补丁。
+- 误报必须说明具体语义。
+- 例外必须逐项满足 `AGENTS.md` 的登记条件；未登记例外视为失败。
+- 交付记录扫描范围、命中、修复、保留例外和验证结果。
