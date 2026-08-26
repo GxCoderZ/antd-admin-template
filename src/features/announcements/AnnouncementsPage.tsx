@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import { platformPermissions, usePermission } from "../../app/permissions";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	createPlatformAnnouncement,
 	deletePlatformAnnouncement,
@@ -33,21 +34,31 @@ import {
 const defaultAnnouncementFilterValues: AnnouncementFilterValues = {
 	status: "all",
 };
+const announcementsRouteKey = "/system/announcements";
+const defaultAnnouncementTableState: AnnouncementTableState = {
+	order: "desc",
+	page: 1,
+	pageSize: 20,
+	sort: "updated_at",
+};
 
 export function AnnouncementsPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const queryClient = useQueryClient();
 	const canManage = usePermission(platformPermissions.announcementsManage);
-	const [filters, setFilters] = useState<AnnouncementFilterValues>(
-		defaultAnnouncementFilterValues,
-	);
-	const [tableState, setTableState] = useState<AnnouncementTableState>({
-		order: "desc",
-		page: 1,
-		pageSize: 20,
-		sort: "updated_at",
-	});
+	const [filters, setFilters] =
+		useRouteSessionState<AnnouncementFilterValues>({
+			initialState: defaultAnnouncementFilterValues,
+			routeKey: announcementsRouteKey,
+			stateKey: "query-applied",
+		});
+	const [tableState, setTableState] =
+		useRouteSessionState<AnnouncementTableState>({
+			initialState: defaultAnnouncementTableState,
+			routeKey: announcementsRouteKey,
+			stateKey: "table",
+		});
 	const [formOpen, setFormOpen] = useState(false);
 	const [editingAnnouncement, setEditingAnnouncement] =
 		useState<PlatformAnnouncement | null>(null);

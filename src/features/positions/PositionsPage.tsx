@@ -37,6 +37,7 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import { resolveTableSort } from "../../app/tableSorting";
 import {
 	TableActionButton,
@@ -76,6 +77,13 @@ interface PositionTableState {
 }
 
 const defaultPositionFilterValues: PositionFilterValues = { status: "all" };
+const positionsRouteKey = "/organization/positions";
+const defaultPositionTableState: PositionTableState = {
+	order: "desc",
+	page: 1,
+	pageSize: 20,
+	sort: "updated_at",
+};
 const formId = "position-form";
 const positionColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
 	{ key: "name", priority: "compact", required: true },
@@ -128,19 +136,28 @@ export function PositionsPage() {
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [filterForm] = Form.useForm<PositionFilterValues>();
 	const [editorForm] = Form.useForm<CreatePlatformPositionInput>();
-	const [draftFilters, setDraftFilters] = useState<PositionFilterValues>(
-		defaultPositionFilterValues,
-	);
-	const [filters, setFilters] = useState<PositionFilterValues>(
-		defaultPositionFilterValues,
-	);
-	const [filtersExpanded, setFiltersExpanded] = useState(false);
-	const [tableState, setTableState] = useState<PositionTableState>({
-		order: "desc",
-		page: 1,
-		pageSize: 20,
-		sort: "updated_at",
+	const [draftFilters, setDraftFilters] =
+		useRouteSessionState<PositionFilterValues>({
+			initialState: defaultPositionFilterValues,
+			routeKey: positionsRouteKey,
+			stateKey: "query-draft",
+		});
+	const [filters, setFilters] = useRouteSessionState<PositionFilterValues>({
+		initialState: defaultPositionFilterValues,
+		routeKey: positionsRouteKey,
+		stateKey: "query-applied",
 	});
+	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: positionsRouteKey,
+		stateKey: "query-expanded",
+	});
+	const [tableState, setTableState] =
+		useRouteSessionState<PositionTableState>({
+			initialState: defaultPositionTableState,
+			routeKey: positionsRouteKey,
+			stateKey: "table",
+		});
 	const [creatingPosition, setCreatingPosition] = useState(false);
 	const [editingPosition, setEditingPosition] =
 		useState<PlatformPosition | null>(null);

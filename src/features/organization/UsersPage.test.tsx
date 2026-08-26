@@ -93,6 +93,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
 	localStorage.clear();
+	sessionStorage.clear();
 	Object.defineProperty(document.body, "clientWidth", {
 		configurable: true,
 		value: 1_100,

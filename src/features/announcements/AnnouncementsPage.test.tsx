@@ -42,6 +42,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	sessionStorage.clear();
 	mocks.listPlatformAnnouncements.mockReset().mockResolvedValue({
 		items: [announcement],
 		page: 1,

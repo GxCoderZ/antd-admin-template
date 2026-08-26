@@ -61,6 +61,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	sessionStorage.clear();
 	mocks.listPlatformDepartments.mockReset().mockResolvedValue(departments);
 	mocks.listPlatformPositions.mockReset().mockResolvedValue({
 		items: [position],

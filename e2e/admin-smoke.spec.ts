@@ -67,6 +67,33 @@ test("页面标签支持右键菜单关闭目标标签", async ({ page }) => {
 	await expect(usersTab).toHaveCount(0);
 });
 
+test("管理表格在标签切换后保留查询草稿和每页条数", async ({ page }) => {
+	await signIn(page);
+	await navigateWithinAdmin(page, "/organization/users");
+	await expect(page).toHaveURL(/\/organization\/users$/);
+
+	const queryInput = page.getByPlaceholder(
+		"搜索用户名、显示名称、邮箱或手机号",
+	);
+	await queryInput.fill("42");
+
+	const usersTableCard = page.getByTestId("admin-users-table-card");
+	const pageSizeChanger = usersTableCard.locator(
+		".ant-pagination-options-size-changer",
+	);
+	await pageSizeChanger.click();
+	await page.getByRole("option", { name: "10 条/页" }).click();
+	await expect(pageSizeChanger).toContainText("10 条/页");
+
+	await navigateWithinAdmin(page, "/access/roles");
+	await expect(page).toHaveURL(/\/access\/roles$/);
+	await page.getByRole("tab", { name: /用户管理/ }).click();
+
+	await expect(page).toHaveURL(/\/organization\/users$/);
+	await expect(queryInput).toHaveValue("42");
+	await expect(pageSizeChanger).toContainText("10 条/页");
+});
+
 test("页面标签支持横向拖拽换位且保持当前路由", async ({ page }) => {
 	await signIn(page);
 

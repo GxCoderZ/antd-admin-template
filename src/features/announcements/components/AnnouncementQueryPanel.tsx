@@ -1,8 +1,8 @@
 import { Col, Form, Input, Select } from "antd";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../../app/routeSessionState";
 import type { PlatformAnnouncementStatus } from "#src/api/announcements";
 import { LogQueryPanel } from "../../operations/LogTablePanel";
 
@@ -19,6 +19,7 @@ interface AnnouncementQueryPanelProps {
 }
 
 const fieldCount = 2;
+const announcementsRouteKey = "/system/announcements";
 
 export function AnnouncementQueryPanel({
 	initialFilters,
@@ -29,8 +30,16 @@ export function AnnouncementQueryPanel({
 	const { t } = useTranslation();
 	const [form] = Form.useForm<AnnouncementFilterValues>();
 	const [draftFilters, setDraftFilters] =
-		useState<AnnouncementFilterValues>(initialFilters);
-	const [expanded, setExpanded] = useState(false);
+		useRouteSessionState<AnnouncementFilterValues>({
+			initialState: initialFilters,
+			routeKey: announcementsRouteKey,
+			stateKey: "query-draft",
+		});
+	const [expanded, setExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: announcementsRouteKey,
+		stateKey: "query-expanded",
+	});
 	const {
 		canExpand,
 		collapsedFieldCount,

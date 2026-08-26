@@ -5,12 +5,29 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createMemoryRouter, RouterProvider, useLocation } from "react-router";
 
 import { getAdminRouteMetadata } from "../../app/adminRoutes";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import { i18n } from "../../i18n";
 import { AdminTabsBar } from "./AdminTabsBar";
 
 beforeAll(async () => {
 	await i18n.changeLanguage("zh-CN");
 });
+
+function RouteStateProbe({ routeKey }: Readonly<{ routeKey: string }>) {
+	const [queryDraft, setQueryDraft] = useRouteSessionState({
+		initialState: "",
+		routeKey,
+		stateKey: "test-query-draft",
+	});
+	return (
+		<>
+			<button onClick={() => setQueryDraft("42")} type="button">
+				保存标签状态
+			</button>
+			<output aria-label="标签状态">{queryDraft}</output>
+		</>
+	);
+}
 
 function TabsHarness() {
 	const location = useLocation();
@@ -22,11 +39,38 @@ function TabsHarness() {
 				currentPage={getAdminRouteMetadata(location.pathname)}
 				workspaceRef={workspaceRef}
 			/>
+			<RouteStateProbe key={location.pathname} routeKey={location.pathname} />
 		</div>
 	);
 }
 
 describe("AdminTabsBar", () => {
+	it("clears temporary route state when a tab is closed", async () => {
+		sessionStorage.clear();
+		const router = createMemoryRouter(
+			[{ path: "*", element: <TabsHarness /> }],
+			{ initialEntries: ["/organization/users"] },
+		);
+
+		render(
+			<ConfigProvider>
+				<RouterProvider router={router} />
+			</ConfigProvider>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "保存标签状态" }));
+		expect(screen.getByRole("status", { name: "标签状态" })).toHaveTextContent(
+			"42",
+		);
+		fireEvent.contextMenu(screen.getByText("用户管理"));
+		fireEvent.click(
+			await screen.findByRole("menuitem", { name: "关闭当前标签页" }),
+		);
+		await router.navigate("/organization/users");
+
+		expect(screen.getByRole("status", { name: "标签状态" })).toBeEmptyDOMElement();
+	});
+
 	it("keeps the tab strip at a fixed border-box height", () => {
 		const router = createMemoryRouter(
 			[{ path: "*", element: <TabsHarness /> }],

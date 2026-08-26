@@ -46,6 +46,7 @@ import {
 	getAdminRouteMetadata,
 	type AdminRouteMetadata,
 } from "../../app/adminRoutes";
+import { clearRouteSessionState } from "../../app/routeSessionState";
 
 interface AdminTabsBarProps {
 	currentPage: AdminRouteMetadata;
@@ -179,6 +180,11 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 			};
 		});
 	};
+	const clearClosedTabStates = (nextTabKeys: readonly string[]) => {
+		openTabKeys
+			.filter((tabKey) => !nextTabKeys.includes(tabKey))
+			.forEach(clearRouteSessionState);
+	};
 
 	const closeTab = (targetKey: string) => {
 		if (targetKey === dashboardPath) {
@@ -187,6 +193,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 
 		const targetIndex = openTabKeys.indexOf(targetKey);
 		const nextTabKeys = openTabKeys.filter((tabKey) => tabKey !== targetKey);
+		clearClosedTabStates(nextTabKeys);
 		setOpenTabKeys(nextTabKeys.length > 0 ? nextTabKeys : [dashboardPath]);
 
 		if (targetKey === currentPage.key) {
@@ -220,6 +227,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		const nextTabKeys = openTabKeys.filter(
 			(tabKey, tabIndex) => tabKey === dashboardPath || tabIndex >= targetIndex,
 		);
+		clearClosedTabStates(nextTabKeys);
 		setOpenTabKeys(nextTabKeys);
 		if (!nextTabKeys.includes(currentPage.key)) {
 			void navigate(targetKey);
@@ -235,6 +243,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		const nextTabKeys = openTabKeys.filter(
 			(tabKey, tabIndex) => tabKey === dashboardPath || tabIndex <= targetIndex,
 		);
+		clearClosedTabStates(nextTabKeys);
 		setOpenTabKeys(nextTabKeys);
 		if (!nextTabKeys.includes(currentPage.key)) {
 			void navigate(targetKey);
@@ -246,6 +255,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 			targetKey === dashboardPath
 				? [dashboardPath]
 				: [dashboardPath, targetKey];
+		clearClosedTabStates(nextTabKeys);
 		setOpenTabKeys(nextTabKeys);
 		if (!nextTabKeys.includes(currentPage.key)) {
 			void navigate(targetKey);
@@ -253,6 +263,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 	};
 
 	const closeAllTabs = () => {
+		clearClosedTabStates([dashboardPath]);
 		setOpenTabKeys([dashboardPath]);
 		if (currentPage.key !== dashboardPath) {
 			void navigate(dashboardPath);

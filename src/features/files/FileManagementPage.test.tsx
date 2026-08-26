@@ -30,6 +30,7 @@ const file = {
 };
 beforeAll(async () => i18n.changeLanguage("zh-CN"));
 beforeEach(() => {
+	sessionStorage.clear();
 	mocks.list
 		.mockReset()
 		.mockResolvedValue({ items: [file], page: 1, pageSize: 10, total: 1 });

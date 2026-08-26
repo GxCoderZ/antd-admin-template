@@ -30,6 +30,7 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	defaultLogPageSize,
 	LogDetailsDrawer,
@@ -46,6 +47,7 @@ import {
 const { Text } = Typography;
 type AuditLogSort = "action" | "created_at" | "result";
 type SortOrder = "asc" | "desc";
+const auditLogsRouteKey = "/operations/audit-logs";
 const auditTableSortToContractSort: Record<string, AuditLogSort> = {
 	action: "action",
 	created_at: "created_at",
@@ -77,13 +79,37 @@ export function AuditLogPage() {
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<AuditFilterFormValues>();
-	const [filters, setFilters] = useState<AuditLogFilters>({});
-	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(defaultLogPageSize);
-	const [sort, setSort] = useState<AuditLogSort | undefined>("created_at");
-	const [order, setOrder] = useState<SortOrder | undefined>("desc");
+	const [filters, setFilters] = useRouteSessionState<AuditLogFilters>({
+		initialState: {},
+		routeKey: auditLogsRouteKey,
+		stateKey: "query-applied",
+	});
+	const [page, setPage] = useRouteSessionState({
+		initialState: 1,
+		routeKey: auditLogsRouteKey,
+		stateKey: "page",
+	});
+	const [pageSize, setPageSize] = useRouteSessionState({
+		initialState: defaultLogPageSize,
+		routeKey: auditLogsRouteKey,
+		stateKey: "page-size",
+	});
+	const [sort, setSort] = useRouteSessionState<AuditLogSort | undefined>({
+		initialState: "created_at",
+		routeKey: auditLogsRouteKey,
+		stateKey: "sort",
+	});
+	const [order, setOrder] = useRouteSessionState<SortOrder | undefined>({
+		initialState: "desc",
+		routeKey: auditLogsRouteKey,
+		stateKey: "order",
+	});
 	const [selectedLog, setSelectedLog] = useState<PlatformAuditLog | null>(null);
-	const [filtersExpanded, setFiltersExpanded] = useState(false);
+	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: auditLogsRouteKey,
+		stateKey: "query-expanded",
+	});
 	const querySubmission = useQuerySubmission();
 	const {
 		canExpand: canExpandFilters,

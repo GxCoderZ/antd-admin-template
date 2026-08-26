@@ -38,6 +38,7 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import { resolveTableSort } from "../../app/tableSorting";
 import {
 	TableActionButton,
@@ -136,6 +137,19 @@ type ItemFormValues = Omit<
 
 const defaultTypeFilters: TypeFilterValues = { status: "all" };
 const defaultItemFilters: ItemFilterValues = { status: "all" };
+const dictionariesRouteKey = "/system/dictionaries";
+const defaultTypeTableState: TypeTableState = {
+	order: "asc",
+	page: 1,
+	pageSize: 10,
+	sort: "code",
+};
+const defaultItemTableState: ItemTableState = {
+	order: "asc",
+	page: 1,
+	pageSize: 10,
+	sort: "sort",
+};
 const colorOptions: PlatformDictionaryTagColor[] = [
 	"default",
 	"green",
@@ -189,8 +203,16 @@ function TypeQueryPanel({
 	const { t } = useTranslation();
 	const [form] = Form.useForm<TypeFilterValues>();
 	const [draftFilters, setDraftFilters] =
-		useState<TypeFilterValues>(initialFilters);
-	const [expanded, setExpanded] = useState(false);
+		useRouteSessionState<TypeFilterValues>({
+			initialState: initialFilters,
+			routeKey: dictionariesRouteKey,
+			stateKey: "type-query-draft",
+		});
+	const [expanded, setExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: dictionariesRouteKey,
+		stateKey: "type-query-expanded",
+	});
 	const {
 		canExpand,
 		collapsedFieldCount,
@@ -293,8 +315,16 @@ function ItemQueryPanel({
 	const { t } = useTranslation();
 	const [form] = Form.useForm<ItemFilterValues>();
 	const [draftFilters, setDraftFilters] =
-		useState<ItemFilterValues>(initialFilters);
-	const [expanded, setExpanded] = useState(false);
+		useRouteSessionState<ItemFilterValues>({
+			initialState: initialFilters,
+			routeKey: dictionariesRouteKey,
+			stateKey: "item-query-draft",
+		});
+	const [expanded, setExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: dictionariesRouteKey,
+		stateKey: "item-query-expanded",
+	});
 	const {
 		canExpand,
 		collapsedFieldCount,
@@ -731,22 +761,34 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const [messageApi, messageContext] = message.useMessage();
 	const formatPreferences = useLocalePreferences();
 	const [typeFilters, setTypeFilters] =
-		useState<TypeFilterValues>(defaultTypeFilters);
+		useRouteSessionState<TypeFilterValues>({
+			initialState: defaultTypeFilters,
+			routeKey: dictionariesRouteKey,
+			stateKey: "type-query-applied",
+		});
 	const [itemFilters, setItemFilters] =
-		useState<ItemFilterValues>(defaultItemFilters);
-	const [typeTableState, setTypeTableState] = useState<TypeTableState>({
-		order: "asc",
-		page: 1,
-		pageSize: 10,
-		sort: "code",
+		useRouteSessionState<ItemFilterValues>({
+			initialState: defaultItemFilters,
+			routeKey: dictionariesRouteKey,
+			stateKey: "item-query-applied",
+		});
+	const [typeTableState, setTypeTableState] =
+		useRouteSessionState<TypeTableState>({
+			initialState: defaultTypeTableState,
+			routeKey: dictionariesRouteKey,
+			stateKey: "type-table",
+		});
+	const [itemTableState, setItemTableState] =
+		useRouteSessionState<ItemTableState>({
+			initialState: defaultItemTableState,
+			routeKey: dictionariesRouteKey,
+			stateKey: "item-table",
+		});
+	const [selectedTypeId, setSelectedTypeId] = useRouteSessionState<string | null>({
+		initialState: null,
+		routeKey: dictionariesRouteKey,
+		stateKey: "selected-type",
 	});
-	const [itemTableState, setItemTableState] = useState<ItemTableState>({
-		order: "asc",
-		page: 1,
-		pageSize: 10,
-		sort: "sort",
-	});
-	const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
 	const [typeFormOpen, setTypeFormOpen] = useState(false);
 	const [itemFormOpen, setItemFormOpen] = useState(false);
 	const [editingType, setEditingType] = useState<PlatformDictionaryType | null>(
@@ -852,11 +894,11 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const resetTypeTablePage = useCallback(() => {
 		setTypeTableState((currentState) => ({ ...currentState, page: 1 }));
 		submitTypeQuery();
-	}, [submitTypeQuery]);
+	}, [setTypeTableState, submitTypeQuery]);
 	const resetItemTablePage = useCallback(() => {
 		setItemTableState((currentState) => ({ ...currentState, page: 1 }));
 		submitItemQuery();
-	}, [submitItemQuery]);
+	}, [setItemTableState, submitItemQuery]);
 	const saveTypeMutation = useMutation({
 		mutationFn: (input: CreatePlatformDictionaryTypeInput) =>
 			editingType
@@ -1070,6 +1112,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		formatPreferences,
 		saveTypeMutation,
 		resetItemTablePage,
+		setSelectedTypeId,
 		statusTag,
 		t,
 		toggleTypeMutation,

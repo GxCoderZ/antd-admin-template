@@ -168,6 +168,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	sessionStorage.clear();
 	mocks.listPlatformDictionaryTypes.mockReset().mockResolvedValue({
 		items: [dictionaryType],
 		page: 1,

@@ -44,6 +44,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	sessionStorage.clear();
 	mocks.listPlatformRolePage.mockReset().mockResolvedValue({
 		items: [role],
 		page: 1,

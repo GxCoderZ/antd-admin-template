@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { DangerConfirmationModal } from "../../app/DangerConfirmation";
 import { platformPermissions, usePermission } from "../../app/permissions";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import { resolveTableSort } from "../../app/tableSorting";
 import {
 	listPlatformRoles,
@@ -63,6 +64,14 @@ interface SaveUserRolesInput {
 	userId: string;
 }
 
+const usersRouteKey = "/organization/users";
+const defaultUserTableState: UserTableState = {
+	order: "desc",
+	page: 1,
+	pageSize: 20,
+	sort: "created_at",
+};
+
 export function UsersPage() {
 	const { t } = useTranslation();
 	const queryClient = useQueryClient();
@@ -89,18 +98,24 @@ export function UsersPage() {
 	const [roleUser, setRoleUser] = useState<PlatformUser | null>(null);
 	const [resetPasswordForm] = Form.useForm<ResetPlatformUserPasswordInput>();
 	const [userFilterForm] = Form.useForm<UserFilterValues>();
-	const [userDraftFilters, setUserDraftFilters] = useState<UserFilterValues>(
-		defaultUserFilterValues,
-	);
-	const [userFilters, setUserFilters] = useState<UserFilterValues>(
-		defaultUserFilterValues,
-	);
-	const [userTableState, setUserTableState] = useState<UserTableState>({
-		order: "desc",
-		page: 1,
-		pageSize: 20,
-		sort: "created_at",
-	});
+	const [userDraftFilters, setUserDraftFilters] =
+		useRouteSessionState<UserFilterValues>({
+			initialState: defaultUserFilterValues,
+			routeKey: usersRouteKey,
+			stateKey: "query-draft",
+		});
+	const [userFilters, setUserFilters] =
+		useRouteSessionState<UserFilterValues>({
+			initialState: defaultUserFilterValues,
+			routeKey: usersRouteKey,
+			stateKey: "query-applied",
+		});
+	const [userTableState, setUserTableState] =
+		useRouteSessionState<UserTableState>({
+			initialState: defaultUserTableState,
+			routeKey: usersRouteKey,
+			stateKey: "table",
+		});
 	const userQuerySubmission = useQuerySubmission();
 	const userQueryParams = useMemo<ListPlatformUsersInput>(() => {
 		const q = userFilters.q?.trim();

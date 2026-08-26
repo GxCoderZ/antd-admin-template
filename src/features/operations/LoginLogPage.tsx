@@ -20,6 +20,7 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	defaultLogPageSize,
 	LogDetailsDrawer,
@@ -35,6 +36,7 @@ import {
 
 type LoginLogSort = "created_at" | "identifier" | "result";
 type SortOrder = "asc" | "desc";
+const loginLogsRouteKey = "/operations/login-logs";
 const loginTableSortToContractSort: Record<string, LoginLogSort> = {
 	created_at: "created_at",
 	identifier: "identifier",
@@ -68,13 +70,37 @@ export function LoginLogPage() {
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<LoginFilterFormValues>();
-	const [filters, setFilters] = useState<LoginLogFilters>({});
-	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(defaultLogPageSize);
-	const [sort, setSort] = useState<LoginLogSort | undefined>("created_at");
-	const [order, setOrder] = useState<SortOrder | undefined>("desc");
+	const [filters, setFilters] = useRouteSessionState<LoginLogFilters>({
+		initialState: {},
+		routeKey: loginLogsRouteKey,
+		stateKey: "query-applied",
+	});
+	const [page, setPage] = useRouteSessionState({
+		initialState: 1,
+		routeKey: loginLogsRouteKey,
+		stateKey: "page",
+	});
+	const [pageSize, setPageSize] = useRouteSessionState({
+		initialState: defaultLogPageSize,
+		routeKey: loginLogsRouteKey,
+		stateKey: "page-size",
+	});
+	const [sort, setSort] = useRouteSessionState<LoginLogSort | undefined>({
+		initialState: "created_at",
+		routeKey: loginLogsRouteKey,
+		stateKey: "sort",
+	});
+	const [order, setOrder] = useRouteSessionState<SortOrder | undefined>({
+		initialState: "desc",
+		routeKey: loginLogsRouteKey,
+		stateKey: "order",
+	});
 	const [selectedLog, setSelectedLog] = useState<PlatformLoginLog | null>(null);
-	const [filtersExpanded, setFiltersExpanded] = useState(false);
+	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: loginLogsRouteKey,
+		stateKey: "query-expanded",
+	});
 	const querySubmission = useQuerySubmission();
 	const {
 		canExpand: canExpandFilters,

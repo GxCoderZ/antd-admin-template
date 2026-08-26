@@ -37,6 +37,7 @@ import {
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import { resolveTableSort } from "../../app/tableSorting";
 import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
@@ -54,6 +55,13 @@ interface FileTableState {
 	sort: ListPlatformFilesInput["sort"];
 }
 const defaultFilters: FileFilterValues = { type: "all" };
+const filesRouteKey = "/examples/files";
+const defaultFileTableState: FileTableState = {
+	order: "desc",
+	page: 1,
+	pageSize: 10,
+	sort: "created_at",
+};
 const fileSortMap = {
 	createdAt: "created_at",
 	name: "name",
@@ -80,15 +88,26 @@ export function FileManagementPage() {
 	const [messageApi, messageContext] = message.useMessage();
 	const queryClient = useQueryClient();
 	const [form] = Form.useForm<FileFilterValues>();
-	const [draft, setDraft] = useState<FileFilterValues>(defaultFilters);
-	const [filters, setFilters] = useState<FileFilterValues>(defaultFilters);
-	const [expanded, setExpanded] = useState(false);
+	const [draft, setDraft] = useRouteSessionState<FileFilterValues>({
+		initialState: defaultFilters,
+		routeKey: filesRouteKey,
+		stateKey: "query-draft",
+	});
+	const [filters, setFilters] = useRouteSessionState<FileFilterValues>({
+		initialState: defaultFilters,
+		routeKey: filesRouteKey,
+		stateKey: "query-applied",
+	});
+	const [expanded, setExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: filesRouteKey,
+		stateKey: "query-expanded",
+	});
 	const [deleting, setDeleting] = useState<PlatformFile | null>(null);
-	const [tableState, setTableState] = useState<FileTableState>({
-		order: "desc",
-		page: 1,
-		pageSize: 10,
-		sort: "created_at",
+	const [tableState, setTableState] = useRouteSessionState<FileTableState>({
+		initialState: defaultFileTableState,
+		routeKey: filesRouteKey,
+		stateKey: "table",
 	});
 	const submission = useQuerySubmission();
 	const layout = useQueryFilterLayout({ expanded, fieldCount: 2 });

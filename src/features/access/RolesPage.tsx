@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 
 import { resolveTableSort } from "../../app/tableSorting";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import { platformSessionQueryKey } from "#src/api/auth";
 import {
 	createPlatformRole,
@@ -42,6 +43,13 @@ interface RoleTableState {
 }
 
 const defaultRoleFilterValues: RoleFilterValues = {};
+const rolesRouteKey = "/access/roles";
+const defaultRoleTableState: RoleTableState = {
+	order: "asc",
+	page: 1,
+	pageSize: 20,
+	sort: "role_key",
+};
 const roleTableSortToContractSort: Record<
 	string,
 	NonNullable<ListPlatformRolesInput["sort"]>
@@ -60,18 +68,23 @@ export function RolesPage() {
 	const [renamingRole, setRenamingRole] = useState<PlatformRole | null>(null);
 	const [deletingRole, setDeletingRole] = useState<PlatformRole | null>(null);
 	const [permissionRoleId, setPermissionRoleId] = useState<string | null>(null);
-	const [draftFilters, setDraftFilters] = useState<RoleFilterValues>(
-		defaultRoleFilterValues,
-	);
-	const [filters, setFilters] = useState<RoleFilterValues>(
-		defaultRoleFilterValues,
-	);
-	const [tableState, setTableState] = useState<RoleTableState>({
-		order: "asc",
-		page: 1,
-		pageSize: 20,
-		sort: "role_key",
+	const [draftFilters, setDraftFilters] =
+		useRouteSessionState<RoleFilterValues>({
+			initialState: defaultRoleFilterValues,
+			routeKey: rolesRouteKey,
+			stateKey: "query-draft",
+		});
+	const [filters, setFilters] = useRouteSessionState<RoleFilterValues>({
+		initialState: defaultRoleFilterValues,
+		routeKey: rolesRouteKey,
+		stateKey: "query-applied",
 	});
+	const [tableState, setTableState] =
+		useRouteSessionState<RoleTableState>({
+			initialState: defaultRoleTableState,
+			routeKey: rolesRouteKey,
+			stateKey: "table",
+		});
 	const querySubmission = useQuerySubmission();
 	const queryParams = useMemo<ListPlatformRolesInput>(() => {
 		const q = filters.q?.trim();
