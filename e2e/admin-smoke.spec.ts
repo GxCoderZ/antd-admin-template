@@ -80,6 +80,7 @@ test("页面标签支持横向拖拽换位且保持当前路由", async ({ page 
 	const rolesTab = page.getByRole("tab", { name: /角色管理/ });
 	const usersBox = await usersTab.boundingBox();
 	const rolesBox = await rolesTab.boundingBox();
+	const usersTabNode = usersTab.locator("xpath=..");
 	const rolesTabNode = rolesTab.locator("xpath=..");
 	const rolesTabNodeBox = await rolesTabNode.boundingBox();
 
@@ -89,6 +90,30 @@ test("页面标签支持横向拖拽换位且保持当前路由", async ({ page 
 	if (!usersBox || !rolesBox || !rolesTabNodeBox) {
 		return;
 	}
+
+	await page.mouse.move(
+		usersBox.x + usersBox.width / 2,
+		usersBox.y + usersBox.height / 2,
+	);
+	await page.mouse.down();
+	await page.mouse.move(
+		usersBox.x + usersBox.width / 2,
+		usersBox.y + usersBox.height / 2 + 12,
+	);
+	await page.waitForTimeout(30);
+	const inactiveDragStyle = await usersTabNode.evaluate((element) => {
+		const style = getComputedStyle(element);
+		const alphaMatch = style.backgroundColor.match(
+			/^rgba\([^,]+,[^,]+,[^,]+,\s*([^)]+)\)$/,
+		);
+		return {
+			backgroundAlpha: alphaMatch ? Number(alphaMatch[1]) : 1,
+			boxShadow: style.boxShadow,
+		};
+	});
+	expect(inactiveDragStyle.backgroundAlpha).toBe(1);
+	expect(inactiveDragStyle.boxShadow).not.toBe("none");
+	await page.keyboard.press("Escape");
 
 	await page.mouse.move(
 		rolesBox.x + rolesBox.width / 2,

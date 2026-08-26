@@ -63,6 +63,7 @@ interface TabNodeProps extends HTMLAttributes<HTMLDivElement> {
 
 interface DraggableTabNodeProps extends TabNodeProps {
 	draggableDescription: string;
+	draggingStyle: CSSProperties;
 }
 
 const interactiveElementSelector =
@@ -81,6 +82,7 @@ function isInteractiveEventTarget(
 function DraggableTabNode({
 	children,
 	draggableDescription,
+	draggingStyle,
 	...tabProps
 }: Readonly<DraggableTabNodeProps>) {
 	const tabKey = tabProps["data-node-key"];
@@ -98,6 +100,7 @@ function DraggableTabNode({
 		cursor: isDragging ? "grabbing" : "grab",
 		transform: CSS.Translate.toString(transform),
 		transition: isDragging ? "none" : transition,
+		...(isDragging ? draggingStyle : undefined),
 		zIndex: isDragging ? 1 : undefined,
 	};
 	const sortableListeners = {
@@ -450,6 +453,10 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 										draggableDescription={t(
 											"adminShell.tabs.draggableDescription",
 										)}
+										draggingStyle={{
+											backgroundColor: token.colorBgElevated,
+											boxShadow: token.boxShadowSecondary,
+										}}
 										key={node.key}
 									>
 										{node}
