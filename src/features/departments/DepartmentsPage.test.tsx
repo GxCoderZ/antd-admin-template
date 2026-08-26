@@ -96,7 +96,7 @@ describe("DepartmentsPage", () => {
 		await screen.findByText("运营中心");
 		expect(screen.getByTestId("admin-departments-query-form")).toBeVisible();
 		expect(screen.getByTestId("admin-departments-query-actions")).toBeVisible();
-		for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
+		for (const actionName of ["刷新", "表格密度", "列设置"]) {
 			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
 		}
 	});

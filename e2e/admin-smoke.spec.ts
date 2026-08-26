@@ -329,7 +329,7 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	await expect(page).toHaveURL(/\/access\/roles$/);
 
 	await expect(page.getByPlaceholder("搜索角色名称或标识")).toBeVisible();
-	for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
+	for (const actionName of ["刷新", "表格密度", "列设置"]) {
 		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
 	}
 	await expect(page.getByRole("button", { name: "right" })).toBeEnabled();
@@ -566,7 +566,7 @@ test("公告管理支持通过 Fake API 新建并查询公告", async ({ page })
 	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/system\/announcements$/);
 	await expect(page.getByRole("table")).toContainText("系统维护通知");
-	for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
+	for (const actionName of ["刷新", "表格密度", "列设置"]) {
 		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
 	}
 	await page.getByRole("button", { name: "列设置" }).click();
@@ -617,7 +617,7 @@ test("可编辑表格支持通过 Fake API 新增并查询行", async ({ page })
 	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
 	await expect(page.getByRole("table")).toContainText("月度预算复核");
-	for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
+	for (const actionName of ["刷新", "表格密度", "列设置"]) {
 		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
 	}
 

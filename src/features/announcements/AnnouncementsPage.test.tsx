@@ -111,7 +111,7 @@ describe("AnnouncementsPage", () => {
 		expect(
 			screen.getByTestId("admin-announcements-query-actions"),
 		).toBeVisible();
-		for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
+		for (const actionName of ["刷新", "表格密度", "列设置"]) {
 			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
 		}
 	});

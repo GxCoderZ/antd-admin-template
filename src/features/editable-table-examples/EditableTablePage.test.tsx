@@ -131,13 +131,7 @@ describe("EditableTablePage", () => {
 
 			await screen.findByText("月度预算复核 1");
 			expect(screen.getByTestId("editable-table-query-form")).toBeVisible();
-			for (const actionName of [
-				"新增行",
-				"刷新",
-				"表格密度",
-				"列设置",
-				"表格全屏",
-			]) {
+			for (const actionName of ["新增行", "刷新", "表格密度", "列设置"]) {
 				expect(screen.getByRole("button", { name: actionName })).toBeVisible();
 			}
 		},

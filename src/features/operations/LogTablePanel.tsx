@@ -1,8 +1,6 @@
 import {
 	ColumnHeightOutlined,
 	DownOutlined,
-	FullscreenExitOutlined,
-	FullscreenOutlined,
 	ReloadOutlined,
 	SettingOutlined,
 	UpOutlined,
@@ -14,7 +12,6 @@ import {
 	Card,
 	Checkbox,
 	Col,
-	ConfigProvider,
 	Descriptions,
 	Drawer,
 	Dropdown,
@@ -38,13 +35,7 @@ import type {
 	TableProps,
 } from "antd";
 import type { ReactNode, RefObject } from "react";
-import {
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from "react";
+import { useMemo, useRef, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -310,7 +301,6 @@ export function LogTablePanel<Row extends { id: string }>({
 		readUserTableDensityPreference,
 		() => defaultPreferences.userTableDensity,
 	);
-	const [isFullscreen, setIsFullscreen] = useState(false);
 	const tableScrollX =
 		tableColumns.minimumWidth || minimumWidth || "max-content";
 	const tablePagination: false | TablePaginationConfig =
@@ -329,18 +319,9 @@ export function LogTablePanel<Row extends { id: string }>({
 							start: range[0],
 							total: nextTotal,
 						}),
+					style: { marginBottom: 0 },
 					total,
 				};
-
-	useEffect(() => {
-		const handleFullscreenChange = () => {
-			setIsFullscreen(document.fullscreenElement === workspaceRef.current);
-		};
-
-		document.addEventListener("fullscreenchange", handleFullscreenChange);
-		return () =>
-			document.removeEventListener("fullscreenchange", handleFullscreenChange);
-	}, []);
 
 	const densityItems: MenuProps["items"] = [
 		{ key: "large", label: t("adminShell.logs.common.densityOptions.large") },
@@ -396,178 +377,111 @@ export function LogTablePanel<Row extends { id: string }>({
 		</Flex>
 	);
 
-	const toggleFullscreen = async () => {
-		if (document.fullscreenElement === workspaceRef.current) {
-			await document.exitFullscreen?.();
-			return;
-		}
-
-		await workspaceRef.current?.requestFullscreen?.();
-	};
-
 	return (
-		<ConfigProvider
-			getPopupContainer={() =>
-				isFullscreen ? (workspaceRef.current ?? document.body) : document.body
-			}
+		<Flex
+			data-testid={workspaceTestId}
+			gap={token.marginLG}
+			ref={workspaceRef}
+			vertical
 		>
-			<Flex
-				data-testid={workspaceTestId}
-				gap={token.marginLG}
-				ref={workspaceRef}
-				style={
-					isFullscreen
-						? {
-								background: token.colorBgLayout,
-								boxSizing: "border-box",
-								height: "100%",
-								overflow: "auto",
-								padding: token.paddingLG,
-							}
-						: undefined
-				}
-				vertical
-			>
-				{queryPanel}
-				<Card
-					data-testid={testId}
-					title={
-						<Flex
-							align="center"
-							gap={token.marginXS}
-							justify="space-between"
-							wrap
-						>
-							<span>{title}</span>
-							<Space>
-								{primaryAction}
-								<Tooltip title={t("adminShell.logs.common.reload")}>
-									<Button
-										aria-label={t("adminShell.logs.common.reload")}
-										color="default"
-										icon={<ReloadOutlined aria-hidden />}
-										loading={refreshing}
-										onClick={onReload}
-										variant="link"
-									/>
-								</Tooltip>
-								<Dropdown
-									menu={{
-										items: densityItems,
-										onClick: ({ key }) => {
-											if (
-												key === "large" ||
-												key === "middle" ||
-												key === "small"
-											) {
-												writeUserTableDensityPreference(key);
-											}
-										},
-										selectedKeys: [tableSize ?? "middle"],
-									}}
-									placement="bottomRight"
-									trigger={["click"]}
-								>
-									<Tooltip title={t("adminShell.logs.common.density")}>
-										<Button
-											aria-label={t("adminShell.logs.common.density")}
-											color="default"
-											icon={<ColumnHeightOutlined aria-hidden />}
-											variant="link"
-										/>
-									</Tooltip>
-								</Dropdown>
-								<Popover
-									arrow={false}
-									content={columnSettings}
-									placement="bottomRight"
-									trigger="click"
-								>
-									<Tooltip title={t("adminShell.logs.common.tableSettings")}>
-										<Button
-											aria-label={t("adminShell.logs.common.tableSettings")}
-											color="default"
-											icon={<SettingOutlined aria-hidden />}
-											variant="link"
-										/>
-									</Tooltip>
-								</Popover>
-								<Tooltip
-									title={t(
-										isFullscreen
-											? "adminShell.logs.common.exitFullscreen"
-											: "adminShell.logs.common.fullscreen",
-									)}
-								>
-									<Button
-										aria-label={t(
-											isFullscreen
-												? "adminShell.logs.common.exitFullscreen"
-												: "adminShell.logs.common.fullscreen",
-										)}
-										color="default"
-										icon={
-											isFullscreen ? (
-												<FullscreenExitOutlined aria-hidden />
-											) : (
-												<FullscreenOutlined aria-hidden />
-											)
+			{queryPanel}
+			<Card
+				data-testid={testId}
+				title={
+					<Flex
+						align="center"
+						gap={token.marginXS}
+						justify="space-between"
+						wrap
+					>
+						<span>{title}</span>
+						<Space>
+							{primaryAction}
+							<Tooltip title={t("adminShell.logs.common.reload")}>
+								<Button
+									aria-label={t("adminShell.logs.common.reload")}
+									color="default"
+									icon={<ReloadOutlined aria-hidden />}
+									loading={refreshing}
+									onClick={onReload}
+									variant="link"
+								/>
+							</Tooltip>
+							<Dropdown
+								menu={{
+									items: densityItems,
+									onClick: ({ key }) => {
+										if (
+											key === "large" ||
+											key === "middle" ||
+											key === "small"
+										) {
+											writeUserTableDensityPreference(key);
 										}
-										onClick={() => void toggleFullscreen()}
+									},
+									selectedKeys: [tableSize ?? "middle"],
+								}}
+								placement="bottomRight"
+								trigger={["click"]}
+							>
+								<Tooltip title={t("adminShell.logs.common.density")}>
+									<Button
+										aria-label={t("adminShell.logs.common.density")}
+										color="default"
+										icon={<ColumnHeightOutlined aria-hidden />}
 										variant="link"
 									/>
 								</Tooltip>
-							</Space>
-						</Flex>
-					}
-					styles={{
-						header: {
-							minHeight: token.controlHeightLG + token.marginLG,
-						},
-						title: { overflow: "visible" },
-					}}
-				>
-					{description ? (
-						<div style={{ marginBottom: token.margin }}>{description}</div>
-					) : null}
-					{tableExtra ? (
-						<div style={{ marginBottom: token.margin }}>{tableExtra}</div>
-					) : null}
-					{error ? (
-						<Alert
-							action={
-								<Button onClick={onReload}>
-									{t("adminShell.logs.common.retry")}
-								</Button>
-							}
-							description={
-								getProblemDetail(error) ??
-								errorFallback ??
-								t("adminShell.logs.common.errorFallback")
-							}
-							title={errorTitle ?? t("adminShell.logs.common.loadError")}
-							showIcon
-							type="error"
-						/>
-					) : tableWrapper ? (
-						tableWrapper(
-							<Table<Row>
-								columns={tableColumns.visibleColumns}
-								dataSource={dataSource}
-								loading={initialLoading || refreshing}
-								locale={{ emptyText }}
-								pagination={tablePagination}
-								rowKey="id"
-								{...(onTableChange ? { onChange: onTableChange } : {})}
-								{...(rowClassName ? { rowClassName } : {})}
-								{...(rowSelection ? { rowSelection } : {})}
-								{...(tableComponents ? { components: tableComponents } : {})}
-								scroll={{ x: tableScrollX }}
-								size={tableSize}
-								tableLayout="fixed"
-							/>,
-						)
-					) : (
+							</Dropdown>
+							<Popover
+								arrow={false}
+								content={columnSettings}
+								placement="bottomRight"
+								trigger="click"
+							>
+								<Tooltip title={t("adminShell.logs.common.tableSettings")}>
+									<Button
+										aria-label={t("adminShell.logs.common.tableSettings")}
+										color="default"
+										icon={<SettingOutlined aria-hidden />}
+										variant="link"
+									/>
+								</Tooltip>
+							</Popover>
+						</Space>
+					</Flex>
+				}
+				styles={{
+					body: {
+						paddingBlockEnd: token.padding,
+					},
+					title: { overflow: "visible" },
+				}}
+			>
+				{description ? (
+					<div style={{ marginBottom: token.margin }}>{description}</div>
+				) : null}
+				{tableExtra ? (
+					<div style={{ marginBottom: token.margin }}>{tableExtra}</div>
+				) : null}
+				{error ? (
+					<Alert
+						action={
+							<Button onClick={onReload}>
+								{t("adminShell.logs.common.retry")}
+							</Button>
+						}
+						description={
+							getProblemDetail(error) ??
+							errorFallback ??
+							t("adminShell.logs.common.errorFallback")
+						}
+						title={errorTitle ?? t("adminShell.logs.common.loadError")}
+						showIcon
+						type="error"
+					/>
+				) : tableWrapper ? (
+					tableWrapper(
 						<Table<Row>
 							columns={tableColumns.visibleColumns}
 							dataSource={dataSource}
@@ -582,11 +496,27 @@ export function LogTablePanel<Row extends { id: string }>({
 							scroll={{ x: tableScrollX }}
 							size={tableSize}
 							tableLayout="fixed"
-						/>
-					)}
-				</Card>
-			</Flex>
-		</ConfigProvider>
+						/>,
+					)
+				) : (
+					<Table<Row>
+						columns={tableColumns.visibleColumns}
+						dataSource={dataSource}
+						loading={initialLoading || refreshing}
+						locale={{ emptyText }}
+						pagination={tablePagination}
+						rowKey="id"
+						{...(onTableChange ? { onChange: onTableChange } : {})}
+						{...(rowClassName ? { rowClassName } : {})}
+						{...(rowSelection ? { rowSelection } : {})}
+						{...(tableComponents ? { components: tableComponents } : {})}
+						scroll={{ x: tableScrollX }}
+						size={tableSize}
+						tableLayout="fixed"
+					/>
+				)}
+			</Card>
+		</Flex>
 	);
 }
 

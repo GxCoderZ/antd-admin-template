@@ -110,7 +110,7 @@ describe("PositionsPage", () => {
 		await screen.findByText("运营专员");
 		expect(screen.getByTestId("admin-positions-query-form")).toBeVisible();
 		expect(screen.getByTestId("admin-positions-query-actions")).toBeVisible();
-		for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
+		for (const actionName of ["刷新", "表格密度", "列设置"]) {
 			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
 		}
 		expect(screen.getByRole("combobox", { name: "Page Size" })).toBeVisible();

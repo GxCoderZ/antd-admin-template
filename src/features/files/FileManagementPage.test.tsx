@@ -67,7 +67,7 @@ describe("FileManagementPage", () => {
 		renderPage();
 		expect(await screen.findByText("运营周报.pdf")).toBeVisible();
 		expect(screen.getByTestId("file-management-query-form")).toBeVisible();
-		for (const action of ["刷新", "表格密度", "列设置", "表格全屏"])
+		for (const action of ["刷新", "表格密度", "列设置"])
 			expect(screen.getByRole("button", { name: action })).toBeVisible();
 	});
 
