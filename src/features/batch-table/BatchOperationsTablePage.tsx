@@ -10,7 +10,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { Alert, Button, Modal, message } from "antd";
+import { Alert, Button, Modal, message, theme } from "antd";
 import type { TableProps } from "antd";
 import type { Key } from "react";
 import { useMemo, useState } from "react";
@@ -72,6 +72,7 @@ function getProblemDetail(error: unknown) {
 
 export function BatchOperationsTablePage() {
 	const { t } = useTranslation();
+	const { token } = theme.useToken();
 	const [messageApi, messageContext] = message.useMessage();
 	const queryClient = useQueryClient();
 	const [filters, setFilters] = useRouteSessionState<BatchTableFilterValues>({
@@ -301,7 +302,13 @@ export function BatchOperationsTablePage() {
 	};
 
 	return (
-		<PageContainer pageHeaderRender={false}>
+		<PageContainer
+			pageHeaderRender={false}
+			token={{
+				paddingBlockPageContainerContent: token.paddingLG,
+				paddingInlinePageContainerContent: token.paddingLG,
+			}}
+		>
 			{messageContext}
 			<ProTable<BatchTableRecord, BatchTableFilterValues>
 				columns={columns}

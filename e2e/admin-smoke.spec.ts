@@ -894,8 +894,8 @@ test("批量操作表格复用 Ant Design Pro 内容布局", async ({ page }) =>
 	});
 
 	expect(layout).toEqual({
-		childrenPaddingBlockStart: "32px",
-		childrenPaddingInline: "40px",
+		childrenPaddingBlockStart: "24px",
+		childrenPaddingInline: "24px",
 		pageContentPadding: "0px",
 		panelGap: 16,
 		queryPadding: "24px",
