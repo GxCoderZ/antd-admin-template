@@ -478,7 +478,6 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
 	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
 	await page
 		.getByRole("menuitem", { name: "批量操作表格", exact: true })
 		.click();

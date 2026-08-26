@@ -363,7 +363,6 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		iconKey: "batchTable",
 		key: "/examples/lists/batch-operations",
 		lazy: loadBatchOperationsTablePage,
-		navigationParentKeys: ["example-lists"],
 		sectionKey: "adminShell.navigation.examples",
 		titleKey: "adminShell.navigation.batchOperationsTable",
 	},
@@ -571,7 +570,6 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 				titleKey: "adminShell.navigation.listExamples",
 				children: [
 					{ routeKey: "/examples/lists/basic" },
-					{ routeKey: "/examples/lists/batch-operations" },
 					{
 						key: "example-search-lists",
 						titleKey: "adminShell.navigation.searchList",
@@ -588,6 +586,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/examples/preview-panel" },
 			{ routeKey: "/examples/detail" },
 			{ routeKey: "/examples/files" },
+			{ routeKey: "/examples/lists/batch-operations" },
 			{
 				key: "example-forms",
 				titleKey: "adminShell.navigation.formExamples",
