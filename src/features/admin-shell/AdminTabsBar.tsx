@@ -455,7 +455,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 										)}
 										draggingStyle={{
 											backgroundColor: token.colorBgElevated,
-											boxShadow: token.boxShadowSecondary,
+											boxShadow: token.boxShadowTertiary,
 										}}
 										key={node.key}
 									>
