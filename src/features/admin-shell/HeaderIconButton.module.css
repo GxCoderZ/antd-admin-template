@@ -7,6 +7,22 @@
 	position: relative;
 }
 
+.button::before {
+	background: currentColor;
+	border-radius: inherit;
+	content: "";
+	inset: 0;
+	opacity: 0;
+	pointer-events: none;
+	position: absolute;
+	transition: opacity 140ms ease-out;
+	z-index: 0;
+}
+
+.button[data-pressed="true"]::before {
+	opacity: 0.1;
+}
+
 .button::after {
 	animation-duration: 220ms;
 	animation-timing-function: ease-out;
@@ -55,5 +71,9 @@
 	.button::after {
 		animation: none;
 		display: none;
+	}
+
+	.button::before {
+		transition: none;
 	}
 }

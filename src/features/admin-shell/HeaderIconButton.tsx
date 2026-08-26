@@ -1,5 +1,10 @@
 import { Button, type ButtonProps } from "antd";
-import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
+import type {
+	CSSProperties,
+	FocusEvent,
+	KeyboardEvent,
+	PointerEvent,
+} from "react";
 import { forwardRef, useRef, useState } from "react";
 
 import styles from "./HeaderIconButton.module.css";
@@ -56,13 +61,19 @@ export const HeaderIconButton = forwardRef<
 		disabled,
 		loading,
 		onAnimationEnd,
+		onBlur,
 		onKeyDown,
+		onKeyUp,
+		onPointerCancel,
 		onPointerDown,
+		onPointerLeave,
+		onPointerUp,
 		style,
 		...buttonProps
 	},
 	ref,
 ) {
+	const [pressed, setPressed] = useState(false);
 	const [ripple, setRipple] = useState<RippleState | null>(null);
 	const ripplePhaseRef = useRef<RippleState["phase"]>("alternate");
 	const isUnavailable = disabled === true || Boolean(loading);
@@ -78,21 +89,51 @@ export const HeaderIconButton = forwardRef<
 	const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
 		onPointerDown?.(event);
 		if (!event.defaultPrevented && event.button === 0) {
+			setPressed(true);
 			showRipple(createPointerRipple(event, event.currentTarget));
 		}
+	};
+
+	const handlePointerRelease = (event: PointerEvent<HTMLElement>) => {
+		onPointerUp?.(event);
+		setPressed(false);
+	};
+
+	const handlePointerCancel = (event: PointerEvent<HTMLElement>) => {
+		onPointerCancel?.(event);
+		setPressed(false);
+	};
+
+	const handlePointerLeave = (event: PointerEvent<HTMLElement>) => {
+		onPointerLeave?.(event);
+		setPressed(false);
 	};
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		onKeyDown?.(event);
 		if (!event.defaultPrevented && (event.key === "Enter" || event.key === " ")) {
+			setPressed(true);
 			showRipple(createCenteredRipple(event.currentTarget));
 		}
+	};
+
+	const handleKeyUp = (event: KeyboardEvent<HTMLElement>) => {
+		onKeyUp?.(event);
+		if (event.key === "Enter" || event.key === " ") {
+			setPressed(false);
+		}
+	};
+
+	const handleBlur = (event: FocusEvent<HTMLElement>) => {
+		onBlur?.(event);
+		setPressed(false);
 	};
 
 	return (
 		<Button
 			{...buttonProps}
 			className={mergeClassNames(styles.button, className)}
+			{...(pressed ? { "data-pressed": "true" } : {})}
 			{...(ripple ? { "data-rippling": "true" } : {})}
 			{...(ripple ? { "data-ripple-phase": ripple.phase } : {})}
 			{...(disabled === undefined ? {} : { disabled })}
@@ -101,8 +142,13 @@ export const HeaderIconButton = forwardRef<
 				onAnimationEnd?.(event);
 				setRipple(null);
 			}}
+			onBlur={handleBlur}
 			onKeyDown={handleKeyDown}
+			onKeyUp={handleKeyUp}
+			onPointerCancel={handlePointerCancel}
 			onPointerDown={handlePointerDown}
+			onPointerLeave={handlePointerLeave}
+			onPointerUp={handlePointerRelease}
 			ref={ref}
 			style={ripple ? { ...style, ...rippleStyle(ripple) } : style}
 		>

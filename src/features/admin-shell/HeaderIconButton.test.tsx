@@ -41,6 +41,7 @@ describe("HeaderIconButton", () => {
 
 		fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
 
+		expect(button).toHaveAttribute("data-pressed", "true");
 		expect(button).toHaveAttribute("data-rippling", "true");
 		expect(button).toHaveAttribute("data-ripple-phase", "primary");
 		expect(button).toHaveStyle({
@@ -48,6 +49,9 @@ describe("HeaderIconButton", () => {
 			"--header-icon-button-ripple-x": "8px",
 			"--header-icon-button-ripple-y": "10px",
 		});
+
+		fireEvent.pointerUp(button);
+		expect(button).not.toHaveAttribute("data-pressed");
 	});
 
 	it("shows a centered keyboard ripple", () => {
@@ -55,11 +59,15 @@ describe("HeaderIconButton", () => {
 
 		fireEvent.keyDown(button, { key: "Enter" });
 
+		expect(button).toHaveAttribute("data-pressed", "true");
 		expect(button).toHaveAttribute("data-rippling", "true");
 		expect(button).toHaveStyle({
 			"--header-icon-button-ripple-x": "16px",
 			"--header-icon-button-ripple-y": "16px",
 		});
+
+		fireEvent.keyUp(button, { key: "Enter" });
+		expect(button).not.toHaveAttribute("data-pressed");
 	});
 
 	it("restarts the ripple when pressed repeatedly before animation ends", () => {
