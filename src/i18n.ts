@@ -1,4 +1,5 @@
 import i18n from "i18next";
+import type { BackendModule, ReadCallback, ResourceKey } from "i18next";
 import { initReactI18next } from "react-i18next";
 
 import {
@@ -7,10 +8,6 @@ import {
 	type SupportedLanguageCode,
 	writeLanguagePreference,
 } from "./app/preferenceStorage";
-import { enTranslation } from "./locales/en";
-import { koKRTranslation } from "./locales/ko-KR";
-import { zhCNTranslation } from "./locales/zh-CN";
-import { zhTWTranslation } from "./locales/zh-TW";
 
 export const supportedLanguages = [
 	{ code: "zh-CN", dir: "ltr", labelKey: "language.chinese" },
@@ -82,32 +79,70 @@ export function resolveInitialLanguage(
 	return "zh-CN";
 }
 
-const resources = {
-	"zh-CN": {
-		translation: zhCNTranslation,
+const translationLoaders = {
+	"zh-CN": () =>
+		import("./locales/zh-CN").then((module) => module.zhCNTranslation),
+	"zh-TW": () =>
+		import("./locales/zh-TW").then((module) => module.zhTWTranslation),
+	en: () => import("./locales/en").then((module) => module.enTranslation),
+	"ko-KR": () =>
+		import("./locales/ko-KR").then((module) => module.koKRTranslation),
+} satisfies Record<SupportedLanguageCode, () => Promise<ResourceKey>>;
+
+export async function loadLanguageResources(language: string) {
+	const supportedLanguage = resolveSupportedLanguage(language);
+
+	if (i18n.hasResourceBundle(supportedLanguage, "translation")) {
+		return;
+	}
+
+	const translation = await translationLoaders[supportedLanguage]();
+	i18n.addResourceBundle(
+		supportedLanguage,
+		"translation",
+		translation,
+		true,
+		true,
+	);
+}
+
+const dynamicTranslationBackend: BackendModule = {
+	type: "backend",
+	init() {
+		// i18next calls this hook when registering backend plugins.
 	},
-	"zh-TW": {
-		translation: zhTWTranslation,
+	read(language: string, namespace: string, callback: ReadCallback) {
+		if (namespace !== "translation") {
+			callback(null, {});
+			return;
+		}
+
+		translationLoaders[resolveSupportedLanguage(language)]()
+			.then((translation) => callback(null, translation))
+			.catch((error: unknown) => {
+				callback(
+					error instanceof Error ? error : new Error(String(error)),
+					null,
+				);
+			});
 	},
-	en: {
-		translation: enTranslation,
-	},
-	"ko-KR": {
-		translation: koKRTranslation,
-	},
-} as const;
+};
 
 i18n.on("languageChanged", (language) => {
 	writeLanguagePreference(resolveSupportedLanguage(language));
 });
 
-void i18n.use(initReactI18next).init({
-	resources,
-	lng: resolveInitialLanguage(),
-	fallbackLng: "en",
-	interpolation: {
-		escapeValue: false,
-	},
-});
+export const i18nReady = i18n
+	.use(dynamicTranslationBackend)
+	.use(initReactI18next)
+	.init({
+		defaultNS: "translation",
+		fallbackLng: "en",
+		interpolation: {
+			escapeValue: false,
+		},
+		lng: resolveInitialLanguage(),
+		ns: "translation",
+	});
 
 export { i18n };

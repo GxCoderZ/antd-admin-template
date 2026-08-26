@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { i18n, supportedLanguages } from "./i18n";
+import { i18n, loadLanguageResources, supportedLanguages } from "./i18n";
 import { enTranslation } from "./locales/en";
 import { koKRTranslation } from "./locales/ko-KR";
 import { zhCNTranslation } from "./locales/zh-CN";
@@ -19,7 +19,7 @@ function translationKeys(
 }
 
 describe("internationalization", () => {
-	it("keeps every supported language available on login and in the admin shell", () => {
+	it("keeps every supported language available on login and in the admin shell", async () => {
 		expect(supportedLanguages.map(({ code }) => code)).toEqual([
 			"zh-CN",
 			"zh-TW",
@@ -27,6 +27,7 @@ describe("internationalization", () => {
 			"ko-KR",
 		]);
 		for (const { code: language } of supportedLanguages) {
+			await loadLanguageResources(language);
 			expect(i18n.exists("login.title", { lng: language })).toBe(true);
 			expect(
 				i18n.exists("adminShell.navigation.dashboard", { lng: language }),

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 
-import { ForbiddenPage } from "../features/exceptions/ExceptionPages";
+import { ShellForbiddenPage } from "../features/exceptions/ShellExceptionPages";
 
 import {
 	PermissionContext,
@@ -38,5 +38,5 @@ export function PermissionBoundary({
 		return children;
 	}
 
-	return <ForbiddenPage />;
+	return <ShellForbiddenPage />;
 }

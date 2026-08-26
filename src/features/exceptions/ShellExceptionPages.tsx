@@ -1,8 +1,6 @@
-import type { FC } from "react";
-
 import { ExceptionResultPage } from "./ExceptionResultPage";
 
-export function ForbiddenPage() {
+export function ShellForbiddenPage() {
 	return (
 		<ExceptionResultPage
 			status="403"
@@ -11,16 +9,16 @@ export function ForbiddenPage() {
 	);
 }
 
-export const NotFoundPage: FC = () => {
+export function ShellNotFoundPage() {
 	return (
 		<ExceptionResultPage
 			status="404"
 			subTitleKey="adminShell.exceptions.notFoundDescription"
 		/>
 	);
-};
+}
 
-export function ServerErrorPage() {
+export function ShellRouteErrorPage() {
 	return (
 		<ExceptionResultPage
 			status="500"

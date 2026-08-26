@@ -6,10 +6,7 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { ConfigProvider, theme as antdTheme } from "antd";
-import enUS from "antd/locale/en_US";
-import koKR from "antd/locale/ko_KR";
-import zhCN from "antd/locale/zh_CN";
-import zhTW from "antd/locale/zh_TW";
+import type { Locale } from "antd/es/locale";
 import type { ComponentType } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
@@ -37,10 +34,13 @@ import { AdminShellPage } from "../features/admin-shell/AdminShellPage";
 import { LoginPage } from "../features/auth/login/LoginPage";
 import { ForgotPasswordPage } from "../features/auth/forgot-password/ForgotPasswordPage";
 import {
-	NotFoundPage,
-	RouteErrorPage,
-} from "../features/exceptions/ExceptionPages";
-import { getSupportedLanguageMetadata } from "../i18n";
+	ShellNotFoundPage,
+	ShellRouteErrorPage,
+} from "../features/exceptions/ShellExceptionPages";
+import {
+	getSupportedLanguageMetadata,
+	type SupportedLanguageCode,
+} from "../i18n";
 import { adminRouteDefinitions } from "./adminRoutes";
 import { ApplicationSkeleton } from "./LoadingSkeletons";
 import { LocalePreferencesProvider } from "./LocalePreferencesProvider";
@@ -68,12 +68,32 @@ import "./theme-transition.css";
 
 const THEME_REVEAL_DURATION_MS = 450;
 const THEME_REVEAL_EASING = "ease-in-out";
-const antdLocales = {
-	"zh-CN": zhCN,
-	"zh-TW": zhTW,
-	en: enUS,
-	"ko-KR": koKR,
-} as const;
+const antdLocaleLoaders = {
+	"zh-CN": () => import("antd/locale/zh_CN"),
+	"zh-TW": () => import("antd/locale/zh_TW"),
+	en: () => import("antd/locale/en_US"),
+	"ko-KR": () => import("antd/locale/ko_KR"),
+} satisfies Record<SupportedLanguageCode, () => Promise<{ default: Locale }>>;
+
+function useAntdLocale(language: SupportedLanguageCode) {
+	const [locale, setLocale] = useState<Locale>();
+
+	useEffect(() => {
+		let active = true;
+
+		void antdLocaleLoaders[language]().then(({ default: nextLocale }) => {
+			if (active) {
+				setLocale(nextLocale);
+			}
+		});
+
+		return () => {
+			active = false;
+		};
+	}, [language]);
+
+	return locale;
+}
 
 function getThemeRevealOrigin(event?: ThemeChangeEvent) {
 	const rect =
@@ -201,6 +221,7 @@ export function App() {
 	const [systemIsDarkMode, setSystemIsDarkMode] = useState(getSystemIsDarkMode);
 	const languageMetadata = getSupportedLanguageMetadata(i18n.resolvedLanguage);
 	const language = languageMetadata.code;
+	const antdLocale = useAntdLocale(language);
 	const localePreferences = useLocalePreferenceState(language);
 	const isDarkMode =
 		themeMode === "system" ? systemIsDarkMode : themeMode === "dark";
@@ -321,7 +342,7 @@ export function App() {
 				},
 				{
 					element: <AuthenticatedAdminShellRoute />,
-					ErrorBoundary: RouteErrorPage,
+					ErrorBoundary: ShellRouteErrorPage,
 					HydrateFallback: ApplicationSkeleton,
 					children: [
 						...adminRouteDefinitions.flatMap((route) =>
@@ -332,12 +353,12 @@ export function App() {
 								handle: route,
 								lazy,
 								path,
-								ErrorBoundary: RouteErrorPage,
+								ErrorBoundary: ShellRouteErrorPage,
 							})),
 						),
 						{
 							path: "*",
-							Component: NotFoundPage,
+							Component: ShellNotFoundPage,
 						},
 					],
 				},
@@ -417,7 +438,7 @@ export function App() {
 	return (
 		<ConfigProvider
 			direction={languageMetadata.dir}
-			locale={antdLocales[language]}
+			{...(antdLocale ? { locale: antdLocale } : {})}
 			theme={{
 				algorithm: isDarkMode
 					? antdTheme.darkAlgorithm
