@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LocalePreferencesProvider } from "../../app/LocalePreferencesProvider";
+import type { PlatformAuditLog } from "../../api/operations/types";
 import { i18n } from "../../i18n";
 import { AuditLogPage } from "./AuditLogPage";
 
@@ -17,18 +18,25 @@ vi.mock("#src/api/operations", () => ({
 	listPlatformAuditLogs: mocks.listPlatformAuditLogs,
 }));
 
-const auditLog = {
+const auditLog: PlatformAuditLog = {
 	action: "platform.user.update",
 	actorId: "user-operator",
 	actorUsername: "operator",
 	after: { status: "disabled" },
 	before: { status: "active" },
 	createdAt: "2026-08-25T08:30:00.000Z",
+	durationMs: 128,
 	id: "audit-log-001",
+	module: "用户管理",
+	requestId: "req-audit-001",
 	requestIp: "192.168.1.20",
-	result: "success" as const,
+	requestMethod: "PATCH",
+	requestPath: "/api/platform/users/user-target",
+	result: "success",
 	targetId: "user-target",
 	targetType: "platform-user",
+	userAgent:
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36",
 };
 
 beforeAll(async () => {
@@ -89,30 +97,47 @@ describe("AuditLogPage", () => {
 		}
 		for (const label of [
 			"日志 ID",
-			"操作人 ID",
+			"请求 ID",
 			"操作人",
+			"操作人 ID",
 			"动作",
+			"功能模块",
+			"目标",
 			"目标类型",
 			"目标 ID",
-			"IP 地址",
 			"结果",
+			"IP 地址",
+			"请求方法",
+			"请求路径",
+			"失败原因",
+			"设备",
+			"浏览器",
+			"操作系统",
+			"耗时",
 			"变更前",
 			"变更后",
+			"User-Agent",
 			"发生时间",
 		]) {
-			expect(within(dialog).getByText(label)).toBeVisible();
+			expect(within(dialog).getByText(label, { exact: true })).toBeVisible();
 		}
 		for (const value of [
 			"audit-log-001",
+			"req-audit-001",
 			"user-operator",
 			"platform.user.update",
+			"用户管理",
+			"platform-user:user-target",
 			"platform-user",
 			"user-target",
 			"192.168.1.20",
-			'"active"',
-			'"disabled"',
+			"PATCH",
+			"/api/platform/users/user-target",
+			"128 ms",
 		]) {
-			expect(within(dialog).getByText(value, { exact: false })).toBeVisible();
+			expect(within(dialog).getByText(value, { exact: true })).toBeVisible();
 		}
+		expect(within(dialog).getByText('"active"', { exact: false })).toBeVisible();
+		expect(within(dialog).getByText('"disabled"', { exact: false })).toBeVisible();
 	});
 });

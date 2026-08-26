@@ -659,22 +659,6 @@ export function AuditLogPage() {
 									),
 								},
 								{
-									key: "before",
-									label: t("adminShell.logs.audit.columns.before"),
-									children: formatAuditRecordValue(
-										selectedLog.before,
-										notRecorded,
-									),
-								},
-								{
-									key: "after",
-									label: t("adminShell.logs.audit.columns.after"),
-									children: formatAuditRecordValue(
-										selectedLog.after,
-										notRecorded,
-									),
-								},
-								{
 									key: "ipAddress",
 									label: t("adminShell.logs.audit.columns.ipAddress"),
 									children: selectedLog.requestIp,
@@ -724,12 +708,18 @@ export function AuditLogPage() {
 								{
 									key: "before",
 									label: t("adminShell.logs.audit.columns.before"),
-									children: formatChange(selectedLog.before),
+									children: formatAuditRecordValue(
+										selectedLog.before,
+										notRecorded,
+									),
 								},
 								{
 									key: "after",
 									label: t("adminShell.logs.audit.columns.after"),
-									children: formatChange(selectedLog.after),
+									children: formatAuditRecordValue(
+										selectedLog.after,
+										notRecorded,
+									),
 								},
 								{
 									key: "userAgent",
