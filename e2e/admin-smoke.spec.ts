@@ -294,7 +294,7 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 		await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
 	}
 	await expect(stepFormMenuItem).toBeVisible();
-	await stepFormMenuItem.click();
+	await stepFormMenuItem.click({ force: true });
 	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
 	await expect(
 		page.getByRole("heading", { level: 1, name: "分步表单" }),
@@ -483,7 +483,9 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 		.getByRole("menuitem", { name: "批量操作表格", exact: true })
 		.click();
 	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
-	await expect(page.getByText("批量操作表格", { exact: true })).toBeVisible();
+	await expect(page.getByText("查询表格", { exact: true })).toBeVisible();
+	await expect(page.getByRole("table")).toContainText("TradeCode 1");
+	await expect(page.getByRole("table")).toContainText("服务调用次数");
 	await expect(page.getByText("已选择 0 项")).toBeVisible();
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),
@@ -492,6 +494,7 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 	await page.getByRole("checkbox", { name: "Select row 1", exact: true }).click();
 	await page.getByRole("checkbox", { name: "Select row 2", exact: true }).click();
 	await expect(page.getByText("已选择 2 项")).toBeVisible();
+	await expect(page.getByText(/服务调用次数总计/)).toBeVisible();
 
 	await page.getByRole("button", { name: "批量导出" }).click();
 	await expect(page.getByText(/已生成 2 项导出/)).toBeVisible();

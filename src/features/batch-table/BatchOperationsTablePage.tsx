@@ -1,10 +1,23 @@
+import { PlusOutlined } from "@ant-design/icons";
 import {
 	keepPreviousData,
 	useMutation,
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { Badge, Col, Form, Input, Modal, Select, Tag, message, theme } from "antd";
+import {
+	Badge,
+	Button,
+	Col,
+	Form,
+	Input,
+	Modal,
+	Select,
+	Space,
+	message,
+	theme,
+	Typography,
+} from "antd";
 import type { TableColumnsType, TableProps } from "antd";
 import type { Key } from "react";
 import { useMemo, useState } from "react";
@@ -19,6 +32,7 @@ import {
 	type BatchTableRecord,
 	type BatchTableRecordSort,
 	type BatchTableRecordStatus,
+	type BatchTableStatusMutation,
 	type ListBatchTableRecordsInput,
 } from "#src/api/batch-table";
 import { formatDateTime } from "../../app/formatting";
@@ -30,12 +44,16 @@ import {
 } from "../../app/queryFilterLayout";
 import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import { resolveTableSort } from "../../app/tableSorting";
+import { TableActionButton } from "../../app/TableActionButton";
 import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
 import { BatchSelectionToolbar } from "./components/BatchSelectionToolbar";
 
+const { Link } = Typography;
+
 interface BatchTableFilterValues {
-	category: string;
-	q?: string;
+	callCount?: string;
+	description?: string;
+	ruleName?: string;
 	status: "all" | BatchTableRecordStatus;
 }
 
@@ -46,27 +64,36 @@ interface BatchTableState {
 	sort: ListBatchTableRecordsInput["sort"];
 }
 
-const defaultFilters: BatchTableFilterValues = {
-	category: "all",
-	status: "all",
-};
+const defaultFilters: BatchTableFilterValues = { status: "all" };
 const batchTableSortMap = {
-	name: "name",
-	owner: "owner",
+	callCount: "call_count",
+	lastScheduledAt: "last_scheduled_at",
+	ruleName: "rule_name",
 	status: "status",
-	updated_at: "updated_at",
 } as const satisfies Record<string, BatchTableRecordSort>;
 const batchTableColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
 	[
-		{ key: "name", priority: "compact", required: true },
+		{ key: "ruleName", priority: "compact", required: true },
+		{ key: "description", priority: "compact" },
+		{ key: "callCount", priority: "compact" },
 		{ key: "status", priority: "compact" },
-		{ key: "category", priority: "compact" },
-		{ key: "owner", priority: "regular" },
-		{ key: "updated_at", priority: "regular" },
+		{ key: "lastScheduledAt", priority: "compact" },
+		{ key: "actions", priority: "compact", required: true },
 	];
 
 function getStatusBadgeStatus(status: BatchTableRecordStatus) {
-	return status === "active" ? "success" : "default";
+	const statusMap = {
+		closed: "default",
+		exception: "error",
+		online: "success",
+		running: "processing",
+	} as const;
+
+	return statusMap[status];
+}
+
+function formatCallCount(value: number) {
+	return `${Math.round(value / 10_000)}万`;
 }
 
 export function BatchOperationsTablePage() {
@@ -84,27 +111,36 @@ export function BatchOperationsTablePage() {
 	const [tableState, setTableState] = useState<BatchTableState>({
 		order: "desc",
 		page: 1,
-		pageSize: 10,
-		sort: "updated_at",
+		pageSize: 20,
+		sort: "last_scheduled_at",
 	});
 	const querySubmission = useQuerySubmission();
 	const queryLayout = useQueryFilterLayout({
 		expanded: filtersExpanded,
-		fieldCount: 3,
+		fieldCount: 4,
 	});
-	const showStatusFilter =
+	const showDescriptionFilter =
 		filtersExpanded || queryLayout.collapsedFieldCount >= 2;
-	const showCategoryFilter =
+	const showCallCountFilter =
 		filtersExpanded || queryLayout.collapsedFieldCount >= 3;
+	const showStatusFilter =
+		filtersExpanded || queryLayout.collapsedFieldCount >= 4;
 	const selectedIds = selectedRowKeys.map(String);
 	const hasSelection = selectedIds.length > 0;
 	const params = useMemo<ListBatchTableRecordsInput>(
 		() => ({
 			page: tableState.page,
 			pageSize: tableState.pageSize,
-			...(filters.q?.trim() ? { q: filters.q.trim() } : {}),
+			...(filters.ruleName?.trim()
+				? { ruleName: filters.ruleName.trim() }
+				: {}),
+			...(filters.description?.trim()
+				? { description: filters.description.trim() }
+				: {}),
+			...(filters.callCount?.trim()
+				? { callCount: filters.callCount.trim() }
+				: {}),
 			...(filters.status !== "all" ? { status: filters.status } : {}),
-			...(filters.category !== "all" ? { category: filters.category } : {}),
 			...(tableState.sort && tableState.order
 				? { order: tableState.order, sort: tableState.sort }
 				: {}),
@@ -116,6 +152,15 @@ export function BatchOperationsTablePage() {
 		queryFn: ({ signal }) => listBatchTableRecords(params, signal),
 		queryKey: [...batchTableRecordsQueryKey, params, querySubmission.revision],
 	});
+	const currentRows = query.data?.items ?? [];
+	const currentRowsById = new Map(currentRows.map((row) => [row.id, row]));
+	const selectedCallCount = selectedIds.reduce(
+		(total, id) => total + (currentRowsById.get(id)?.callCount ?? 0),
+		0,
+	);
+	const selectedCallCountInTenThousands = Math.round(
+		selectedCallCount / 10_000,
+	);
 	const invalidateList = () =>
 		queryClient.invalidateQueries({ queryKey: batchTableRecordsQueryKey });
 	const statusMutation = useMutation({
@@ -164,13 +209,30 @@ export function BatchOperationsTablePage() {
 			: null;
 	const columns: TableColumnsType<BatchTableRecord> = [
 		{
-			dataIndex: "name",
-			key: "name",
+			dataIndex: "ruleName",
+			key: "ruleName",
+			render: (value: string) => <Link>{value}</Link>,
 			sortDirections: ["ascend", "descend"],
 			sorter: true,
-			sortOrder: sortOrder("name"),
-			title: t("adminShell.batchTable.columns.name"),
+			sortOrder: sortOrder("rule_name"),
+			title: t("adminShell.batchTable.columns.ruleName"),
 			width: token.controlHeight * 6,
+		},
+		{
+			dataIndex: "description",
+			key: "description",
+			title: t("adminShell.batchTable.columns.description"),
+			width: token.controlHeight * 7,
+		},
+		{
+			dataIndex: "callCount",
+			key: "callCount",
+			render: formatCallCount,
+			sortDirections: ["ascend", "descend"],
+			sorter: true,
+			sortOrder: sortOrder("call_count"),
+			title: t("adminShell.batchTable.columns.callCount"),
+			width: token.controlHeight * 4,
 		},
 		{
 			dataIndex: "status",
@@ -188,37 +250,49 @@ export function BatchOperationsTablePage() {
 			width: token.controlHeight * 3,
 		},
 		{
-			dataIndex: "category",
-			key: "category",
-			render: (value: string) => <Tag>{value}</Tag>,
-			title: t("adminShell.batchTable.columns.category"),
-			width: token.controlHeight * 4,
-		},
-		{
-			dataIndex: "owner",
-			key: "owner",
-			sortDirections: ["ascend", "descend"],
-			sorter: true,
-			sortOrder: sortOrder("owner"),
-			title: t("adminShell.batchTable.columns.owner"),
-			width: token.controlHeight * 4,
-		},
-		{
-			dataIndex: "updatedAt",
-			key: "updated_at",
+			dataIndex: "lastScheduledAt",
+			key: "lastScheduledAt",
 			render: (value: string) => formatDateTime(value, formatPreferences),
 			sortDirections: ["ascend", "descend"],
 			sorter: true,
-			sortOrder: sortOrder("updated_at"),
-			title: t("adminShell.batchTable.columns.updatedAt"),
+			sortOrder: sortOrder("last_scheduled_at"),
+			title: t("adminShell.batchTable.columns.lastScheduledAt"),
+			width: token.controlHeight * 5,
+		},
+		{
+			key: "actions",
+			render: () => (
+				<Space size="middle">
+					<TableActionButton
+						onClick={() => void messageApi.info(t("adminShell.batchTable.configureTip"))}
+					>
+						{t("adminShell.batchTable.configure")}
+					</TableActionButton>
+					<TableActionButton
+						onClick={() =>
+							void messageApi.info(t("adminShell.batchTable.subscribeAlertTip"))
+						}
+					>
+						{t("adminShell.batchTable.subscribeAlert")}
+					</TableActionButton>
+				</Space>
+			),
+			title: t("adminShell.batchTable.columns.actions"),
 			width: token.controlHeight * 5,
 		},
 	];
 
 	const applyFilters = (values: BatchTableFilterValues) => {
 		setFilters({
-			category: values.category,
-			...(values.q?.trim() ? { q: values.q.trim() } : {}),
+			...(values.callCount?.trim()
+				? { callCount: values.callCount.trim() }
+				: {}),
+			...(values.description?.trim()
+				? { description: values.description.trim() }
+				: {}),
+			...(values.ruleName?.trim()
+				? { ruleName: values.ruleName.trim() }
+				: {}),
 			status: values.status,
 		});
 		setSelectedRowKeys([]);
@@ -256,7 +330,7 @@ export function BatchOperationsTablePage() {
 			pageSize: pagination.pageSize ?? value.pageSize,
 		}));
 	};
-	const updateSelectedStatus = (status: BatchTableRecordStatus) => {
+	const updateSelectedStatus = (status: BatchTableStatusMutation) => {
 		if (hasSelection) {
 			statusMutation.mutate({ ids: selectedIds, status });
 		}
@@ -280,17 +354,47 @@ export function BatchOperationsTablePage() {
 		>
 			<Col span={queryLayout.columnSpan}>
 				<Form.Item
-					label={t("adminShell.batchTable.filters.q")}
-					name="q"
+					label={t("adminShell.batchTable.filters.ruleName")}
+					name="ruleName"
 					style={{ marginBottom: 0 }}
 				>
 					<Input
 						allowClear
 						maxLength={80}
-						placeholder={t("adminShell.batchTable.placeholders.q")}
+						placeholder={t("adminShell.batchTable.placeholders.input")}
 					/>
 				</Form.Item>
 			</Col>
+			{showDescriptionFilter ? (
+				<Col span={queryLayout.columnSpan}>
+					<Form.Item
+						label={t("adminShell.batchTable.filters.description")}
+						name="description"
+						style={{ marginBottom: 0 }}
+					>
+						<Input
+							allowClear
+							maxLength={120}
+							placeholder={t("adminShell.batchTable.placeholders.input")}
+						/>
+					</Form.Item>
+				</Col>
+			) : null}
+			{showCallCountFilter ? (
+				<Col span={queryLayout.columnSpan}>
+					<Form.Item
+						label={t("adminShell.batchTable.filters.callCount")}
+						name="callCount"
+						style={{ marginBottom: 0 }}
+					>
+						<Input
+							allowClear
+							maxLength={20}
+							placeholder={t("adminShell.batchTable.placeholders.input")}
+						/>
+					</Form.Item>
+				</Col>
+			) : null}
 			{showStatusFilter ? (
 				<Col span={queryLayout.columnSpan}>
 					<Form.Item
@@ -305,42 +409,20 @@ export function BatchOperationsTablePage() {
 									value: "all",
 								},
 								{
-									label: t("adminShell.batchTable.statuses.active"),
-									value: "active",
+									label: t("adminShell.batchTable.statuses.exception"),
+									value: "exception",
 								},
 								{
-									label: t("adminShell.batchTable.statuses.disabled"),
-									value: "disabled",
-								},
-							]}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
-			{showCategoryFilter ? (
-				<Col span={queryLayout.columnSpan}>
-					<Form.Item
-						label={t("adminShell.batchTable.filters.category")}
-						name="category"
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							options={[
-								{
-									label: t("adminShell.batchTable.categories.all"),
-									value: "all",
+									label: t("adminShell.batchTable.statuses.closed"),
+									value: "closed",
 								},
 								{
-									label: t("adminShell.batchTable.categories.permission"),
-									value: "权限资产",
+									label: t("adminShell.batchTable.statuses.online"),
+									value: "online",
 								},
 								{
-									label: t("adminShell.batchTable.categories.content"),
-									value: "内容资产",
-								},
-								{
-									label: t("adminShell.batchTable.categories.operation"),
-									value: "运营资产",
+									label: t("adminShell.batchTable.statuses.running"),
+									value: "running",
 								},
 							]}
 						/>
@@ -359,7 +441,7 @@ export function BatchOperationsTablePage() {
 				)}
 				columnVisibility={batchTableColumnVisibility}
 				columns={columns}
-				dataSource={query.data?.items ?? []}
+				dataSource={currentRows}
 				description={
 					<BatchSelectionToolbar
 						deleteLoading={deleteMutation.isPending}
@@ -371,6 +453,7 @@ export function BatchOperationsTablePage() {
 							hasSelection && exportMutation.mutate({ ids: selectedIds })
 						}
 						onStatusChange={updateSelectedStatus}
+						selectedCallCount={selectedCallCountInTenThousands}
 						selectedCount={selectedIds.length}
 						statusLoading={statusMutation.isPending}
 					/>
@@ -380,7 +463,7 @@ export function BatchOperationsTablePage() {
 				errorFallback={t("adminShell.batchTable.errorFallback")}
 				errorTitle={t("adminShell.batchTable.loadError")}
 				initialLoading={query.isPending}
-				minimumWidth={token.controlHeight * 25}
+				minimumWidth={token.controlHeight * 34}
 				onPageChange={(page, pageSize) =>
 					setTableState((value) => ({ ...value, page, pageSize }))
 				}
@@ -388,6 +471,17 @@ export function BatchOperationsTablePage() {
 				onTableChange={handleTableChange}
 				page={query.data?.page ?? tableState.page}
 				pageSize={query.data?.pageSize ?? tableState.pageSize}
+				primaryAction={
+					<Button
+						icon={<PlusOutlined aria-hidden />}
+						onClick={() =>
+							void messageApi.info(t("adminShell.batchTable.createTip"))
+						}
+						type="primary"
+					>
+						{t("adminShell.batchTable.create")}
+					</Button>
+				}
 				queryPanel={queryPanel}
 				refreshing={query.isFetching && !query.isPending}
 				rowSelection={{

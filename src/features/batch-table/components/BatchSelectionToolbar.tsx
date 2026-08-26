@@ -7,7 +7,7 @@ import {
 import { Button, Flex, Space, theme, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
-import type { BatchTableRecordStatus } from "#src/api/batch-table";
+import type { BatchTableStatusMutation } from "#src/api/batch-table";
 
 const { Text } = Typography;
 
@@ -17,7 +17,8 @@ interface BatchSelectionToolbarProps {
 	onClear: () => void;
 	onDelete: () => void;
 	onExport: () => void;
-	onStatusChange: (status: BatchTableRecordStatus) => void;
+	onStatusChange: (status: BatchTableStatusMutation) => void;
+	selectedCallCount: number;
 	selectedCount: number;
 	statusLoading: boolean;
 	deleteLoading: boolean;
@@ -31,6 +32,7 @@ export function BatchSelectionToolbar({
 	onDelete,
 	onExport,
 	onStatusChange,
+	selectedCallCount,
 	selectedCount,
 	statusLoading,
 }: BatchSelectionToolbarProps) {
@@ -43,6 +45,13 @@ export function BatchSelectionToolbar({
 				<Text strong>
 					{t("adminShell.batchTable.selectedCount", { count: selectedCount })}
 				</Text>
+				{selectedCount > 0 ? (
+					<Text type="secondary">
+						{t("adminShell.batchTable.selectedCallCount", {
+							count: selectedCallCount,
+						})}
+					</Text>
+				) : null}
 				<Button disabled={disabled} onClick={onClear} type="link">
 					{t("adminShell.batchTable.clearSelection")}
 				</Button>
@@ -52,7 +61,7 @@ export function BatchSelectionToolbar({
 					disabled={disabled}
 					icon={<CheckCircleOutlined aria-hidden />}
 					loading={statusLoading}
-					onClick={() => onStatusChange("active")}
+					onClick={() => onStatusChange("online")}
 				>
 					{t("adminShell.batchTable.enableSelected")}
 				</Button>
@@ -60,7 +69,7 @@ export function BatchSelectionToolbar({
 					disabled={disabled}
 					icon={<StopOutlined aria-hidden />}
 					loading={statusLoading}
-					onClick={() => onStatusChange("disabled")}
+					onClick={() => onStatusChange("closed")}
 				>
 					{t("adminShell.batchTable.disableSelected")}
 				</Button>
