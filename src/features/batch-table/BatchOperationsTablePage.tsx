@@ -87,12 +87,16 @@ export function BatchOperationsTablePage() {
 	const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
 	const [selectedRows, setSelectedRows] = useState<BatchTableRecord[]>([]);
 	const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+	const [queryRevision, setQueryRevision] = useState(0);
 	const [tableState, setTableState] = useRouteSessionState<BatchTableState>({
 		initialState: defaultTableState,
 		routeKey: batchTableRouteKey,
 		stateKey: "table",
 	});
-	const selectedIds = selectedRowKeys.map(String);
+	const selectedIds = useMemo(
+		() => selectedRowKeys.map(String),
+		[selectedRowKeys],
+	);
 	const hasSelection = selectedIds.length > 0;
 	const selectedCallCountInTenThousands = Math.round(
 		selectedRows.reduce((total, row) => total + row.callCount, 0) / 10_000,
@@ -123,7 +127,7 @@ export function BatchOperationsTablePage() {
 	const query = useQuery({
 		placeholderData: keepPreviousData,
 		queryFn: ({ signal }) => listBatchTableRecords(params, signal),
-		queryKey: [...batchTableRecordsQueryKey, params],
+		queryKey: [...batchTableRecordsQueryKey, params, queryRevision],
 	});
 	const currentRows = query.data?.items ?? [];
 	const invalidateList = () =>
@@ -160,97 +164,100 @@ export function BatchOperationsTablePage() {
 			);
 		},
 	});
-	const columns: ProColumns<BatchTableRecord>[] = [
-		{
-			dataIndex: "ruleName",
-			key: "ruleName",
-			render: (dom) => (
-				<Button
-					onClick={() =>
-						void messageApi.info(t("adminShell.batchTable.configureTip"))
-					}
-					type="link"
-				>
-					{dom}
-				</Button>
-			),
-			title: t("adminShell.batchTable.columns.ruleName"),
-		},
-		{
-			dataIndex: "description",
-			key: "description",
-			title: t("adminShell.batchTable.columns.description"),
-			valueType: "textarea",
-		},
-		{
-			dataIndex: "callCount",
-			key: "callCount",
-			renderText: formatCallCount,
-			sorter: true,
-			sortOrder:
-				tableState.sort === "call_count" && tableState.order
-					? tableState.order === "asc"
-						? "ascend"
-						: "descend"
-					: null,
-			title: t("adminShell.batchTable.columns.callCount"),
-		},
-		{
-			dataIndex: "status",
-			key: "status",
-			title: t("adminShell.batchTable.columns.status"),
-			valueEnum: {
-				closed: {
-					status: "Default",
-					text: t("adminShell.batchTable.statuses.closed"),
-				},
-				exception: {
-					status: "Error",
-					text: t("adminShell.batchTable.statuses.exception"),
-				},
-				online: {
-					status: "Success",
-					text: t("adminShell.batchTable.statuses.online"),
-				},
-				running: {
-					status: "Processing",
-					text: t("adminShell.batchTable.statuses.running"),
+	const columns = useMemo<ProColumns<BatchTableRecord>[]>(
+		() => [
+			{
+				dataIndex: "ruleName",
+				key: "ruleName",
+				render: (dom) => (
+					<Button
+						onClick={() =>
+							void messageApi.info(t("adminShell.batchTable.configureTip"))
+						}
+						type="link"
+					>
+						{dom}
+					</Button>
+				),
+				title: t("adminShell.batchTable.columns.ruleName"),
+			},
+			{
+				dataIndex: "description",
+				key: "description",
+				title: t("adminShell.batchTable.columns.description"),
+				valueType: "textarea",
+			},
+			{
+				dataIndex: "callCount",
+				key: "callCount",
+				renderText: formatCallCount,
+				sorter: true,
+				sortOrder:
+					tableState.sort === "call_count" && tableState.order
+						? tableState.order === "asc"
+							? "ascend"
+							: "descend"
+						: null,
+				title: t("adminShell.batchTable.columns.callCount"),
+			},
+			{
+				dataIndex: "status",
+				key: "status",
+				title: t("adminShell.batchTable.columns.status"),
+				valueEnum: {
+					closed: {
+						status: "Default",
+						text: t("adminShell.batchTable.statuses.closed"),
+					},
+					exception: {
+						status: "Error",
+						text: t("adminShell.batchTable.statuses.exception"),
+					},
+					online: {
+						status: "Success",
+						text: t("adminShell.batchTable.statuses.online"),
+					},
+					running: {
+						status: "Processing",
+						text: t("adminShell.batchTable.statuses.running"),
+					},
 				},
 			},
-		},
-		{
-			dataIndex: "lastScheduledAt",
-			key: "lastScheduledAt",
-			render: (_, record) => formatProDateTime(record.lastScheduledAt),
-			title: t("adminShell.batchTable.columns.lastScheduledAt"),
-			valueType: "dateTime",
-		},
-		{
-			key: "actions",
-			render: () => [
-				<Button
-					key="configure"
-					onClick={() =>
-						void messageApi.info(t("adminShell.batchTable.configureTip"))
-					}
-					type="link"
-				>
-					{t("adminShell.batchTable.configure")}
-				</Button>,
-				<Button
-					key="subscribe-alert"
-					onClick={() =>
-						void messageApi.info(t("adminShell.batchTable.subscribeAlertTip"))
-					}
-					type="link"
-				>
-					{t("adminShell.batchTable.subscribeAlert")}
-				</Button>,
-			],
-			title: t("adminShell.batchTable.columns.actions"),
-			valueType: "option",
-		},
-	];
+			{
+				dataIndex: "lastScheduledAt",
+				key: "lastScheduledAt",
+				render: (_, record) => formatProDateTime(record.lastScheduledAt),
+				title: t("adminShell.batchTable.columns.lastScheduledAt"),
+				valueType: "dateTime",
+			},
+			{
+				key: "actions",
+				render: () => [
+					<Button
+						key="configure"
+						onClick={() =>
+							void messageApi.info(t("adminShell.batchTable.configureTip"))
+						}
+						type="link"
+					>
+						{t("adminShell.batchTable.configure")}
+					</Button>,
+					<Button
+						key="subscribe-alert"
+						onClick={() =>
+							void messageApi.info(t("adminShell.batchTable.subscribeAlertTip"))
+						}
+						type="link"
+					>
+						{t("adminShell.batchTable.subscribeAlert")}
+					</Button>,
+				],
+				title: t("adminShell.batchTable.columns.actions"),
+				valueType: "option",
+			},
+		],
+		[messageApi, t, tableState.order, tableState.sort],
+	);
 
 	const applyFilters = (values: BatchTableFilterValues) => {
 		setFilters({
@@ -268,11 +275,13 @@ export function BatchOperationsTablePage() {
 		});
 		clearSelection();
 		setTableState(resetTablePage);
+		setQueryRevision((revision) => revision + 1);
 	};
 	const resetFilters = () => {
 		setFilters(defaultFilters);
 		clearSelection();
 		setTableState(resetTablePage);
+		setQueryRevision((revision) => revision + 1);
 	};
 	const handleTableChange: NonNullable<
 		TableProps<BatchTableRecord>["onChange"]

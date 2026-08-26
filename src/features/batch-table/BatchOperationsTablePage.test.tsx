@@ -147,6 +147,14 @@ describe("BatchOperationsTablePage", () => {
 				expect.objectContaining({ ruleName: "TradeCode" }),
 			);
 		});
+		const filteredRequestCount = mocks.listRecords.mock.calls.length;
+		await user.click(screen.getByRole("button", { name: /查\s*询/ }));
+		await waitFor(() =>
+			expect(mocks.listRecords).toHaveBeenCalledTimes(filteredRequestCount + 1),
+		);
+		expect(mocks.listRecords.mock.calls.at(-1)?.[0]).toEqual(
+			expect.objectContaining({ ruleName: "TradeCode" }),
+		);
 	});
 
 	it("shows selected count, clears selection and approves without confirmation", async () => {
