@@ -698,7 +698,11 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 		.getByRole("menuitem", { name: "批量操作表格", exact: true })
 		.click();
 	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
-	await expect(page.getByText("批量操作表格", { exact: true })).toBeVisible();
+	await expect(
+		page.getByTestId("batch-table-card").getByText("批量操作表格", {
+			exact: true,
+		}),
+	).toBeVisible();
 	await expect(page.getByText("已选择 0 项")).toBeVisible();
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),

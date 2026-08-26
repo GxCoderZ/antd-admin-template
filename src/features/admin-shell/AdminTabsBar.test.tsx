@@ -27,6 +27,27 @@ function TabsHarness() {
 }
 
 describe("AdminTabsBar", () => {
+	it("keeps the tab strip at a fixed border-box height", () => {
+		const router = createMemoryRouter(
+			[{ path: "*", element: <TabsHarness /> }],
+			{ initialEntries: ["/access/roles"] },
+		);
+
+		const { container } = render(
+			<ConfigProvider>
+				<RouterProvider router={router} />
+			</ConfigProvider>,
+		);
+
+		const tabs = container.querySelector(".ant-tabs");
+		expect(tabs).toHaveStyle({
+			boxSizing: "border-box",
+			flex: "0 0 40px",
+			height: "40px",
+			minHeight: "40px",
+		});
+	});
+
 	it("keeps the dashboard tab fixed without close, drag, or context actions", async () => {
 		const router = createMemoryRouter(
 			[{ path: "*", element: <TabsHarness /> }],
