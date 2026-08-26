@@ -17,6 +17,7 @@ import { UsersPage } from "./UsersPage";
 
 const mocks = vi.hoisted(() => ({
 	deletePlatformUser: vi.fn(),
+	listPlatformPositions: vi.fn(),
 	listPlatformUsers: vi.fn(),
 	updatePlatformUser: vi.fn(),
 }));
@@ -41,6 +42,11 @@ vi.mock("#src/api/roles", () => ({
 	listPlatformRoles: vi.fn().mockResolvedValue([]),
 	platformRolesQueryKey: ["platform-roles"],
 	setPlatformUserRole: vi.fn(),
+}));
+
+vi.mock("#src/api/positions", () => ({
+	listPlatformPositions: mocks.listPlatformPositions,
+	platformPositionsQueryKey: ["platform-positions"],
 }));
 
 vi.mock("#src/api/users", () => ({
@@ -99,6 +105,24 @@ beforeEach(() => {
 		value: 1_100,
 	});
 	mocks.deletePlatformUser.mockReset().mockResolvedValue(undefined);
+	mocks.listPlatformPositions.mockReset().mockResolvedValue({
+		items: [
+			{
+				code: "project_owner",
+				createdAt: "2026-08-20T00:00:00.000Z",
+				departmentId: "dept-platform",
+				departmentName: "平台研发部",
+				id: "position-project-owner",
+				memberCount: 2,
+				name: "项目负责人",
+				status: "active",
+				updatedAt: "2026-08-25T00:00:00.000Z",
+			},
+		],
+		page: 1,
+		pageSize: 100,
+		total: 1,
+	});
 	mocks.listPlatformUsers.mockReset().mockResolvedValue({
 		items: [adminUser],
 		page: 1,
@@ -192,6 +216,44 @@ describe("UsersPage", () => {
 
 		await waitFor(() => {
 			expect(mocks.deletePlatformUser).toHaveBeenCalledWith(adminUser.id);
+		});
+	});
+
+	it("uses managed positions when editing a user's job title", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		await user.click(screen.getByRole("button", { name: "编辑" }));
+
+		const dialog = await screen.findByRole("dialog");
+		expect(within(dialog).getByText(/编\s*辑 admin/)).toBeInTheDocument();
+		await waitFor(() => {
+			expect(mocks.listPlatformPositions).toHaveBeenCalledWith(
+				expect.objectContaining({
+					order: "asc",
+					page: 1,
+					pageSize: 100,
+					sort: "name",
+					status: "active",
+				}),
+				expect.any(AbortSignal),
+			);
+		});
+
+		await user.click(within(dialog).getByRole("combobox", { name: "岗位" }));
+		await screen.findByRole("option", { name: "项目负责人" });
+		await user.click(screen.getAllByText("项目负责人").at(-1)!);
+		await user.click(within(dialog).getByRole("button", { name: /保\s*存/ }));
+
+		await waitFor(() => {
+			expect(mocks.updatePlatformUser).toHaveBeenCalled();
+		});
+		expect(mocks.updatePlatformUser.mock.calls[0]?.[0]).toMatchObject({
+			input: {
+				expectedVersion: adminUser.version,
+				jobTitle: "项目负责人",
+			},
+			userId: adminUser.id,
 		});
 	});
 

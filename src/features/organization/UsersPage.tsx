@@ -20,6 +20,10 @@ import {
 } from "#src/api/roles";
 import { getPlatformSession, platformSessionQueryKey } from "#src/api/auth";
 import {
+	listPlatformPositions,
+	platformPositionsQueryKey,
+} from "#src/api/positions";
+import {
 	deletePlatformUser,
 	forceLogoutPlatformUser,
 	getPlatformUser,
@@ -160,6 +164,29 @@ export function UsersPage() {
 		queryFn: ({ signal }) => listPlatformRoles(signal),
 		queryKey: platformRolesQueryKey,
 	});
+	const positionsQuery = useQuery({
+		enabled: canManageUsers,
+		queryFn: ({ signal }) =>
+			listPlatformPositions(
+				{
+					order: "asc",
+					page: 1,
+					pageSize: 100,
+					sort: "name",
+					status: "active",
+				},
+				signal,
+			),
+		queryKey: [...platformPositionsQueryKey, "active-user-options"],
+	});
+	const positionOptions = useMemo(
+		() =>
+			(positionsQuery.data?.items ?? []).map((position) => ({
+				label: position.name,
+				value: position.name,
+			})),
+		[positionsQuery.data?.items],
+	);
 	const refreshUsers = () =>
 		queryClient.invalidateQueries({ queryKey: platformUsersQueryKey });
 	const refreshUserDetail = (userId: string) =>
@@ -387,6 +414,8 @@ export function UsersPage() {
 							void userQuery.refetch();
 						}}
 						onSubmit={updateCurrentUser}
+						positionOptions={positionOptions}
+						positionsLoading={positionsQuery.isFetching}
 						requestedStatus={updateUserMutation.variables?.input.status}
 						user={editingUser}
 					/>

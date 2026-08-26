@@ -43,6 +43,11 @@ describe("UserEditModal", () => {
 					onCancel={vi.fn()}
 					onReloadConflict={vi.fn()}
 					onSubmit={onSubmit}
+					positionOptions={[
+						{ label: "项目负责人", value: "项目负责人" },
+						{ label: "运营经理", value: "运营经理" },
+					]}
+					positionsLoading={false}
 					requestedStatus={undefined}
 					user={userRecord}
 				/>
@@ -65,9 +70,15 @@ describe("UserEditModal", () => {
 		const phoneInput = within(dialog).getByLabelText("手机号");
 		await user.clear(phoneInput);
 		await user.type(phoneInput, "13900139000");
-		const jobTitleInput = within(dialog).getByLabelText("岗位");
-		await user.clear(jobTitleInput);
-		await user.type(jobTitleInput, "平台负责人");
+		expect(
+			within(dialog).queryByRole("textbox", { name: "岗位" }),
+		).not.toBeInTheDocument();
+		const jobTitleSelect = within(dialog).getByRole("combobox", {
+			name: "岗位",
+		});
+		await user.click(jobTitleSelect);
+		await screen.findByRole("option", { name: "项目负责人" });
+		await user.click(screen.getAllByText("项目负责人").at(-1)!);
 		await user.click(within(dialog).getByRole("combobox", { name: "部门" }));
 		await user.click(screen.getAllByText("运营部").at(-1)!);
 		await user.click(within(dialog).getByRole("button", { name: /保\s*存/ }));
@@ -76,7 +87,7 @@ describe("UserEditModal", () => {
 			department: "operations",
 			displayName: "平台管理员",
 			email: "platform@example.com",
-			jobTitle: "平台负责人",
+			jobTitle: "项目负责人",
 			phone: "13900139000",
 			status: "active",
 		});

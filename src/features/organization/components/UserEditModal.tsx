@@ -10,7 +10,7 @@ import {
 	Select,
 	theme,
 } from "antd";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { PlatformUser, UpdatePlatformUserInput } from "#src/api/users";
@@ -25,12 +25,19 @@ export type UserEditFormValues = Omit<
 	"expectedVersion"
 >;
 
+interface UserPositionOption {
+	label: string;
+	value: string;
+}
+
 interface UserEditModalProps {
 	error: unknown;
 	loading: boolean;
 	onCancel: () => void;
 	onReloadConflict: () => void;
 	onSubmit: (values: UserEditFormValues) => void;
+	positionOptions: UserPositionOption[];
+	positionsLoading: boolean;
 	requestedStatus: UpdatePlatformUserInput["status"] | undefined;
 	user: PlatformUser | null;
 }
@@ -41,6 +48,8 @@ export function UserEditModal({
 	onCancel,
 	onReloadConflict,
 	onSubmit,
+	positionOptions,
+	positionsLoading,
 	requestedStatus,
 	user,
 }: UserEditModalProps) {
@@ -49,6 +58,19 @@ export function UserEditModal({
 	const [form] = Form.useForm<UserEditFormValues>();
 	const editingStatus = Form.useWatch("status", form);
 	const conflict = isApiProblemStatus(error, 409);
+	const currentJobTitle = user?.jobTitle ?? "";
+	const jobTitleOptions = useMemo(() => {
+		if (
+			!currentJobTitle ||
+			positionOptions.some((option) => option.value === currentJobTitle)
+		) {
+			return positionOptions;
+		}
+		return [
+			{ label: currentJobTitle, value: currentJobTitle },
+			...positionOptions,
+		];
+	}, [currentJobTitle, positionOptions]);
 	const showsDisableWarning =
 		user !== null && user.status !== "disabled" && editingStatus === "disabled";
 
@@ -197,7 +219,13 @@ export function UserEditModal({
 								label={t("adminShell.users.columns.jobTitle")}
 								name="jobTitle"
 							>
-								<Input maxLength={128} />
+								<Select
+									aria-label={t("adminShell.users.columns.jobTitle")}
+									loading={positionsLoading}
+									optionFilterProp="label"
+									options={jobTitleOptions}
+									showSearch
+								/>
 							</Form.Item>
 						</Col>
 						<Col sm={12} xs={24}>
