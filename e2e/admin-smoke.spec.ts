@@ -87,6 +87,9 @@ test("管理表格在标签切换后保留查询草稿和每页条数", async ({
 
 	await navigateWithinAdmin(page, "/access/roles");
 	await expect(page).toHaveURL(/\/access\/roles$/);
+	await expect(
+		page.getByRole("tab", { name: /角色管理/ }),
+	).toHaveAttribute("aria-selected", "true");
 	await page.getByRole("tab", { name: /用户管理/ }).click();
 
 	await expect(page).toHaveURL(/\/organization\/users$/);
