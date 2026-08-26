@@ -503,7 +503,16 @@ test("用户管理角色抽屉通过草稿选择统一保存", async ({ page }) 
 	await expect(drawer.getByText("只读审计员").first()).toBeVisible();
 	await drawer.getByRole("button", { name: /保\s*存/ }).click();
 	await expect(drawer.getByText("暂无未保存变更")).toBeVisible();
-	await expect(page.getByRole("table")).toContainText("只读审计员");
+	await drawer.locator(".ant-drawer-close").click();
+	await expect(drawer).toBeHidden();
+
+	await page.getByRole("button", { name: "更多", exact: true }).first().click();
+	await page.getByRole("menuitem", { name: "角色", exact: true }).click();
+	const reopenedDrawer = page
+		.locator(".ant-drawer")
+		.filter({ hasText: "admin 的角色" });
+	await expect(reopenedDrawer.getByText("只读审计员").first()).toBeVisible();
+	await expect(reopenedDrawer.getByText("暂无未保存变更")).toBeVisible();
 });
 
 test("用户管理角色抽屉在 390px 窄屏下不溢出", async ({ page }) => {

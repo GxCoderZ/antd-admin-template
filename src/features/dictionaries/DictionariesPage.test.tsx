@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -259,11 +259,17 @@ describe("DictionariesPage", () => {
 	});
 
 	it("submits dictionary type keyword filters through the API", async () => {
-		const user = renderDictionariesPage();
+		renderDictionariesPage();
 
 		await screen.findByText("用户状态");
-		await user.type(screen.getByPlaceholderText("搜索名称或编码"), "user");
-		await user.click(screen.getAllByRole("button", { name: /查\s*询/ })[0]!);
+		fireEvent.change(screen.getByPlaceholderText("搜索名称或编码"), {
+			target: { value: "user" },
+		});
+		fireEvent.click(
+			within(
+				screen.getByTestId("admin-dictionaries-type-query-actions"),
+			).getByRole("button", { name: /查\s*询/ }),
+		);
 
 		await waitFor(() => {
 			expect(mocks.listPlatformDictionaryTypes).toHaveBeenLastCalledWith(

@@ -19,13 +19,14 @@ import {
 	Modal,
 	Space,
 	Tag,
+	Tabs,
 	message,
 	theme,
 	Typography,
 } from "antd";
 import type { DescriptionsProps } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
@@ -93,6 +94,10 @@ interface DictionariesPageProps {
 export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const [viewportWidth, setViewportWidth] = useState(() =>
+		typeof window === "undefined" ? token.screenLGMin : window.innerWidth,
+	);
+	const splitLayout = viewportWidth >= token.screenLGMin;
 	const queryClient = useQueryClient();
 	const [messageApi, messageContext] = message.useMessage();
 	const formatPreferences = useLocalePreferences();
@@ -125,6 +130,11 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		routeKey: dictionariesRouteKey,
 		stateKey: "selected-type",
 	});
+	const [mobilePane, setMobilePane] = useRouteSessionState<"types" | "items">({
+		initialState: "types",
+		routeKey: dictionariesRouteKey,
+		stateKey: "mobile-pane",
+	});
 	const [typeFormOpen, setTypeFormOpen] = useState(false);
 	const [itemFormOpen, setItemFormOpen] = useState(false);
 	const [editingType, setEditingType] = useState<PlatformDictionaryType | null>(
@@ -147,6 +157,14 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		useQuerySubmission();
 	const { revision: itemRevision, submit: submitItemQuery } =
 		useQuerySubmission();
+	useEffect(() => {
+		const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+
+		updateViewportWidth();
+		window.addEventListener("resize", updateViewportWidth);
+
+		return () => window.removeEventListener("resize", updateViewportWidth);
+	}, []);
 	const typeQueryParams = useMemo<ListPlatformDictionaryTypesInput>(() => {
 		const q = typeFilters.q?.trim();
 		const params: ListPlatformDictionaryTypesInput = {
@@ -241,6 +259,16 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		setItemTableState((currentState) => ({ ...currentState, page: 1 }));
 		submitItemQuery();
 	}, [setItemTableState, submitItemQuery]);
+	const selectTypeForItems = useCallback(
+		(typeId: string) => {
+			setSelectedTypeId(typeId);
+			resetItemTablePage();
+			if (!splitLayout) {
+				setMobilePane("items");
+			}
+		},
+		[resetItemTablePage, setMobilePane, setSelectedTypeId, splitLayout],
+	);
 	const saveTypeMutation = useMutation({
 		mutationFn: (input: CreatePlatformDictionaryTypeInput) =>
 			editingType
@@ -410,8 +438,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 							</TableActionButton>
 							<TableActionButton
 								onClick={() => {
-									setSelectedTypeId(dictionaryType.id);
-									resetItemTablePage();
+									selectTypeForItems(dictionaryType.id);
 								}}
 							>
 								{t("adminShell.dictionaries.manageItems")}
@@ -458,8 +485,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		deleteTypeMutation,
 		formatPreferences,
 		saveTypeMutation,
-		resetItemTablePage,
-		setSelectedTypeId,
+		selectTypeForItems,
 		statusTag,
 		t,
 		toggleTypeMutation,
@@ -640,10 +666,14 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			sort: nextSorting.sort,
 		});
 	};
-
-	return (
-		<Flex gap={token.marginLG} vertical>
-			{messageContext}
+	const typePanelStyle = splitLayout
+		? { flex: "0 0 min(42%, 520px)", minWidth: 0 }
+		: { minWidth: 0 };
+	const itemPanelStyle = splitLayout
+		? { flex: "1 1 0", minWidth: 0 }
+		: { minWidth: 0 };
+	const typePanel = (
+		<div style={typePanelStyle}>
 			<LogTablePanel<PlatformDictionaryType>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 					"dictionary-types",
@@ -656,7 +686,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 				errorFallback={t("adminShell.dictionaries.errors.fallback")}
 				errorTitle={t("adminShell.dictionaries.errors.load")}
 				initialLoading={typeQuery.isPending}
-				minimumWidth={token.controlHeight * 28}
+				minimumWidth={token.controlHeight * 24}
 				onPageChange={(page, pageSize) =>
 					setTypeTableState((currentState) => ({
 						...currentState,
@@ -703,7 +733,10 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 				total={typeQuery.data?.total ?? 0}
 				workspaceTestId="admin-dictionaries-type-workspace"
 			/>
-
+		</div>
+	);
+	const itemPanel = (
+		<div style={itemPanelStyle}>
 			<LogTablePanel<PlatformDictionaryItem>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 					"dictionary-items",
@@ -777,6 +810,46 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 				total={itemQuery.data?.total ?? 0}
 				workspaceTestId="admin-dictionaries-item-workspace"
 			/>
+		</div>
+	);
+	const dictionaryWorkspace = splitLayout ? (
+		<Flex
+			align="stretch"
+			data-testid="admin-dictionaries-master-detail"
+			gap={token.marginLG}
+		>
+			{typePanel}
+			{itemPanel}
+		</Flex>
+	) : (
+		<Tabs
+			activeKey={mobilePane}
+			data-testid="admin-dictionaries-master-detail"
+			destroyOnHidden={false}
+			items={[
+				{
+					children: typePanel,
+					key: "types",
+					label: t("adminShell.dictionaries.typeTableTitle"),
+				},
+				{
+					children: itemPanel,
+					key: "items",
+					label: t("adminShell.dictionaries.itemTableTitle"),
+				},
+			]}
+			onChange={(key) => {
+				if (key === "types" || key === "items") {
+					setMobilePane(key);
+				}
+			}}
+		/>
+	);
+
+	return (
+		<Flex gap={token.marginLG} vertical>
+			{messageContext}
+			{dictionaryWorkspace}
 
 			<TypeFormDrawer
 				dictionaryType={editingType}
@@ -870,7 +943,6 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		</Flex>
 	);
 }
-
 
 interface DictionaryTypeDetailDrawerProps {
 	dictionaryType: PlatformDictionaryType | null;
