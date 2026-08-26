@@ -13,7 +13,7 @@ import {
 import { Alert, Button, Modal, message, theme } from "antd";
 import type { TableProps } from "antd";
 import type { Key } from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useRouteSessionState } from "../../app/routeSessionState";
@@ -70,6 +70,10 @@ function getProblemDetail(error: unknown) {
 	return error instanceof ApiProblemError ? error.problem?.detail : undefined;
 }
 
+function resetTablePage(tableState: BatchTableState) {
+	return tableState.page === 1 ? tableState : { ...tableState, page: 1 };
+}
+
 export function BatchOperationsTablePage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
@@ -124,10 +128,10 @@ export function BatchOperationsTablePage() {
 	const currentRows = query.data?.items ?? [];
 	const invalidateList = () =>
 		queryClient.invalidateQueries({ queryKey: batchTableRecordsQueryKey });
-	const clearSelection = () => {
-		setSelectedRowKeys([]);
-		setSelectedRows([]);
-	};
+	const clearSelection = useCallback(() => {
+		setSelectedRowKeys((keys) => (keys.length === 0 ? keys : []));
+		setSelectedRows((rows) => (rows.length === 0 ? rows : []));
+	}, []);
 	const statusMutation = useMutation({
 		mutationFn: updateBatchTableRecordStatus,
 		onError: () =>
@@ -263,12 +267,12 @@ export function BatchOperationsTablePage() {
 			...(values.status ? { status: values.status } : {}),
 		});
 		clearSelection();
-		setTableState((value) => ({ ...value, page: 1 }));
+		setTableState(resetTablePage);
 	};
 	const resetFilters = () => {
 		setFilters(defaultFilters);
 		clearSelection();
-		setTableState((value) => ({ ...value, page: 1 }));
+		setTableState(resetTablePage);
 	};
 	const handleTableChange: NonNullable<
 		TableProps<BatchTableRecord>["onChange"]
