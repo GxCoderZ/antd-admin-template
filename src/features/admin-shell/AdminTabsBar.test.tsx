@@ -138,7 +138,11 @@ describe("AdminTabsBar", () => {
 			</ConfigProvider>,
 		);
 
-		fireEvent.contextMenu(screen.getByText("用户管理"));
+		const usersTab = screen.getByRole("tab", { name: /用户管理/ });
+		const usersTabNode = usersTab.parentElement;
+		expect(usersTabNode).not.toBeNull();
+
+		fireEvent.contextMenu(usersTabNode!);
 		fireEvent.click(
 			await screen.findByRole("menuitem", { name: "关闭当前标签页" }),
 		);

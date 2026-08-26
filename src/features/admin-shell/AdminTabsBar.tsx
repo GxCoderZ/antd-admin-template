@@ -63,8 +63,10 @@ interface TabNodeProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 interface DraggableTabNodeProps extends TabNodeProps {
+	contextMenuProps: MenuProps;
 	draggableDescription: string;
 	draggingStyle: CSSProperties;
+	getPopupContainer: () => HTMLElement;
 }
 
 const interactiveElementSelector =
@@ -82,8 +84,10 @@ function isInteractiveEventTarget(
 
 function DraggableTabNode({
 	children,
+	contextMenuProps,
 	draggableDescription,
 	draggingStyle,
+	getPopupContainer,
 	...tabProps
 }: Readonly<DraggableTabNodeProps>) {
 	const tabKey = tabProps["data-node-key"];
@@ -117,7 +121,7 @@ function DraggableTabNode({
 		},
 	};
 
-	return cloneElement(child, {
+	const draggableTab = cloneElement(child, {
 		"aria-describedby": attributes["aria-describedby"],
 		"aria-disabled": attributes["aria-disabled"],
 		"aria-roledescription": draggableDescription,
@@ -125,6 +129,16 @@ function DraggableTabNode({
 		style,
 		...sortableListeners,
 	});
+
+	return (
+		<Dropdown
+			getPopupContainer={getPopupContainer}
+			menu={contextMenuProps}
+			trigger={["contextMenu"]}
+		>
+			{draggableTab}
+		</Dropdown>
+	);
 }
 
 function FixedTabNode({ children, ...tabProps }: Readonly<TabNodeProps>) {
@@ -399,25 +413,10 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 	const openTabs = openTabKeys.map((tabKey) => {
 		const tabPage =
 			adminRouteByPath.get(tabKey) ?? getAdminRouteMetadata(dashboardPath);
-		const tabTitle = <span>{t(tabPage.titleKey)}</span>;
 
 		return {
 			key: tabPage.key,
-			label:
-				tabPage.key === dashboardPath ? (
-					tabTitle
-				) : (
-					<Dropdown
-						getPopupContainer={() => workspaceRef.current ?? document.body}
-						menu={{
-							items: createTabActionMenuItems(tabPage.key),
-							onClick: ({ key }) => runTabAction(tabPage.key, key),
-						}}
-						trigger={["contextMenu"]}
-					>
-						{tabTitle}
-					</Dropdown>
-				),
+			label: <span>{t(tabPage.titleKey)}</span>,
 			closable: tabPage.key !== dashboardPath,
 		};
 	});
@@ -454,6 +453,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 						<DefaultTabBar {...tabBarProps}>
 							{(node) => {
 								const tabNodeProps = (node as ReactElement<TabNodeProps>).props;
+								const tabKey = String(node.key);
 								return node.key === dashboardPath ? (
 									<FixedTabNode {...tabNodeProps} key={node.key}>
 										{node}
@@ -461,6 +461,10 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 								) : (
 									<DraggableTabNode
 										{...tabNodeProps}
+										contextMenuProps={{
+											items: createTabActionMenuItems(tabKey),
+											onClick: ({ key }) => runTabAction(tabKey, key),
+										}}
 										draggableDescription={t(
 											"adminShell.tabs.draggableDescription",
 										)}
@@ -468,6 +472,9 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 											backgroundColor: token.colorBgElevated,
 											boxShadow: token.boxShadowTertiary,
 										}}
+										getPopupContainer={() =>
+											workspaceRef.current ?? document.body
+										}
 										key={node.key}
 									>
 										{node}
