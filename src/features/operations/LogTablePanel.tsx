@@ -322,6 +322,7 @@ export function LogTablePanel<Row extends { id: string }>({
 					style: { marginBottom: 0 },
 					total,
 				};
+	const hasLeadingContent = Boolean(description || tableExtra);
 
 	const densityItems: MenuProps["items"] = [
 		{ key: "large", label: t("adminShell.logs.common.densityOptions.large") },
@@ -454,32 +455,42 @@ export function LogTablePanel<Row extends { id: string }>({
 				styles={{
 					body: {
 						paddingBlockEnd: token.padding,
+						paddingBlockStart: 0,
 					},
 					title: { overflow: "visible" },
 				}}
 			>
-				{description ? (
-					<div style={{ marginBottom: token.margin }}>{description}</div>
-				) : null}
-				{tableExtra ? (
-					<div style={{ marginBottom: token.margin }}>{tableExtra}</div>
+				{hasLeadingContent ? (
+					<Flex
+						gap={token.margin}
+						style={{
+							marginBlockEnd: token.margin,
+							marginBlockStart: token.marginLG,
+						}}
+						vertical
+					>
+						{description}
+						{tableExtra}
+					</Flex>
 				) : null}
 				{error ? (
-					<Alert
-						action={
-							<Button onClick={onReload}>
-								{t("adminShell.logs.common.retry")}
-							</Button>
-						}
-						description={
-							getProblemDetail(error) ??
-							errorFallback ??
-							t("adminShell.logs.common.errorFallback")
-						}
-						title={errorTitle ?? t("adminShell.logs.common.loadError")}
-						showIcon
-						type="error"
-					/>
+					<div style={{ marginBlockStart: hasLeadingContent ? 0 : token.marginLG }}>
+						<Alert
+							action={
+								<Button onClick={onReload}>
+									{t("adminShell.logs.common.retry")}
+								</Button>
+							}
+							description={
+								getProblemDetail(error) ??
+								errorFallback ??
+								t("adminShell.logs.common.errorFallback")
+							}
+							title={errorTitle ?? t("adminShell.logs.common.loadError")}
+							showIcon
+							type="error"
+						/>
+					</div>
 				) : tableWrapper ? (
 					tableWrapper(
 						<Table<Row>
