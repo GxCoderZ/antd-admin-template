@@ -25,7 +25,7 @@ import {
 	readUserTableDensityPreference,
 	subscribeToPreferenceChanges,
 	supportedTimeZones,
-	type ThemeColor,
+	themeColorOptions,
 	type ThemeMode,
 	writeUserTableDensityPreference,
 } from "../../app/preferenceStorage";
@@ -33,15 +33,6 @@ import { useThemeMode } from "../../app/themeMode";
 import { isSupportedLanguageCode, supportedLanguages } from "../../i18n";
 
 const { Text } = Typography;
-
-const themeColors = [
-	["#1677ff", "blue"],
-	["#f5222d", "red"],
-	["#fa8c16", "orange"],
-	["#52c41a", "green"],
-	["#13c2c2", "cyan"],
-	["#722ed1", "purple"],
-] as const satisfies readonly (readonly [ThemeColor, string])[];
 
 export function SystemPreferenceSettings() {
 	const { t, i18n } = useTranslation();
@@ -101,20 +92,20 @@ export function SystemPreferenceSettings() {
 				</Form.Item>
 				<Form.Item label={t("preferences.themeColor.title")}>
 					<Flex gap={token.marginSM} wrap>
-						{themeColors.map(([color, name]) => {
-							const label = t(`preferences.themeColor.${name}`);
+						{themeColorOptions.map(({ labelKey, value }) => {
+							const label = t(`preferences.themeColor.${labelKey}`);
 							return (
-								<Tooltip key={color} title={label}>
+								<Tooltip key={value} title={label}>
 									<Button
 										aria-label={label}
 										icon={
-											themeColor === color ? (
+											themeColor === value ? (
 												<CheckOutlined aria-hidden />
 											) : null
 										}
-										onClick={() => onChangeThemeColor(color)}
+										onClick={() => onChangeThemeColor(value)}
 										shape="circle"
-										style={{ backgroundColor: color, color: token.colorWhite }}
+										style={{ backgroundColor: value, color: token.colorWhite }}
 									/>
 								</Tooltip>
 							);

@@ -1,7 +1,12 @@
-import type { MouseEvent } from "react";
 import { createContext, useContext } from "react";
 
 import type { ThemeColor, ThemeMode } from "./preferenceStorage";
+
+export interface ThemeChangeEvent {
+	clientX?: number;
+	clientY?: number;
+	currentTarget?: EventTarget | null;
+}
 
 export interface ThemeModeContextValue {
 	isColorBlindMode: boolean;
@@ -9,10 +14,7 @@ export interface ThemeModeContextValue {
 	onChangeColorBlindMode: (enabled: boolean) => void;
 	onChangeThemeColor: (nextThemeColor: ThemeColor) => void;
 	themeMode: ThemeMode;
-	onChangeThemeMode: (
-		nextMode: ThemeMode,
-		event?: MouseEvent<HTMLElement>,
-	) => void;
+	onChangeThemeMode: (nextMode: ThemeMode, event?: ThemeChangeEvent) => void;
 	themeColor: ThemeColor;
 }
 

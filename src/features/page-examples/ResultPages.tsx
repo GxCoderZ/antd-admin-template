@@ -66,10 +66,18 @@ export function SuccessResultPage() {
 						items={[
 							{
 								content: (
-									<div style={{ color: token.colorText, fontSize: 12, textAlign: "center" }}>
+									<div
+										style={{
+											color: token.colorText,
+											fontSize: 12,
+											textAlign: "center",
+										}}
+									>
 										<div style={{ margin: "8px 0 4px" }}>
 											曲丽丽
-											<DingdingOutlined style={{ color: "#00a0e9", marginInlineStart: 8 }} />
+											<DingdingOutlined
+												style={{ color: token.colorInfo, marginInlineStart: 8 }}
+											/>
 										</div>
 										<div>2016-12-12 12:32</div>
 									</div>
@@ -78,11 +86,22 @@ export function SuccessResultPage() {
 							},
 							{
 								content: (
-									<div style={{ color: token.colorText, fontSize: 12, textAlign: "center" }}>
+									<div
+										style={{
+											color: token.colorText,
+											fontSize: 12,
+											textAlign: "center",
+										}}
+									>
 										<div style={{ margin: "8px 0 4px" }}>
 											周毛毛
 											<Button style={{ padding: 0 }} type="link">
-												<DingdingOutlined style={{ color: "#00a0e9", marginInlineStart: 8 }} />
+												<DingdingOutlined
+													style={{
+														color: token.colorInfo,
+														marginInlineStart: 8,
+													}}
+												/>
 												{t("adminShell.pageExamples.results.nudge")}
 											</Button>
 										</div>

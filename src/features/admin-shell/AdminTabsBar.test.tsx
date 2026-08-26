@@ -1,5 +1,11 @@
 import { ConfigProvider } from "antd";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import {
+	act,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import { createRef } from "react";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMemoryRouter, RouterProvider, useLocation } from "react-router";
@@ -68,7 +74,9 @@ describe("AdminTabsBar", () => {
 		);
 		await router.navigate("/organization/users");
 
-		expect(screen.getByRole("status", { name: "标签状态" })).toBeEmptyDOMElement();
+		expect(
+			screen.getByRole("status", { name: "标签状态" }),
+		).toBeEmptyDOMElement();
 	});
 
 	it("keeps the tab strip at a fixed border-box height", () => {
@@ -110,11 +118,12 @@ describe("AdminTabsBar", () => {
 		expect(dashboardTabNode).not.toHaveAttribute("aria-roledescription");
 		expect(dashboardTabNode?.querySelector("button")).toBeNull();
 
-		await act(async () => {
+		act(() => {
 			fireEvent.contextMenu(screen.getByText("仪表盘"));
-			await new Promise((resolve) => setTimeout(resolve, 100));
 		});
-		expect(screen.queryByRole("menuitem", { name: "重新加载" })).toBeNull();
+		await waitFor(() =>
+			expect(screen.queryByRole("menuitem", { name: "重新加载" })).toBeNull(),
+		);
 	});
 
 	it("closes the context-menu target and returns to the dashboard", async () => {

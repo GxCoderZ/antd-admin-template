@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import { defaultPreferences } from "../../app/preferenceStorage";
 import { i18n } from "../../i18n";
 import { SettingsDrawer } from "./SettingsDrawer";
 
@@ -28,7 +29,7 @@ describe("SettingsDrawer", () => {
 				onClose={vi.fn()}
 				onResetPreferences={vi.fn()}
 				open
-				themeColor="#1677ff"
+				themeColor={defaultPreferences.themeColor}
 				themeMode="light"
 				timeZone="UTC"
 			/>,

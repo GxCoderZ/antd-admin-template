@@ -1,5 +1,4 @@
 import { Flex, Layout, theme } from "antd";
-import type { MouseEvent } from "react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate, useNavigation } from "react-router";
@@ -22,6 +21,7 @@ import {
 	writeMenuTypePreference,
 	writeNavigationModePreference,
 } from "../../app/preferenceStorage";
+import type { ThemeChangeEvent } from "../../app/themeMode";
 import { usePlatformSiteTitle } from "../../app/usePlatformSiteTitle";
 import { resolveInitialLanguage } from "../../i18n";
 import { AdminShellHeader } from "./AdminShellHeader";
@@ -39,10 +39,7 @@ interface AdminShellPageProps {
 	isDarkMode: boolean;
 	onChangeColorBlindMode: (enabled: boolean) => void;
 	onChangeThemeColor: (nextThemeColor: ThemeColor) => void;
-	onChangeThemeMode: (
-		nextMode: ThemeMode,
-		event?: MouseEvent<HTMLElement>,
-	) => void;
+	onChangeThemeMode: (nextMode: ThemeMode, event?: ThemeChangeEvent) => void;
 	onLogout: () => Promise<void>;
 	themeColor: ThemeColor;
 	themeMode: ThemeMode;

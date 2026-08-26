@@ -23,14 +23,6 @@
 	margin-inline-start: var(--service-grid-content-inset);
 }
 
-.twoColumnSubmenu
-	> :global(.ant-menu-submenu-title)
-	> :global(.ant-menu-submenu-arrow) {
-	inset-inline-end: calc(
-		var(--service-grid-arrow-base) + var(--service-grid-arrow-offset, 0px)
-	);
-}
-
 .twoColumnSubmenu > :global(ul[role="menu"])::before,
 .twoColumnSubmenu > :global(ul[role="menu"])::after {
 	display: none;

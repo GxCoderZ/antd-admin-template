@@ -489,7 +489,11 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 				width: "100%",
 			}}
 			tabBarExtraContent={
-				<Flex align="center" gap={0} style={{ height: "100%" }}>
+				<Flex
+					align="center"
+					gap={0}
+					style={{ height: "100%", paddingInlineEnd: token.marginXS }}
+				>
 					<Button
 						aria-label={t("adminShell.tabs.reload")}
 						icon={<ReloadOutlined aria-hidden />}

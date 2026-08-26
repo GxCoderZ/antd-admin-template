@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router";
 
 import { LocalePreferencesProvider } from "../../app/LocalePreferencesProvider";
+import { defaultPreferences } from "../../app/preferenceStorage";
 import { ThemeModeProvider } from "../../app/ThemeModeProvider";
 import { i18n } from "../../i18n";
 import { AccountSettingsPage } from "./AccountSettingsPage";
@@ -76,7 +77,7 @@ function renderAccountSettings() {
 							onChangeColorBlindMode: vi.fn(),
 							onChangeThemeColor: vi.fn(),
 							onChangeThemeMode: vi.fn(),
-							themeColor: "#1677ff",
+							themeColor: defaultPreferences.themeColor,
 							themeMode: "light",
 						}}
 					>

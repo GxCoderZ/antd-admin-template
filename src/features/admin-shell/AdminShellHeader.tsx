@@ -17,7 +17,6 @@ import {
 	theme,
 	Typography,
 } from "antd";
-import type { MouseEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,6 +35,7 @@ import type {
 	ThemeColor,
 	ThemeMode,
 } from "../../app/preferenceStorage";
+import type { ThemeChangeEvent } from "../../app/themeMode";
 import {
 	isSupportedLanguageCode,
 	resolveSupportedLanguage,
@@ -76,10 +76,7 @@ interface AdminShellHeaderProps {
 	onChangeMenuType: (menuType: MenuType) => void;
 	onChangeNavigationMode: (mode: NavigationMode) => void;
 	onChangeThemeColor: (themeColor: ThemeColor) => void;
-	onChangeThemeMode: (
-		themeMode: ThemeMode,
-		event?: MouseEvent<HTMLElement>,
-	) => void;
+	onChangeThemeMode: (themeMode: ThemeMode, event?: ThemeChangeEvent) => void;
 	onChangeTimeZone: (timeZone: string) => void;
 	onLogout: () => Promise<void>;
 	onNavigate: (path: string) => void;
@@ -210,10 +207,7 @@ export function AdminShellHeader({
 			label: t("adminShell.header.settings"),
 		},
 	];
-	const changeThemeFromMenu = (
-		key: string,
-		event: MouseEvent<HTMLElement> | undefined,
-	) => {
+	const changeThemeFromMenu = (key: string, event?: ThemeChangeEvent) => {
 		if (key === "light" || key === "dark" || key === "system") {
 			onChangeThemeMode(key, event);
 		}
@@ -261,10 +255,7 @@ export function AdminShellHeader({
 							menu={{
 								items: themeMenuItems,
 								onClick: ({ domEvent, key }) =>
-									changeThemeFromMenu(
-										String(key),
-										domEvent as unknown as MouseEvent<HTMLElement>,
-									),
+									changeThemeFromMenu(String(key), domEvent),
 								selectedKeys: [themeMode],
 							}}
 							trigger={["click"]}
@@ -293,10 +284,7 @@ export function AdminShellHeader({
 								if (isSupportedLanguageCode(key)) {
 									void i18n.changeLanguage(key);
 								}
-								changeThemeFromMenu(
-									String(key),
-									domEvent as unknown as MouseEvent<HTMLElement>,
-								);
+								changeThemeFromMenu(String(key), domEvent);
 								if (key === "settings") {
 									setPreferencesOpen(true);
 								}

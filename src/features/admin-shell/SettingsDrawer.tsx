@@ -16,7 +16,6 @@ import {
 	theme,
 	Typography,
 } from "antd";
-import type { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -25,9 +24,11 @@ import {
 	type SupportedLanguageCode,
 	supportedTimeZones,
 	type ThemeColor,
+	themeColorOptions,
 	type ThemeMode,
 	type TimeZone,
 } from "../../app/preferenceStorage";
+import type { ThemeChangeEvent } from "../../app/themeMode";
 import { isSupportedLanguageCode, supportedLanguages } from "../../i18n";
 
 const { Text } = Typography;
@@ -44,10 +45,7 @@ export interface SettingsDrawerProps {
 	onChangeMenuType: (menuType: MenuType) => void;
 	onChangeNavigationMode: (navigationMode: NavigationMode) => void;
 	onChangeThemeColor: (themeColor: ThemeColor) => void;
-	onChangeThemeMode: (
-		themeMode: ThemeMode,
-		event?: MouseEvent<HTMLElement>,
-	) => void;
+	onChangeThemeMode: (themeMode: ThemeMode, event?: ThemeChangeEvent) => void;
 	onChangeTimeZone: (timeZone: TimeZone) => void;
 	onClose: () => void;
 	onResetPreferences: () => Promise<void> | void;
@@ -132,25 +130,16 @@ export function SettingsDrawer({
 					<Flex gap={token.marginXS} vertical>
 						<Text>{t("preferences.themeColor.title")}</Text>
 						<Flex gap={token.marginXS} wrap>
-							{(
-								[
-									["#1677ff", "blue"],
-									["#f5222d", "red"],
-									["#fa8c16", "orange"],
-									["#52c41a", "green"],
-									["#13c2c2", "cyan"],
-									["#722ed1", "purple"],
-								] as const
-							).map(([color, key]) => (
+							{themeColorOptions.map(({ labelKey, value }) => (
 								<Button
-									aria-label={t(`preferences.themeColor.${key}`)}
+									aria-label={t(`preferences.themeColor.${labelKey}`)}
 									icon={
-										themeColor === color ? <CheckOutlined aria-hidden /> : null
+										themeColor === value ? <CheckOutlined aria-hidden /> : null
 									}
-									key={key}
-									onClick={() => onChangeThemeColor(color)}
+									key={value}
+									onClick={() => onChangeThemeColor(value)}
 									shape="circle"
-									style={{ backgroundColor: color, color: token.colorWhite }}
+									style={{ backgroundColor: value, color: token.colorWhite }}
 								/>
 							))}
 						</Flex>

@@ -10,7 +10,7 @@ import enUS from "antd/locale/en_US";
 import koKR from "antd/locale/ko_KR";
 import zhCN from "antd/locale/zh_CN";
 import zhTW from "antd/locale/zh_TW";
-import type { ComponentType, MouseEvent } from "react";
+import type { ComponentType } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -59,7 +59,11 @@ import {
 } from "./preferenceStorage";
 import { createAppQueryClient } from "./queryClient";
 import { ThemeModeProvider } from "./ThemeModeProvider";
-import { type ThemeModeContextValue, useThemeMode } from "./themeMode";
+import {
+	type ThemeChangeEvent,
+	type ThemeModeContextValue,
+	useThemeMode,
+} from "./themeMode";
 import "./theme-transition.css";
 
 const THEME_REVEAL_DURATION_MS = 450;
@@ -71,8 +75,11 @@ const antdLocales = {
 	"ko-KR": koKR,
 } as const;
 
-function getThemeRevealOrigin(event?: MouseEvent<HTMLElement>) {
-	const rect = event?.currentTarget?.getBoundingClientRect();
+function getThemeRevealOrigin(event?: ThemeChangeEvent) {
+	const rect =
+		event?.currentTarget instanceof Element
+			? event.currentTarget.getBoundingClientRect()
+			: undefined;
 	const x =
 		event?.clientX || (rect ? rect.left + rect.width / 2 : window.innerWidth);
 	const y = event?.clientY || (rect ? rect.top + rect.height / 2 : 0);
@@ -229,7 +236,7 @@ export function App() {
 	}, [isColorBlindMode]);
 
 	const changeThemeMode = useCallback(
-		(nextMode: ThemeMode, event?: MouseEvent<HTMLElement>) => {
+		(nextMode: ThemeMode, event?: ThemeChangeEvent) => {
 			writeThemeModePreference(nextMode);
 			const prefersReducedMotion =
 				window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ??

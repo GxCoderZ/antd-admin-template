@@ -1,6 +1,6 @@
 import { DingdingOutlined } from "@ant-design/icons";
 import { GridContent } from "@ant-design/pro-components";
-import { Button, Card, Descriptions, Result, Steps } from "antd";
+import { Button, Card, Descriptions, Result, Steps, theme } from "antd";
 import type { FC } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +8,7 @@ import useStyles from "./SuccessResultPage.style";
 
 export const SuccessResultPage: FC = () => {
 	const { t } = useTranslation();
+	const { token } = theme.useToken();
 	const { styles } = useStyles();
 	const descriptionItems = [
 		{
@@ -39,7 +40,7 @@ export const SuccessResultPage: FC = () => {
 		<div className={styles.title}>
 			<div style={{ margin: "8px 0 4px" }}>
 				<span>{t("adminShell.results.success.ownerName")}</span>
-				<DingdingOutlined style={{ marginLeft: 8, color: "#00A0E9" }} />
+				<DingdingOutlined style={{ marginLeft: 8, color: token.colorInfo }} />
 			</div>
 			<div>2016-12-12 12:32</div>
 		</div>
@@ -49,7 +50,7 @@ export const SuccessResultPage: FC = () => {
 			<div style={{ margin: "8px 0 4px" }}>
 				<span>{t("adminShell.results.success.reviewerName")}</span>
 				<Button type="link" style={{ padding: 0 }}>
-					<DingdingOutlined style={{ color: "#00A0E9", marginLeft: 8 }} />
+					<DingdingOutlined style={{ color: token.colorInfo, marginLeft: 8 }} />
 					<span>{t("adminShell.results.success.urge")}</span>
 				</Button>
 			</div>

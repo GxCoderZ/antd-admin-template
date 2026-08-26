@@ -7,6 +7,7 @@ import { MemoryRouter, useLocation } from "react-router";
 
 import { LocalePreferencesProvider } from "../../app/LocalePreferencesProvider";
 import { PermissionContext, platformPermissions } from "../../app/permissions";
+import { defaultPreferences } from "../../app/preferenceStorage";
 import { ThemeModeProvider } from "../../app/ThemeModeProvider";
 import { i18n } from "../../i18n";
 import { PlatformSettingsPage } from "./PlatformSettingsPage";
@@ -62,7 +63,7 @@ function renderPlatformSettings(initialEntry = "/system/settings") {
 								onChangeColorBlindMode: vi.fn(),
 								onChangeThemeColor: vi.fn(),
 								onChangeThemeMode: vi.fn(),
-								themeColor: "#1677ff",
+								themeColor: defaultPreferences.themeColor,
 								themeMode: "light",
 							}}
 						>

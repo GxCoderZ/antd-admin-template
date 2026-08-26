@@ -28,6 +28,10 @@ function getRouteSessionStorageKey(routeKey: string, stateKey: string) {
 	return `${getRouteSessionStoragePrefix(routeKey)}${stateKey}`;
 }
 
+function ignoreRouteSessionStorageError() {
+	// Route state is optional; storage failures must not block page interaction.
+}
+
 function readRouteSessionState<State>(key: string, fallback: State): State {
 	try {
 		const rawValue = globalThis.sessionStorage.getItem(key);
@@ -46,6 +50,7 @@ function readRouteSessionState<State>(key: string, fallback: State): State {
 			? (storedValue.state as State)
 			: fallback;
 	} catch {
+		ignoreRouteSessionStorageError();
 		return fallback;
 	}
 }
@@ -59,7 +64,7 @@ function writeRouteSessionState<State>(key: string, state: State) {
 		};
 		globalThis.sessionStorage.setItem(key, JSON.stringify(storedValue));
 	} catch {
-		// Route state is optional; storage failures must not block page interaction.
+		ignoreRouteSessionStorageError();
 	}
 }
 
@@ -77,7 +82,7 @@ export function clearRouteSessionState(routeKey: string) {
 
 		keysToRemove.forEach((key) => globalThis.sessionStorage.removeItem(key));
 	} catch {
-		// Route state is optional; storage failures must not block tab closing.
+		ignoreRouteSessionStorageError();
 	}
 }
 

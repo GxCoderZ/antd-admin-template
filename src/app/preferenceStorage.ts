@@ -16,13 +16,13 @@ export const preferenceStorageKeys = {
 
 const supportedLanguageCodes = ["zh-CN", "zh-TW", "en", "ko-KR"] as const;
 const themeModes = ["light", "dark", "system"] as const;
-const themeColors = [
-	"#1677ff",
-	"#f5222d",
-	"#fa8c16",
-	"#52c41a",
-	"#13c2c2",
-	"#722ed1",
+export const themeColorOptions = [
+	{ labelKey: "blue", value: "#1677ff" },
+	{ labelKey: "red", value: "#f5222d" },
+	{ labelKey: "orange", value: "#fa8c16" },
+	{ labelKey: "green", value: "#52c41a" },
+	{ labelKey: "cyan", value: "#13c2c2" },
+	{ labelKey: "purple", value: "#722ed1" },
 ] as const;
 const navigationModes = ["side", "top", "mixed"] as const;
 const menuTypes = [
@@ -51,7 +51,7 @@ export const supportedTimeZones = (() => {
 
 export type SupportedLanguageCode = (typeof supportedLanguageCodes)[number];
 export type ThemeMode = (typeof themeModes)[number];
-export type ThemeColor = (typeof themeColors)[number];
+export type ThemeColor = (typeof themeColorOptions)[number]["value"];
 export type NavigationMode = (typeof navigationModes)[number];
 export type MenuType = (typeof menuTypes)[number];
 export type CurrencyCode = (typeof supportedCurrencies)[number];
@@ -59,12 +59,18 @@ export type TimeZone = string;
 export type UserTableDensity = (typeof userTableDensities)[number];
 
 const preferenceChangeListeners = new Set<() => void>();
+const themeColors = themeColorOptions.map(({ value }) => value);
+
+function ignorePreferenceStorageError() {
+	// Preferences are optional; storage failures must not block the application.
+}
 
 function resolveSystemTimeZone() {
 	try {
 		const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 		return timeZone && supportedTimeZones.includes(timeZone) ? timeZone : "UTC";
 	} catch {
+		ignorePreferenceStorageError();
 		return "UTC";
 	}
 }
@@ -110,6 +116,7 @@ function readValue<T extends string>(
 		const value = globalThis.localStorage.getItem(key);
 		return isAllowedValue(value, allowedValues) ? value : fallback;
 	} catch {
+		ignorePreferenceStorageError();
 		return fallback;
 	}
 }
@@ -122,6 +129,7 @@ function readOptionalValue<T extends string>(
 		const value = globalThis.localStorage.getItem(key);
 		return isAllowedValue(value, allowedValues) ? value : undefined;
 	} catch {
+		ignorePreferenceStorageError();
 		return undefined;
 	}
 }
@@ -131,7 +139,7 @@ function writeValue(key: string, value: string) {
 		globalThis.localStorage.setItem(key, value);
 		preferenceChangeListeners.forEach((listener) => listener());
 	} catch {
-		// Preferences are optional; storage failures must not block the application.
+		ignorePreferenceStorageError();
 	}
 }
 
@@ -150,7 +158,7 @@ export function clearStoredPreferences() {
 		keysToRemove.forEach((key) => globalThis.localStorage.removeItem(key));
 		preferenceChangeListeners.forEach((listener) => listener());
 	} catch {
-		// Preferences are optional; storage failures must not block the application.
+		ignorePreferenceStorageError();
 	}
 }
 
@@ -351,6 +359,7 @@ export function readTableColumnSettingsPreference<Key extends string>(
 			visibleColumnKeys,
 		};
 	} catch {
+		ignorePreferenceStorageError();
 		return undefined;
 	}
 }
@@ -367,6 +376,6 @@ export function clearTableColumnSettingsPreference(key: string) {
 		globalThis.localStorage.removeItem(key);
 		preferenceChangeListeners.forEach((listener) => listener());
 	} catch {
-		// Preferences are optional; storage failures must not block the application.
+		ignorePreferenceStorageError();
 	}
 }
