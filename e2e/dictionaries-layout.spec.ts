@@ -17,8 +17,35 @@ async function navigateWithinAdmin(page: Page, path: string) {
 	}, path);
 }
 
-test("字典管理桌面端使用类型和字典项左右主从布局", async ({ page }) => {
+test("字典管理标准桌面端不把查询栏压到折叠布局", async ({ page }) => {
 	await page.setViewportSize({ height: 900, width: 1440 });
+	await signIn(page);
+	await navigateWithinAdmin(page, "/system/dictionaries");
+
+	const typeWorkspace = page.getByTestId("admin-dictionaries-type-workspace");
+	await expect(typeWorkspace.getByRole("table")).toBeVisible();
+	await expect(
+		typeWorkspace.getByRole("combobox", { name: "状态" }),
+	).toBeVisible();
+	await expect(page.getByRole("tab", { name: "字典类型" })).toHaveAttribute(
+		"aria-selected",
+		"true",
+	);
+	await expect(page.getByRole("tab", { name: "字典项" })).toBeVisible();
+
+	const typeBox = await typeWorkspace.boundingBox();
+
+	expect(typeBox).not.toBeNull();
+	expect(typeBox!.width).toBeGreaterThan(760);
+	await expect(
+		page.evaluate(
+			() => document.documentElement.scrollWidth > window.innerWidth,
+		),
+	).resolves.toBe(false);
+});
+
+test("字典管理宽屏端使用类型和字典项左右主从布局", async ({ page }) => {
+	await page.setViewportSize({ height: 900, width: 2048 });
 	await signIn(page);
 	await navigateWithinAdmin(page, "/system/dictionaries");
 
@@ -26,6 +53,12 @@ test("字典管理桌面端使用类型和字典项左右主从布局", async ({
 	const itemWorkspace = page.getByTestId("admin-dictionaries-item-workspace");
 	await expect(typeWorkspace.getByRole("table")).toBeVisible();
 	await expect(itemWorkspace.getByRole("table")).toBeVisible();
+	await expect(
+		typeWorkspace.getByRole("combobox", { name: "状态" }),
+	).toBeVisible();
+	await expect(
+		itemWorkspace.getByRole("combobox", { name: "状态" }),
+	).toBeVisible();
 
 	const typeBox = await typeWorkspace.boundingBox();
 	const itemBox = await itemWorkspace.boundingBox();
@@ -34,6 +67,8 @@ test("字典管理桌面端使用类型和字典项左右主从布局", async ({
 	expect(itemBox).not.toBeNull();
 	expect(itemBox!.x).toBeGreaterThan(typeBox!.x + typeBox!.width);
 	expect(Math.abs(itemBox!.y - typeBox!.y)).toBeLessThan(4);
+	expect(typeBox!.width).toBeGreaterThanOrEqual(760);
+	expect(itemBox!.width).toBeGreaterThanOrEqual(760);
 	await expect(
 		page.evaluate(
 			() => document.documentElement.scrollWidth > window.innerWidth,
@@ -41,7 +76,7 @@ test("字典管理桌面端使用类型和字典项左右主从布局", async ({
 	).resolves.toBe(false);
 });
 
-test("字典管理窄屏保持上下布局", async ({ page }) => {
+test("字典管理窄屏保持标签布局", async ({ page }) => {
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
 	await navigateWithinAdmin(page, "/system/dictionaries");

@@ -26,7 +26,7 @@ import {
 } from "antd";
 import type { DescriptionsProps } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
@@ -94,10 +94,16 @@ interface DictionariesPageProps {
 export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const [viewportWidth, setViewportWidth] = useState(() =>
-		typeof window === "undefined" ? token.screenLGMin : window.innerWidth,
+	const workspaceRef = useRef<HTMLDivElement>(null);
+	const completeQueryPanelWidth =
+		token.screenMDMin + token.paddingLG * 2 + token.marginXXS;
+	const [workspaceWidth, setWorkspaceWidth] = useState(() =>
+		typeof document === "undefined"
+			? completeQueryPanelWidth * 2 + token.marginLG
+			: document.body.clientWidth ||
+				completeQueryPanelWidth * 2 + token.marginLG,
 	);
-	const splitLayout = viewportWidth >= token.screenLGMin;
+	const splitLayout = workspaceWidth >= completeQueryPanelWidth * 2 + token.marginLG;
 	const queryClient = useQueryClient();
 	const [messageApi, messageContext] = message.useMessage();
 	const formatPreferences = useLocalePreferences();
@@ -158,13 +164,26 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const { revision: itemRevision, submit: submitItemQuery } =
 		useQuerySubmission();
 	useEffect(() => {
-		const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+		const workspace = workspaceRef.current;
 
-		updateViewportWidth();
-		window.addEventListener("resize", updateViewportWidth);
+		if (!workspace) {
+			return undefined;
+		}
 
-		return () => window.removeEventListener("resize", updateViewportWidth);
-	}, []);
+		const updateWorkspaceWidth = (width: number) => {
+			if (width > token.margin + token.lineWidth) {
+				setWorkspaceWidth(width);
+			}
+		};
+		const observer = new ResizeObserver(([entry]) => {
+			updateWorkspaceWidth(entry?.contentRect.width ?? 0);
+		});
+
+		updateWorkspaceWidth(workspace.getBoundingClientRect().width);
+		observer.observe(workspace);
+
+		return () => observer.disconnect();
+	}, [token.lineWidth, token.margin]);
 	const typeQueryParams = useMemo<ListPlatformDictionaryTypesInput>(() => {
 		const q = typeFilters.q?.trim();
 		const params: ListPlatformDictionaryTypesInput = {
@@ -667,7 +686,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		});
 	};
 	const typePanelStyle = splitLayout
-		? { flex: "0 0 min(42%, 520px)", minWidth: 0 }
+		? { flex: `0 0 ${completeQueryPanelWidth}px`, minWidth: 0 }
 		: { minWidth: 0 };
 	const itemPanelStyle = splitLayout
 		? { flex: "1 1 0", minWidth: 0 }
@@ -849,7 +868,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	return (
 		<Flex gap={token.marginLG} vertical>
 			{messageContext}
-			{dictionaryWorkspace}
+			<div ref={workspaceRef}>{dictionaryWorkspace}</div>
 
 			<TypeFormDrawer
 				dictionaryType={editingType}
