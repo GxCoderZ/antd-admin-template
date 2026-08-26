@@ -23,6 +23,7 @@ describe("LogTablePanel", () => {
 		const user = userEvent.setup();
 		const columns: TableColumnsType<LogRow> = [
 			{ dataIndex: "actor", key: "actor", title: "操作人" },
+			{ key: "actions", render: () => "查看", title: "操作" },
 			{ dataIndex: "action", key: "action", title: "动作" },
 			{ dataIndex: "requestId", key: "requestId", title: "请求 ID" },
 		];
@@ -39,7 +40,7 @@ describe("LogTablePanel", () => {
 							requestId: "req-1",
 						},
 					]}
-					defaultVisibleColumnKeys={["actor", "action"]}
+					defaultVisibleColumnKeys={["actor", "action", "actions"]}
 					emptyText="暂无日志"
 					error={null}
 					initialLoading={false}
@@ -51,7 +52,7 @@ describe("LogTablePanel", () => {
 					pageSize={10}
 					queryPanel={null}
 					refreshing={false}
-					requiredColumnKeys={["actor"]}
+					requiredColumnKeys={["actor", "actions"]}
 					testId="log-table-card"
 					title="审计日志"
 					total={1}
@@ -77,6 +78,11 @@ describe("LogTablePanel", () => {
 
 		await user.click(hiddenOptionalColumn);
 		expect(screen.getByRole("columnheader", { name: "请求 ID" })).toBeVisible();
+		expect(
+			screen
+				.getAllByRole("columnheader")
+				.map((columnHeader) => columnHeader.textContent),
+		).toEqual(["操作人", "动作", "请求 ID", "操作"]);
 		await user.click(screen.getByRole("button", { name: "重置" }));
 		expect(screen.queryByRole("columnheader", { name: "请求 ID" })).toBeNull();
 

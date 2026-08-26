@@ -244,9 +244,19 @@ export function LogTablePanel<Row extends { id: string }>({
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const workspaceRef = useRef<HTMLDivElement>(null);
+	const orderedColumns = useMemo(() => {
+		const actionColumns = columns.filter((column) => column.key === "actions");
+
+		return actionColumns.length === 0
+			? columns
+			: [
+					...columns.filter((column) => column.key !== "actions"),
+					...actionColumns,
+				];
+	}, [columns]);
 	const allColumnKeys = useMemo(
-		() => columns.map((column) => String(column.key)),
-		[columns],
+		() => orderedColumns.map((column) => String(column.key)),
+		[orderedColumns],
 	);
 	const requiredColumnKeySet = useMemo(
 		() => new Set(requiredColumnKeys),
@@ -270,7 +280,7 @@ export function LogTablePanel<Row extends { id: string }>({
 	);
 	const [tableSize, setTableSize] = useState<TableProps<Row>["size"]>("middle");
 	const [isFullscreen, setIsFullscreen] = useState(false);
-	const visibleColumns = columns.filter((column) =>
+	const visibleColumns = orderedColumns.filter((column) =>
 		visibleColumnKeys.includes(String(column.key)),
 	);
 
@@ -346,7 +356,7 @@ export function LogTablePanel<Row extends { id: string }>({
 					value={visibleColumnKeys}
 				>
 					<Flex gap={token.marginXS} vertical>
-						{columns.map((column) => (
+						{orderedColumns.map((column) => (
 							<Checkbox
 								disabled={requiredColumnKeySet.has(String(column.key))}
 								key={String(column.key)}
