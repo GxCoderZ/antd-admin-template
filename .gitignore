@@ -8,3 +8,4 @@ circular-deps.json
 *.log
 *.tsbuildinfo
 .DS_Store
+.codex-audits/
