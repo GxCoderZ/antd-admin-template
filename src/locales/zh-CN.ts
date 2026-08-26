@@ -1614,6 +1614,13 @@ export const zhCNTranslation = {
 		},
 		tabs: {
 			label: "页面标签",
+			draggableDescription: "可拖拽页面标签",
+			dragInstructions:
+				"按空格键拾取标签，使用左右方向键调整位置，再次按空格键放下，或按 Esc 键取消。",
+			dragStart: "已拾取{{title}}。",
+			dragOver: "正在将{{activeTitle}}移动到{{overTitle}}的位置。",
+			dragEnd: "已将{{activeTitle}}移动到{{overTitle}}的位置。",
+			dragCancel: "已取消拖拽{{title}}。",
 			reload: "重新加载",
 			fullscreen: "全屏",
 			more: "更多标签操作",

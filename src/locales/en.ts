@@ -1667,6 +1667,13 @@ export const enTranslation = {
 		},
 		tabs: {
 			label: "Page tabs",
+			draggableDescription: "Draggable page tab",
+			dragInstructions:
+				"Press Space to pick up a tab, use the left and right arrow keys to move it, press Space again to drop it, or press Escape to cancel.",
+			dragStart: "Picked up {{title}}.",
+			dragOver: "Moving {{activeTitle}} to the position of {{overTitle}}.",
+			dragEnd: "Moved {{activeTitle}} to the position of {{overTitle}}.",
+			dragCancel: "Cancelled dragging {{title}}.",
 			reload: "Reload",
 			fullscreen: "Fullscreen",
 			more: "More tab actions",

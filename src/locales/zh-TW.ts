@@ -1617,6 +1617,13 @@ export const zhTWTranslation = {
 		},
 		tabs: {
 			label: "頁面標籤",
+			draggableDescription: "可拖曳頁面標籤",
+			dragInstructions:
+				"按空白鍵拾取標籤，使用左右方向鍵調整位置，再次按空白鍵放下，或按 Esc 鍵取消。",
+			dragStart: "已拾取{{title}}。",
+			dragOver: "正在將{{activeTitle}}移動到{{overTitle}}的位置。",
+			dragEnd: "已將{{activeTitle}}移動到{{overTitle}}的位置。",
+			dragCancel: "已取消拖曳{{title}}。",
 			reload: "重新載入",
 			fullscreen: "全螢幕",
 			more: "更多標籤操作",

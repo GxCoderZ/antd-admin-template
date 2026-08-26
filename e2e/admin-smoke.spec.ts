@@ -67,6 +67,51 @@ test("页面标签支持右键菜单关闭目标标签", async ({ page }) => {
 	await expect(usersTab).toHaveCount(0);
 });
 
+test("页面标签支持横向拖拽换位且保持当前路由", async ({ page }) => {
+	await signIn(page);
+
+	await navigateWithinAdmin(page, "/organization/users");
+	await expect(page).toHaveURL(/\/organization\/users$/);
+	await expect(page.getByRole("tab", { name: /用户管理/ })).toBeVisible();
+	await navigateWithinAdmin(page, "/access/roles");
+	await expect(page).toHaveURL(/\/access\/roles$/);
+
+	const usersTab = page.getByRole("tab", { name: /用户管理/ });
+	const rolesTab = page.getByRole("tab", { name: /角色管理/ });
+	const usersBox = await usersTab.boundingBox();
+	const rolesBox = await rolesTab.boundingBox();
+
+	expect(usersBox).not.toBeNull();
+	expect(rolesBox).not.toBeNull();
+	if (!usersBox || !rolesBox) {
+		return;
+	}
+
+	await page.mouse.move(
+		rolesBox.x + rolesBox.width / 2,
+		rolesBox.y + rolesBox.height / 2,
+	);
+	await page.mouse.down();
+	await page.mouse.move(rolesBox.x - 12, rolesBox.y + rolesBox.height / 2, {
+		steps: 4,
+	});
+	await page.mouse.move(
+		usersBox.x + usersBox.width / 2,
+		usersBox.y + usersBox.height / 2,
+		{ steps: 10 },
+	);
+	await page.mouse.up();
+
+	await expect(page).toHaveURL(/\/access\/roles$/);
+	await expect
+		.poll(async () =>
+			page
+				.getByRole("tab")
+				.evaluateAll((tabs) => tabs.map((tab) => tab.textContent?.trim())),
+		)
+		.toEqual(["仪表盘", "角色管理", "用户管理"]);
+});
+
 test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
@@ -553,8 +598,12 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 		await page.evaluate(() => document.documentElement.scrollWidth),
 	).toBeLessThanOrEqual(390);
 
-	await page.getByRole("checkbox", { name: "Select row 1", exact: true }).click();
-	await page.getByRole("checkbox", { name: "Select row 2", exact: true }).click();
+	await page
+		.getByRole("checkbox", { name: "Select row 1", exact: true })
+		.click();
+	await page
+		.getByRole("checkbox", { name: "Select row 2", exact: true })
+		.click();
 	await expect(page.getByText("已选择 2 项")).toBeVisible();
 
 	await page.getByRole("button", { name: "批量导出" }).click();
@@ -562,7 +611,9 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 	await page.getByRole("button", { name: "批量停用" }).click();
 	await expect(page.getByText("已选择 0 项")).toBeVisible();
 
-	await page.getByRole("checkbox", { name: "Select row 1", exact: true }).click();
+	await page
+		.getByRole("checkbox", { name: "Select row 1", exact: true })
+		.click();
 	await page.getByRole("button", { name: "批量删除" }).click();
 	await expect(page.getByText("确认批量删除")).toBeVisible();
 	await page.getByRole("button", { name: "确认删除" }).click();

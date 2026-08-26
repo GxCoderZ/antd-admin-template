@@ -1641,6 +1641,13 @@ export const koKRTranslation = {
 		},
 		tabs: {
 			label: "페이지 탭",
+			draggableDescription: "드래그 가능한 페이지 탭",
+			dragInstructions:
+				"스페이스 키를 눌러 탭을 선택하고 왼쪽 또는 오른쪽 화살표 키로 이동한 다음 스페이스 키를 다시 눌러 놓거나 Esc 키를 눌러 취소하세요.",
+			dragStart: "{{title}} 탭을 선택했습니다.",
+			dragOver: "{{activeTitle}} 탭을 {{overTitle}} 위치로 이동하는 중입니다.",
+			dragEnd: "{{activeTitle}} 탭을 {{overTitle}} 위치로 이동했습니다.",
+			dragCancel: "{{title}} 탭 드래그를 취소했습니다.",
 			reload: "다시 불러오기",
 			fullscreen: "전체 화면",
 			more: "추가 탭 작업",
