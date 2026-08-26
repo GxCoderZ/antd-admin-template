@@ -266,6 +266,9 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 			style={{
 				background: token.colorBgContainer,
 				borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+				boxSizing: "border-box",
+				flex: `0 0 ${tabsHeight}px`,
+				height: tabsHeight,
 				minHeight: tabsHeight,
 				padding: 0,
 				width: "100%",
