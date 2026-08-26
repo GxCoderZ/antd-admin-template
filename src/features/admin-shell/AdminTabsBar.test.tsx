@@ -1,5 +1,5 @@
 import { ConfigProvider } from "antd";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { createRef } from "react";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createMemoryRouter, RouterProvider, useLocation } from "react-router";
@@ -27,6 +27,31 @@ function TabsHarness() {
 }
 
 describe("AdminTabsBar", () => {
+	it("keeps the dashboard tab fixed without close, drag, or context actions", async () => {
+		const router = createMemoryRouter(
+			[{ path: "*", element: <TabsHarness /> }],
+			{ initialEntries: ["/organization/users"] },
+		);
+
+		render(
+			<ConfigProvider>
+				<RouterProvider router={router} />
+			</ConfigProvider>,
+		);
+
+		const dashboardTab = screen.getByRole("tab", { name: /仪表盘/ });
+		const dashboardTabNode = dashboardTab.parentElement;
+		expect(dashboardTabNode).not.toBeNull();
+		expect(dashboardTabNode).not.toHaveAttribute("aria-roledescription");
+		expect(dashboardTabNode?.querySelector("button")).toBeNull();
+
+		await act(async () => {
+			fireEvent.contextMenu(screen.getByText("仪表盘"));
+			await new Promise((resolve) => setTimeout(resolve, 100));
+		});
+		expect(screen.queryByRole("menuitem", { name: "重新加载" })).toBeNull();
+	});
+
 	it("closes the context-menu target and returns to the dashboard", async () => {
 		const router = createMemoryRouter(
 			[{ path: "*", element: <TabsHarness /> }],

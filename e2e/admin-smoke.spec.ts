@@ -80,10 +80,13 @@ test("页面标签支持横向拖拽换位且保持当前路由", async ({ page 
 	const rolesTab = page.getByRole("tab", { name: /角色管理/ });
 	const usersBox = await usersTab.boundingBox();
 	const rolesBox = await rolesTab.boundingBox();
+	const rolesTabNode = rolesTab.locator("xpath=..");
+	const rolesTabNodeBox = await rolesTabNode.boundingBox();
 
 	expect(usersBox).not.toBeNull();
 	expect(rolesBox).not.toBeNull();
-	if (!usersBox || !rolesBox) {
+	expect(rolesTabNodeBox).not.toBeNull();
+	if (!usersBox || !rolesBox || !rolesTabNodeBox) {
 		return;
 	}
 
@@ -96,8 +99,22 @@ test("页面标签支持横向拖拽换位且保持当前路由", async ({ page 
 		steps: 4,
 	});
 	await page.mouse.move(
+		rolesBox.x + rolesBox.width / 2 - 80,
+		rolesBox.y + rolesBox.height / 2 + 60,
+	);
+	await page.waitForTimeout(30);
+	const responsiveBox = await rolesTabNode.boundingBox();
+	expect(responsiveBox).not.toBeNull();
+	expect(responsiveBox?.x).toBeLessThan(rolesTabNodeBox.x - 60);
+
+	await page.waitForTimeout(320);
+	const axisLockedBox = await rolesTabNode.boundingBox();
+	expect(axisLockedBox).not.toBeNull();
+	expect(axisLockedBox?.y).toBeCloseTo(rolesTabNodeBox.y, 0);
+
+	await page.mouse.move(
 		usersBox.x + usersBox.width / 2,
-		usersBox.y + usersBox.height / 2,
+		usersBox.y + usersBox.height / 2 + 60,
 		{ steps: 10 },
 	);
 	await page.mouse.up();
@@ -110,6 +127,62 @@ test("页面标签支持横向拖拽换位且保持当前路由", async ({ page 
 				.evaluateAll((tabs) => tabs.map((tab) => tab.textContent?.trim())),
 		)
 		.toEqual(["仪表盘", "角色管理", "用户管理"]);
+});
+
+test("仪表盘标签固定首位且不参与拖拽让位", async ({ page }) => {
+	await signIn(page);
+	await navigateWithinAdmin(page, "/access/roles");
+	await expect(page).toHaveURL(/\/access\/roles$/);
+
+	const dashboardTab = page.getByRole("tab", { name: /仪表盘/ });
+	const rolesTab = page.getByRole("tab", { name: /角色管理/ });
+	await expect
+		.poll(async () =>
+			page
+				.getByRole("tab")
+				.evaluateAll((tabs) => tabs.map((tab) => tab.textContent?.trim())),
+		)
+		.toEqual(["仪表盘", "角色管理"]);
+
+	const dashboardTabNode = dashboardTab.locator("xpath=..");
+	const dashboardBox = await dashboardTabNode.boundingBox();
+	const rolesBox = await rolesTab.boundingBox();
+	expect(dashboardBox).not.toBeNull();
+	expect(rolesBox).not.toBeNull();
+	if (!dashboardBox || !rolesBox) {
+		return;
+	}
+
+	await page.mouse.move(
+		rolesBox.x + rolesBox.width / 2,
+		rolesBox.y + rolesBox.height / 2,
+	);
+	await page.mouse.down();
+	await page.mouse.move(
+		rolesBox.x + rolesBox.width / 2 - 12,
+		rolesBox.y + rolesBox.height / 2,
+	);
+	await page.mouse.move(
+		dashboardBox.x + dashboardBox.width / 2,
+		dashboardBox.y + dashboardBox.height / 2,
+		{ steps: 10 },
+	);
+	await page.waitForTimeout(100);
+	const fixedDashboardBox = await dashboardTabNode.boundingBox();
+	expect(fixedDashboardBox?.x).toBeCloseTo(dashboardBox.x, 0);
+	expect(fixedDashboardBox?.y).toBeCloseTo(dashboardBox.y, 0);
+	await page.mouse.up();
+
+	await expect
+		.poll(async () =>
+			page
+				.getByRole("tab")
+				.evaluateAll((tabs) => tabs.map((tab) => tab.textContent?.trim())),
+		)
+		.toEqual(["仪表盘", "角色管理"]);
+	await dashboardTab.click({ button: "right" });
+	await page.waitForTimeout(200);
+	await expect(page.getByRole("menuitem", { name: "重新加载" })).toHaveCount(0);
 });
 
 test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {

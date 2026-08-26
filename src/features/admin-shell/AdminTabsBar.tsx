@@ -17,6 +17,7 @@ import {
 	useSensor,
 	useSensors,
 } from "@dnd-kit/core";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import {
 	arrayMove,
 	horizontalListSortingStrategy,
@@ -94,7 +95,7 @@ function DraggableTabNode({
 		...tabProps.style,
 		cursor: isFixed ? "default" : isDragging ? "grabbing" : "grab",
 		transform: CSS.Translate.toString(transform),
-		transition,
+		transition: isDragging ? "none" : transition,
 		zIndex: isDragging ? 1 : undefined,
 	};
 	const sortableListeners = isFixed
@@ -376,21 +377,25 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 	const openTabs = openTabKeys.map((tabKey) => {
 		const tabPage =
 			adminRouteByPath.get(tabKey) ?? getAdminRouteMetadata(dashboardPath);
+		const tabTitle = <span>{t(tabPage.titleKey)}</span>;
 
 		return {
 			key: tabPage.key,
-			label: (
-				<Dropdown
-					getPopupContainer={() => workspaceRef.current ?? document.body}
-					menu={{
-						items: createTabActionMenuItems(tabPage.key),
-						onClick: ({ key }) => runTabAction(tabPage.key, key),
-					}}
-					trigger={["contextMenu"]}
-				>
-					<span>{t(tabPage.titleKey)}</span>
-				</Dropdown>
-			),
+			label:
+				tabPage.key === dashboardPath ? (
+					tabTitle
+				) : (
+					<Dropdown
+						getPopupContainer={() => workspaceRef.current ?? document.body}
+						menu={{
+							items: createTabActionMenuItems(tabPage.key),
+							onClick: ({ key }) => runTabAction(tabPage.key, key),
+						}}
+						trigger={["contextMenu"]}
+					>
+						{tabTitle}
+					</Dropdown>
+				),
 			closable: tabPage.key !== dashboardPath,
 		};
 	});
@@ -416,11 +421,12 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 						},
 					}}
 					collisionDetection={closestCenter}
+					modifiers={[restrictToHorizontalAxis]}
 					onDragEnd={reorderTabs}
 					sensors={sensors}
 				>
 					<SortableContext
-						items={openTabKeys}
+						items={openTabKeys.filter((tabKey) => tabKey !== dashboardPath)}
 						strategy={horizontalListSortingStrategy}
 					>
 						<DefaultTabBar {...tabBarProps}>
