@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -114,6 +114,19 @@ describe("AnnouncementsPage", () => {
 		for (const actionName of ["刷新", "表格密度", "列设置"]) {
 			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
 		}
+	});
+
+	it("opens announcement details from the title", async () => {
+		const user = renderAnnouncementsPage();
+
+		await screen.findByText("系统维护通知");
+		await user.click(screen.getByRole("button", { name: "系统维护通知" }));
+
+		const dialog = await screen.findByRole("dialog");
+		expect(within(dialog).getByText("公告详情")).toBeInTheDocument();
+		expect(
+			within(dialog).getByText("平台将在周日凌晨进行例行维护。"),
+		).toBeInTheDocument();
 	});
 
 	it("submits keyword filters through the announcements API", async () => {

@@ -44,6 +44,7 @@ interface AnnouncementTablePanelProps {
 	onDelete: (announcement: PlatformAnnouncement) => void;
 	onEdit: (announcement: PlatformAnnouncement) => void;
 	onReload: () => void;
+	onView: (announcement: PlatformAnnouncement) => void;
 	queryPanel: ReactNode;
 	refreshing: boolean;
 	tableState: AnnouncementTableState;
@@ -73,6 +74,7 @@ export function AnnouncementTablePanel({
 	onDelete,
 	onEdit,
 	onReload,
+	onView,
 	queryPanel,
 	refreshing,
 	tableState,
@@ -95,6 +97,11 @@ export function AnnouncementTablePanel({
 			{
 				dataIndex: "title",
 				key: "title",
+				render: (title: string, announcement) => (
+					<TableActionButton onClick={() => onView(announcement)}>
+						{title}
+					</TableActionButton>
+				),
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("title"),
@@ -151,6 +158,7 @@ export function AnnouncementTablePanel({
 		formatPreferences,
 		onDelete,
 		onEdit,
+		onView,
 		t,
 		tableState.order,
 		tableState.sort,

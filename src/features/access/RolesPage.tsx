@@ -29,6 +29,7 @@ import {
 	type RenameRoleFormValues,
 } from "./components/RoleDialogs";
 import { RolePermissionDrawer } from "./components/RolePermissionDrawer";
+import { RoleDetailDrawer } from "./components/RoleDetailDrawer";
 import {
 	RoleTablePanel,
 	type RoleFilterValues,
@@ -66,6 +67,7 @@ export function RolesPage() {
 	const [renameForm] = Form.useForm<RenameRoleFormValues>();
 	const [createOpen, setCreateOpen] = useState(false);
 	const [renamingRole, setRenamingRole] = useState<PlatformRole | null>(null);
+	const [viewingRole, setViewingRole] = useState<PlatformRole | null>(null);
 	const [deletingRole, setDeletingRole] = useState<PlatformRole | null>(null);
 	const [permissionRoleId, setPermissionRoleId] = useState<string | null>(null);
 	const [draftFilters, setDraftFilters] =
@@ -79,12 +81,11 @@ export function RolesPage() {
 		routeKey: rolesRouteKey,
 		stateKey: "query-applied",
 	});
-	const [tableState, setTableState] =
-		useRouteSessionState<RoleTableState>({
-			initialState: defaultRoleTableState,
-			routeKey: rolesRouteKey,
-			stateKey: "table",
-		});
+	const [tableState, setTableState] = useRouteSessionState<RoleTableState>({
+		initialState: defaultRoleTableState,
+		routeKey: rolesRouteKey,
+		stateKey: "table",
+	});
 	const querySubmission = useQuerySubmission();
 	const queryParams = useMemo<ListPlatformRolesInput>(() => {
 		const q = filters.q?.trim();
@@ -237,6 +238,10 @@ export function RolesPage() {
 				onSubmit={submitRoleRename}
 				role={renamingRole}
 			/>
+			<RoleDetailDrawer
+				onClose={() => setViewingRole(null)}
+				role={viewingRole}
+			/>
 			<RolePermissionDrawer
 				error={permissionMutation.error}
 				forbidden={permissionForbidden}
@@ -291,6 +296,7 @@ export function RolesPage() {
 				}}
 				onResetFilters={resetRoleFilters}
 				onTableChange={handleTableChange}
+				onView={setViewingRole}
 				page={tableState.page}
 				pageSize={tableState.pageSize}
 				refreshing={rolesQuery.isFetching && !rolesQuery.isPending}

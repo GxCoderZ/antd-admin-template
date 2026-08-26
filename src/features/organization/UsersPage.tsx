@@ -41,6 +41,7 @@ import {
 	UserEditDrawer,
 	type UserEditFormValues,
 } from "./components/UserEditDrawer";
+import { UserDetailDrawer } from "./components/UserDetailDrawer";
 import {
 	ResetPasswordModal,
 	ResetPasswordResultModal,
@@ -88,6 +89,7 @@ export function UsersPage() {
 	});
 	const [createUserOpen, setCreateUserOpen] = useState(false);
 	const [editingUser, setEditingUser] = useState<PlatformUser | null>(null);
+	const [viewingUser, setViewingUser] = useState<PlatformUser | null>(null);
 	const [resetPasswordUser, setResetPasswordUser] =
 		useState<PlatformUser | null>(null);
 	const [resetPasswordConfirmationName, setResetPasswordConfirmationName] =
@@ -156,6 +158,17 @@ export function UsersPage() {
 		queryFn: ({ signal }) => getPlatformUser(roleUser!.id, signal),
 		queryKey: roleUser
 			? platformUserDetailQueryKey(roleUser.id)
+			: platformUserDetailQueryKey(""),
+	});
+	const viewingUserId = viewingUser?.id;
+	const viewingUserDetailQuery = useQuery({
+		enabled: viewingUserId !== undefined,
+		queryFn: ({ signal }) =>
+			viewingUserId
+				? getPlatformUser(viewingUserId, signal)
+				: Promise.reject(new Error("No selected user")),
+		queryKey: viewingUserId
+			? platformUserDetailQueryKey(viewingUserId)
 			: platformUserDetailQueryKey(""),
 	});
 	const rolesQuery = useQuery({
@@ -418,6 +431,13 @@ export function UsersPage() {
 						requestedStatus={updateUserMutation.variables?.input.status}
 						user={editingUser}
 					/>
+					<UserDetailDrawer
+						error={viewingUserDetailQuery.error}
+						loading={viewingUserDetailQuery.isPending}
+						onClose={() => setViewingUser(null)}
+						open={viewingUser !== null}
+						user={viewingUserDetailQuery.data ?? viewingUser}
+					/>
 					<ResetPasswordModal
 						confirmationName={resetPasswordConfirmationName}
 						error={resetPasswordMutation.error}
@@ -515,6 +535,7 @@ export function UsersPage() {
 				setResetPasswordUser(user);
 			}}
 			onTableChange={handleTableChange}
+			onView={(user) => setViewingUser(user)}
 			refreshing={userQuery.isFetching && !userQuery.isPending}
 			tableState={userTableState}
 		/>

@@ -1,4 +1,4 @@
-import { DownOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import {
 	Alert,
 	Button,
@@ -66,6 +66,7 @@ interface RoleTablePanelProps {
 	onRename: (role: PlatformRole) => void;
 	onResetFilters: () => void;
 	onTableChange: NonNullable<TableProps<PlatformRole>["onChange"]>;
+	onView: (role: PlatformRole) => void;
 	page: number;
 	pageSize: number;
 	refreshing: boolean;
@@ -94,6 +95,7 @@ export function RoleTablePanel({
 	onRename,
 	onResetFilters,
 	onTableChange,
+	onView,
 	page,
 	pageSize,
 	refreshing,
@@ -219,6 +221,15 @@ export function RoleTablePanel({
 					const isBuiltIn = role.builtIn;
 					const actionItems: NonNullable<MenuProps["items"]> = [
 						{
+							icon: <EyeOutlined aria-hidden />,
+							key: "view",
+							label: t("adminShell.roles.view"),
+							onClick: () => {
+								setOpenActionRoleId(null);
+								onView(role);
+							},
+						},
+						{
 							key: "permissions",
 							label: t("adminShell.roles.configurePermissions"),
 							onClick: () => {
@@ -279,6 +290,7 @@ export function RoleTablePanel({
 		onConfigurePermissions,
 		onDelete,
 		onRename,
+		onView,
 		deletePending,
 		openActionRoleId,
 		renamePending,

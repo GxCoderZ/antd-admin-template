@@ -31,11 +31,14 @@ vi.mock("#src/api/roles", () => ({
 }));
 
 const role = {
+	builtIn: false,
+	createdAt: "2026-08-20T00:00:00.000Z",
 	displayName: "运营管理员",
 	id: "role-operator",
 	memberCount: 0,
 	permissions: [platformPermissions.announcementsRead],
 	roleKey: "operator",
+	updatedAt: "2026-08-20T01:00:00.000Z",
 	version: 3,
 };
 
@@ -149,6 +152,20 @@ describe("RolesPage", () => {
 			},
 			roleId: role.id,
 		});
+	});
+
+	it("opens role details from the more menu", async () => {
+		const { user } = renderRolesPage();
+
+		await openRoleActions(user);
+		await user.click(screen.getByRole("menuitem", { name: "查看详情" }));
+
+		const dialog = await screen.findByRole("dialog");
+		expect(
+			within(dialog).getByText("角色详情“运营管理员”"),
+		).toBeInTheDocument();
+		expect(within(dialog).getByText("operator")).toBeInTheDocument();
+		expect(within(dialog).getByText("查看公告")).toBeInTheDocument();
 	});
 
 	it("updates role permissions from the permission drawer", async () => {

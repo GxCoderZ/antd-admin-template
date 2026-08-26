@@ -13,6 +13,8 @@ import {
 import {
 	Alert,
 	Button,
+	Descriptions,
+	Drawer,
 	Flex,
 	Modal,
 	Space,
@@ -21,6 +23,7 @@ import {
 	theme,
 	Typography,
 } from "antd";
+import type { DescriptionsProps } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -128,6 +131,12 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		null,
 	);
 	const [editingItem, setEditingItem] = useState<PlatformDictionaryItem | null>(
+		null,
+	);
+	const [viewingType, setViewingType] = useState<PlatformDictionaryType | null>(
+		null,
+	);
+	const [viewingItem, setViewingItem] = useState<PlatformDictionaryItem | null>(
 		null,
 	);
 	const [deletingType, setDeletingType] =
@@ -333,6 +342,11 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			{
 				dataIndex: "name",
 				key: "name",
+				render: (name: string, dictionaryType) => (
+					<TableActionButton onClick={() => setViewingType(dictionaryType)}>
+						{name}
+					</TableActionButton>
+				),
 				sorter: true,
 				sortOrder: sortOrder("name"),
 				title: t("adminShell.dictionaries.columns.name"),
@@ -464,6 +478,11 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			{
 				dataIndex: "label",
 				key: "label",
+				render: (label: string, dictionaryItem) => (
+					<TableActionButton onClick={() => setViewingItem(dictionaryItem)}>
+						{label}
+					</TableActionButton>
+				),
 				sorter: true,
 				sortOrder: sortOrder("label"),
 				title: t("adminShell.dictionaries.columns.label"),
@@ -783,6 +802,14 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 				onSubmit={(values) => saveItemMutation.mutate(values)}
 				open={itemFormOpen}
 			/>
+			<DictionaryTypeDetailDrawer
+				dictionaryType={viewingType}
+				onClose={() => setViewingType(null)}
+			/>
+			<DictionaryItemDetailDrawer
+				dictionaryItem={viewingItem}
+				onClose={() => setViewingItem(null)}
+			/>
 
 			<Modal
 				cancelText={t("adminShell.dictionaries.cancel")}
@@ -841,5 +868,142 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 				)}
 			</Modal>
 		</Flex>
+	);
+}
+
+
+interface DictionaryTypeDetailDrawerProps {
+	dictionaryType: PlatformDictionaryType | null;
+	onClose: () => void;
+}
+
+function DictionaryTypeDetailDrawer({
+	dictionaryType,
+	onClose,
+}: DictionaryTypeDetailDrawerProps) {
+	const { t } = useTranslation();
+	const formatPreferences = useLocalePreferences();
+	const items: DescriptionsProps["items"] = dictionaryType
+		? [
+				{
+					children: dictionaryType.name,
+					label: t("adminShell.dictionaries.fields.name"),
+				},
+				{
+					children: (
+						<Typography.Text code>{dictionaryType.code}</Typography.Text>
+					),
+					label: t("adminShell.dictionaries.fields.code"),
+				},
+				{
+					children: (
+						<Tag color={getStatusColor(dictionaryType.status)}>
+							{t(`adminShell.dictionaries.statuses.${dictionaryType.status}`)}
+						</Tag>
+					),
+					label: t("adminShell.dictionaries.fields.status"),
+				},
+				{
+					children: dictionaryType.itemCount,
+					label: t("adminShell.dictionaries.columns.itemCount"),
+				},
+				{
+					children: dictionaryType.description || (
+						<Typography.Text type="secondary">-</Typography.Text>
+					),
+					label: t("adminShell.dictionaries.fields.description"),
+				},
+				{
+					children: formatDateTime(dictionaryType.createdAt, formatPreferences),
+					label: t("adminShell.dictionaries.columns.createdAt"),
+				},
+				{
+					children: formatDateTime(dictionaryType.updatedAt, formatPreferences),
+					label: t("adminShell.dictionaries.columns.updatedAt"),
+				},
+			]
+		: [];
+
+	return (
+		<Drawer
+			destroyOnHidden
+			onClose={onClose}
+			open={dictionaryType !== null}
+			title={t("adminShell.dictionaries.typeDetailTitle")}
+		>
+			<Descriptions bordered column={1} items={items} size="small" />
+		</Drawer>
+	);
+}
+
+interface DictionaryItemDetailDrawerProps {
+	dictionaryItem: PlatformDictionaryItem | null;
+	onClose: () => void;
+}
+
+function DictionaryItemDetailDrawer({
+	dictionaryItem,
+	onClose,
+}: DictionaryItemDetailDrawerProps) {
+	const { t } = useTranslation();
+	const formatPreferences = useLocalePreferences();
+	const items: DescriptionsProps["items"] = dictionaryItem
+		? [
+				{
+					children: dictionaryItem.label,
+					label: t("adminShell.dictionaries.fields.label"),
+				},
+				{
+					children: (
+						<Typography.Text code>{dictionaryItem.value}</Typography.Text>
+					),
+					label: t("adminShell.dictionaries.fields.value"),
+				},
+				{
+					children: (
+						<DictionaryColorTag color={dictionaryItem.color}>
+							{t(`adminShell.dictionaries.colors.${dictionaryItem.color}`)}
+						</DictionaryColorTag>
+					),
+					label: t("adminShell.dictionaries.fields.color"),
+				},
+				{
+					children: dictionaryItem.sort,
+					label: t("adminShell.dictionaries.fields.sort"),
+				},
+				{
+					children: (
+						<Tag color={getStatusColor(dictionaryItem.status)}>
+							{t(`adminShell.dictionaries.statuses.${dictionaryItem.status}`)}
+						</Tag>
+					),
+					label: t("adminShell.dictionaries.fields.status"),
+				},
+				{
+					children: dictionaryItem.description || (
+						<Typography.Text type="secondary">-</Typography.Text>
+					),
+					label: t("adminShell.dictionaries.fields.description"),
+				},
+				{
+					children: formatDateTime(dictionaryItem.createdAt, formatPreferences),
+					label: t("adminShell.dictionaries.columns.createdAt"),
+				},
+				{
+					children: formatDateTime(dictionaryItem.updatedAt, formatPreferences),
+					label: t("adminShell.dictionaries.columns.updatedAt"),
+				},
+			]
+		: [];
+
+	return (
+		<Drawer
+			destroyOnHidden
+			onClose={onClose}
+			open={dictionaryItem !== null}
+			title={t("adminShell.dictionaries.itemDetailTitle")}
+		>
+			<Descriptions bordered column={1} items={items} size="small" />
+		</Drawer>
 	);
 }

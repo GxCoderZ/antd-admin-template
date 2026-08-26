@@ -1,5 +1,6 @@
 import {
 	DeleteOutlined,
+	EyeOutlined,
 	KeyOutlined,
 	LogoutOutlined,
 	TeamOutlined,
@@ -22,7 +23,7 @@ import {
 	userColumnWidthMultipliers,
 } from "../userTableTypes";
 
-const { Link, Text } = Typography;
+const { Text } = Typography;
 const userStatusBadgeByStatus: Record<
 	PlatformUser["status"],
 	"default" | "error" | "success"
@@ -48,6 +49,7 @@ interface UseUserTableColumnsInput {
 	onForceLogout: (user: PlatformUser) => void;
 	onManageRoles: (user: PlatformUser) => void;
 	onResetPassword: (user: PlatformUser) => void;
+	onView: (user: PlatformUser) => void;
 	tableState: UserTableState;
 }
 
@@ -59,6 +61,7 @@ export function useUserTableColumns({
 	onForceLogout,
 	onManageRoles,
 	onResetPassword,
+	onView,
 	tableState,
 }: UseUserTableColumnsInput) {
 	const { t } = useTranslation();
@@ -103,7 +106,9 @@ export function useUserTableColumns({
 							size="small"
 							userId={row.id}
 						/>
-						<Link>{displayName}</Link>
+						<TableActionButton onClick={() => onView(row)}>
+							{displayName}
+						</TableActionButton>
 					</Space>
 				),
 				title: t("adminShell.users.columns.displayName"),
@@ -300,6 +305,12 @@ export function useUserTableColumns({
 					<TableActionMenu
 						items={[
 							{
+								icon: <EyeOutlined aria-hidden />,
+								key: "view",
+								label: t("adminShell.users.detail.view"),
+								onClick: () => onView(row),
+							},
+							{
 								icon: <TeamOutlined aria-hidden />,
 								key: "roles",
 								label: t("adminShell.users.roles.action"),
@@ -352,6 +363,7 @@ export function useUserTableColumns({
 		onForceLogout,
 		onManageRoles,
 		onResetPassword,
+		onView,
 		t,
 		tableState.order,
 		tableState.sort,

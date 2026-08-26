@@ -46,6 +46,7 @@ interface UsersTablePanelProps {
 	onResetFilters: () => void;
 	onResetPassword: (user: PlatformUser) => void;
 	onTableChange: NonNullable<TableProps<PlatformUser>["onChange"]>;
+	onView: (user: PlatformUser) => void;
 	overlays: ReactNode;
 	refreshing: boolean;
 	tableState: UserTableState;
@@ -73,6 +74,7 @@ export function UsersTablePanel({
 	onResetFilters,
 	onResetPassword,
 	onTableChange,
+	onView,
 	overlays,
 	refreshing,
 	tableState,
@@ -95,6 +97,7 @@ export function UsersTablePanel({
 		onForceLogout,
 		onManageRoles,
 		onResetPassword,
+		onView,
 		tableState,
 	});
 	const queryPanel = (

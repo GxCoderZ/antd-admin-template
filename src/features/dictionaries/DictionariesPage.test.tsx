@@ -92,6 +92,7 @@ beforeAll(async () => {
 					createItemTitle: "新建字典项",
 					createType: "新建字典类型",
 					createTypeTitle: "新建字典类型",
+					typeDetailTitle: "字典类型详情",
 					delete: "删除",
 					deleteItemDescription: "确认删除字典项 {{label}}？",
 					deleteItemTitle: "删除字典项",
@@ -101,6 +102,7 @@ beforeAll(async () => {
 					edit: "编辑",
 					editItemTitle: "编辑字典项",
 					editTypeTitle: "编辑字典类型",
+					itemDetailTitle: "字典项详情",
 					enable: "启用",
 					errors: {
 						delete: "删除失败",
@@ -111,6 +113,7 @@ beforeAll(async () => {
 					fields: {
 						code: "编码",
 						color: "颜色",
+						createdAt: "创建时间",
 						description: "描述",
 						label: "标签",
 						name: "名称",
@@ -318,6 +321,41 @@ describe("DictionariesPage", () => {
 				typeId: dictionaryType.id,
 			});
 		});
+	});
+
+	it("opens dictionary type details from the type name", async () => {
+		const user = renderDictionariesPage();
+
+		await screen.findByText("用户状态");
+		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
+		await user.click(
+			within(typeTable).getByRole("button", { name: "用户状态" }),
+		);
+
+		const dialog = await screen.findByRole("dialog");
+		expect(within(dialog).getByText("字典类型详情")).toBeInTheDocument();
+		expect(within(dialog).getByText("user_status")).toBeInTheDocument();
+		expect(within(dialog).getByText("用户状态选项")).toBeInTheDocument();
+	});
+
+	it("opens dictionary item details from the item label", async () => {
+		const user = renderDictionariesPage();
+
+		await screen.findByText("用户状态");
+		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
+		await user.click(within(typeTable).getByRole("button", { name: "管理项" }));
+		await screen.findByText("当前类型：用户状态");
+		await waitFor(() =>
+			expect(mocks.listPlatformDictionaryItems).toHaveBeenCalled(),
+		);
+		const itemTable = screen.getByTestId("admin-dictionaries-item-table");
+		await within(itemTable).findByRole("button", { name: "启用" });
+		await user.click(within(itemTable).getByRole("button", { name: "启用" }));
+
+		const dialog = await screen.findByRole("dialog");
+		expect(within(dialog).getByText("字典项详情")).toBeInTheDocument();
+		expect(within(dialog).getByText("active")).toBeInTheDocument();
+		expect(within(dialog).getByText("可登录用户")).toBeInTheDocument();
 	});
 
 	it("deletes dictionary items only after explicit confirmation", async () => {

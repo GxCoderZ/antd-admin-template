@@ -22,6 +22,7 @@ import {
 	updatePlatformAnnouncement,
 } from "#src/api/announcements";
 import { AnnouncementFormDrawer } from "./components/AnnouncementFormDrawer";
+import { AnnouncementDetailDrawer } from "./components/AnnouncementDetailDrawer";
 import {
 	AnnouncementQueryPanel,
 	type AnnouncementFilterValues,
@@ -59,6 +60,8 @@ export function AnnouncementsPage() {
 		});
 	const [formOpen, setFormOpen] = useState(false);
 	const [editingAnnouncement, setEditingAnnouncement] =
+		useState<PlatformAnnouncement | null>(null);
+	const [viewingAnnouncement, setViewingAnnouncement] =
 		useState<PlatformAnnouncement | null>(null);
 	const [deletingAnnouncement, setDeletingAnnouncement] =
 		useState<PlatformAnnouncement | null>(null);
@@ -143,6 +146,7 @@ export function AnnouncementsPage() {
 					setFormOpen(true);
 				}}
 				onReload={() => void query.refetch()}
+				onView={setViewingAnnouncement}
 				queryPanel={
 					<AnnouncementQueryPanel
 						initialFilters={defaultAnnouncementFilterValues}
@@ -172,6 +176,10 @@ export function AnnouncementsPage() {
 				}}
 				onSubmit={(values) => saveMutation.mutate(values)}
 				open={formOpen}
+			/>
+			<AnnouncementDetailDrawer
+				announcement={viewingAnnouncement}
+				onClose={() => setViewingAnnouncement(null)}
 			/>
 
 			<Modal

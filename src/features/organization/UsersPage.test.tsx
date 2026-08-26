@@ -17,6 +17,7 @@ import { UsersPage } from "./UsersPage";
 
 const mocks = vi.hoisted(() => ({
 	deletePlatformUser: vi.fn(),
+	getPlatformUser: vi.fn(),
 	listPlatformPositions: vi.fn(),
 	listPlatformUsers: vi.fn(),
 	updatePlatformUser: vi.fn(),
@@ -53,7 +54,7 @@ vi.mock("#src/api/users", () => ({
 	createPlatformUser: vi.fn(),
 	deletePlatformUser: mocks.deletePlatformUser,
 	forceLogoutPlatformUser: vi.fn(),
-	getPlatformUser: vi.fn().mockResolvedValue({ roles: [] }),
+	getPlatformUser: mocks.getPlatformUser,
 	listPlatformUsers: mocks.listPlatformUsers,
 	platformUserDetailQueryKey: (userId: string) => ["platform-users", userId],
 	platformUsersQueryKey: ["platform-users"],
@@ -129,6 +130,7 @@ beforeEach(() => {
 		pageSize: 20,
 		total: 1,
 	});
+	mocks.getPlatformUser.mockReset().mockResolvedValue(adminUser);
 	mocks.updatePlatformUser.mockReset().mockResolvedValue({
 		...adminUser,
 		displayName: "平台管理员",
@@ -187,10 +189,30 @@ describe("UsersPage", () => {
 		).not.toBeInTheDocument();
 
 		await user.click(screen.getByRole("button", { name: "更多" }));
+		expect(
+			screen.getByRole("menuitem", { name: "查看详情" }),
+		).toBeInTheDocument();
 		expect(screen.getByRole("menuitem", { name: "角色" })).toBeInTheDocument();
 		expect(
 			screen.getByRole("menuitem", { name: "重置密码" }),
 		).toBeInTheDocument();
+	});
+
+	it("opens read-only user details from the display name", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		await user.click(screen.getByRole("button", { name: "Platform Admin" }));
+
+		const dialog = await screen.findByRole("dialog");
+		await waitFor(() => {
+			expect(within(dialog).getByText("admin@example.com")).toBeInTheDocument();
+		});
+		expect(within(dialog).getByText("13800138000")).toBeInTheDocument();
+		expect(mocks.getPlatformUser).toHaveBeenCalledWith(
+			adminUser.id,
+			expect.any(AbortSignal),
+		);
 	});
 
 	it("requires the exact username before deleting another user", async () => {
