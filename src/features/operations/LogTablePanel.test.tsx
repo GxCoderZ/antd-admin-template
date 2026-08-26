@@ -30,16 +30,16 @@ const columns: TableColumnsType<TestRow> = [
 		width: 96,
 	},
 	{
-		dataIndex: "ip",
-		key: "ip",
-		title: "IP 地址",
-		width: 160,
-	},
-	{
 		key: "actions",
 		render: () => "查看",
 		title: "操作",
 		width: 128,
+	},
+	{
+		dataIndex: "ip",
+		key: "ip",
+		title: "IP 地址",
+		width: 160,
 	},
 ];
 const columnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
@@ -109,6 +109,11 @@ describe("LogTablePanel", () => {
 		expect(screen.getByRole("checkbox", { name: "操作" })).toBeDisabled();
 		await user.click(screen.getByRole("checkbox", { name: "IP 地址" }));
 		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
+		expect(
+			screen
+				.getAllByRole("columnheader")
+				.map((columnHeader) => columnHeader.textContent),
+		).toEqual(["账号", "结果", "IP 地址", "操作"]);
 
 		cleanup();
 		renderLogTablePanel();

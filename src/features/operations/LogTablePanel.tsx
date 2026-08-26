@@ -273,13 +273,23 @@ export function LogTablePanel<Row extends { id: string }>({
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const workspaceRef = useRef<HTMLDivElement>(null);
+	const orderedColumns = useMemo(() => {
+		const actionColumns = columns.filter((column) => column.key === "actions");
+
+		return actionColumns.length === 0
+			? columns
+			: [
+					...columns.filter((column) => column.key !== "actions"),
+					...actionColumns,
+				];
+	}, [columns]);
 	const allColumnKeys = useMemo(
-		() => columns.map((column) => String(column.key)),
-		[columns],
+		() => orderedColumns.map((column) => String(column.key)),
+		[orderedColumns],
 	);
 	const tableColumns = useResponsiveTableColumns<Row, string>({
 		columnKeys: allColumnKeys,
-		columns,
+		columns: orderedColumns,
 		configs: columnVisibility,
 		containerRef: workspaceRef,
 		storageKey: columnSettingsStorageKey,
@@ -340,7 +350,7 @@ export function LogTablePanel<Row extends { id: string }>({
 				value={tableColumns.visibleColumnKeys}
 			>
 				<Flex gap={token.marginXS} vertical>
-					{columns.map((column) => (
+					{orderedColumns.map((column) => (
 						<Checkbox
 							disabled={tableColumns.requiredColumnKeys.includes(
 								String(column.key),
