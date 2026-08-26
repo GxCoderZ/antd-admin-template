@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type {
 	BatchTableRecord,
-	BatchTableRecordStatus,
+	BatchTableStatusMutation,
 } from "../src/api/batch-table";
 import batchTableRoutes from "./batch-table.fake";
 
@@ -43,15 +43,16 @@ describe("Fake batch table records", () => {
 		const firstPage = listRecords({
 			query: { page: "1", page_size: "10" },
 		}) as BatchTableListPayload;
-		const activeRecords = listRecords({
-			query: { page: "1", page_size: "100", status: "active" },
+		const onlineRecords = listRecords({
+			query: { page: "1", page_size: "100", status: "online" },
 		}) as BatchTableListPayload;
 
 		expect(firstPage.data.total).toBeGreaterThanOrEqual(30);
 		expect(firstPage.data.items).toHaveLength(10);
-		expect(activeRecords.data.items.length).toBeGreaterThan(1);
+		expect(firstPage.data.items[0]?.ruleName).toBe("TradeCode 99");
+		expect(onlineRecords.data.items.length).toBeGreaterThan(1);
 		expect(
-			activeRecords.data.items.every((item) => item.status === "active"),
+			onlineRecords.data.items.every((item) => item.status === "online"),
 		).toBe(true);
 	});
 
@@ -67,15 +68,15 @@ describe("Fake batch table records", () => {
 		);
 		const deleteRecords = findRoute("delete", "/platform/batch-table-records");
 		const listPayload = listRecords({
-			query: { page: "1", page_size: "3", sort: "name", order: "asc" },
+			query: { page: "1", page_size: "3", sort: "rule_name", order: "asc" },
 		}) as BatchTableListPayload;
 		const ids = listPayload.data.items.slice(0, 2).map((item) => item.id);
 
 		updateStatus({
-			body: { ids, status: "disabled" satisfies BatchTableRecordStatus },
+			body: { ids, status: "closed" satisfies BatchTableStatusMutation },
 		});
 		const afterStatus = listRecords({
-			query: { page: "1", page_size: "100", status: "disabled" },
+			query: { page: "1", page_size: "100", status: "closed" },
 		}) as BatchTableListPayload;
 		expect(ids.every((id) => afterStatus.data.items.some((item) => item.id === id))).toBe(
 			true,

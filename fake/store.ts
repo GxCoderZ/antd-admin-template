@@ -991,18 +991,16 @@ export const loginLogs: PlatformLoginLog[] = Array.from(
 	}),
 );
 
-const batchTableRecordCategories = ["权限资产", "内容资产", "运营资产"] as const;
-
 export const batchTableRecords: BatchTableRecord[] = Array.from(
-	{ length: 36 },
+	{ length: 99 },
 	(_, index): BatchTableRecord => ({
-		category: batchTableRecordCategories[index % batchTableRecordCategories.length]!,
+		callCount: 120_000 + ((index * 6_137) % 880_000),
 		createdAt: iso(12_000 - index * 160),
+		description: "这是一段描述",
 		id: `batch-table-record-${index + 1}`,
-		name: `批量演示记录 ${index + 1}`,
-		owner: users[index % 8]!.displayName,
-		status: index % 5 === 0 ? "disabled" : "active",
-		updatedAt: iso(360 + index * 29),
+		lastScheduledAt: "1970-01-01T00:00:00.000Z",
+		ruleName: `TradeCode ${index + 1}`,
+		status: (["online", "running", "exception", "closed"] as const)[index % 4]!,
 	}),
 );
 

@@ -786,17 +786,14 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 	await signIn(page);
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
 	await page
 		.getByRole("menuitem", { name: "批量操作表格", exact: true })
 		.click();
 	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
-	await expect(
-		page.getByTestId("batch-table-card").getByText("批量操作表格", {
-			exact: true,
-		}),
-	).toBeVisible();
+	await expect(page.getByText("查询表格", { exact: true })).toBeVisible();
+	await expect(page.getByRole("table")).toContainText("TradeCode 99");
+	await expect(page.getByRole("table")).toContainText("服务调用次数");
 	await expect(page.getByText("已选择 0 项")).toBeVisible();
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),
@@ -808,7 +805,13 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 	await page
 		.getByRole("checkbox", { name: "Select row 2", exact: true })
 		.click();
-	await expect(page.getByText("已选择 2 项")).toBeVisible();
+	await expect(page.getByText("已选择 2 项")).toHaveCount(2);
+	await expect(page.getByText(/服务调用次数总计/)).toBeVisible();
+	const bulkBarBounds = await page
+		.getByTestId("batch-table-bulk-action-bar")
+		.boundingBox();
+	expect(bulkBarBounds?.x).toBe(0);
+	expect(bulkBarBounds?.width).toBe(390);
 
 	await page.getByRole("button", { name: "批量导出" }).click();
 	await expect(page.getByText(/已生成 2 项导出/)).toBeVisible();

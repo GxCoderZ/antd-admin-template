@@ -2,8 +2,8 @@ import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 import type {
 	BatchTableRecord,
-	BatchTableRecordStatus,
 	BatchTableSelectionInput,
+	BatchTableStatusMutation,
 	UpdateBatchTableRecordStatusInput,
 } from "../src/api/batch-table";
 import { batchTableRecords } from "./store";
@@ -19,8 +19,8 @@ function pageRows<T>(items: T[], page: number, pageSize: number) {
 	};
 }
 
-function isStatus(value: unknown): value is BatchTableRecordStatus {
-	return value === "active" || value === "disabled";
+function isStatusMutation(value: unknown): value is BatchTableStatusMutation {
+	return value === "closed" || value === "online";
 }
 
 function normalizeIds(input: Partial<BatchTableSelectionInput>) {
@@ -40,14 +40,14 @@ function assertSelection(ids: string[]) {
 
 function sortValue(record: BatchTableRecord, sort: string) {
 	switch (sort) {
-		case "name":
-			return record.name;
-		case "owner":
-			return record.owner;
+		case "call_count":
+			return record.callCount;
+		case "rule_name":
+			return Number(record.ruleName.match(/\d+$/)?.[0] ?? 0);
 		case "status":
 			return record.status;
 		default:
-			return record.updatedAt;
+			return record.lastScheduledAt;
 	}
 }
 
@@ -58,25 +58,35 @@ export default defineFakeRoute([
 		response: ({ query }) => {
 			const page = pageValue(query.page, 1);
 			const pageSize = pageValue(query.page_size, 10);
-			const keyword = String(query.q ?? "")
+			const ruleName = String(query.ruleName ?? "")
 				.trim()
 				.toLowerCase();
-			const category = routeParam(query.category);
+			const description = String(query.description ?? "")
+				.trim()
+				.toLowerCase();
+			const callCount = String(query.callCount ?? "").trim();
 			const status = routeParam(query.status);
-			const sort = routeParam(query.sort) ?? "updated_at";
+			const sort = routeParam(query.sort) ?? "rule_name";
 			const order = routeParam(query.order) ?? "desc";
 			const filtered = batchTableRecords.filter(
 				(record) =>
-					(!keyword ||
-						record.name.toLowerCase().includes(keyword) ||
-						record.owner.toLowerCase().includes(keyword)) &&
-					(!category || record.category === category) &&
+					(!ruleName || record.ruleName.toLowerCase().includes(ruleName)) &&
+					(!description ||
+						record.description.toLowerCase().includes(description)) &&
+					(!callCount || String(record.callCount).includes(callCount)) &&
 					(!status || record.status === status),
 			);
 			const sorted = [...filtered].sort(
-				(left, right) =>
-					sortValue(left, sort).localeCompare(sortValue(right, sort)) *
-					(order === "asc" ? 1 : -1),
+				(left, right) => {
+					const leftValue = sortValue(left, sort);
+					const rightValue = sortValue(right, sort);
+					const comparison =
+						typeof leftValue === "number" && typeof rightValue === "number"
+							? leftValue - rightValue
+							: String(leftValue).localeCompare(String(rightValue));
+
+					return comparison * (order === "asc" ? 1 : -1);
+				},
 			);
 
 			return resultSuccess(pageRows(sorted, page, pageSize));
@@ -93,15 +103,13 @@ export default defineFakeRoute([
 				return resultError(selectionError, 422);
 			}
 			const nextStatus = input.status;
-			if (!isStatus(nextStatus)) {
+			if (!isStatusMutation(nextStatus)) {
 				return resultError("Invalid status", 422);
 			}
 
-			const timestamp = new Date().toISOString();
 			batchTableRecords.forEach((record) => {
 				if (ids.includes(record.id)) {
 					record.status = nextStatus;
-					record.updatedAt = timestamp;
 				}
 			});
 

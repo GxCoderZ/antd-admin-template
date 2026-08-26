@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -25,22 +25,22 @@ vi.mock("#src/api/batch-table", () => ({
 
 const records = [
 	{
-		category: "权限资产",
+		callCount: 120_000,
 		createdAt: "2026-08-20T00:00:00.000Z",
+		description: "这是一段描述",
 		id: "record-1",
-		name: "批量演示记录 1",
-		owner: "Platform Admin",
-		status: "active" as const,
-		updatedAt: "2026-08-20T01:00:00.000Z",
+		lastScheduledAt: "1970-01-01T00:00:00.000Z",
+		ruleName: "TradeCode 1",
+		status: "online" as const,
 	},
 	{
-		category: "内容资产",
+		callCount: 340_000,
 		createdAt: "2026-08-21T00:00:00.000Z",
+		description: "这是一段描述",
 		id: "record-2",
-		name: "批量演示记录 2",
-		owner: "Olivia Chen",
-		status: "disabled" as const,
-		updatedAt: "2026-08-21T01:00:00.000Z",
+		lastScheduledAt: "1970-01-01T00:00:00.000Z",
+		ruleName: "TradeCode 2",
+		status: "closed" as const,
 	},
 ];
 
@@ -102,24 +102,31 @@ describe("BatchOperationsTablePage", () => {
 	it("uses the standard query panel and table toolbar", async () => {
 		renderPage();
 
-		expect(await screen.findByText("批量演示记录 1")).toBeVisible();
+		expect(await screen.findByText("TradeCode 1")).toBeVisible();
 		expect(screen.getByTestId("batch-table-query-form")).toBeVisible();
 		expect(screen.getByText("已选择 0 项")).toBeVisible();
+		const tableCard = within(screen.getByTestId("batch-table-card"));
+		expect(tableCard.getByRole("button", { name: "新建" })).toBeVisible();
 		for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
-			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
+			expect(tableCard.getByLabelText(actionName)).toBeVisible();
 		}
 	});
 
 	it("submits filters through the API contract", async () => {
 		const user = renderPage();
 
-		await screen.findByText("批量演示记录 1");
-		await user.type(screen.getByPlaceholderText("搜索记录名称或负责人"), "Olivia");
+		await screen.findByText("TradeCode 1");
+		await user.type(
+			within(screen.getByTestId("batch-table-query-form")).getByLabelText(
+				"规则名称",
+			),
+			"TradeCode",
+		);
 		await user.click(screen.getByRole("button", { name: /查\s*询/ }));
 
 		await waitFor(() => {
 			expect(mocks.listRecords).toHaveBeenLastCalledWith(
-				expect.objectContaining({ q: "Olivia" }),
+				expect.objectContaining({ ruleName: "TradeCode" }),
 				expect.any(AbortSignal),
 			);
 		});
@@ -129,13 +136,14 @@ describe("BatchOperationsTablePage", () => {
 		const user = renderPage();
 
 		await selectVisibleRows(user);
-		await waitFor(() => expect(screen.getByText("已选择 2 项")).toBeVisible());
+		await waitFor(() => expect(screen.getAllByText("已选择 2 项")).toHaveLength(2));
+		expect(screen.getByText("服务调用次数总计 46 万")).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "批量停用" }));
 
 		await waitFor(() => {
 			expect(mocks.updateStatus.mock.calls[0]?.[0]).toEqual({
 				ids: ["record-1", "record-2"],
-				status: "disabled",
+				status: "closed",
 			});
 		});
 		expect(screen.queryByText("确认批量删除")).not.toBeInTheDocument();
@@ -150,7 +158,7 @@ describe("BatchOperationsTablePage", () => {
 		const user = renderPage();
 
 		await selectVisibleRows(user);
-		await waitFor(() => expect(screen.getByText("已选择 2 项")).toBeVisible());
+		await waitFor(() => expect(screen.getAllByText("已选择 2 项")).toHaveLength(2));
 		await user.click(screen.getByRole("button", { name: "批量导出" }));
 		await waitFor(() => {
 			expect(mocks.exportRecords.mock.calls[0]?.[0]).toEqual({
