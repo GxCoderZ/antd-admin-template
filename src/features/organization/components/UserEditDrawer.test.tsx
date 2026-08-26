@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { i18n } from "../../../i18n";
-import { UserEditModal } from "./UserEditModal";
+import { UserEditDrawer } from "./UserEditDrawer";
 
 const userRecord = {
 	authSource: "local" as const,
@@ -30,14 +30,14 @@ beforeAll(async () => {
 	await i18n.changeLanguage("zh-CN");
 });
 
-describe("UserEditModal", () => {
+describe("UserEditDrawer", () => {
 	it("saves routine edits without typed-name confirmation", async () => {
 		const onSubmit = vi.fn();
 		const user = userEvent.setup();
 
 		render(
 			<ConfigProvider>
-				<UserEditModal
+				<UserEditDrawer
 					error={null}
 					loading={false}
 					onCancel={vi.fn()}

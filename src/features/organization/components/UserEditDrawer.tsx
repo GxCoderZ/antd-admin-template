@@ -2,10 +2,10 @@ import {
 	Alert,
 	Button,
 	Col,
+	Drawer,
 	Flex,
 	Form,
 	Input,
-	Modal,
 	Row,
 	Select,
 	theme,
@@ -30,7 +30,7 @@ interface UserPositionOption {
 	value: string;
 }
 
-interface UserEditModalProps {
+interface UserEditDrawerProps {
 	error: unknown;
 	loading: boolean;
 	onCancel: () => void;
@@ -42,7 +42,7 @@ interface UserEditModalProps {
 	user: PlatformUser | null;
 }
 
-export function UserEditModal({
+export function UserEditDrawer({
 	error,
 	loading,
 	onCancel,
@@ -52,7 +52,7 @@ export function UserEditModal({
 	positionsLoading,
 	requestedStatus,
 	user,
-}: UserEditModalProps) {
+}: UserEditDrawerProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const [form] = Form.useForm<UserEditFormValues>();
@@ -91,19 +91,29 @@ export function UserEditModal({
 	}, [form, user]);
 
 	return (
-		<Modal
-			cancelText={t("adminShell.users.editForm.cancel")}
-			confirmLoading={loading}
+		<Drawer
 			destroyOnHidden
-			okButtonProps={{ disabled: loading || conflict }}
-			okText={t("adminShell.users.editForm.submit")}
-			onCancel={onCancel}
-			onOk={() => form.submit()}
+			footer={
+				<Flex gap={token.marginXS} justify="flex-end">
+					<Button onClick={onCancel}>
+						{t("adminShell.users.editForm.cancel")}
+					</Button>
+					<Button
+						disabled={loading || conflict}
+						loading={loading}
+						onClick={() => form.submit()}
+						type="primary"
+					>
+						{t("adminShell.users.editForm.submit")}
+					</Button>
+				</Flex>
+			}
+			onClose={onCancel}
 			open={user !== null}
-				title={t("adminShell.users.editForm.title", {
+			title={t("adminShell.users.editForm.title", {
 				name: user?.username,
 			})}
-			width={token.screenSM}
+			width={`min(100vw, ${token.screenSM}px)`}
 		>
 			<Flex gap={token.margin} vertical>
 				{error ? (
@@ -142,7 +152,9 @@ export function UserEditModal({
 				<Form<UserEditFormValues>
 					form={form}
 					layout="vertical"
+					name="edit-user"
 					onFinish={onSubmit}
+					scrollToFirstError
 				>
 					<Row gutter={token.margin}>
 						<Col sm={12} xs={24}>
@@ -260,6 +272,6 @@ export function UserEditModal({
 					) : null}
 				</Form>
 			</Flex>
-		</Modal>
+		</Drawer>
 	);
 }

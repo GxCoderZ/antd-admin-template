@@ -38,9 +38,9 @@ import {
 } from "#src/api/users";
 import { CreateUserDrawer } from "./CreateUserDrawer";
 import {
-	UserEditModal,
+	UserEditDrawer,
 	type UserEditFormValues,
-} from "./components/UserEditModal";
+} from "./components/UserEditDrawer";
 import {
 	ResetPasswordModal,
 	ResetPasswordResultModal,
@@ -400,7 +400,7 @@ export function UsersPage() {
 							title={t("adminShell.users.deleteForm.title")}
 						/>
 					) : null}
-					<UserEditModal
+					<UserEditDrawer
 						error={updateUserMutation.error}
 						loading={updateUserMutation.isPending}
 						onCancel={() => {
