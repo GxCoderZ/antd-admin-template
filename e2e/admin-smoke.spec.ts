@@ -784,6 +784,38 @@ test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async 
 	).toBeLessThanOrEqual(390);
 });
 
+test("批量操作表格的桌面底部批量栏避开侧边导航", async ({ page }) => {
+	await signIn(page);
+	await navigateWithinAdmin(page, "/examples/lists/batch-operations");
+	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
+	await expect(page.getByRole("table")).toContainText("TradeCode 99");
+
+	await page
+		.getByRole("checkbox", { name: "Select row 1", exact: true })
+		.click();
+	await page
+		.getByRole("checkbox", { name: "Select row 2", exact: true })
+		.click();
+	await expect(page.getByText("已选择 2 项")).toHaveCount(2);
+
+	const sidebarBounds = await page.locator(".ant-layout-sider").boundingBox();
+	const bulkBarBounds = await page
+		.getByTestId("batch-table-bulk-action-bar")
+		.boundingBox();
+	expect(sidebarBounds).not.toBeNull();
+	expect(bulkBarBounds).not.toBeNull();
+	expect(bulkBarBounds?.x).toBeCloseTo(
+		sidebarBounds ? sidebarBounds.x + sidebarBounds.width : 0,
+		0,
+	);
+	expect(
+		bulkBarBounds ? bulkBarBounds.x + bulkBarBounds.width : undefined,
+	).toBeCloseTo(
+		page.viewportSize()?.width ?? 0,
+		0,
+	);
+});
+
 test("批量操作表格支持选择、导出、状态修改和删除确认", async ({ page }) => {
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);

@@ -20,7 +20,7 @@ import {
 	theme,
 	Typography,
 } from "antd";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router";
@@ -121,6 +121,13 @@ export function AdminShellNavigation({
 		menuType === "serviceGrid";
 	const showSplitSidebar = isSplitMenuActive && !isSidebarCollapsed;
 	const showServiceGridSidebar = isServiceGridMenuActive && !isSidebarCollapsed;
+	const fixedContentLeftOffset = showSidebarNavigation
+		? isSidebarCollapsed
+			? collapsedSidebarWidth
+			: isSplitMenuActive
+				? sidebarWidth + collapsedSidebarWidth
+				: sidebarWidth
+		: 0;
 	const activeSidebarOpenKeys = useMemo(
 		() => getAdminRouteOpenKeys(currentPage),
 		[currentPage],
@@ -476,13 +483,16 @@ export function AdminShellNavigation({
 			) : null}
 
 			<Layout
-				style={{
-					height: "100%",
-					minHeight: 0,
-					minWidth: 0,
-					overflow: "hidden",
-					width: "100%",
-				}}
+				style={
+					{
+						"--admin-shell-fixed-left-offset": `${fixedContentLeftOffset}px`,
+						height: "100%",
+						minHeight: 0,
+						minWidth: 0,
+						overflow: "hidden",
+						width: "100%",
+					} as CSSProperties
+				}
 			>
 				<Header
 					style={{

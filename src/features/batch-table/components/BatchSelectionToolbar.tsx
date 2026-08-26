@@ -98,7 +98,7 @@ export function BatchBulkActionBar({
 				borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
 				boxShadow: token.boxShadowTertiary,
 				bottom: 0,
-				left: 0,
+				left: "var(--admin-shell-fixed-left-offset, 0px)",
 				paddingBlock: token.paddingSM,
 				paddingInline: token.paddingLG,
 				position: "fixed",
