@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,7 +10,6 @@ import { BatchOperationsTablePage } from "./BatchOperationsTablePage";
 
 const mocks = vi.hoisted(() => ({
 	deleteRecords: vi.fn(),
-	exportRecords: vi.fn(),
 	listRecords: vi.fn(),
 	updateStatus: vi.fn(),
 }));
@@ -18,7 +17,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("#src/api/batch-table", () => ({
 	batchTableRecordsQueryKey: ["batch-table-records"],
 	deleteBatchTableRecords: mocks.deleteRecords,
-	exportBatchTableRecords: mocks.exportRecords,
 	listBatchTableRecords: mocks.listRecords,
 	updateBatchTableRecordStatus: mocks.updateStatus,
 }));
@@ -57,11 +55,6 @@ beforeEach(() => {
 	});
 	mocks.updateStatus.mockReset().mockResolvedValue({ affected: 2 });
 	mocks.deleteRecords.mockReset().mockResolvedValue({ affected: 2 });
-	mocks.exportRecords.mockReset().mockResolvedValue({
-		fileName: "batch-table-export.csv",
-		requestedAt: "2026-08-26T00:00:00.000Z",
-		rowCount: 2,
-	});
 });
 
 function renderPage() {
@@ -99,29 +92,19 @@ async function selectVisibleRows(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("BatchOperationsTablePage", () => {
-	it("uses the standard query panel and table toolbar", async () => {
+	it("uses the Ant Design Pro query panel and table toolbar", async () => {
 		renderPage();
 
 		expect(await screen.findByText("TradeCode 1")).toBeVisible();
-		expect(screen.getByTestId("batch-table-query-form")).toBeVisible();
-		expect(screen.getByText("已选择 0 项")).toBeVisible();
-		const tableCard = within(screen.getByTestId("batch-table-card"));
-		expect(tableCard.getByRole("button", { name: "新建" })).toBeVisible();
-		for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
-			expect(tableCard.getByLabelText(actionName)).toBeVisible();
-		}
+		expect(screen.getByLabelText("规则名称")).toBeVisible();
+		expect(screen.getByRole("button", { name: "新建" })).toBeVisible();
 	});
 
 	it("submits filters through the API contract", async () => {
 		const user = renderPage();
 
 		await screen.findByText("TradeCode 1");
-		await user.type(
-			within(screen.getByTestId("batch-table-query-form")).getByLabelText(
-				"规则名称",
-			),
-			"TradeCode",
-		);
+		await user.type(screen.getByLabelText("规则名称"), "TradeCode");
 		await user.click(screen.getByRole("button", { name: /查\s*询/ }));
 
 		await waitFor(() => {
@@ -132,40 +115,45 @@ describe("BatchOperationsTablePage", () => {
 		});
 	});
 
-	it("shows selected count, clears selection and changes status without confirmation", async () => {
+	it("shows selected count, clears selection and approves without confirmation", async () => {
 		const user = renderPage();
 
 		await selectVisibleRows(user);
-		await waitFor(() => expect(screen.getAllByText("已选择 2 项")).toHaveLength(2));
+		await waitFor(() =>
+			expect(screen.getByText(/已选择\s*2\s*项/)).toBeVisible(),
+		);
+		expect(screen.getByText("取消选择")).toBeVisible();
 		expect(screen.getByText("服务调用次数总计 46 万")).toBeVisible();
-		await user.click(screen.getByRole("button", { name: "批量停用" }));
+		await user.click(screen.getByRole("button", { name: "批量审批" }));
 
 		await waitFor(() => {
 			expect(mocks.updateStatus.mock.calls[0]?.[0]).toEqual({
 				ids: ["record-1", "record-2"],
-				status: "closed",
+				status: "online",
 			});
 		});
 		expect(screen.queryByText("确认批量删除")).not.toBeInTheDocument();
-		await waitFor(() => expect(screen.getByText("已选择 0 项")).toBeVisible());
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("button", { name: "批量审批" }),
+			).not.toBeInTheDocument(),
+		);
 
 		await selectVisibleRows(user);
-		await user.click(screen.getByRole("button", { name: "清空选择" }));
-		expect(screen.getByText("已选择 0 项")).toBeVisible();
+		await user.click(screen.getByText("取消选择"));
+		expect(
+			screen.queryByRole("button", { name: "批量审批" }),
+		).not.toBeInTheDocument();
 	});
 
-	it("exports selected rows and confirms dangerous bulk deletion", async () => {
+	it("confirms dangerous bulk deletion", async () => {
 		const user = renderPage();
 
 		await selectVisibleRows(user);
-		await waitFor(() => expect(screen.getAllByText("已选择 2 项")).toHaveLength(2));
-		await user.click(screen.getByRole("button", { name: "批量导出" }));
-		await waitFor(() => {
-			expect(mocks.exportRecords.mock.calls[0]?.[0]).toEqual({
-				ids: ["record-1", "record-2"],
-			});
-		});
-
+		await waitFor(() =>
+			expect(screen.getByText(/已选择\s*2\s*项/)).toBeVisible(),
+		);
+		expect(screen.getByText("取消选择")).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "批量删除" }));
 		const dialog = await screen.findByRole("dialog");
 		expect(dialog).toHaveTextContent("确认批量删除");

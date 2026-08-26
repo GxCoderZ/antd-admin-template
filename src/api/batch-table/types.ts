@@ -25,6 +25,7 @@ export type BatchTableRecordSort =
 export interface ListBatchTableRecordsInput {
 	callCount?: string;
 	description?: string;
+	lastScheduledAt?: string;
 	order?: "asc" | "desc";
 	page: number;
 	pageSize: number;
@@ -47,10 +48,4 @@ export interface BatchTableSelectionInput {
 export interface UpdateBatchTableRecordStatusInput
 	extends BatchTableSelectionInput {
 	status: BatchTableStatusMutation;
-}
-
-export interface BatchTableExportResult {
-	fileName: string;
-	requestedAt: string;
-	rowCount: number;
 }

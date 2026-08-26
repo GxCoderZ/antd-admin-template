@@ -64,6 +64,7 @@ interface AdminRouteAlias {
 
 export interface AdminRouteMetadata {
 	aliases?: readonly AdminRouteAlias[];
+	contentLayout?: "pageContainer";
 	groupKey: AdminRouteGroupKey;
 	iconKey?: AdminRouteIconKey;
 	key: string;
@@ -386,6 +387,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.basicList",
 	},
 	{
+		contentLayout: "pageContainer",
 		groupKey: "listExamples",
 		iconKey: "batchTable",
 		key: "/examples/lists/batch-operations",

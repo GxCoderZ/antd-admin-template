@@ -46,6 +46,13 @@ describe("Fake batch table records", () => {
 		const onlineRecords = listRecords({
 			query: { page: "1", page_size: "100", status: "online" },
 		}) as BatchTableListPayload;
+		const scheduledRecords = listRecords({
+			query: {
+				lastScheduledAt: "1970-01-01 00:00:00",
+				page: "1",
+				page_size: "100",
+			},
+		}) as BatchTableListPayload;
 
 		expect(firstPage.data.total).toBeGreaterThanOrEqual(30);
 		expect(firstPage.data.items).toHaveLength(10);
@@ -54,17 +61,19 @@ describe("Fake batch table records", () => {
 		expect(
 			onlineRecords.data.items.every((item) => item.status === "online"),
 		).toBe(true);
+		expect(scheduledRecords.data.items.length).toBeGreaterThan(1);
+		expect(
+			scheduledRecords.data.items.every((item) =>
+				item.lastScheduledAt.startsWith("1970-01-01T00:00:00"),
+			),
+		).toBe(true);
 	});
 
-	it("persists bulk status, export and delete operations in session memory", () => {
+	it("persists bulk status and delete operations in session memory", () => {
 		const listRecords = findRoute("get", "/platform/batch-table-records");
 		const updateStatus = findRoute(
 			"patch",
 			"/platform/batch-table-records/status",
-		);
-		const exportRecords = findRoute(
-			"post",
-			"/platform/batch-table-records/export",
 		);
 		const deleteRecords = findRoute("delete", "/platform/batch-table-records");
 		const listPayload = listRecords({
@@ -81,11 +90,6 @@ describe("Fake batch table records", () => {
 		expect(ids.every((id) => afterStatus.data.items.some((item) => item.id === id))).toBe(
 			true,
 		);
-
-		const exported = exportRecords({ body: { ids } }) as {
-			data: { rowCount: number };
-		};
-		expect(exported.data.rowCount).toBe(2);
 
 		deleteRecords({ body: { ids } });
 		const afterDelete = listRecords({

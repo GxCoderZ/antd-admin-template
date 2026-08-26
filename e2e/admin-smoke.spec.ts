@@ -788,7 +788,7 @@ test("批量操作表格的桌面底部批量栏避开侧边导航", async ({ pa
 	await signIn(page);
 	await navigateWithinAdmin(page, "/examples/lists/batch-operations");
 	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
-	await expect(page.getByRole("table")).toContainText("TradeCode 99");
+	await expect(page.getByRole("table")).toContainText("TradeCode");
 
 	await page
 		.getByRole("checkbox", { name: "Select row 1", exact: true })
@@ -796,7 +796,8 @@ test("批量操作表格的桌面底部批量栏避开侧边导航", async ({ pa
 	await page
 		.getByRole("checkbox", { name: "Select row 2", exact: true })
 		.click();
-	await expect(page.getByText("已选择 2 项")).toHaveCount(2);
+	await expect(page.getByText("已选择 2 项")).toBeVisible();
+	await expect(page.getByText("取消选择")).toBeVisible();
 
 	const sidebarBounds = await page.locator(".ant-layout-sider").boundingBox();
 	const bulkBarBounds = await page
@@ -816,7 +817,70 @@ test("批量操作表格的桌面底部批量栏避开侧边导航", async ({ pa
 	);
 });
 
-test("批量操作表格支持选择、导出、状态修改和删除确认", async ({ page }) => {
+test("批量操作表格复用 Ant Design Pro 内容布局", async ({ page }) => {
+	await page.setViewportSize({ height: 900, width: 1440 });
+	await signIn(page);
+	await navigateWithinAdmin(page, "/examples/lists/batch-operations");
+	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
+	await expect(page.getByRole("table")).toContainText("TradeCode");
+
+	const pageContainer = page.getByTestId("pro-page-container");
+	await expect(pageContainer).toBeVisible();
+	const layout = await page.evaluate(() => {
+		const pageContent = document.querySelector(
+			'[data-testid="admin-shell-page-content"]',
+		);
+		const childrenContainer = document.querySelector(
+			".ant-pro-page-container-children-container",
+		);
+		const queryCard = document.querySelector(
+			".ant-pro-table > .ant-pro-table-search",
+		);
+		const tableCard = document.querySelector(
+			".ant-pro-table > .ant-pro-card:not(.ant-pro-table-search)",
+		);
+		const queryForm = document.querySelector(".ant-pro-query-filter");
+		const tableCardBody = tableCard?.querySelector(".ant-pro-card-body");
+
+		if (
+			!pageContent ||
+			!childrenContainer ||
+			!queryCard ||
+			!tableCard ||
+			!queryForm ||
+			!tableCardBody
+		) {
+			throw new Error("Ant Design Pro table layout is incomplete");
+		}
+
+		const queryBounds = queryCard.getBoundingClientRect();
+		const tableBounds = tableCard.getBoundingClientRect();
+		const pageContentStyle = getComputedStyle(pageContent);
+		const childrenStyle = getComputedStyle(childrenContainer);
+		const queryFormStyle = getComputedStyle(queryForm);
+		const tableCardBodyStyle = getComputedStyle(tableCardBody);
+
+		return {
+			childrenPaddingBlockStart: childrenStyle.paddingBlockStart,
+			childrenPaddingInline: childrenStyle.paddingInline,
+			pageContentPadding: pageContentStyle.padding,
+			panelGap: tableBounds.top - queryBounds.bottom,
+			queryPadding: queryFormStyle.padding,
+			tableBodyPadding: tableCardBodyStyle.padding,
+		};
+	});
+
+	expect(layout).toEqual({
+		childrenPaddingBlockStart: "0px",
+		childrenPaddingInline: "40px",
+		pageContentPadding: "0px",
+		panelGap: 16,
+		queryPadding: "24px",
+		tableBodyPadding: "0px 24px 16px",
+	});
+});
+
+test("批量操作表格支持选择、审批和删除确认", async ({ page }) => {
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
 
@@ -827,9 +891,8 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 		.click();
 	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
 	await expect(page.getByText("查询表格", { exact: true })).toBeVisible();
-	await expect(page.getByRole("table")).toContainText("TradeCode 99");
+	await expect(page.getByRole("table")).toContainText("TradeCode");
 	await expect(page.getByRole("table")).toContainText("服务调用次数");
-	await expect(page.getByText("已选择 0 项")).toBeVisible();
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),
 	).toBeLessThanOrEqual(390);
@@ -840,7 +903,8 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 	await page
 		.getByRole("checkbox", { name: "Select row 2", exact: true })
 		.click();
-	await expect(page.getByText("已选择 2 项")).toHaveCount(2);
+	await expect(page.getByText("已选择 2 项")).toBeVisible();
+	await expect(page.getByText("取消选择")).toBeVisible();
 	await expect(page.getByText(/服务调用次数总计/)).toBeVisible();
 	const bulkBarBounds = await page
 		.getByTestId("batch-table-bulk-action-bar")
@@ -848,10 +912,10 @@ test("批量操作表格支持选择、导出、状态修改和删除确认", as
 	expect(bulkBarBounds?.x).toBe(0);
 	expect(bulkBarBounds?.width).toBe(390);
 
-	await page.getByRole("button", { name: "批量导出" }).click();
-	await expect(page.getByText(/已生成 2 项导出/)).toBeVisible();
-	await page.getByRole("button", { name: "批量停用" }).click();
-	await expect(page.getByText("已选择 0 项")).toBeVisible();
+	await page.getByRole("button", { name: "批量审批" }).click();
+	await expect(
+		page.getByTestId("batch-table-bulk-action-bar"),
+	).not.toBeVisible();
 
 	await page
 		.getByRole("checkbox", { name: "Select row 1", exact: true })

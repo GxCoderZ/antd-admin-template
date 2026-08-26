@@ -77,6 +77,7 @@ export function AdminShellPage({
 	const { onChangeCurrency, onChangeTimeZone, timeZone } =
 		useLocalePreferences();
 	const currentPage = getAdminRouteMetadata(location.pathname);
+	const usesPageContainer = currentPage.contentLayout === "pageContainer";
 	const openRouteTab = (nextPath: string) => {
 		const nextPage = adminRouteByPath.get(nextPath);
 
@@ -181,15 +182,13 @@ export function AdminShellPage({
 						<Flex vertical>
 							<Flex
 								data-testid="admin-shell-page-content"
-								gap={token.marginLG}
+								gap={usesPageContainer ? 0 : token.marginLG}
 								style={{
-									paddingBlockEnd: showSidebarNavigation
-										? token.paddingLG
-										: token.padding,
-									paddingBlockStart: showSidebarNavigation
-										? token.paddingLG
-										: token.padding,
-									paddingInline: token.paddingLG,
+									padding: usesPageContainer
+										? 0
+										: `${
+												showSidebarNavigation ? token.paddingLG : token.padding
+											}px ${token.paddingLG}px`,
 									width: "100%",
 								}}
 								vertical

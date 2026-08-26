@@ -1,6 +1,5 @@
 import { request, type ApiPage } from "../client";
 import type {
-	BatchTableExportResult,
 	BatchTableRecord,
 	BatchTableRecordData,
 	BatchTableSelectionInput,
@@ -41,12 +40,5 @@ export function deleteBatchTableRecords(input: BatchTableSelectionInput) {
 	return request<{ affected: number }>("/platform/batch-table-records", {
 		body: input,
 		method: "DELETE",
-	});
-}
-
-export function exportBatchTableRecords(input: BatchTableSelectionInput) {
-	return request<BatchTableExportResult>("/platform/batch-table-records/export", {
-		body: input,
-		method: "POST",
 	});
 }

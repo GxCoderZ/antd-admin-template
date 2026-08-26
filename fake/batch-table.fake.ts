@@ -65,6 +65,9 @@ export default defineFakeRoute([
 				.trim()
 				.toLowerCase();
 			const callCount = String(query.callCount ?? "").trim();
+			const lastScheduledAt = String(query.lastScheduledAt ?? "")
+				.trim()
+				.replace(" ", "T");
 			const status = routeParam(query.status);
 			const sort = routeParam(query.sort) ?? "rule_name";
 			const order = routeParam(query.order) ?? "desc";
@@ -74,6 +77,8 @@ export default defineFakeRoute([
 					(!description ||
 						record.description.toLowerCase().includes(description)) &&
 					(!callCount || String(record.callCount).includes(callCount)) &&
+					(!lastScheduledAt ||
+						record.lastScheduledAt.startsWith(lastScheduledAt)) &&
 					(!status || record.status === status),
 			);
 			const sorted = [...filtered].sort(
@@ -134,23 +139,6 @@ export default defineFakeRoute([
 			}
 
 			return resultSuccess({ affected: ids.length });
-		},
-	},
-	{
-		method: "post",
-		url: "/platform/batch-table-records/export",
-		response: ({ body }) => {
-			const ids = normalizeIds(body as Partial<BatchTableSelectionInput>);
-			const selectionError = assertSelection(ids);
-			if (selectionError) {
-				return resultError(selectionError, 422);
-			}
-
-			return resultSuccess({
-				fileName: `batch-table-export-${Date.now()}.csv`,
-				requestedAt: new Date().toISOString(),
-				rowCount: ids.length,
-			});
 		},
 	},
 ]);
