@@ -81,6 +81,7 @@ interface LogQueryPanelProps<Values extends object> {
 	onFinish: (values: Values) => void;
 	onReset: () => void;
 	onToggle: () => void;
+	onValuesChange?: FormProps<Values>["onValuesChange"];
 	submitterOffset: number;
 	testId: string;
 }
@@ -186,6 +187,7 @@ export function LogQueryPanel<Values extends object>({
 	onFinish,
 	onReset,
 	onToggle,
+	onValuesChange,
 	submitterOffset,
 	testId,
 }: LogQueryPanelProps<Values>) {
@@ -210,6 +212,7 @@ export function LogQueryPanel<Values extends object>({
 						: {})}
 					layout={formLayout}
 					onFinish={onFinish}
+					onValuesChange={onValuesChange}
 				>
 					<Row gutter={token.marginLG} justify="start">
 						{children}

@@ -12,7 +12,7 @@ import {
 	Typography,
 } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -66,8 +66,51 @@ const auditLogColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
 
 interface AuditFilterFormValues {
 	action?: string;
-	dateRange?: [Dayjs, Dayjs];
+	dateRange?: [Dayjs | null, Dayjs | null] | null;
 	result: "all" | NonNullable<AuditLogFilters["result"]>;
+}
+
+interface AuditFilterDraft {
+	action?: string;
+	dateRange?: [string, string];
+	result: AuditFilterFormValues["result"];
+}
+
+const defaultAuditFilterDraft: AuditFilterDraft = { result: "all" };
+
+function deserializeAuditFilterDraft(
+	draft: AuditFilterDraft,
+): AuditFilterFormValues {
+	return {
+		...(draft.action !== undefined ? { action: draft.action } : {}),
+		...(draft.dateRange
+			? {
+					dateRange: [dayjs(draft.dateRange[0]), dayjs(draft.dateRange[1])] as [
+						Dayjs,
+						Dayjs,
+					],
+				}
+			: {}),
+		result: draft.result,
+	};
+}
+
+function serializeAuditFilterDraft(
+	values: AuditFilterFormValues,
+): AuditFilterDraft {
+	const [rangeStart, rangeEnd] = values.dateRange ?? [];
+	return {
+		...(values.action !== undefined ? { action: values.action } : {}),
+		...(rangeStart && rangeEnd
+			? {
+					dateRange: [
+						rangeStart.toISOString(),
+						rangeEnd.toISOString(),
+					] as [string, string],
+				}
+			: {}),
+		result: values.result,
+	};
 }
 
 function formatTarget(log: PlatformAuditLog) {
@@ -79,6 +122,12 @@ export function AuditLogPage() {
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<AuditFilterFormValues>();
+	const [filterDraft, setFilterDraft] =
+		useRouteSessionState<AuditFilterDraft>({
+			initialState: defaultAuditFilterDraft,
+			routeKey: auditLogsRouteKey,
+			stateKey: "query-draft",
+		});
 	const [filters, setFilters] = useRouteSessionState<AuditLogFilters>({
 		initialState: {},
 		routeKey: auditLogsRouteKey,
@@ -233,12 +282,14 @@ export function AuditLogPage() {
 	];
 
 	const applyFilters = (values: AuditFilterFormValues) => {
+		const [rangeStart, rangeEnd] = values.dateRange ?? [];
+		setFilterDraft(serializeAuditFilterDraft(values));
 		setFilters({
 			...(values.action?.trim() ? { action: values.action.trim() } : {}),
-			...(values.dateRange
+			...(rangeStart && rangeEnd
 				? {
-						from: values.dateRange[0].toISOString(),
-						to: values.dateRange[1].toISOString(),
+						from: rangeStart.toISOString(),
+						to: rangeEnd.toISOString(),
 					}
 				: {}),
 			...(values.result !== "all" ? { result: values.result } : {}),
@@ -249,6 +300,8 @@ export function AuditLogPage() {
 
 	const resetFilters = () => {
 		form.resetFields();
+		form.setFieldsValue({ action: "", dateRange: null, result: "all" });
+		setFilterDraft(defaultAuditFilterDraft);
 		setFilters({});
 		setPage(1);
 		querySubmission.submit();
@@ -304,11 +357,14 @@ export function AuditLogPage() {
 						expanded={filtersExpanded}
 						form={form}
 						formLayout={queryFilterLayout}
-						initialValues={{ result: "all" }}
+						initialValues={deserializeAuditFilterDraft(filterDraft)}
 						loading={query.isFetching && !query.isPending}
 						onFinish={applyFilters}
 						onReset={resetFilters}
 						onToggle={() => setFiltersExpanded((expanded) => !expanded)}
+						onValuesChange={(_, values) =>
+							setFilterDraft(serializeAuditFilterDraft(values))
+						}
 						submitterOffset={submitterOffset}
 						testId="audit-log-query-form"
 					>

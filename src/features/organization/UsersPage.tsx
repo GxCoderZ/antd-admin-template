@@ -110,6 +110,11 @@ export function UsersPage() {
 			routeKey: usersRouteKey,
 			stateKey: "query-applied",
 		});
+	const [userFiltersExpanded, setUserFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: usersRouteKey,
+		stateKey: "query-expanded",
+	});
 	const [userTableState, setUserTableState] =
 		useRouteSessionState<UserTableState>({
 			initialState: defaultUserTableState,
@@ -446,6 +451,7 @@ export function UsersPage() {
 			draftFilters={userDraftFilters}
 			error={userQuery.error}
 			filterForm={userFilterForm}
+			filtersExpanded={userFiltersExpanded}
 			initialLoading={userQuery.isPending}
 			onCreate={() => setCreateUserOpen(true)}
 			onDelete={(user) => {
@@ -461,6 +467,7 @@ export function UsersPage() {
 				forceLogoutMutation.reset();
 				setForceLogoutUser(user);
 			}}
+			onFiltersExpandedChange={setUserFiltersExpanded}
 			onManageRoles={(user) => {
 				roleMutation.reset();
 				setRoleUser(user);

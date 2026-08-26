@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Badge, Col, DatePicker, Flex, Form, Select, Space, theme } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -61,8 +61,48 @@ const loginResultStatus = {
 } as const;
 
 interface LoginFilterFormValues {
-	dateRange?: [Dayjs, Dayjs];
+	dateRange?: [Dayjs | null, Dayjs | null] | null;
 	result: "all" | NonNullable<LoginLogFilters["result"]>;
+}
+
+interface LoginFilterDraft {
+	dateRange?: [string, string];
+	result: LoginFilterFormValues["result"];
+}
+
+const defaultLoginFilterDraft: LoginFilterDraft = { result: "all" };
+
+function deserializeLoginFilterDraft(
+	draft: LoginFilterDraft,
+): LoginFilterFormValues {
+	return {
+		...(draft.dateRange
+			? {
+					dateRange: [dayjs(draft.dateRange[0]), dayjs(draft.dateRange[1])] as [
+						Dayjs,
+						Dayjs,
+					],
+				}
+			: {}),
+		result: draft.result,
+	};
+}
+
+function serializeLoginFilterDraft(
+	values: LoginFilterFormValues,
+): LoginFilterDraft {
+	const [rangeStart, rangeEnd] = values.dateRange ?? [];
+	return {
+		...(rangeStart && rangeEnd
+			? {
+					dateRange: [
+						rangeStart.toISOString(),
+						rangeEnd.toISOString(),
+					] as [string, string],
+				}
+			: {}),
+		result: values.result,
+	};
 }
 
 export function LoginLogPage() {
@@ -70,6 +110,12 @@ export function LoginLogPage() {
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<LoginFilterFormValues>();
+	const [filterDraft, setFilterDraft] =
+		useRouteSessionState<LoginFilterDraft>({
+			initialState: defaultLoginFilterDraft,
+			routeKey: loginLogsRouteKey,
+			stateKey: "query-draft",
+		});
 	const [filters, setFilters] = useRouteSessionState<LoginLogFilters>({
 		initialState: {},
 		routeKey: loginLogsRouteKey,
@@ -236,11 +282,13 @@ export function LoginLogPage() {
 	];
 
 	const applyFilters = (values: LoginFilterFormValues) => {
+		const [rangeStart, rangeEnd] = values.dateRange ?? [];
+		setFilterDraft(serializeLoginFilterDraft(values));
 		setFilters({
-			...(values.dateRange
+			...(rangeStart && rangeEnd
 				? {
-						from: values.dateRange[0].toISOString(),
-						to: values.dateRange[1].toISOString(),
+						from: rangeStart.toISOString(),
+						to: rangeEnd.toISOString(),
 					}
 				: {}),
 			...(values.result !== "all" ? { result: values.result } : {}),
@@ -251,6 +299,8 @@ export function LoginLogPage() {
 
 	const resetFilters = () => {
 		form.resetFields();
+		form.setFieldsValue({ dateRange: null, result: "all" });
+		setFilterDraft(defaultLoginFilterDraft);
 		setFilters({});
 		setPage(1);
 		querySubmission.submit();
@@ -306,11 +356,14 @@ export function LoginLogPage() {
 						expanded={filtersExpanded}
 						form={form}
 						formLayout={queryFilterLayout}
-						initialValues={{ result: "all" }}
+						initialValues={deserializeLoginFilterDraft(filterDraft)}
 						loading={query.isFetching && !query.isPending}
 						onFinish={applyFilters}
 						onReset={resetFilters}
 						onToggle={() => setFiltersExpanded((expanded) => !expanded)}
+						onValuesChange={(_, values) =>
+							setFilterDraft(serializeLoginFilterDraft(values))
+						}
 						submitterOffset={submitterOffset}
 						testId="login-log-query-form"
 					>

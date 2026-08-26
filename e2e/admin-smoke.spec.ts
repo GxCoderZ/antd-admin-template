@@ -94,6 +94,60 @@ test("管理表格在标签切换后保留查询草稿和每页条数", async ({
 	await expect(pageSizeChanger).toContainText("10 条/页");
 });
 
+test("操作审计在标签切换后保留查询草稿", async ({ page }) => {
+	await signIn(page);
+	await navigateWithinAdmin(page, "/operations/audit-logs");
+	await expect(page).toHaveURL(/\/operations\/audit-logs$/);
+
+	const actionInput = page.getByPlaceholder("请输入动作");
+	await actionInput.fill("user.update");
+
+	await navigateWithinAdmin(page, "/access/roles");
+	await expect(page).toHaveURL(/\/access\/roles$/);
+	await navigateWithinAdmin(page, "/operations/audit-logs");
+
+	await expect(page).toHaveURL(/\/operations\/audit-logs$/);
+	await expect(actionInput).toHaveValue("user.update");
+	await page
+		.getByTestId("audit-log-query-form")
+		.getByRole("button", { name: /重.*置/ })
+		.click();
+	await expect(actionInput).toHaveValue("");
+
+	await navigateWithinAdmin(page, "/access/roles");
+	await navigateWithinAdmin(page, "/operations/audit-logs");
+	await expect(actionInput).toHaveValue("");
+});
+
+test("登录日志在标签切换后保留查询草稿", async ({ page }) => {
+	await signIn(page);
+	await navigateWithinAdmin(page, "/operations/login-logs");
+	await expect(page).toHaveURL(/\/operations\/login-logs$/);
+
+	const queryForm = page.getByTestId("login-log-query-form");
+	await queryForm.getByRole("combobox").first().click();
+	await page
+		.locator(".ant-select-dropdown:visible")
+		.getByText("凭据无效", { exact: true })
+		.click();
+	const rangeStart = queryForm.getByPlaceholder("开始时间");
+	const rangeEnd = queryForm.getByPlaceholder("结束时间");
+	await rangeStart.fill("2026-08-01 00:00");
+	await rangeStart.press("Tab");
+	await rangeEnd.fill("2026-08-02 23:59");
+	await rangeEnd.press("Enter");
+	await expect(queryForm.getByTitle("凭据无效")).toBeVisible();
+
+	await navigateWithinAdmin(page, "/access/roles");
+	await expect(page).toHaveURL(/\/access\/roles$/);
+	await navigateWithinAdmin(page, "/operations/login-logs");
+
+	await expect(page).toHaveURL(/\/operations\/login-logs$/);
+	await expect(queryForm.getByTitle("凭据无效")).toBeVisible();
+	await expect(rangeStart).toHaveValue("2026-08-01 00:00");
+	await expect(rangeEnd).toHaveValue("2026-08-02 23:59");
+});
+
 test("页面标签支持横向拖拽换位且保持当前路由", async ({ page }) => {
 	await signIn(page);
 
@@ -258,6 +312,10 @@ test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
 	await expect(statusFilter).toHaveCount(0);
 	await page.getByText("展开", { exact: true }).click();
 	await expect(statusFilter).toBeVisible();
+	await navigateWithinAdmin(page, "/access/roles");
+	await navigateWithinAdmin(page, "/organization/users");
+	await expect(statusFilter).toBeVisible();
+	await expect(page.getByText("收起", { exact: true })).toBeVisible();
 });
 
 test("角色管理支持查询、分页和标准表格工具", async ({ page }) => {

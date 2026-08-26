@@ -73,12 +73,14 @@ interface UsersTablePanelProps {
 	draftFilters: UserFilterValues;
 	error: unknown;
 	filterForm: FormInstance<UserFilterValues>;
+	filtersExpanded: boolean;
 	initialLoading: boolean;
 	onCreate: () => void;
 	onDelete: (user: PlatformUser) => void;
 	onDraftFiltersChange: (filters: UserFilterValues) => void;
 	onEdit: (user: PlatformUser) => void;
 	onForceLogout: (user: PlatformUser) => void;
+	onFiltersExpandedChange: (expanded: boolean) => void;
 	onManageRoles: (user: PlatformUser) => void;
 	onQuery: () => void;
 	onReload: () => void;
@@ -97,12 +99,14 @@ export function UsersTablePanel({
 	draftFilters,
 	error,
 	filterForm,
+	filtersExpanded,
 	initialLoading,
 	onCreate,
 	onDelete,
 	onDraftFiltersChange,
 	onEdit,
 	onForceLogout,
+	onFiltersExpandedChange,
 	onManageRoles,
 	onQuery,
 	onReload,
@@ -115,7 +119,6 @@ export function UsersTablePanel({
 }: UsersTablePanelProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const [filtersExpanded, setFiltersExpanded] = useState(false);
 	const {
 		canExpand,
 		collapsedFieldCount,
@@ -310,7 +313,7 @@ export function UsersTablePanel({
 					loading={refreshing}
 					onFinish={onQuery}
 					onReset={onResetFilters}
-					onToggle={() => setFiltersExpanded((expanded) => !expanded)}
+					onToggle={() => onFiltersExpandedChange(!filtersExpanded)}
 					submitterOffset={submitterOffset}
 					testId="admin-users-query-form"
 				>
