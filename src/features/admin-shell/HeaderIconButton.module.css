@@ -20,7 +20,7 @@
 }
 
 .button[data-pressed="true"]::before {
-	opacity: 0.1;
+	opacity: 0.05;
 }
 
 .button::after {
