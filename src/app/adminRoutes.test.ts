@@ -59,17 +59,27 @@ describe("admin route template", () => {
 		const searchRoute = getAdminRouteMetadata(
 			"/examples/lists/search/articles",
 		);
+		const genericDetailRoute = getAdminRouteMetadata("/examples/detail");
 
 		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
 			expect.arrayContaining(["listExamples", "formExamples", "examples"]),
 		);
-		expect(examplesGroup?.sidebarMode).toBe("group");
-		expect(adminCollapsibleSidebarGroupKeys).not.toContain("examples");
+		expect(examplesGroup?.nodes.map((node) => node.routeKey)).toEqual([
+			"/examples/tree-category",
+			"/examples/preview-panel",
+			"/examples/detail",
+			"/examples/files",
+			"/examples/import-export",
+		]);
+		expect(adminCollapsibleSidebarGroupKeys).toEqual(
+			expect.arrayContaining(["listExamples", "formExamples", "examples"]),
+		);
 		expect(getAdminRouteOpenKeys(formRoute)).toEqual(["formExamples"]);
 		expect(getAdminRouteOpenKeys(searchRoute)).toEqual([
 			"listExamples",
 			"example-search-lists",
 		]);
+		expect(getAdminRouteOpenKeys(genericDetailRoute)).toEqual(["examples"]);
 	});
 
 	it("maps unknown authenticated locations to the 404 page metadata", () => {

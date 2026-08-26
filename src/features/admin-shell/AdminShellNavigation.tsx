@@ -205,21 +205,12 @@ export function AdminShellNavigation({
 	);
 	const navigationItems: NonNullable<MenuProps["items"]> = [
 		dashboardNavigationItem,
-		...visibleNavigationGroups.map((group) =>
-			group.sidebarMode === "group"
-				? {
-						key: group.key,
-						label: t(group.titleKey),
-						type: "group" as const,
-						children: navigationItemsByGroup.get(group.key) ?? [],
-					}
-				: {
-						key: group.key,
-						icon: groupIconByKey[group.iconKey],
-						label: t(group.titleKey),
-						children: navigationItemsByGroup.get(group.key) ?? [],
-					},
-		),
+		...visibleNavigationGroups.map((group) => ({
+			key: group.key,
+			icon: groupIconByKey[group.iconKey],
+			label: t(group.titleKey),
+			children: navigationItemsByGroup.get(group.key) ?? [],
+		})),
 	];
 	const topLevelNavigationItems: NonNullable<MenuProps["items"]> = [
 		{ ...dashboardNavigationItem, key: "dashboard" },
