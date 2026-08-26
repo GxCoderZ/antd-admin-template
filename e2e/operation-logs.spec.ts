@@ -95,3 +95,43 @@ test("操作审计和登录日志详情展示全部字段", async ({ page }) => 
 		loginDetailLabels,
 	);
 });
+
+test("操作审计在临界宽度保持稳定的响应式列", async ({ page }) => {
+	await page.setViewportSize({ height: 760, width: 1286 });
+	await login(page);
+	await page
+		.getByRole("menuitem", { name: "审计日志", exact: true })
+		.click();
+	await page
+		.getByRole("menuitem", { name: "操作审计", exact: true })
+		.click();
+
+	const tableCard = page.getByTestId("audit-log-table-card");
+	await expect(tableCard).toBeVisible();
+	await expect(tableCard.getByRole("row").nth(1)).toBeVisible();
+
+	const scrollContainer = page.locator(".admin-shell-scroll-content");
+	await expect
+		.poll(() =>
+			scrollContainer.evaluate(
+				(element) => getComputedStyle(element).scrollbarGutter,
+			),
+		)
+		.toBe("stable");
+
+	const headerSignatures = await tableCard.evaluate(async (card) => {
+		const signatures: string[] = [];
+		for (let sample = 0; sample < 30; sample += 1) {
+			signatures.push(
+				Array.from(card.querySelectorAll("th"))
+					.map((header) => header.textContent?.trim() ?? "")
+					.filter(Boolean)
+					.join("|"),
+			);
+			await new Promise(requestAnimationFrame);
+		}
+		return signatures;
+	});
+
+	expect(new Set(headerSignatures).size).toBe(1);
+});

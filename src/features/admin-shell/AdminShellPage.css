@@ -1,3 +1,7 @@
+.admin-shell-scroll-content {
+	scrollbar-gutter: stable;
+}
+
 .admin-shell-scroll-content:has([data-admin-shell-footer-bar="true"]) {
 	padding-bottom: 66px;
 }
