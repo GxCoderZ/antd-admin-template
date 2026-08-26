@@ -150,6 +150,7 @@ export function GenericDetailPage() {
 								pagination={false}
 								rowKey="id"
 								scroll={{ x: token.controlHeight * 14 }}
+								size="middle"
 							/>
 						</section>
 					</Flex>

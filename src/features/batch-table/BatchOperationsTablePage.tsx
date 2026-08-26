@@ -307,6 +307,7 @@ export function BatchOperationsTablePage() {
 				columns={columns}
 				dataSource={currentRows}
 				dateFormatter="string"
+				defaultSize="middle"
 				form={{ initialValues: defaultFilters }}
 				headerTitle={t("adminShell.batchTable.title")}
 				loading={query.isPending || query.isFetching}

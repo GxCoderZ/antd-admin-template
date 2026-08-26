@@ -177,6 +177,9 @@ describe("ImportExportPage", () => {
 		expect(
 			screen.getByText("导出条件包含已停用字段，请调整后重试。"),
 		).toBeVisible();
+		for (const table of document.querySelectorAll(".ant-table")) {
+			expect(table).toHaveClass("ant-table-medium");
+		}
 	});
 
 	it("downloads templates and successful export files through API helpers", async () => {

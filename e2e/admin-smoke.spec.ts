@@ -44,6 +44,9 @@ test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 	await expect(page).toHaveURL(/\/system\/about$/);
 
 	await expect(page.getByTestId("about-runtime-service")).toBeVisible();
+	await expect(page.getByTestId("about-production-dependencies")).toHaveClass(
+		/ant-table-medium/,
+	);
 	await expect(
 		page.getByTestId("about-technology-item-Cloudflare Pages / GitHub"),
 	).toBeVisible();

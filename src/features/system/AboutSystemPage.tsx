@@ -390,7 +390,7 @@ export function AboutSystemPage() {
 					dataSource={productionDependencies}
 					pagination={false}
 					rowKey="name"
-					size="small"
+					size="middle"
 				/>
 			</Card>
 		</Flex>

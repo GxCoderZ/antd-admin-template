@@ -432,7 +432,7 @@ export function ImportExportPage() {
 									pagination={false}
 									rowKey="id"
 									scroll={{ x: token.controlHeight * 17 }}
-									size="small"
+									size="middle"
 								/>
 							)}
 						</Card>
@@ -525,7 +525,7 @@ export function ImportExportPage() {
 								pagination={false}
 								rowKey="id"
 								scroll={{ x: token.controlHeight * 20 }}
-								size="small"
+								size="middle"
 							/>
 							{preview.issues.length > 0 ? (
 								<Table<ImportValidationIssue>
@@ -534,7 +534,7 @@ export function ImportExportPage() {
 									pagination={false}
 									rowKey="id"
 									scroll={{ x: token.controlHeight * 15 }}
-									size="small"
+									size="middle"
 									title={() => t("adminShell.importExport.issues.title")}
 								/>
 							) : null}
@@ -619,7 +619,7 @@ export function ImportExportPage() {
 							pagination={false}
 							rowKey="id"
 							scroll={{ x: token.controlHeight * 25 }}
-							size="small"
+							size="middle"
 							style={{ marginTop: token.margin }}
 						/>
 					)}

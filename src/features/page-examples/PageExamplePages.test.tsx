@@ -150,6 +150,9 @@ describe("page example assets", () => {
 		renderPage(<GenericDetailPage />);
 		expect(await screen.findByText("客户成功计划")).toBeVisible();
 		expect(screen.getByText("72%")).toBeVisible();
+		expect(document.querySelector(".ant-table")).toHaveClass(
+			"ant-table-medium",
+		);
 	});
 
 	it("renders both result page assets", () => {
