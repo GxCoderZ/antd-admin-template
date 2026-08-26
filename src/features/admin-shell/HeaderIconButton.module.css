@@ -8,7 +8,8 @@
 }
 
 .button::after {
-	animation: header-icon-button-ripple 220ms ease-out;
+	animation-duration: 220ms;
+	animation-timing-function: ease-out;
 	background: currentColor;
 	border-radius: 50%;
 	content: "";
@@ -28,7 +29,22 @@
 	display: block;
 }
 
-@keyframes header-icon-button-ripple {
+.button[data-ripple-phase="primary"]::after {
+	animation-name: header-icon-button-ripple-primary;
+}
+
+.button[data-ripple-phase="alternate"]::after {
+	animation-name: header-icon-button-ripple-alternate;
+}
+
+@keyframes header-icon-button-ripple-primary {
+	to {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+@keyframes header-icon-button-ripple-alternate {
 	to {
 		opacity: 0;
 		transform: translate(-50%, -50%) scale(1);

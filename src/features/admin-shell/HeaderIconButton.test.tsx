@@ -42,6 +42,7 @@ describe("HeaderIconButton", () => {
 		fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
 
 		expect(button).toHaveAttribute("data-rippling", "true");
+		expect(button).toHaveAttribute("data-ripple-phase", "primary");
 		expect(button).toHaveStyle({
 			"--header-icon-button-ripple-size": "64px",
 			"--header-icon-button-ripple-x": "8px",
@@ -58,6 +59,22 @@ describe("HeaderIconButton", () => {
 		expect(button).toHaveStyle({
 			"--header-icon-button-ripple-x": "16px",
 			"--header-icon-button-ripple-y": "16px",
+		});
+	});
+
+	it("restarts the ripple when pressed repeatedly before animation ends", () => {
+		const button = renderButton();
+
+		fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
+		expect(button).toHaveAttribute("data-ripple-phase", "primary");
+
+		fireEvent.pointerDown(button, { button: 0, clientX: 12, clientY: 14 });
+
+		expect(button).toHaveAttribute("data-rippling", "true");
+		expect(button).toHaveAttribute("data-ripple-phase", "alternate");
+		expect(button).toHaveStyle({
+			"--header-icon-button-ripple-x": "12px",
+			"--header-icon-button-ripple-y": "14px",
 		});
 	});
 

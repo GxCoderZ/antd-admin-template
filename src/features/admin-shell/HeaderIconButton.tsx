@@ -1,20 +1,23 @@
 import { Button, type ButtonProps } from "antd";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
-import { forwardRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 
 import styles from "./HeaderIconButton.module.css";
 
 interface RippleState {
+	phase: "alternate" | "primary";
 	size: number;
 	x: number;
 	y: number;
 }
 
+type RipplePosition = Omit<RippleState, "phase">;
+
 function mergeClassNames(...classNames: Array<string | undefined>) {
 	return classNames.filter(Boolean).join(" ");
 }
 
-function createCenteredRipple(target: HTMLElement): RippleState {
+function createCenteredRipple(target: HTMLElement): RipplePosition {
 	const { height, width } = target.getBoundingClientRect();
 	return {
 		size: Math.max(width, height) * 2,
@@ -26,7 +29,7 @@ function createCenteredRipple(target: HTMLElement): RippleState {
 function createPointerRipple(
 	event: PointerEvent<HTMLElement>,
 	target: HTMLElement,
-): RippleState {
+): RipplePosition {
 	const rect = target.getBoundingClientRect();
 	return {
 		size: Math.max(rect.width, rect.height) * 2,
@@ -61,11 +64,14 @@ export const HeaderIconButton = forwardRef<
 	ref,
 ) {
 	const [ripple, setRipple] = useState<RippleState | null>(null);
+	const ripplePhaseRef = useRef<RippleState["phase"]>("alternate");
 	const isUnavailable = disabled === true || Boolean(loading);
 
-	const showRipple = (nextRipple: RippleState) => {
+	const showRipple = (nextRipple: RipplePosition) => {
 		if (!isUnavailable) {
-			setRipple(nextRipple);
+			ripplePhaseRef.current =
+				ripplePhaseRef.current === "primary" ? "alternate" : "primary";
+			setRipple({ ...nextRipple, phase: ripplePhaseRef.current });
 		}
 	};
 
@@ -88,6 +94,7 @@ export const HeaderIconButton = forwardRef<
 			{...buttonProps}
 			className={mergeClassNames(styles.button, className)}
 			{...(ripple ? { "data-rippling": "true" } : {})}
+			{...(ripple ? { "data-ripple-phase": ripple.phase } : {})}
 			{...(disabled === undefined ? {} : { disabled })}
 			{...(loading === undefined ? {} : { loading })}
 			onAnimationEnd={(event) => {
