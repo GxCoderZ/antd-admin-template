@@ -3,6 +3,7 @@
 	--header-icon-button-ripple-x: 50%;
 	--header-icon-button-ripple-y: 50%;
 
+	line-height: 1;
 	overflow: hidden;
 	position: relative;
 }

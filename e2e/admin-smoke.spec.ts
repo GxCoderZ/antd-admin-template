@@ -318,7 +318,18 @@ test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
 
-	await page.getByRole("button", { name: "打开菜单" }).click();
+	const mobileMenuButton = page.getByRole("button", { name: "打开菜单" });
+	const mobileMenuButtonMetrics = await mobileMenuButton.evaluate((button) => {
+		const style = getComputedStyle(button);
+		return {
+			height: button.getBoundingClientRect().height,
+			lineHeight: Number.parseFloat(style.lineHeight),
+		};
+	});
+	expect(mobileMenuButtonMetrics.lineHeight).toBeLessThan(
+		mobileMenuButtonMetrics.height,
+	);
+	await mobileMenuButton.click();
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/organization\/users$/);
