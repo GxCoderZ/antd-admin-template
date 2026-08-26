@@ -33,6 +33,12 @@ test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 	});
 	await expect(currentUserButton.locator(".ant-avatar img")).toHaveCount(0);
 	await expect(currentUserButton.locator(".anticon-user")).toBeVisible();
+	await currentUserButton.click();
+	for (const itemName of ["通知中心", "个人资料", "账号设置"]) {
+		const menuItem = page.getByRole("menuitem", { name: itemName, exact: true });
+		await expect(menuItem.locator(".anticon")).toHaveCSS("margin-right", "8px");
+	}
+	await page.keyboard.press("Escape");
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "关于系统", exact: true }).click();
 	await expect(page).toHaveURL(/\/system\/about$/);

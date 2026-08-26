@@ -25,44 +25,47 @@ import {
 	UserSwitchOutlined,
 	WarningOutlined,
 } from "@ant-design/icons";
-import type { ReactNode } from "react";
+import type { ComponentProps } from "react";
 
 import type { AdminRouteIconKey } from "../../app/adminRoutes";
 
-interface AdminRouteIconProps {
+const adminRouteIcons = {
+	about: InfoCircleOutlined,
+	advancedForm: FormOutlined,
+	announcements: NotificationOutlined,
+	auditLogs: AuditOutlined,
+	basicForm: FormOutlined,
+	batchTable: TableOutlined,
+	dashboard: DashboardOutlined,
+	departments: BankOutlined,
+	dictionaries: BookOutlined,
+	editableTable: TableOutlined,
+	exceptionForbidden: StopOutlined,
+	exceptionNotFound: WarningOutlined,
+	exceptionServerError: BugOutlined,
+	importExport: ImportOutlined,
+	loginLogs: FileTextOutlined,
+	positions: IdcardOutlined,
+	previewPanel: EyeOutlined,
+	resultFailure: CloseCircleOutlined,
+	resultSuccess: CheckCircleOutlined,
+	roles: UserSwitchOutlined,
+	searchApplications: AppstoreAddOutlined,
+	searchArticles: ReadOutlined,
+	searchProjects: ProjectOutlined,
+	settings: ControlOutlined,
+	stepForm: PartitionOutlined,
+	treeCategory: ApartmentOutlined,
+	users: UserOutlined,
+} satisfies Record<AdminRouteIconKey, typeof UserOutlined>;
+
+interface AdminRouteIconProps
+	extends Omit<ComponentProps<typeof UserOutlined>, "ref"> {
 	iconKey: AdminRouteIconKey;
 }
 
-export function AdminRouteIcon({ iconKey }: AdminRouteIconProps) {
-	const icons = {
-		about: <InfoCircleOutlined aria-hidden />,
-		advancedForm: <FormOutlined aria-hidden />,
-		announcements: <NotificationOutlined aria-hidden />,
-		auditLogs: <AuditOutlined aria-hidden />,
-		basicForm: <FormOutlined aria-hidden />,
-		batchTable: <TableOutlined aria-hidden />,
-		dashboard: <DashboardOutlined aria-hidden />,
-		departments: <BankOutlined aria-hidden />,
-		dictionaries: <BookOutlined aria-hidden />,
-		exceptionForbidden: <StopOutlined aria-hidden />,
-		exceptionNotFound: <WarningOutlined aria-hidden />,
-		exceptionServerError: <BugOutlined aria-hidden />,
-		importExport: <ImportOutlined aria-hidden />,
-		loginLogs: <FileTextOutlined aria-hidden />,
-		previewPanel: <EyeOutlined aria-hidden />,
-		positions: <IdcardOutlined aria-hidden />,
-		resultFailure: <CloseCircleOutlined aria-hidden />,
-		resultSuccess: <CheckCircleOutlined aria-hidden />,
-		roles: <UserSwitchOutlined aria-hidden />,
-		searchApplications: <AppstoreAddOutlined aria-hidden />,
-		searchArticles: <ReadOutlined aria-hidden />,
-		searchProjects: <ProjectOutlined aria-hidden />,
-		settings: <ControlOutlined aria-hidden />,
-		stepForm: <PartitionOutlined aria-hidden />,
-		editableTable: <TableOutlined aria-hidden />,
-		treeCategory: <ApartmentOutlined aria-hidden />,
-		users: <UserOutlined aria-hidden />,
-	} satisfies Record<AdminRouteIconKey, ReactNode>;
+export function AdminRouteIcon({ iconKey, ...iconProps }: AdminRouteIconProps) {
+	const Icon = adminRouteIcons[iconKey];
 
-	return icons[iconKey];
+	return <Icon aria-hidden {...iconProps} />;
 }

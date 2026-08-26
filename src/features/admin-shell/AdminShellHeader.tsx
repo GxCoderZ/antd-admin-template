@@ -179,6 +179,7 @@ export function AdminShellHeader({
 		}));
 	const userMenuItems: MenuProps["items"] = [
 		...accountRouteMenuItems,
+		{ type: "divider" },
 		{
 			key: "logout",
 			icon: <LogoutOutlined aria-hidden />,
@@ -307,7 +308,13 @@ export function AdminShellHeader({
 				)}
 				<NotificationPopover onNavigate={onNavigate} />
 				<Dropdown
-					menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
+					arrow
+					menu={{
+						items: userMenuItems,
+						onClick: handleUserMenuClick,
+						selectedKeys: [],
+					}}
+					placement="bottomRight"
 					trigger={["click"]}
 				>
 					<Button aria-label={currentUsername} type="text">
