@@ -1,6 +1,6 @@
 # AntD Admin Template 前端开发规则
 
-## 作用与硬边界
+## 项目边界
 
 本仓库是公司内部使用的 `antd-admin-template` 产品 UI 母版。它是 **Fake-only 纯前端项目**：只负责页面、通用组件、主题、响应式、国际化、前端交互、测试，以及驱动这些能力所需的 Fake Server 状态。
 
@@ -23,7 +23,7 @@
 - 唯一正式源码目录是 `D:\Dev\antd-admin-template`，用户验收地址统一为 `http://127.0.0.1:3003`。worktree 只用于隔离任务，不得直接复制覆盖正式仓库。
 - 隔离任务提交本地 Git 并报告 SHA；主任务负责合并、冲突处理和最终验证。默认不推送或部署，外部仓库、Cloudflare、Webhook 等操作须获得当次明确授权。
 
-## 架构与组织
+## 架构与数据
 
 ```text
 页面 / 领域组件
@@ -43,14 +43,23 @@
 
 不要新增已废弃的 `src/pages`、`src/router/routes/static` 或 `src/store` 体系。公告管理是完整 Fake CRUD 参考领域，新增管理领域应沿用其数据流和行为覆盖，不复制其页面实现。
 
-## UI 与样式规则
+### API 与 Fake
+
+- 请求函数使用 `listPlatformUsers`、`getPlatformUser`、`updatePlatformUser` 等领域化命名，统一经过 `src/api/client.ts`；页面禁止直接调用 `fetch`。
+- 成功响应统一为 `{ code, msg, data }`。
+- HTTP 分页数据为 `{ items, total, page, page_size }`，领域 API 层可转换为前端命名。
+- Fake 文件以 `.fake.ts` 结尾，URL 不含 Vite 的 `/api` basename，且不得依赖 Node 专属运行时模块。
+- Fake CRUD 必须保留当前预览会话内的内存变化；写操作后再次查询必须看到变化。
+- 种子数据应足以演示分页、筛选、排序、空态和代表性状态。
+
+## 界面与交互
 
 - 标准控件和图标使用 Ant Design、`@ant-design/icons`；禁止手写复刻 Button、Table、Form、Drawer、Modal、Tabs、Result、Skeleton、Upload 或通知组件。
 - 用户指定 Ant Design 或 Pro 参考页时，先核对当前页面及可用源码，保持其信息结构、间距、加载与交互，只适配本项目版本、国际化、Fake API、主题和响应式。能由 `@ant-design/pro-components` 准确承载时直接复用，不维护平行仿制实现。
 - 尺寸、颜色、圆角、边框和阴影优先使用 Theme Token 与组件默认值；页面样式留在所属领域，跨页面覆盖集中在应用层。
 - 数据密集型管理页默认使用完整内容区宽度；表单、详情和设置页按官方参考保持可读宽度，不用一套全局最大宽度强行约束所有页面。
 - 卡片不增加重阴影、异常圆角或重复标题。Drawer、Modal 根据内容选择克制且响应式的宽度；长内容独立滚动、操作区固定，390px 下占满可用宽度。
-- 中文是主要产品语言；用户文案进入现有国际化体系并覆盖全部受支持语言。交互按需覆盖 hover、focus、active、disabled、loading、error 和 danger；无权限操作直接隐藏。
+- 交互按需覆盖 hover、focus、active、disabled、loading、error 和 danger。
 - 路由和大内容区域加载使用 Ant Design Skeleton；表格刷新使用 Table 的 `loading`，不把表格行替换成骨架屏。
 - 关键页面覆盖加载、正常、空数据、失败和无权限状态；检查桌面与窄屏，避免重叠或溢出。
 - 普通编辑直接进入编辑流程，不要求确认。重置密码、强制下线、不可恢复删除等高影响操作必须保持 danger，并使用明确确认。
@@ -68,30 +77,23 @@
 - 只有确有批量业务价值的表格才启用 `rowSelection`；批量删除必须确认，普通批量启停不要求输入名称，操作成功后清理失效选择并刷新对应 Fake 查询。
 - 新增表格页通过标准组件 Props 组合领域差异，不复制用户管理或日志页面。
 
-## 标签栏与核心领域交互
+### 标签与核心管理
 
 - 页面标签使用 Ant Design Tabs 和现有 `@dnd-kit/*` 横向换位；仪表盘固定首位，不允许关闭、拖动、让位或执行其它标签操作。
 - 标签右键菜单与右侧工具菜单复用同一套操作和状态。
 - 用户基础编辑、角色分配和密码重置保持独立流程；角色分配使用多选草稿统一保存并展示新增/移除差异，不恢复逐项即时提交。
 - 角色基础编辑与权限配置保持独立流程；权限配置使用完整 Ant Design Tree、抽屉内草稿和统一保存，不把角色名称或状态塞进权限抽屉。
 
-## API 与 Fake 规则
-
-- 请求函数使用 `listPlatformUsers`、`getPlatformUser`、`updatePlatformUser` 等领域化命名，统一经过 `src/api/client.ts`；页面禁止直接调用 `fetch`。
-- 成功响应统一为 `{ code, msg, data }`。
-- HTTP 分页数据为 `{ items, total, page, page_size }`，领域 API 层可转换为前端命名。
-- Fake 文件以 `.fake.ts` 结尾，URL 不含 Vite 的 `/api` basename，且不得依赖 Node 专属运行时模块。
-- Fake CRUD 必须保留当前预览会话内的内存变化；写操作后再次查询必须看到变化。
-- 种子数据应足以演示分页、筛选、排序、空态和代表性状态。
-
-## 路由、菜单与权限
+## 路由、权限与国际化
 
 - 业务路由和导航统一注册在 `src/app/adminRoutes.ts` 并使用懒加载；新增路由同步增加标题、导航图标和全部语言文案。
+- 中文是主要产品语言；用户文案进入现有国际化体系并覆盖全部受支持语言。
 - 使用现有 `PlatformPermission`、`platformPermissions` 和权限 Hook 控制显隐。
+- 无权限操作直接隐藏。
 - 权限名沿用 `platform.*` 命名空间，除非另行批准全仓库统一改名。
 - 删除领域时同步删除路由、导航、API、Fake、文案、权限和测试，不保留不可达残件。
 
-## 测试与质量
+## 测试与完成
 
 - 行为修改先写失败测试，再做最小实现。
 - 优先测试用户可见行为，避免以文件存在和源码字符串断言冒充功能测试。
@@ -100,7 +102,7 @@
 - 重构前为即将移动的行为补特征测试。
 - 不锁定偶然 DOM 结构或 Ant Design 内部实现细节。
 
-## 完成门槛
+### 验证命令
 
 每次代码修改必须获得以下命令的新鲜通过结果：
 
