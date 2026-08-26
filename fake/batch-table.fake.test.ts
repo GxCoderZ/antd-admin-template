@@ -5,6 +5,7 @@ import type {
 	BatchTableStatusMutation,
 } from "../src/api/batch-table";
 import batchTableRoutes from "./batch-table.fake";
+import { findFakeRoute } from "./route-helpers";
 
 interface BatchTableListPayload {
 	data: {
@@ -15,26 +16,8 @@ interface BatchTableListPayload {
 	};
 }
 
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		body?: unknown;
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
-
 function findRoute(method: string, url: string) {
-	const route = (batchTableRoutes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === method && candidate.url === url,
-	);
-
-	if (!route?.response) {
-		throw new Error(`Missing Fake route: ${method} ${url}`);
-	}
-
-	return route.response;
+	return findFakeRoute(batchTableRoutes, method, url);
 }
 
 describe("Fake batch table records", () => {
@@ -81,7 +64,9 @@ describe("Fake batch table records", () => {
 		}) as BatchTableListPayload;
 		const callCounts = sortedRecords.data.items.map((item) => item.callCount);
 
-		expect(callCounts).toEqual([...callCounts].sort((left, right) => left - right));
+		expect(callCounts).toEqual(
+			[...callCounts].sort((left, right) => left - right),
+		);
 	});
 
 	it("persists bulk status and delete operations in session memory", () => {

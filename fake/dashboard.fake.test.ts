@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import routes, { getDashboardStatisticsSnapshot } from "./dashboard.fake";
 import { auditLogs, dashboardTodos, loginLogs, roles, users } from "./store";
+import { findFakeRoute } from "./route-helpers";
 
 describe("Fake dashboard statistics", () => {
 	it("aggregates the current in-memory domain state", () => {
@@ -33,19 +34,17 @@ describe("Fake dashboard statistics", () => {
 	});
 
 	it("persists todo completion in the current preview session", () => {
-		const route = (routes as unknown as Array<{
-			method: string;
-			response: (request: { params: Record<string, string> }) => { data: unknown };
-			url: string;
-		}>).find(
-			(candidate) =>
-				candidate.method === "patch" &&
-				candidate.url === "/platform/dashboard/todos/:todoId",
+		const completeTodo = findFakeRoute(
+			routes,
+			"patch",
+			"/platform/dashboard/todos/:todoId",
 		);
 		const todo = dashboardTodos.find((item) => item.status === "pending")!;
-		const result = route?.response({ params: { todoId: todo.id } });
+		const result = completeTodo({ params: { todoId: todo.id } });
 
-		expect(result?.data).toMatchObject({ id: todo.id, status: "completed" });
+		expect(result).toMatchObject({
+			data: { id: todo.id, status: "completed" },
+		});
 		expect(dashboardTodos.find((item) => item.id === todo.id)?.status).toBe(
 			"completed",
 		);

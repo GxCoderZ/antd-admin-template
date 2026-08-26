@@ -5,25 +5,10 @@ import type {
 	ContentCategoryItem,
 } from "../src/api/content-categories";
 import routes from "./content-categories.fake";
-
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		body?: unknown;
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
+import { findFakeRoute } from "./route-helpers";
 
 function findRoute(method: string, url: string) {
-	const route = (routes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === method && candidate.url === url,
-	);
-	if (!route?.response) {
-		throw new Error(`Missing Fake route: ${method} ${url}`);
-	}
-	return route.response;
+	return findFakeRoute(routes, method, url);
 }
 
 describe("Fake content category management", () => {

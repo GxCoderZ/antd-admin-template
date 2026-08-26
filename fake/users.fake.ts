@@ -6,6 +6,7 @@ import type {
 	UpdatePlatformUserInput,
 } from "../src/api/users";
 import { roles, session, userAvatarDataUrls, users } from "./store";
+import { readFakeBody } from "./route-helpers";
 import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
 
 function getUser(userId: string | undefined) {
@@ -78,7 +79,7 @@ export default defineFakeRoute([
 		url: "/platform/users",
 		method: "post",
 		response: ({ body }) => {
-			const input = body as unknown as CreatePlatformUserInput;
+			const input = readFakeBody<CreatePlatformUserInput>(body);
 			if (users.some((user) => user.username === input.username)) {
 				return resultError("Username already exists", 409);
 			}
@@ -120,7 +121,7 @@ export default defineFakeRoute([
 		response: ({ body, params }) => {
 			const user = getUser(routeParam(params.userId));
 			if (!user) return resultError("User not found", 404);
-			const input = body as unknown as UpdatePlatformUserInput;
+			const input = readFakeBody<UpdatePlatformUserInput>(body);
 			user.department = input.department;
 			user.displayName = input.displayName;
 			user.email = input.email;

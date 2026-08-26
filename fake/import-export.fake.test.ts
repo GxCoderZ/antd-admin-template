@@ -2,27 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import importExportRoutes from "./import-export.fake";
 import { exportTasks, importPreviews } from "./store";
-
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		body?: unknown;
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
+import { findFakeRoute } from "./route-helpers";
 
 function findRoute(method: string, url: string) {
-	const route = (importExportRoutes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === method && candidate.url === url,
-	);
-
-	if (!route?.response) {
-		throw new Error(`Missing Fake route: ${method} ${url}`);
-	}
-
-	return route.response;
+	return findFakeRoute(importExportRoutes, method, url);
 }
 
 describe("Fake import-export", () => {
@@ -73,15 +56,19 @@ describe("Fake import-export", () => {
 			body: { name: "Fake Export Flow" },
 		}) as { data: { id: string } };
 
-		let exported = exportTasks.find((item) => item.id === task.data.id);
-		for (
-			let index = 0;
-			index < 4 && exported?.status !== "succeeded";
-			index += 1
-		) {
-			getExport({ params: { taskId: task.data.id } });
-			exported = exportTasks.find((item) => item.id === task.data.id);
-		}
+		expect(exportTasks.find((item) => item.id === task.data.id)?.status).toBe(
+			"queued",
+		);
+		expect(getExport({ params: { taskId: task.data.id } })).toMatchObject({
+			data: { progress: 44, status: "running" },
+		});
+		expect(getExport({ params: { taskId: task.data.id } })).toMatchObject({
+			data: { progress: 76, status: "running" },
+		});
+		expect(getExport({ params: { taskId: task.data.id } })).toMatchObject({
+			data: { progress: 100, status: "succeeded" },
+		});
+		const exported = exportTasks.find((item) => item.id === task.data.id);
 		const download = downloadExport({
 			params: { taskId: task.data.id },
 		}) as { data: { content: string; fileName: string } };

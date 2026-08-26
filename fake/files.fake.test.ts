@@ -2,23 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import type { PlatformFile } from "../src/api/files";
 import fileRoutes from "./files.fake";
-
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		body?: unknown;
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
+import { findFakeRoute } from "./route-helpers";
 
 function findRoute(method: string, url: string) {
-	const route = (fileRoutes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === method && candidate.url === url,
-	);
-	if (!route?.response) throw new Error(`Missing Fake route: ${method} ${url}`);
-	return route.response;
+	return findFakeRoute(fileRoutes, method, url);
 }
 
 describe("Fake file management", () => {

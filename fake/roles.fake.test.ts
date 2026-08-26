@@ -2,24 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import type { PlatformRole } from "../src/api/roles";
 import roleRoutes from "./roles.fake";
-
-interface TestRoute {
-	method?: string;
-	response?: (context: {
-		params?: Record<string, string>;
-		query: Record<string, unknown>;
-	}) => unknown;
-	url: string;
-}
+import { findFakeRoute } from "./route-helpers";
 
 describe("Fake roles", () => {
 	it("uses Chinese display names for built-in roles", () => {
-		const listRoles = (roleRoutes as unknown as TestRoute[]).find(
-			(route) => route.method === "get" && route.url === "/platform/roles",
-		)?.response;
+		const listRoles = findFakeRoute(roleRoutes, "get", "/platform/roles");
 
-		expect(listRoles).toBeDefined();
-		const result = listRoles?.({ query: { page_size: "100" } }) as {
+		const result = listRoles({ query: { page_size: "100" } }) as {
 			data: { items: PlatformRole[] };
 		};
 		expect(result.data.items).toEqual(
@@ -42,12 +31,10 @@ describe("Fake roles", () => {
 	});
 
 	it("filters, sorts, and paginates the management list", () => {
-		const listRoles = (roleRoutes as unknown as TestRoute[]).find(
-			(route) => route.method === "get" && route.url === "/platform/roles",
-		)?.response;
+		const listRoles = findFakeRoute(roleRoutes, "get", "/platform/roles");
 
 		expect(
-			listRoles?.({
+			listRoles({
 				query: {
 					order: "desc",
 					page: "1",
@@ -67,18 +54,18 @@ describe("Fake roles", () => {
 	});
 
 	it("rejects deletion of built-in roles at the Fake API boundary", () => {
-		const deleteRole = (roleRoutes as unknown as TestRoute[]).find(
-			(route) =>
-				route.method === "delete" && route.url === "/platform/roles/:roleId",
-		)?.response;
+		const deleteRole = findFakeRoute(
+			roleRoutes,
+			"delete",
+			"/platform/roles/:roleId",
+		);
 
-		expect(deleteRole).toBeDefined();
-		expect(
-			deleteRole?.({ params: { roleId: "role-admin" }, query: {} }),
-		).toEqual({
-			code: 409,
-			data: null,
-			msg: "Built-in roles cannot be deleted",
-		});
+		expect(deleteRole({ params: { roleId: "role-admin" }, query: {} })).toEqual(
+			{
+				code: 409,
+				data: null,
+				msg: "Built-in roles cannot be deleted",
+			},
+		);
 	});
 });

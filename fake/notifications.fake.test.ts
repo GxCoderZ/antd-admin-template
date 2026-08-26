@@ -2,22 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import type { PlatformNotification } from "../src/api/notifications";
 import notificationRoutes from "./notifications.fake";
-
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
+import { findFakeRoute } from "./route-helpers";
 
 function findRoute(method: string, url: string) {
-	const route = (notificationRoutes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === method && candidate.url === url,
-	);
-	if (!route?.response) throw new Error(`Missing Fake route: ${method} ${url}`);
-	return route.response;
+	return findFakeRoute(notificationRoutes, method, url);
 }
 
 describe("Fake notification center", () => {

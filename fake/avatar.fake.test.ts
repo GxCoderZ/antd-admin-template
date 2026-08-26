@@ -1,45 +1,21 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import accountRoutes from "./account.fake";
+import { findFakeRoute } from "./route-helpers";
 import userRoutes from "./users.fake";
 
-interface TestRequest {
-	body?: unknown;
-	params?: Record<string, string>;
-}
-
-interface TestRoute {
-	method?: string;
-	response?: (request: TestRequest) => unknown;
-	url: string;
-}
-
-const accountFakeRoutes = accountRoutes as unknown as TestRoute[];
-const userFakeRoutes = userRoutes as unknown as TestRoute[];
-
-function route(routes: TestRoute[], method: string, url: string) {
-	const match = routes.find(
-		(item) => item.method === method && item.url === url,
-	)?.response;
-
-	if (!match) {
-		throw new Error(`Missing ${method.toUpperCase()} ${url} Fake route`);
-	}
-	return match;
-}
-
-const uploadAvatar = route(
-	accountFakeRoutes,
+const uploadAvatar = findFakeRoute(
+	accountRoutes,
 	"put",
 	"/platform/account/avatar",
 );
-const deleteAvatar = route(
-	accountFakeRoutes,
+const deleteAvatar = findFakeRoute(
+	accountRoutes,
 	"delete",
 	"/platform/account/avatar",
 );
-const getAvatar = route(
-	userFakeRoutes,
+const getAvatar = findFakeRoute(
+	userRoutes,
 	"get",
 	"/platform/users/:userId/avatar",
 );

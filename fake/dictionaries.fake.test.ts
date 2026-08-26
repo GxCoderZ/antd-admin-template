@@ -5,6 +5,7 @@ import type {
 	PlatformDictionaryType,
 } from "../src/api/dictionaries";
 import dictionaryRoutes from "./dictionaries.fake";
+import { findFakeRoute } from "./route-helpers";
 
 interface PagePayload<T> {
 	data: {
@@ -15,26 +16,8 @@ interface PagePayload<T> {
 	};
 }
 
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		body?: unknown;
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
-
 function findRoute(method: string, url: string) {
-	const route = (dictionaryRoutes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === method && candidate.url === url,
-	);
-
-	if (!route?.response) {
-		throw new Error(`Missing Fake route: ${method} ${url}`);
-	}
-
-	return route.response;
+	return findFakeRoute(dictionaryRoutes, method, url);
 }
 
 describe("Fake dictionaries", () => {

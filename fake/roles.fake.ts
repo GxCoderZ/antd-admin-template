@@ -6,6 +6,7 @@ import type {
 } from "../src/api/roles";
 import type { PlatformPermission } from "../src/api/types";
 import { allPermissions, roles } from "./store";
+import { readFakeBody } from "./route-helpers";
 import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
 
 function getRole(roleId: string | undefined) {
@@ -54,7 +55,7 @@ export default defineFakeRoute([
 		url: "/platform/roles",
 		method: "post",
 		response: ({ body }) => {
-			const input = body as unknown as CreatePlatformRoleInput;
+			const input = readFakeBody<CreatePlatformRoleInput>(body);
 			if (roles.some((role) => role.roleKey === input.roleKey)) {
 				return resultError("Role key already exists", 409);
 			}
@@ -80,7 +81,7 @@ export default defineFakeRoute([
 		response: ({ body, params }) => {
 			const role = getRole(routeParam(params.roleId));
 			if (!role) return resultError("Role not found", 404);
-			const input = body as unknown as UpdatePlatformRoleInput;
+			const input = readFakeBody<UpdatePlatformRoleInput>(body);
 			role.displayName = input.displayName;
 			role.updatedAt = new Date().toISOString();
 			role.version = (role.version ?? 0) + 1;

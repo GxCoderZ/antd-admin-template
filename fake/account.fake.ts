@@ -6,6 +6,7 @@ import type {
 	UpdatePlatformAccountInput,
 } from "../src/api/account";
 import { userAvatarDataUrls, users } from "./store";
+import { readFakeBody } from "./route-helpers";
 import { resultError, resultSuccess } from "./utils";
 
 const accountDetails = {
@@ -54,7 +55,7 @@ export default defineFakeRoute([
 		url: "/platform/account",
 		method: "patch",
 		response: ({ body }) => {
-			const input = body as unknown as UpdatePlatformAccountInput;
+			const input = readFakeBody<UpdatePlatformAccountInput>(body);
 			const requiredValues = [
 				input.address,
 				input.bio,
@@ -104,7 +105,7 @@ export default defineFakeRoute([
 		url: "/platform/account/security",
 		method: "patch",
 		response: ({ body }) => {
-			const input = body as unknown as PlatformAccountSecurity;
+			const input = readFakeBody<PlatformAccountSecurity>(body);
 			if (
 				typeof input.backupEmail !== "string" ||
 				!input.backupEmail.includes("@") ||
@@ -127,7 +128,7 @@ export default defineFakeRoute([
 		url: "/platform/account/notifications",
 		method: "patch",
 		response: ({ body }) => {
-			const input = body as unknown as PlatformAccountNotifications;
+			const input = readFakeBody<PlatformAccountNotifications>(body);
 			if (
 				typeof input.systemMessage !== "boolean" ||
 				typeof input.todoTask !== "boolean" ||

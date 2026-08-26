@@ -5,22 +5,10 @@ import type {
 	ExampleRecordDetail,
 } from "../src/api/page-examples";
 import pageExampleRoutes from "./page-examples.fake";
-
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
+import { findFakeRoute } from "./route-helpers";
 
 function findRoute(method: string, url: string) {
-	const route = (pageExampleRoutes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === method && candidate.url === url,
-	);
-	if (!route?.response) throw new Error(`Missing Fake route: ${method} ${url}`);
-	return route.response;
+	return findFakeRoute(pageExampleRoutes, method, url);
 }
 
 describe("Fake page examples", () => {

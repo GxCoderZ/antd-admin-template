@@ -2,12 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { AdvancedFormPayload } from "../src/api/form-examples";
 import formExampleRoutes from "./form-examples.fake";
-
-interface TestRoute {
-	method?: string;
-	response?: (request: { body?: unknown }) => unknown;
-	url: string;
-}
+import { findFakeRoute } from "./route-helpers";
 
 interface SubmissionPayload {
 	data: { id: string };
@@ -18,15 +13,7 @@ interface SuccessPayload<T> {
 }
 
 function findRoute(url: string) {
-	const route = (formExampleRoutes as unknown as TestRoute[]).find(
-		(candidate) => candidate.method === "post" && candidate.url === url,
-	);
-
-	if (!route?.response) {
-		throw new Error(`Missing Fake route: POST ${url}`);
-	}
-
-	return route.response;
+	return findFakeRoute(formExampleRoutes, "post", url);
 }
 
 describe("Fake form examples", () => {
@@ -74,20 +61,16 @@ describe("Fake form examples", () => {
 	});
 
 	it("persists advanced drafts, validates unique codes, and rejects invalid advanced submissions", () => {
-		const getDraft = (formExampleRoutes as unknown as TestRoute[]).find(
-			(candidate) =>
-				candidate.method === "get" &&
-				candidate.url === "/platform/form-examples/advanced/draft",
-		)?.response;
+		const getDraft = findFakeRoute(
+			formExampleRoutes,
+			"get",
+			"/platform/form-examples/advanced/draft",
+		);
 		const saveDraft = findRoute("/platform/form-examples/advanced/draft");
 		const submitAdvanced = findRoute("/platform/form-examples/advanced/submit");
 		const validateCode = findRoute(
 			"/platform/form-examples/advanced/validate-code",
 		);
-		if (!getDraft) {
-			throw new Error("Missing Fake route: GET advanced draft");
-		}
-
 		const advancedPayload: AdvancedFormPayload = {
 			accessMode: "team",
 			approvers: ["lead"],
@@ -126,10 +109,12 @@ describe("Fake form examples", () => {
 		}) as SubmissionPayload;
 		expect(draftSubmission.data.id).toMatch(/^advanced-/);
 		expect(
-			(getDraft({}) as SuccessPayload<{
-				approvers?: string[];
-				projectCode: string;
-			}>).data,
+			(
+				getDraft({}) as SuccessPayload<{
+					approvers?: string[];
+					projectCode: string;
+				}>
+			).data,
 		).toMatchObject({ approvers: ["lead"], projectCode: "ADV-001" });
 		const advancedSubmission = submitAdvanced({
 			body: advancedPayload,

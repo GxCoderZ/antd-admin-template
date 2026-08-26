@@ -1,28 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import accountRoutes from "./account.fake";
-
-interface TestRequest {
-	body?: unknown;
-}
-
-interface TestRoute {
-	method?: string;
-	response?: (request: TestRequest) => unknown;
-	url: string;
-}
-
-const routes = accountRoutes as unknown as TestRoute[];
+import { findFakeRoute, toFakeRouteList } from "./route-helpers";
 
 function route(method: string, url: string) {
-	const response = routes.find(
-		(item) => item.method === method && item.url === url,
-	)?.response;
-
-	if (!response) {
-		throw new Error(`Missing ${method.toUpperCase()} ${url} Fake route`);
-	}
-	return response;
+	return findFakeRoute(accountRoutes, method, url);
 }
 
 describe("Fake account settings", () => {
@@ -63,7 +45,11 @@ describe("Fake account settings", () => {
 	});
 
 	it("does not expose production-style session management", () => {
-		expect(routes.some(({ url }) => url.includes("/sessions"))).toBe(false);
+		expect(
+			toFakeRouteList(accountRoutes).some(({ url }) =>
+				url.includes("/sessions"),
+			),
+		).toBe(false);
 	});
 
 	it("stores security contacts separately from profile contact details", () => {

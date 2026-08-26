@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PlatformUserDetail } from "../src/api/users";
 import userRoutes from "./users.fake";
+import { findFakeRoute } from "./route-helpers";
 
 interface UserListPayload {
 	data: {
@@ -17,23 +18,14 @@ interface UserMutationPayload {
 	data: PlatformUserDetail | null;
 }
 
-interface TestRoute {
-	method?: string;
-	response?: (request: {
-		body?: unknown;
-		params?: Record<string, string>;
-		query?: Record<string, string>;
-	}) => unknown;
-	url: string;
-}
-
 function listUsers(query: Record<string, string>) {
-	const response = (userRoutes as unknown as TestRoute[]).find(
-		(route) => route.method === "get" && route.url === "/platform/users",
-	)?.response;
-
-	expect(response).toBeDefined();
-	return response?.({ query }) as UserListPayload;
+	return findFakeRoute(
+		userRoutes,
+		"get",
+		"/platform/users",
+	)({
+		query,
+	}) as UserListPayload;
 }
 
 describe("Fake users", () => {
@@ -97,16 +89,12 @@ describe("Fake users", () => {
 	});
 
 	it("keeps user deletion in the current Fake preview session", () => {
-		const routes = userRoutes as unknown as TestRoute[];
-		const createUser = routes.find(
-			(route) => route.method === "post" && route.url === "/platform/users",
-		)?.response;
-		const deleteUser = routes.find(
-			(route) =>
-				route.method === "delete" && route.url === "/platform/users/:userId",
-		)?.response;
-		expect(createUser).toBeDefined();
-		expect(deleteUser).toBeDefined();
+		const createUser = findFakeRoute(userRoutes, "post", "/platform/users");
+		const deleteUser = findFakeRoute(
+			userRoutes,
+			"delete",
+			"/platform/users/:userId",
+		);
 
 		const username = `delete-test-${Date.now()}`;
 		const created = createUser?.({
@@ -130,18 +118,17 @@ describe("Fake users", () => {
 	});
 
 	it("persists editable profile fields through the user PATCH route", () => {
-		const routes = userRoutes as unknown as TestRoute[];
-		const createUser = routes.find(
-			(route) => route.method === "post" && route.url === "/platform/users",
-		)?.response;
-		const updateUser = routes.find(
-			(route) =>
-				route.method === "patch" && route.url === "/platform/users/:userId",
-		)?.response;
-		const deleteUser = routes.find(
-			(route) =>
-				route.method === "delete" && route.url === "/platform/users/:userId",
-		)?.response;
+		const createUser = findFakeRoute(userRoutes, "post", "/platform/users");
+		const updateUser = findFakeRoute(
+			userRoutes,
+			"patch",
+			"/platform/users/:userId",
+		);
+		const deleteUser = findFakeRoute(
+			userRoutes,
+			"delete",
+			"/platform/users/:userId",
+		);
 
 		const username = `update-test-${Date.now()}`;
 		const created = createUser?.({
@@ -181,11 +168,11 @@ describe("Fake users", () => {
 	});
 
 	it("rejects deleting the current signed-in user", () => {
-		const deleteUser = (userRoutes as unknown as TestRoute[]).find(
-			(route) =>
-				route.method === "delete" && route.url === "/platform/users/:userId",
-		)?.response;
-		expect(deleteUser).toBeDefined();
+		const deleteUser = findFakeRoute(
+			userRoutes,
+			"delete",
+			"/platform/users/:userId",
+		);
 
 		const result = deleteUser?.({
 			params: { userId: "user-admin" },
