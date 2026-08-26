@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	adminCollapsibleSidebarGroupKeys,
 	adminNavigationGroups,
 	adminRouteDefinitions,
 	getAdminRouteMetadata,
+	getAdminRouteOpenKeys,
 } from "./adminRoutes";
 
 describe("admin route template", () => {
@@ -50,6 +52,37 @@ describe("admin route template", () => {
 		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
 			expect.arrayContaining(["results", "exceptions"]),
 		);
+	});
+
+	it("keeps Pro page categories as first-level navigation groups", () => {
+		const examplesGroup = adminNavigationGroups.find(
+			(group) => group.key === "examples",
+		);
+		const formRoute = getAdminRouteMetadata("/examples/forms/basic");
+		const searchRoute = getAdminRouteMetadata(
+			"/examples/lists/search/articles",
+		);
+		const genericDetailRoute = getAdminRouteMetadata("/examples/detail");
+
+		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
+			expect.arrayContaining(["listExamples", "formExamples", "examples"]),
+		);
+		expect(examplesGroup?.nodes.map((node) => node.routeKey)).toEqual([
+			"/examples/tree-category",
+			"/examples/preview-panel",
+			"/examples/detail",
+			"/examples/files",
+			"/examples/import-export",
+		]);
+		expect(adminCollapsibleSidebarGroupKeys).toEqual(
+			expect.arrayContaining(["listExamples", "formExamples", "examples"]),
+		);
+		expect(getAdminRouteOpenKeys(formRoute)).toEqual(["formExamples"]);
+		expect(getAdminRouteOpenKeys(searchRoute)).toEqual([
+			"listExamples",
+			"example-search-lists",
+		]);
+		expect(getAdminRouteOpenKeys(genericDetailRoute)).toEqual(["examples"]);
 	});
 
 	it("maps unknown authenticated locations to the 404 page metadata", () => {

@@ -682,7 +682,6 @@ test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) 
 test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", async ({ page }) => {
 	await signIn(page);
 
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "标准列表", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/lists\/basic$/);
@@ -710,6 +709,7 @@ test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", asyn
 	await expect(page).toHaveURL(/\/examples\/lists\/search\/applications$/);
 	await expect(page.getByText("活跃用户").first()).toBeVisible();
 
+	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "通用详情页", exact: true }).click();
 	await expect(page.getByText("记录摘要", { exact: true })).toBeVisible();
 	await expect(page.getByText("处理进度", { exact: true })).toBeVisible();
@@ -733,7 +733,6 @@ test("搜索列表在窄屏下保持完整且无页面级横向溢出", async ({
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
 	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "搜索列表", exact: true }).click();
 	await page.getByRole("menuitem", { name: "文章", exact: true }).click();

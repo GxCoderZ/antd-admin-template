@@ -8,6 +8,8 @@ export type AdminRouteGroupKey =
 	| "dashboard"
 	| "operations"
 	| "examples"
+	| "listExamples"
+	| "formExamples"
 	| "results"
 	| "exceptions"
 	| "system"
@@ -43,7 +45,13 @@ export type AdminRouteIconKey =
 	| "about";
 
 export type AdminGroupIconKey =
-	"examples" | "operations" | "results" | "exceptions" | "system";
+	| "examples"
+	| "formExamples"
+	| "listExamples"
+	| "operations"
+	| "results"
+	| "exceptions"
+	| "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -370,67 +378,63 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.loginLogs",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "listExamples",
 		iconKey: "auditLogs",
 		key: "/examples/lists/basic",
 		lazy: loadBasicListPage,
-		navigationParentKeys: ["example-lists"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.listExamples",
 		titleKey: "adminShell.navigation.basicList",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "listExamples",
 		iconKey: "batchTable",
 		key: "/examples/lists/batch-operations",
 		lazy: loadBatchOperationsTablePage,
-		navigationParentKeys: ["example-lists"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.listExamples",
 		titleKey: "adminShell.navigation.batchOperationsTable",
 	},
 	{
 		aliases: [{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" }],
-		groupKey: "examples",
+		groupKey: "listExamples",
 		iconKey: "searchArticles",
 		key: "/examples/lists/search/articles",
 		lazy: loadSearchArticlesPage,
-		navigationParentKeys: ["example-lists", "example-search-lists"],
-		sectionKey: "adminShell.navigation.examples",
+		navigationParentKeys: ["example-search-lists"],
+		sectionKey: "adminShell.navigation.listExamples",
 		titleKey: "adminShell.navigation.searchArticles",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "listExamples",
 		iconKey: "searchProjects",
 		key: "/examples/lists/search/projects",
 		lazy: loadSearchProjectsPage,
-		navigationParentKeys: ["example-lists", "example-search-lists"],
-		sectionKey: "adminShell.navigation.examples",
+		navigationParentKeys: ["example-search-lists"],
+		sectionKey: "adminShell.navigation.listExamples",
 		titleKey: "adminShell.navigation.searchProjects",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "listExamples",
 		iconKey: "searchApplications",
 		key: "/examples/lists/search/applications",
 		lazy: loadSearchApplicationsPage,
-		navigationParentKeys: ["example-lists", "example-search-lists"],
-		sectionKey: "adminShell.navigation.examples",
+		navigationParentKeys: ["example-search-lists"],
+		sectionKey: "adminShell.navigation.listExamples",
 		titleKey: "adminShell.navigation.searchApplications",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "listExamples",
 		iconKey: "editableTable",
 		key: "/examples/lists/editable-table",
 		lazy: loadEditableTablePage,
-		navigationParentKeys: ["example-lists"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.listExamples",
 		titleKey: "adminShell.navigation.editableTable",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "listExamples",
 		iconKey: "about",
 		key: "/examples/lists/cards",
 		lazy: loadCardListPage,
-		navigationParentKeys: ["example-lists"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.listExamples",
 		titleKey: "adminShell.navigation.cardList",
 	},
 	{
@@ -497,30 +501,27 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.importExport",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "formExamples",
 		iconKey: "basicForm",
 		key: "/examples/forms/basic",
 		lazy: loadBasicFormPage,
-		navigationParentKeys: ["example-forms"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.formExamples",
 		titleKey: "adminShell.navigation.basicForm",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "formExamples",
 		iconKey: "stepForm",
 		key: "/examples/forms/step",
 		lazy: loadStepFormPage,
-		navigationParentKeys: ["example-forms"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.formExamples",
 		titleKey: "adminShell.navigation.stepForm",
 	},
 	{
-		groupKey: "examples",
+		groupKey: "formExamples",
 		iconKey: "advancedForm",
 		key: "/examples/forms/advanced",
 		lazy: loadAdvancedFormPage,
-		navigationParentKeys: ["example-forms"],
-		sectionKey: "adminShell.navigation.examples",
+		sectionKey: "adminShell.navigation.formExamples",
 		titleKey: "adminShell.navigation.advancedForm",
 	},
 	{
@@ -608,44 +609,48 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 	},
 	{
 		defaultRouteKey: "/examples/lists/basic",
+		iconKey: "listExamples",
+		key: "listExamples",
+		nodes: [
+			{ routeKey: "/examples/lists/basic" },
+			{ routeKey: "/examples/lists/batch-operations" },
+			{
+				key: "example-search-lists",
+				titleKey: "adminShell.navigation.searchList",
+				children: [
+					{ routeKey: "/examples/lists/search/articles" },
+					{ routeKey: "/examples/lists/search/projects" },
+					{ routeKey: "/examples/lists/search/applications" },
+				],
+			},
+			{ routeKey: "/examples/lists/cards" },
+			{ routeKey: "/examples/lists/editable-table" },
+		],
+		titleKey: "adminShell.navigation.listExamples",
+	},
+	{
+		defaultRouteKey: "/examples/tree-category",
 		iconKey: "examples",
 		key: "examples",
 		nodes: [
-			{
-				key: "example-lists",
-				titleKey: "adminShell.navigation.listExamples",
-				children: [
-					{ routeKey: "/examples/lists/basic" },
-					{ routeKey: "/examples/lists/batch-operations" },
-					{
-						key: "example-search-lists",
-						titleKey: "adminShell.navigation.searchList",
-						children: [
-							{ routeKey: "/examples/lists/search/articles" },
-							{ routeKey: "/examples/lists/search/projects" },
-							{ routeKey: "/examples/lists/search/applications" },
-						],
-					},
-					{ routeKey: "/examples/lists/cards" },
-					{ routeKey: "/examples/lists/editable-table" },
-				],
-			},
 			{ routeKey: "/examples/tree-category" },
 			{ routeKey: "/examples/preview-panel" },
 			{ routeKey: "/examples/detail" },
 			{ routeKey: "/examples/files" },
 			{ routeKey: "/examples/import-export" },
-			{
-				key: "example-forms",
-				titleKey: "adminShell.navigation.formExamples",
-				children: [
-					{ routeKey: "/examples/forms/basic" },
-					{ routeKey: "/examples/forms/step" },
-					{ routeKey: "/examples/forms/advanced" },
-				],
-			},
 		],
 		titleKey: "adminShell.navigation.examples",
+	},
+	{
+		defaultRouteKey: "/examples/forms/basic",
+		iconKey: "formExamples",
+		key: "formExamples",
+		nodes: [
+			{ routeKey: "/examples/forms/basic" },
+			{ routeKey: "/examples/forms/step" },
+			{ routeKey: "/examples/forms/advanced" },
+		],
+		titleKey: "adminShell.navigation.formExamples",
 	},
 	{
 		defaultRouteKey: "/result/success",
@@ -704,7 +709,7 @@ export const adminNavigationGroupByKey = new Map<
 	AdminNavigationGroup
 >(adminNavigationGroups.map((group) => [group.key, group]));
 
-export const adminSidebarGroupKeys = adminNavigationGroups.map(
+export const adminCollapsibleSidebarGroupKeys = adminNavigationGroups.map(
 	(group) => group.key,
 );
 
@@ -719,5 +724,7 @@ export function getAdminRouteOpenKeys(route: AdminRouteMetadata) {
 		return [];
 	}
 
-	return [route.groupKey, ...(route.navigationParentKeys ?? [])];
+	return adminCollapsibleSidebarGroupKeys.includes(route.groupKey)
+		? [route.groupKey, ...(route.navigationParentKeys ?? [])]
+		: [...(route.navigationParentKeys ?? [])];
 }

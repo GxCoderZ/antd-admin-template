@@ -26,10 +26,10 @@ import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router";
 
 import {
+	adminCollapsibleSidebarGroupKeys,
 	adminNavigationGroupByKey,
 	adminNavigationGroups,
 	adminRouteByPath,
-	adminSidebarGroupKeys,
 	dashboardPath,
 	getAdminRouteMetadata,
 	getAdminRouteOpenKeys,
@@ -44,11 +44,14 @@ import { TwoColumnServiceMenu } from "./TwoColumnServiceMenu";
 
 const { Header, Sider } = Layout;
 const { Text } = Typography;
-const sidebarRootKeys: readonly string[] = adminSidebarGroupKeys;
+const collapsibleSidebarRootKeys: readonly string[] =
+	adminCollapsibleSidebarGroupKeys;
 
 const groupIconByKey: Record<AdminGroupIconKey, ReactNode> = {
 	examples: <AppstoreOutlined aria-hidden />,
 	exceptions: <WarningOutlined aria-hidden />,
+	formExamples: <ProfileOutlined aria-hidden />,
+	listExamples: <AppstoreOutlined aria-hidden />,
 	operations: <ProfileOutlined aria-hidden />,
 	results: <CheckCircleOutlined aria-hidden />,
 	system: <SettingOutlined aria-hidden />,
@@ -188,7 +191,10 @@ export function AdminShellNavigation({
 		icon: <AdminRouteIcon iconKey="dashboard" />,
 		label: t(dashboardRoute.titleKey),
 	};
-	const navigationItemsByGroup = new Map(
+	const navigationItemsByGroup = new Map<
+		string,
+		NonNullable<MenuProps["items"]>
+	>(
 		adminNavigationGroups.map((group) => [
 			group.key,
 			createNavigationItems(group.nodes),
@@ -197,16 +203,16 @@ export function AdminShellNavigation({
 	const visibleNavigationGroups = adminNavigationGroups.filter(
 		(group) => (navigationItemsByGroup.get(group.key)?.length ?? 0) > 0,
 	);
-	const navigationItems: MenuProps["items"] = [
+	const navigationItems: NonNullable<MenuProps["items"]> = [
 		dashboardNavigationItem,
 		...visibleNavigationGroups.map((group) => ({
 			key: group.key,
 			icon: groupIconByKey[group.iconKey],
 			label: t(group.titleKey),
-			children: navigationItemsByGroup.get(group.key),
+			children: navigationItemsByGroup.get(group.key) ?? [],
 		})),
 	];
-	const topLevelNavigationItems: MenuProps["items"] = [
+	const topLevelNavigationItems: NonNullable<MenuProps["items"]> = [
 		{ ...dashboardNavigationItem, key: "dashboard" },
 		...visibleNavigationGroups.map((group) => ({
 			key: group.key,
@@ -214,10 +220,14 @@ export function AdminShellNavigation({
 			label: t(group.titleKey),
 		})),
 	];
-	const mixedSidebarItemsByGroup = new Map<string, MenuProps["items"]>([
+	const mixedSidebarItemsByGroup = new Map<
+		string,
+		NonNullable<MenuProps["items"]>
+	>([
 		["dashboard", [dashboardNavigationItem]],
 		...visibleNavigationGroups.map(
-			(group) => [group.key, navigationItemsByGroup.get(group.key)] as const,
+			(group) =>
+				[group.key, navigationItemsByGroup.get(group.key) ?? []] as const,
 		),
 	]);
 	const sidebarNavigationItems =
@@ -244,7 +254,9 @@ export function AdminShellNavigation({
 	};
 	const handleDesktopOpenChange: MenuProps["onOpenChange"] = (nextOpenKeys) => {
 		const newlyOpenedRootKey = nextOpenKeys.find(
-			(key) => sidebarRootKeys.includes(key) && !desktopOpenKeys.includes(key),
+			(key) =>
+				collapsibleSidebarRootKeys.includes(key) &&
+				!desktopOpenKeys.includes(key),
 		);
 		if (newlyOpenedRootKey) {
 			setDesktopOpenKeys([newlyOpenedRootKey]);
@@ -252,14 +264,15 @@ export function AdminShellNavigation({
 		}
 
 		const openRootKey = nextOpenKeys.find((key) =>
-			sidebarRootKeys.includes(key),
+			collapsibleSidebarRootKeys.includes(key),
 		);
 		setDesktopOpenKeys(
 			openRootKey
 				? nextOpenKeys.filter(
-						(key) => key === openRootKey || !sidebarRootKeys.includes(key),
+						(key) =>
+							key === openRootKey || !collapsibleSidebarRootKeys.includes(key),
 					)
-				: [],
+				: [...nextOpenKeys],
 		);
 	};
 	const toggleSidebar = () => {
