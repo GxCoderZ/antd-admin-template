@@ -35,8 +35,6 @@ import {
 	type BatchTableStatusMutation,
 	type ListBatchTableRecordsInput,
 } from "#src/api/batch-table";
-import { formatDateTime } from "../../app/formatting";
-import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import {
 	useQueryFilterLayout,
@@ -46,7 +44,10 @@ import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibilit
 import { resolveTableSort } from "../../app/tableSorting";
 import { TableActionButton } from "../../app/TableActionButton";
 import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
-import { BatchSelectionToolbar } from "./components/BatchSelectionToolbar";
+import {
+	BatchBulkActionBar,
+	BatchSelectionSummary,
+} from "./components/BatchSelectionToolbar";
 
 const { Link } = Typography;
 
@@ -96,12 +97,15 @@ function formatCallCount(value: number) {
 	return `${Math.round(value / 10_000)}万`;
 }
 
+function formatProDateTime(value: string) {
+	return value.replace("T", " ").replace(/\.\d{3}Z$/, "");
+}
+
 export function BatchOperationsTablePage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const [messageApi, messageContext] = message.useMessage();
 	const queryClient = useQueryClient();
-	const formatPreferences = useLocalePreferences();
 	const [form] = Form.useForm<BatchTableFilterValues>();
 	const [filters, setFilters] =
 		useState<BatchTableFilterValues>(defaultFilters);
@@ -112,7 +116,7 @@ export function BatchOperationsTablePage() {
 		order: "desc",
 		page: 1,
 		pageSize: 20,
-		sort: "last_scheduled_at",
+		sort: "rule_name",
 	});
 	const querySubmission = useQuerySubmission();
 	const queryLayout = useQueryFilterLayout({
@@ -252,7 +256,7 @@ export function BatchOperationsTablePage() {
 		{
 			dataIndex: "lastScheduledAt",
 			key: "lastScheduledAt",
-			render: (value: string) => formatDateTime(value, formatPreferences),
+			render: formatProDateTime,
 			sortDirections: ["ascend", "descend"],
 			sorter: true,
 			sortOrder: sortOrder("last_scheduled_at"),
@@ -435,65 +439,74 @@ export function BatchOperationsTablePage() {
 	return (
 		<>
 			{messageContext}
-			<LogTablePanel<BatchTableRecord>
-				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
-					"batch-table-records",
-				)}
-				columnVisibility={batchTableColumnVisibility}
-				columns={columns}
-				dataSource={currentRows}
-				description={
-					<BatchSelectionToolbar
-						deleteLoading={deleteMutation.isPending}
-						disabled={!hasSelection}
-						exportLoading={exportMutation.isPending}
-						onClear={() => setSelectedRowKeys([])}
-						onDelete={() => setDeleteConfirmOpen(true)}
-						onExport={() =>
-							hasSelection && exportMutation.mutate({ ids: selectedIds })
-						}
-						onStatusChange={updateSelectedStatus}
-						selectedCallCount={selectedCallCountInTenThousands}
-						selectedCount={selectedIds.length}
-						statusLoading={statusMutation.isPending}
-					/>
-				}
-				emptyText={t("adminShell.batchTable.empty")}
-				error={query.error}
-				errorFallback={t("adminShell.batchTable.errorFallback")}
-				errorTitle={t("adminShell.batchTable.loadError")}
-				initialLoading={query.isPending}
-				minimumWidth={token.controlHeight * 34}
-				onPageChange={(page, pageSize) =>
-					setTableState((value) => ({ ...value, page, pageSize }))
-				}
-				onReload={() => void query.refetch()}
-				onTableChange={handleTableChange}
-				page={query.data?.page ?? tableState.page}
-				pageSize={query.data?.pageSize ?? tableState.pageSize}
-				primaryAction={
-					<Button
-						icon={<PlusOutlined aria-hidden />}
-						onClick={() =>
-							void messageApi.info(t("adminShell.batchTable.createTip"))
-						}
-						type="primary"
-					>
-						{t("adminShell.batchTable.create")}
-					</Button>
-				}
-				queryPanel={queryPanel}
-				refreshing={query.isFetching && !query.isPending}
-				rowSelection={{
-					onChange: (keys) => setSelectedRowKeys(keys),
-					preserveSelectedRowKeys: true,
-					selectedRowKeys,
+			<div
+				style={{
+					paddingBottom: hasSelection ? token.controlHeightLG + token.paddingXL : 0,
 				}}
-				testId="batch-table-card"
-				title={t("adminShell.batchTable.title")}
-				total={query.data?.total ?? 0}
-				workspaceTestId="batch-table-workspace"
-			/>
+			>
+				<LogTablePanel<BatchTableRecord>
+					columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+						"batch-table-records",
+					)}
+					columnVisibility={batchTableColumnVisibility}
+					columns={columns}
+					dataSource={currentRows}
+					description={
+						<BatchSelectionSummary
+							onClear={() => setSelectedRowKeys([])}
+							selectedCount={selectedIds.length}
+						/>
+					}
+					emptyText={t("adminShell.batchTable.empty")}
+					error={query.error}
+					errorFallback={t("adminShell.batchTable.errorFallback")}
+					errorTitle={t("adminShell.batchTable.loadError")}
+					initialLoading={query.isPending}
+					minimumWidth={token.controlHeight * 34}
+					onPageChange={(page, pageSize) =>
+						setTableState((value) => ({ ...value, page, pageSize }))
+					}
+					onReload={() => void query.refetch()}
+					onTableChange={handleTableChange}
+					page={query.data?.page ?? tableState.page}
+					pageSize={query.data?.pageSize ?? tableState.pageSize}
+					primaryAction={
+						<Button
+							icon={<PlusOutlined aria-hidden />}
+							onClick={() =>
+								void messageApi.info(t("adminShell.batchTable.createTip"))
+							}
+							type="primary"
+						>
+							{t("adminShell.batchTable.create")}
+						</Button>
+					}
+					queryPanel={queryPanel}
+					refreshing={query.isFetching && !query.isPending}
+					rowSelection={{
+						onChange: (keys) => setSelectedRowKeys(keys),
+						preserveSelectedRowKeys: true,
+						selectedRowKeys,
+					}}
+					testId="batch-table-card"
+					title={t("adminShell.batchTable.title")}
+					total={query.data?.total ?? 0}
+					workspaceTestId="batch-table-workspace"
+				/>
+				<BatchBulkActionBar
+					deleteLoading={deleteMutation.isPending}
+					disabled={!hasSelection}
+					exportLoading={exportMutation.isPending}
+					onDelete={() => setDeleteConfirmOpen(true)}
+					onExport={() =>
+						hasSelection && exportMutation.mutate({ ids: selectedIds })
+					}
+					onStatusChange={updateSelectedStatus}
+					selectedCallCount={selectedCallCountInTenThousands}
+					selectedCount={selectedIds.length}
+					statusLoading={statusMutation.isPending}
+				/>
+			</div>
 			<Modal
 				cancelText={t("adminShell.batchTable.cancelDelete")}
 				confirmLoading={deleteMutation.isPending}

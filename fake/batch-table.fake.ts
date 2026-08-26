@@ -43,7 +43,7 @@ function sortValue(record: BatchTableRecord, sort: string) {
 		case "call_count":
 			return record.callCount;
 		case "rule_name":
-			return record.ruleName;
+			return Number(record.ruleName.match(/\d+$/)?.[0] ?? 0);
 		case "status":
 			return record.status;
 		default:
@@ -66,7 +66,7 @@ export default defineFakeRoute([
 				.toLowerCase();
 			const callCount = String(query.callCount ?? "").trim();
 			const status = routeParam(query.status);
-			const sort = routeParam(query.sort) ?? "last_scheduled_at";
+			const sort = routeParam(query.sort) ?? "rule_name";
 			const order = routeParam(query.order) ?? "desc";
 			const filtered = batchTableRecords.filter(
 				(record) =>

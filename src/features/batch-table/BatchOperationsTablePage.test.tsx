@@ -105,9 +105,10 @@ describe("BatchOperationsTablePage", () => {
 		expect(await screen.findByText("TradeCode 1")).toBeVisible();
 		expect(screen.getByTestId("batch-table-query-form")).toBeVisible();
 		expect(screen.getByText("已选择 0 项")).toBeVisible();
-		expect(screen.getByRole("button", { name: "新建" })).toBeVisible();
+		const tableCard = within(screen.getByTestId("batch-table-card"));
+		expect(tableCard.getByRole("button", { name: "新建" })).toBeVisible();
 		for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
-			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
+			expect(tableCard.getByLabelText(actionName)).toBeVisible();
 		}
 	});
 
@@ -135,7 +136,7 @@ describe("BatchOperationsTablePage", () => {
 		const user = renderPage();
 
 		await selectVisibleRows(user);
-		await waitFor(() => expect(screen.getByText("已选择 2 项")).toBeVisible());
+		await waitFor(() => expect(screen.getAllByText("已选择 2 项")).toHaveLength(2));
 		expect(screen.getByText("服务调用次数总计 46 万")).toBeVisible();
 		await user.click(screen.getByRole("button", { name: "批量停用" }));
 
@@ -157,7 +158,7 @@ describe("BatchOperationsTablePage", () => {
 		const user = renderPage();
 
 		await selectVisibleRows(user);
-		await waitFor(() => expect(screen.getByText("已选择 2 项")).toBeVisible());
+		await waitFor(() => expect(screen.getAllByText("已选择 2 项")).toHaveLength(2));
 		await user.click(screen.getByRole("button", { name: "批量导出" }));
 		await waitFor(() => {
 			expect(mocks.exportRecords.mock.calls[0]?.[0]).toEqual({

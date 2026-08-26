@@ -914,7 +914,7 @@ export const loginLogs: PlatformLoginLog[] = Array.from(
 );
 
 export const batchTableRecords: BatchTableRecord[] = Array.from(
-	{ length: 100 },
+	{ length: 99 },
 	(_, index): BatchTableRecord => ({
 		callCount: 120_000 + ((index * 6_137) % 880_000),
 		createdAt: iso(12_000 - index * 160),

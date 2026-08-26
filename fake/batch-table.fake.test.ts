@@ -49,6 +49,7 @@ describe("Fake batch table records", () => {
 
 		expect(firstPage.data.total).toBeGreaterThanOrEqual(30);
 		expect(firstPage.data.items).toHaveLength(10);
+		expect(firstPage.data.items[0]?.ruleName).toBe("TradeCode 99");
 		expect(onlineRecords.data.items.length).toBeGreaterThan(1);
 		expect(
 			onlineRecords.data.items.every((item) => item.status === "online"),
