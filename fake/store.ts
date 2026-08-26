@@ -1,28 +1,12 @@
 import type { PlatformSession } from "../src/api/auth";
 import type { PlatformAnnouncement } from "../src/api/announcements";
-import type { BatchTableRecord } from "../src/api/batch-table";
-import type {
-	ContentCategory,
-	ContentCategoryItem,
-} from "../src/api/content-categories";
 import type { DashboardTodo } from "../src/api/dashboard";
 import type { PlatformDepartment } from "../src/api/departments";
 import type {
 	PlatformDictionaryItem,
 	PlatformDictionaryType,
 } from "../src/api/dictionaries";
-import type { PlatformFile } from "../src/api/files";
-import type {
-	ExportTask,
-	ImportPreview,
-	ImportTemplate,
-} from "../src/api/import-export";
 import type { PlatformNotification } from "../src/api/notifications";
-import type {
-	ExampleListItem,
-	ExampleRecordDetail,
-} from "../src/api/page-examples";
-import type { EditableTableRow } from "../src/api/editable-table-examples";
 import type { PlatformAuditLog, PlatformLoginLog } from "../src/api/operations";
 import type { PlatformPosition } from "../src/api/positions";
 import type { PlatformRole } from "../src/api/roles";
@@ -37,7 +21,6 @@ export const allPermissions = [
 	"platform.announcements.read",
 	"platform.departments.manage",
 	"platform.dictionaries.manage",
-	"platform.import-export.manage",
 	"platform.logs.read",
 	"platform.positions.manage",
 	"platform.roles.manage",
@@ -571,37 +554,6 @@ export const announcements: PlatformAnnouncement[] = Array.from(
 	}),
 );
 
-const editableTableNames = [
-	"月度预算复核",
-	"客户标签整理",
-	"上线检查清单",
-	"内容排期维护",
-	"资产台账补录",
-	"服务质量抽检",
-] as const;
-
-const editableTableOwners = [
-	"Olivia Chen",
-	"Noah Wang",
-	"Emma Liu",
-	"Liam Zhang",
-	"Sophia Sun",
-	"Platform Admin",
-] as const;
-
-export const editableTableRows: EditableTableRow[] = Array.from(
-	{ length: 36 },
-	(_, index): EditableTableRow => ({
-		id: `editable-row-${index + 1}`,
-		name: `${editableTableNames[index % editableTableNames.length]} ${index + 1}`,
-		owner: editableTableOwners[index % editableTableOwners.length]!,
-		priority: (index + 1) * 10,
-		progress: (index * 13) % 101,
-		status: (["active", "draft", "paused"] as const)[index % 3]!,
-		updatedAt: iso(1_400 - index * 29),
-	}),
-);
-
 const dictionaryTypeSeeds = [
 	["dict-user-status", "user_status", "用户状态", "用户账号状态"],
 	["dict-order-status", "order_status", "订单状态", "订单处理状态"],
@@ -694,172 +646,6 @@ export const notifications: PlatformNotification[] = Array.from(
 	}),
 );
 
-const exampleTitles = [
-	"Alipay",
-	"Angular",
-	"Ant Design",
-	"Ant Design Pro",
-	"Bootstrap",
-	"React",
-	"Vue",
-	"Webpack",
-] as const;
-
-const exampleAvatars = [
-	"/pro-search/WdGqmHpayyMjiEhcKoVE.png",
-	"/pro-search/zOsKZmFRdUtvpqCImOVY.png",
-	"/pro-search/dURIMkkrRFpPgTuzkwnB.png",
-	"/pro-search/sfjbOqnsXXJgNCjCzDBL.png",
-	"/pro-search/siCrBXXhmvTQGWPNLBow.png",
-	"/pro-search/kZzEzemZyKLKFsojXItE.png",
-	"/pro-search/ComBAopevLwENQdKWiIn.png",
-	"/pro-search/nxkuOJlFJuAUhzlMTCEe.png",
-] as const;
-
-const exampleCovers = [
-	"/pro-search/uMfMFlvUuceEyPpotzlq.png",
-	"/pro-search/iZBVOIhGJiAnhplqjvZW.png",
-	"/pro-search/iXjVmWVHbCJAyqvDxdtx.png",
-	"/pro-search/gLaIAoVWTtLbBWZNYEMg.png",
-] as const;
-
-const exampleDescriptions = [
-	"那是一种内在的东西，他们到达不了，也无法触及的",
-	"希望是一个好东西，也许是最好的，好东西是不会消亡的",
-	"生命就像一盒巧克力，结果往往出人意料",
-	"城镇中有那么多的酒馆，她却偏偏走进了我的酒馆",
-	"那时候我只会想自己想要什么，从不想自己拥有什么",
-] as const;
-
-const exampleMembers = [
-	{
-		avatar: "/pro-search/ZiESqWwCXBRQoaPONSJe.png",
-		id: "member-1",
-		name: "曲丽丽",
-	},
-	{
-		avatar: "/pro-search/tBOxZPlITHqwlGjsJWaF.png",
-		id: "member-2",
-		name: "王昭君",
-	},
-	{
-		avatar: "/pro-search/sBxjgqiuHMGRkIjqlQCd.png",
-		id: "member-3",
-		name: "董娜娜",
-	},
-] as const;
-
-export const exampleItems: ExampleListItem[] = Array.from(
-	{ length: 24 },
-	(_, index): ExampleListItem => ({
-		activeUser: 100_000 + index * 7_913,
-		avatar: exampleAvatars[index % exampleAvatars.length]!,
-		category: `category-${(index % 12) + 1}`,
-		cover: exampleCovers[index % exampleCovers.length]!,
-		createdAt: iso(18_000 - index * 240),
-		description:
-			"在中台产品的研发过程中，会出现不同的设计规范和实现方式，但其中往往存在很多类似的页面和组件，这些类似的组件会被抽离成一套标准规范。",
-		id: `example-${index + 1}`,
-		like: 128 + index * 3,
-		members: [...exampleMembers],
-		message: 12 + (index % 10),
-		newUser: 1_000 + index * 73,
-		owner: users[index % 6]!.displayName,
-		rate: index % 2 === 0 ? "good" : "normal",
-		star: 146 + index * 2,
-		status: (["active", "pending", "archived"] as const)[index % 3]!,
-		subDescription: exampleDescriptions[index % exampleDescriptions.length]!,
-		title: exampleTitles[index % exampleTitles.length]!,
-		updatedAt: iso(index * 120),
-	}),
-);
-
-export const exampleRecord: ExampleRecordDetail = {
-	...exampleItems[0]!,
-	activity: [
-		{ at: iso(20), content: "更新了项目进度", id: "activity-1" },
-		{ at: iso(180), content: "补充了验收说明", id: "activity-2" },
-		{ at: iso(1_440), content: "创建了记录", id: "activity-3" },
-	],
-	id: "record-001",
-	participants: ["Platform Admin", "Olivia Chen", "Noah Wang"],
-	progress: 72,
-	updatedAt: iso(20),
-};
-
-export const contentCategories: Array<Omit<ContentCategory, "children">> = [
-	{
-		code: "content",
-		id: "category-content",
-		itemCount: 0,
-		name: "内容中心",
-		parentId: null,
-		sortOrder: 1,
-		status: "active",
-	},
-	{
-		code: "guides",
-		id: "category-guides",
-		itemCount: 0,
-		name: "使用指南",
-		parentId: "category-content",
-		sortOrder: 1,
-		status: "active",
-	},
-	{
-		code: "news",
-		id: "category-news",
-		itemCount: 0,
-		name: "平台动态",
-		parentId: "category-content",
-		sortOrder: 2,
-		status: "active",
-	},
-	{
-		code: "help",
-		id: "category-help",
-		itemCount: 0,
-		name: "帮助中心",
-		parentId: null,
-		sortOrder: 2,
-		status: "active",
-	},
-	{
-		code: "faq",
-		id: "category-faq",
-		itemCount: 0,
-		name: "常见问题",
-		parentId: "category-help",
-		sortOrder: 1,
-		status: "active",
-	},
-];
-
-const contentItemTitles = [
-	"平台使用手册",
-	"账号安全指南",
-	"权限配置说明",
-	"新版本功能速览",
-	"常见登录问题",
-	"数据导出说明",
-] as const;
-
-export const contentCategoryItems: ContentCategoryItem[] = Array.from(
-	{ length: 24 },
-	(_, index) => {
-		const category = contentCategories[(index % 4) + 1]!;
-		return {
-			categoryId: category.id,
-			categoryName: category.name,
-			id: `content-category-item-${index + 1}`,
-			owner: users[index % 6]!.displayName,
-			status: index % 4 === 0 ? "draft" : "published",
-			title: `${contentItemTitles[index % contentItemTitles.length]} ${index + 1}`,
-			updatedAt: iso(index * 75),
-		};
-	},
-);
-
 export const dashboardTodos: DashboardTodo[] = [
 	{
 		dueAt: iso(-1_440),
@@ -881,72 +667,6 @@ export const dashboardTodos: DashboardTodo[] = [
 		priority: "low",
 		status: "completed",
 		title: "查看登录异常记录",
-	},
-];
-
-const fileNames = [
-	"运营周报.pdf",
-	"客户清单.xlsx",
-	"产品截图.png",
-	"上线检查表.docx",
-	"数据字典.csv",
-] as const;
-
-export const platformFiles: PlatformFile[] = Array.from(
-	{ length: 23 },
-	(_, index): PlatformFile => ({
-		createdAt: iso(index * 95),
-		id: `file-${index + 1}`,
-		name: `${index + 1}-${fileNames[index % fileNames.length]}`,
-		size: 12_000 + index * 8_192,
-		type: [
-			"application/pdf",
-			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-			"image/png",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-			"text/csv",
-		][index % 5]!,
-		uploader: users[index % 6]!.displayName,
-	}),
-);
-
-export const importTemplates: ImportTemplate[] = [
-	{
-		description: "标准用户资料导入模板，包含姓名、邮箱、部门和状态列。",
-		fileName: "user-import-template.csv",
-		id: "template-users",
-		name: "用户资料导入模板",
-		updatedAt: iso(320),
-	},
-	{
-		description: "组织基础资料导入模板，用于演示多模板下载入口。",
-		fileName: "organization-import-template.csv",
-		id: "template-organization",
-		name: "组织资料导入模板",
-		updatedAt: iso(640),
-	},
-];
-
-export const importPreviews: ImportPreview[] = [];
-
-export const exportTasks: ExportTask[] = [
-	{
-		createdAt: iso(45),
-		fileName: "platform-users-20260826.csv",
-		finishedAt: iso(38),
-		id: "export-success",
-		name: "用户资料导出",
-		progress: 100,
-		status: "succeeded",
-	},
-	{
-		createdAt: iso(24),
-		errorMessage: "导出条件包含已停用字段，请调整后重试。",
-		finishedAt: iso(20),
-		id: "export-failed",
-		name: "异常明细导出",
-		progress: 68,
-		status: "failed",
 	},
 ];
 
@@ -1054,19 +774,6 @@ export const loginLogs: PlatformLoginLog[] = Array.from(
 			createdAt: iso(index * 37),
 		};
 	},
-);
-
-export const batchTableRecords: BatchTableRecord[] = Array.from(
-	{ length: 99 },
-	(_, index): BatchTableRecord => ({
-		callCount: 120_000 + ((index * 6_137) % 880_000),
-		createdAt: iso(12_000 - index * 160),
-		description: "这是一段描述",
-		id: `batch-table-record-${index + 1}`,
-		lastScheduledAt: "1970-01-01T00:00:00.000Z",
-		ruleName: `TradeCode ${index + 1}`,
-		status: (["online", "running", "exception", "closed"] as const)[index % 4]!,
-	}),
 );
 
 export let siteTitle = "React Antd Admin";

@@ -5,15 +5,7 @@ import { platformPermissions, type PlatformPermission } from "./permissions";
 export const dashboardPath = "/dashboard";
 
 export type AdminRouteGroupKey =
-	| "dashboard"
-	| "operations"
-	| "examples"
-	| "listExamples"
-	| "formExamples"
-	| "results"
-	| "exceptions"
-	| "system"
-	| "account";
+	"dashboard" | "operations" | "exceptions" | "system" | "account";
 
 export type AdminRouteIconKey =
 	| "dashboard"
@@ -23,35 +15,15 @@ export type AdminRouteIconKey =
 	| "positions"
 	| "dictionaries"
 	| "announcements"
-	| "importExport"
 	| "auditLogs"
 	| "loginLogs"
-	| "basicForm"
-	| "batchTable"
-	| "stepForm"
-	| "advancedForm"
-	| "searchArticles"
-	| "searchProjects"
-	| "searchApplications"
-	| "editableTable"
-	| "treeCategory"
-	| "previewPanel"
-	| "resultSuccess"
-	| "resultFailure"
 	| "exceptionForbidden"
 	| "exceptionNotFound"
 	| "exceptionServerError"
 	| "settings"
 	| "about";
 
-export type AdminGroupIconKey =
-	| "examples"
-	| "formExamples"
-	| "listExamples"
-	| "operations"
-	| "results"
-	| "exceptions"
-	| "system";
+export type AdminGroupIconKey = "operations" | "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -85,7 +57,7 @@ export interface AdminNavigationNode {
 export interface AdminNavigationGroup {
 	defaultRouteKey: string;
 	iconKey: AdminGroupIconKey;
-	key: Exclude<AdminRouteGroupKey, "dashboard" | "account">;
+	key: Exclude<AdminRouteGroupKey, "dashboard" | "account" | "exceptions">;
 	nodes: readonly AdminNavigationNode[];
 	titleKey: string;
 }
@@ -121,43 +93,6 @@ const loadLoginLogPage = async (): Promise<LazyAdminRouteModule> => {
 	return { Component: LoginLogPage };
 };
 
-const loadBasicFormPage = async (): Promise<LazyAdminRouteModule> => {
-	const { BasicFormPage } =
-		await import("../features/form-examples/BasicFormPage");
-	return { Component: BasicFormPage };
-};
-
-const loadStepFormPage = async (): Promise<LazyAdminRouteModule> => {
-	const { StepFormPage } =
-		await import("../features/form-examples/StepFormPage");
-	return { Component: StepFormPage };
-};
-
-const loadAdvancedFormPage = async (): Promise<LazyAdminRouteModule> => {
-	const { AdvancedFormPage } =
-		await import("../features/form-examples/AdvancedFormPage");
-	return { Component: AdvancedFormPage };
-};
-
-const loadBasicListPage = async (): Promise<LazyAdminRouteModule> => {
-	const { BasicListPage } =
-		await import("../features/page-examples/ListExamplePages");
-	return { Component: BasicListPage };
-};
-
-const loadBatchOperationsTablePage =
-	async (): Promise<LazyAdminRouteModule> => {
-		const { BatchOperationsTablePage } =
-			await import("../features/batch-table/BatchOperationsTablePage");
-		return { Component: BatchOperationsTablePage };
-	};
-
-const loadSearchArticlesPage = async (): Promise<LazyAdminRouteModule> => {
-	const { SearchArticlesPage } =
-		await import("../features/page-examples/SearchListPages");
-	return { Component: SearchArticlesPage };
-};
-
 const loadDepartmentsPage = async (): Promise<LazyAdminRouteModule> => {
 	const { DepartmentsPage } =
 		await import("../features/departments/DepartmentsPage");
@@ -173,73 +108,6 @@ const loadDictionariesPage = async (): Promise<LazyAdminRouteModule> => {
 	const { DictionariesPage } =
 		await import("../features/dictionaries/DictionariesPage");
 	return { Component: DictionariesPage };
-};
-
-const loadSearchProjectsPage = async (): Promise<LazyAdminRouteModule> => {
-	const { SearchProjectsPage } =
-		await import("../features/page-examples/SearchListPages");
-	return { Component: SearchProjectsPage };
-};
-
-const loadSearchApplicationsPage = async (): Promise<LazyAdminRouteModule> => {
-	const { SearchApplicationsPage } =
-		await import("../features/page-examples/SearchListPages");
-	return { Component: SearchApplicationsPage };
-};
-
-const loadEditableTablePage = async (): Promise<LazyAdminRouteModule> => {
-	const { EditableTablePage } =
-		await import("../features/editable-table-examples/EditableTablePage");
-	return { Component: EditableTablePage };
-};
-
-const loadCardListPage = async (): Promise<LazyAdminRouteModule> => {
-	const { CardListPage } =
-		await import("../features/page-examples/ListExamplePages");
-	return { Component: CardListPage };
-};
-
-const loadContentCategoryManagementPage =
-	async (): Promise<LazyAdminRouteModule> => {
-		const { ContentCategoryManagementPage } =
-			await import("../features/content-categories/ContentCategoryManagementPage");
-		return { Component: ContentCategoryManagementPage };
-	};
-
-const loadPreviewWorkbenchPage = async (): Promise<LazyAdminRouteModule> => {
-	const { PreviewWorkbenchPage } =
-		await import("../features/preview-example/PreviewWorkbenchPage");
-	return { Component: PreviewWorkbenchPage };
-};
-
-const loadGenericDetailPage = async (): Promise<LazyAdminRouteModule> => {
-	const { GenericDetailPage } =
-		await import("../features/page-examples/GenericDetailPage");
-	return { Component: GenericDetailPage };
-};
-
-const loadSuccessResultPage = async (): Promise<LazyAdminRouteModule> => {
-	const { SuccessResultPage } =
-		await import("../features/results/SuccessResultPage");
-	return { Component: SuccessResultPage };
-};
-
-const loadFailureResultPage = async (): Promise<LazyAdminRouteModule> => {
-	const { FailureResultPage } =
-		await import("../features/results/FailureResultPage");
-	return { Component: FailureResultPage };
-};
-
-const loadFileManagementPage = async (): Promise<LazyAdminRouteModule> => {
-	const { FileManagementPage } =
-		await import("../features/files/FileManagementPage");
-	return { Component: FileManagementPage };
-};
-
-const loadImportExportPage = async (): Promise<LazyAdminRouteModule> => {
-	const { ImportExportPage } =
-		await import("../features/import-export/ImportExportPage");
-	return { Component: ImportExportPage };
 };
 
 const loadNotificationCenterPage = async (): Promise<LazyAdminRouteModule> => {
@@ -387,157 +255,6 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.loginLogs",
 	},
 	{
-		groupKey: "listExamples",
-		iconKey: "auditLogs",
-		key: "/examples/lists/basic",
-		lazy: loadBasicListPage,
-		sectionKey: "adminShell.navigation.listExamples",
-		titleKey: "adminShell.navigation.basicList",
-	},
-	{
-		contentLayout: "pageContainer",
-		groupKey: "listExamples",
-		iconKey: "batchTable",
-		key: "/examples/lists/batch-operations",
-		lazy: loadBatchOperationsTablePage,
-		sectionKey: "adminShell.navigation.listExamples",
-		titleKey: "adminShell.navigation.batchOperationsTable",
-	},
-	{
-		aliases: [{ lazy: loadSearchArticlesPage, path: "/examples/lists/search" }],
-		groupKey: "listExamples",
-		iconKey: "searchArticles",
-		key: "/examples/lists/search/articles",
-		lazy: loadSearchArticlesPage,
-		navigationParentKeys: ["example-search-lists"],
-		sectionKey: "adminShell.navigation.listExamples",
-		titleKey: "adminShell.navigation.searchArticles",
-	},
-	{
-		groupKey: "listExamples",
-		iconKey: "searchProjects",
-		key: "/examples/lists/search/projects",
-		lazy: loadSearchProjectsPage,
-		navigationParentKeys: ["example-search-lists"],
-		sectionKey: "adminShell.navigation.listExamples",
-		titleKey: "adminShell.navigation.searchProjects",
-	},
-	{
-		groupKey: "listExamples",
-		iconKey: "searchApplications",
-		key: "/examples/lists/search/applications",
-		lazy: loadSearchApplicationsPage,
-		navigationParentKeys: ["example-search-lists"],
-		sectionKey: "adminShell.navigation.listExamples",
-		titleKey: "adminShell.navigation.searchApplications",
-	},
-	{
-		contentLayout: "table",
-		groupKey: "listExamples",
-		iconKey: "editableTable",
-		key: "/examples/lists/editable-table",
-		lazy: loadEditableTablePage,
-		sectionKey: "adminShell.navigation.listExamples",
-		titleKey: "adminShell.navigation.editableTable",
-	},
-	{
-		groupKey: "listExamples",
-		iconKey: "about",
-		key: "/examples/lists/cards",
-		lazy: loadCardListPage,
-		sectionKey: "adminShell.navigation.listExamples",
-		titleKey: "adminShell.navigation.cardList",
-	},
-	{
-		contentLayout: "table",
-		groupKey: "examples",
-		iconKey: "treeCategory",
-		key: "/examples/tree-category",
-		lazy: loadContentCategoryManagementPage,
-		sectionKey: "adminShell.navigation.examples",
-		titleKey: "adminShell.navigation.treeCategory",
-	},
-	{
-		groupKey: "examples",
-		iconKey: "previewPanel",
-		key: "/examples/preview-panel",
-		lazy: loadPreviewWorkbenchPage,
-		sectionKey: "adminShell.navigation.examples",
-		titleKey: "adminShell.navigation.previewPanel",
-	},
-	{
-		groupKey: "examples",
-		iconKey: "users",
-		key: "/examples/detail",
-		lazy: loadGenericDetailPage,
-		sectionKey: "adminShell.navigation.examples",
-		titleKey: "adminShell.navigation.genericDetail",
-	},
-	{
-		aliases: [
-			{ lazy: loadSuccessResultPage, path: "/examples/results/success" },
-		],
-		groupKey: "results",
-		iconKey: "resultSuccess",
-		key: "/result/success",
-		lazy: loadSuccessResultPage,
-		sectionKey: "adminShell.navigation.resultExamples",
-		titleKey: "adminShell.navigation.successResult",
-	},
-	{
-		aliases: [
-			{ lazy: loadFailureResultPage, path: "/examples/results/failure" },
-		],
-		groupKey: "results",
-		iconKey: "resultFailure",
-		key: "/result/fail",
-		lazy: loadFailureResultPage,
-		sectionKey: "adminShell.navigation.resultExamples",
-		titleKey: "adminShell.navigation.failureResult",
-	},
-	{
-		contentLayout: "table",
-		groupKey: "examples",
-		iconKey: "settings",
-		key: "/examples/files",
-		lazy: loadFileManagementPage,
-		sectionKey: "adminShell.navigation.examples",
-		titleKey: "adminShell.navigation.fileManagement",
-	},
-	{
-		groupKey: "examples",
-		iconKey: "importExport",
-		key: "/examples/import-export",
-		lazy: loadImportExportPage,
-		requiredPermission: platformPermissions.importExportManage,
-		sectionKey: "adminShell.navigation.examples",
-		titleKey: "adminShell.navigation.importExport",
-	},
-	{
-		groupKey: "formExamples",
-		iconKey: "basicForm",
-		key: "/examples/forms/basic",
-		lazy: loadBasicFormPage,
-		sectionKey: "adminShell.navigation.formExamples",
-		titleKey: "adminShell.navigation.basicForm",
-	},
-	{
-		groupKey: "formExamples",
-		iconKey: "stepForm",
-		key: "/examples/forms/step",
-		lazy: loadStepFormPage,
-		sectionKey: "adminShell.navigation.formExamples",
-		titleKey: "adminShell.navigation.stepForm",
-	},
-	{
-		groupKey: "formExamples",
-		iconKey: "advancedForm",
-		key: "/examples/forms/advanced",
-		lazy: loadAdvancedFormPage,
-		sectionKey: "adminShell.navigation.formExamples",
-		titleKey: "adminShell.navigation.advancedForm",
-	},
-	{
 		aliases: [
 			{
 				lazy: loadPlatformSettingsAppearancePage,
@@ -621,69 +338,6 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 		titleKey: "adminShell.navigation.operations",
 	},
 	{
-		defaultRouteKey: "/examples/lists/basic",
-		iconKey: "listExamples",
-		key: "listExamples",
-		nodes: [
-			{ routeKey: "/examples/lists/basic" },
-			{ routeKey: "/examples/lists/batch-operations" },
-			{
-				key: "example-search-lists",
-				titleKey: "adminShell.navigation.searchList",
-				children: [
-					{ routeKey: "/examples/lists/search/articles" },
-					{ routeKey: "/examples/lists/search/projects" },
-					{ routeKey: "/examples/lists/search/applications" },
-				],
-			},
-			{ routeKey: "/examples/lists/cards" },
-			{ routeKey: "/examples/lists/editable-table" },
-		],
-		titleKey: "adminShell.navigation.listExamples",
-	},
-	{
-		defaultRouteKey: "/examples/tree-category",
-		iconKey: "examples",
-		key: "examples",
-		nodes: [
-			{ routeKey: "/examples/tree-category" },
-			{ routeKey: "/examples/preview-panel" },
-			{ routeKey: "/examples/detail" },
-			{ routeKey: "/examples/files" },
-			{ routeKey: "/examples/import-export" },
-		],
-		titleKey: "adminShell.navigation.examples",
-	},
-	{
-		defaultRouteKey: "/examples/forms/basic",
-		iconKey: "formExamples",
-		key: "formExamples",
-		nodes: [
-			{ routeKey: "/examples/forms/basic" },
-			{ routeKey: "/examples/forms/step" },
-			{ routeKey: "/examples/forms/advanced" },
-		],
-		titleKey: "adminShell.navigation.formExamples",
-	},
-	{
-		defaultRouteKey: "/result/success",
-		iconKey: "results",
-		key: "results",
-		nodes: [{ routeKey: "/result/success" }, { routeKey: "/result/fail" }],
-		titleKey: "adminShell.navigation.resultExamples",
-	},
-	{
-		defaultRouteKey: "/exception/403",
-		iconKey: "exceptions",
-		key: "exceptions",
-		nodes: [
-			{ routeKey: "/exception/403" },
-			{ routeKey: "/exception/404" },
-			{ routeKey: "/exception/500" },
-		],
-		titleKey: "adminShell.exceptions.section",
-	},
-	{
 		defaultRouteKey: "/organization/users",
 		iconKey: "system",
 		key: "system",
@@ -725,6 +379,8 @@ export const adminNavigationGroupByKey = new Map<
 export const adminCollapsibleSidebarGroupKeys = adminNavigationGroups.map(
 	(group) => group.key,
 );
+const adminCollapsibleRouteGroupKeys: readonly AdminRouteGroupKey[] =
+	adminCollapsibleSidebarGroupKeys;
 
 export function getAdminRouteMetadata(pathname: string) {
 	return (
@@ -737,7 +393,7 @@ export function getAdminRouteOpenKeys(route: AdminRouteMetadata) {
 		return [];
 	}
 
-	return adminCollapsibleSidebarGroupKeys.includes(route.groupKey)
+	return adminCollapsibleRouteGroupKeys.includes(route.groupKey)
 		? [route.groupKey, ...(route.navigationParentKeys ?? [])]
 		: [...(route.navigationParentKeys ?? [])];
 }

@@ -1,12 +1,9 @@
 import {
 	AntDesignOutlined,
-	AppstoreOutlined,
-	CheckCircleOutlined,
 	MenuFoldOutlined,
 	MenuUnfoldOutlined,
 	ProfileOutlined,
 	SettingOutlined,
-	WarningOutlined,
 } from "@ant-design/icons";
 import {
 	Breadcrumb,
@@ -48,12 +45,7 @@ const collapsibleSidebarRootKeys: readonly string[] =
 	adminCollapsibleSidebarGroupKeys;
 
 const groupIconByKey: Record<AdminGroupIconKey, ReactNode> = {
-	examples: <AppstoreOutlined aria-hidden />,
-	exceptions: <WarningOutlined aria-hidden />,
-	formExamples: <ProfileOutlined aria-hidden />,
-	listExamples: <AppstoreOutlined aria-hidden />,
 	operations: <ProfileOutlined aria-hidden />,
-	results: <CheckCircleOutlined aria-hidden />,
 	system: <SettingOutlined aria-hidden />,
 };
 

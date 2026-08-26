@@ -169,15 +169,15 @@ describe("RolesPage", () => {
 		expect(
 			within(drawer).getByRole("searchbox", { name: "搜索权限" }),
 		).toBeInTheDocument();
-		expect(within(drawer).getByText("已选 1/11 项")).toBeInTheDocument();
+		expect(within(drawer).getByText("已选 1/10 项")).toBeInTheDocument();
 
 		await user.click(within(drawer).getByRole("button", { name: "全选" }));
 		expect(mocks.setPlatformRolePermission).not.toHaveBeenCalled();
-		expect(within(drawer).getByText("已选 11/11 项")).toBeInTheDocument();
+		expect(within(drawer).getByText("已选 10/10 项")).toBeInTheDocument();
 		await user.click(within(drawer).getByRole("button", { name: /保\s*存/ }));
 
 		await waitFor(() => {
-			expect(mocks.setPlatformRolePermission).toHaveBeenCalledTimes(10);
+			expect(mocks.setPlatformRolePermission).toHaveBeenCalledTimes(9);
 		});
 		expect(mocks.setPlatformRolePermission).toHaveBeenCalledWith(
 			{
@@ -219,7 +219,7 @@ describe("RolesPage", () => {
 		await user.click(
 			within(drawer).getByRole("checkbox", { name: /公告管理页面/ }),
 		);
-		expect(within(drawer).getByText("已选 0/11 项")).toBeInTheDocument();
+		expect(within(drawer).getByText("已选 0/10 项")).toBeInTheDocument();
 	});
 
 	it("requires the exact role name before deleting a role", async () => {

@@ -20,23 +20,6 @@ describe("admin route template", () => {
 			"/system/announcements",
 			"/operations/audit-logs",
 			"/operations/login-logs",
-			"/examples/lists/basic",
-			"/examples/lists/batch-operations",
-			"/examples/lists/search/articles",
-			"/examples/lists/search/projects",
-			"/examples/lists/search/applications",
-			"/examples/lists/editable-table",
-			"/examples/lists/cards",
-			"/examples/tree-category",
-			"/examples/preview-panel",
-			"/examples/detail",
-			"/result/success",
-			"/result/fail",
-			"/examples/files",
-			"/examples/import-export",
-			"/examples/forms/basic",
-			"/examples/forms/step",
-			"/examples/forms/advanced",
 			"/system/settings",
 			"/system/about",
 			"/exception/403",
@@ -48,41 +31,37 @@ describe("admin route template", () => {
 		]);
 	});
 
-	it("keeps result and exception pages as first-level navigation groups", () => {
-		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
-			expect.arrayContaining(["results", "exceptions"]),
-		);
+	it("keeps showcase pages out of the administration navigation", () => {
+		const navigationGroupKeys = adminNavigationGroups.map((group) => group.key);
+		const routeKeys = adminRouteDefinitions.map((route) => route.key);
+
+		expect(navigationGroupKeys).toEqual(["operations", "system"]);
+		expect(adminCollapsibleSidebarGroupKeys).toEqual(["operations", "system"]);
+		expect(routeKeys.some((key) => key.startsWith("/examples/"))).toBe(false);
+		expect(routeKeys.some((key) => key.startsWith("/result/"))).toBe(false);
+		expect(navigationGroupKeys).not.toContain("exceptions");
+		expect(
+			adminNavigationGroups.flatMap((group) =>
+				group.nodes.map((node) => node.routeKey),
+			),
+		).not.toEqual(expect.arrayContaining(["/exception/403"]));
 	});
 
-	it("keeps Pro page categories as first-level navigation groups", () => {
-		const examplesGroup = adminNavigationGroups.find(
-			(group) => group.key === "examples",
-		);
-		const formRoute = getAdminRouteMetadata("/examples/forms/basic");
-		const searchRoute = getAdminRouteMetadata(
-			"/examples/lists/search/articles",
-		);
-		const genericDetailRoute = getAdminRouteMetadata("/examples/detail");
+	it("opens only foundation groups in sidebar navigation", () => {
+		const usersRoute = getAdminRouteMetadata("/organization/users");
+		const auditRoute = getAdminRouteMetadata("/operations/audit-logs");
+		const forbiddenRoute = getAdminRouteMetadata("/exception/403");
 
-		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
-			expect.arrayContaining(["listExamples", "formExamples", "examples"]),
+		expect(getAdminRouteOpenKeys(usersRoute)).toEqual(["system"]);
+		expect(getAdminRouteOpenKeys(auditRoute)).toEqual(["operations"]);
+		expect(getAdminRouteOpenKeys(forbiddenRoute)).toEqual([]);
+		expect(getAdminRouteMetadata("/examples/forms/basic").key).toBe(
+			"/exception/404",
 		);
-		expect(examplesGroup?.nodes.map((node) => node.routeKey)).toEqual([
-			"/examples/tree-category",
-			"/examples/preview-panel",
-			"/examples/detail",
-			"/examples/files",
-			"/examples/import-export",
-		]);
-		expect(adminCollapsibleSidebarGroupKeys).toEqual(
-			expect.arrayContaining(["listExamples", "formExamples", "examples"]),
+		expect(getAdminRouteMetadata("/examples/lists/search/articles").key).toBe(
+			"/exception/404",
 		);
-		expect(getAdminRouteOpenKeys(formRoute)).toEqual(["formExamples"]);
-		expect(getAdminRouteOpenKeys(searchRoute)).toEqual([
-			"listExamples",
-			"example-search-lists",
-		]);
-		expect(getAdminRouteOpenKeys(genericDetailRoute)).toEqual(["examples"]);
+		expect(getAdminRouteMetadata("/result/success").key).toBe("/exception/404");
 	});
 
 	it("maps unknown authenticated locations to the 404 page metadata", () => {

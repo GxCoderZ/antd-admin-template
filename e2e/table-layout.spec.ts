@@ -1,4 +1,11 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function navigateWithinAdmin(page: Page, path: string) {
+	await page.evaluate((nextPath) => {
+		window.history.pushState(null, "", nextPath);
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}, path);
+}
 
 test("普通管理表格正文使用官方内边距", async ({ page }) => {
 	await page.setViewportSize({ height: 900, width: 1440 });
@@ -8,18 +15,21 @@ test("普通管理表格正文使用官方内边距", async ({ page }) => {
 	await page.locator('button[type="submit"]').click();
 	await expect(page).toHaveURL(/\/dashboard$/);
 
-	await page.goto("/organization/users");
+	await navigateWithinAdmin(page, "/organization/users");
+	await expect(page).toHaveURL(/\/organization\/users$/);
 	const tableCard = page.getByTestId("admin-users-table-card");
 	await expect(tableCard.getByRole("table")).toBeVisible();
-	const bodyPadding = await tableCard.locator(".ant-card-body").evaluate((body) => {
-		const style = getComputedStyle(body);
-		return [
-			style.paddingTop,
-			style.paddingRight,
-			style.paddingBottom,
-			style.paddingLeft,
-		];
-	});
+	const bodyPadding = await tableCard
+		.locator(".ant-card-body")
+		.evaluate((body) => {
+			const style = getComputedStyle(body);
+			return [
+				style.paddingTop,
+				style.paddingRight,
+				style.paddingBottom,
+				style.paddingLeft,
+			];
+		});
 
 	expect(bodyPadding).toEqual(["0px", "24px", "16px", "24px"]);
 });

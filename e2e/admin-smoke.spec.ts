@@ -35,7 +35,10 @@ test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 	await expect(currentUserButton.locator(".anticon-user")).toBeVisible();
 	await currentUserButton.click();
 	for (const itemName of ["通知中心", "个人资料", "账号设置"]) {
-		const menuItem = page.getByRole("menuitem", { name: itemName, exact: true });
+		const menuItem = page.getByRole("menuitem", {
+			name: itemName,
+			exact: true,
+		});
 		await expect(menuItem.locator(".anticon")).toHaveCSS("margin-right", "8px");
 	}
 	await page.keyboard.press("Escape");
@@ -330,9 +333,7 @@ test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
 	await expect(page.getByText("收起", { exact: true })).toBeVisible();
 });
 
-test("独立表格页面在窄屏下统一使用 24px 四周外层间距", async ({
-	page,
-}) => {
+test("独立表格页面在窄屏下统一使用 24px 四周外层间距", async ({ page }) => {
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
 
@@ -345,9 +346,6 @@ test("独立表格页面在窄屏下统一使用 24px 四周外层间距", async
 		"/system/announcements",
 		"/operations/audit-logs",
 		"/operations/login-logs",
-		"/examples/lists/editable-table",
-		"/examples/tree-category",
-		"/examples/files",
 	] as const;
 
 	for (const path of tablePagePaths) {
@@ -405,7 +403,7 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	).toBeVisible();
 	await expect(permissionDrawer.getByText("系统管理菜单")).toBeVisible();
 	await expect(permissionDrawer.getByText("用户管理页面")).toBeVisible();
-	await expect(permissionDrawer.getByText(/已选 \d+\/11 项/)).toBeVisible();
+	await expect(permissionDrawer.getByText(/已选 \d+\/10 项/)).toBeVisible();
 	await expect(
 		permissionDrawer.getByRole("button", { name: /保\s*存/ }),
 	).toBeVisible();
@@ -538,76 +536,6 @@ test("用户管理角色抽屉在 390px 窄屏下不溢出", async ({ page }) =>
 	).toBeLessThanOrEqual(390);
 });
 
-test("表单示例通过 Fake API 完成基础与分步提交", async ({ page }) => {
-	await signIn(page);
-
-	await navigateWithinAdmin(page, "/examples/forms/basic");
-	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
-	await page.getByLabel("标题").fill("端到端客户目标");
-	await page.getByPlaceholder("开始日期").fill("2026-09-01");
-	await page.getByPlaceholder("结束日期").fill("2026-09-30");
-	await page.getByLabel("目标描述").fill("提升重点客户满意度。");
-	await page.getByLabel("衡量标准").fill("满意度达到 95%。");
-	await page.getByRole("button", { name: /提\s*交/ }).click();
-	await expect(page.getByText("提交成功", { exact: true })).toBeVisible();
-
-	await navigateWithinAdmin(page, "/examples/forms/step");
-	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
-	await page.getByRole("button", { name: "下一步" }).click();
-	await expect(
-		page.getByText("test@example.com", { exact: true }),
-	).toBeVisible();
-	await page.getByLabel("支付密码").fill("123456");
-	await page.getByRole("button", { name: /提\s*交/ }).click();
-	await expect(page.getByText("操作成功", { exact: true })).toBeVisible();
-
-	await navigateWithinAdmin(page, "/examples/forms/advanced");
-	await expect(page).toHaveURL(/\/examples\/forms\/advanced$/);
-	await expect(
-		page.getByRole("heading", { name: "基础信息", exact: true }),
-	).toBeVisible();
-	await page.getByLabel("项目编码").fill("E2E-ADVANCED-1");
-	await page.getByRole("button", { name: "保存草稿" }).click();
-	await expect(page.getByText("草稿已保存").first()).toBeVisible();
-	await page.getByRole("button", { name: /提\s*交/ }).click();
-	await expect(page.getByText("正式提交成功").first()).toBeVisible();
-});
-
-test("表单示例在窄屏下保持完整可用", async ({ page }) => {
-	await page.setViewportSize({ height: 844, width: 390 });
-	await signIn(page);
-
-	await navigateWithinAdmin(page, "/examples/forms/basic");
-	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
-	await expect(page.getByLabel("标题")).toBeVisible();
-	await expect(page.getByRole("button", { name: /提\s*交/ })).toBeVisible();
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-
-	await navigateWithinAdmin(page, "/examples/forms/step");
-	await expect(page).toHaveURL(/\/examples\/forms\/step$/);
-	await expect(
-		page.getByRole("heading", { level: 1, name: "分步表单" }),
-	).toBeVisible();
-	await expect(page.getByLabel("收款账户")).toBeVisible();
-	await expect(page.getByRole("button", { name: "下一步" })).toBeVisible();
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-
-	await navigateWithinAdmin(page, "/examples/forms/advanced");
-	await expect(page).toHaveURL(/\/examples\/forms\/advanced$/);
-	await expect(
-		page.getByRole("heading", { level: 1, name: "高级表单" }),
-	).toBeVisible();
-	await expect(page.getByLabel("项目名称")).toBeVisible();
-	await expect(page.getByRole("button", { name: "保存草稿" })).toBeVisible();
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-});
-
 test("公告管理支持通过 Fake API 新建并查询公告", async ({ page }) => {
 	await signIn(page);
 
@@ -658,51 +586,6 @@ test("公告管理在窄屏下保持可导航和可编辑", async ({ page }) => 
 	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
 });
 
-test("可编辑表格支持通过 Fake API 新增并查询行", async ({ page }) => {
-	await signIn(page);
-
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
-	await expect(page.getByRole("table")).toContainText("月度预算复核");
-	for (const actionName of ["刷新", "表格密度", "列设置"]) {
-		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
-	}
-
-	await page.getByRole("button", { name: "新增行" }).click();
-	const editingRow = page.getByRole("row").filter({
-		has: page.getByRole("button", { name: "保存" }),
-	});
-	await editingRow.getByRole("textbox").nth(0).fill("端到端可编辑行");
-	await editingRow.getByRole("textbox").nth(1).fill("Sophia Sun");
-	await editingRow.getByRole("spinbutton").nth(0).fill("66");
-	await editingRow.getByRole("spinbutton").nth(1).fill("42");
-	await editingRow.getByRole("button", { name: "保存" }).click();
-
-	await page.getByPlaceholder("搜索事项名称或负责人").fill("端到端可编辑行");
-	await page.getByRole("button", { name: /查\s*询/ }).click();
-	await expect(page.getByText("端到端可编辑行", { exact: true })).toBeVisible();
-});
-
-test("可编辑表格在 390px 窄屏下保留横向滚动且页面不溢出", async ({ page }) => {
-	await page.setViewportSize({ height: 844, width: 390 });
-	await signIn(page);
-
-	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
-	await expect(page.getByRole("button", { name: "新增行" })).toBeVisible();
-	await expect(page.getByRole("combobox", { name: "状态" })).toHaveCount(0);
-	await page.getByText("展开", { exact: true }).click();
-	await expect(page.getByRole("combobox", { name: "状态" })).toBeVisible();
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-});
-
 test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) => {
 	await signIn(page);
 
@@ -729,320 +612,4 @@ test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) 
 	await expect(page.getByText("暂无站内通知")).toHaveCount(0);
 	await page.getByRole("button", { name: /全部已读/ }).click();
 	await expect(page.getByText("暂无站内通知")).toBeVisible();
-});
-
-test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", async ({ page }) => {
-	await signIn(page);
-
-	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "标准列表", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/lists\/basic$/);
-	await expect(page.getByText("我的待办", { exact: true })).toBeVisible();
-	await expect(page.getByText("基本列表", { exact: true })).toBeVisible();
-
-	await page.getByRole("menuitem", { name: "卡片列表", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/lists\/cards$/);
-	await expect(page.getByRole("button", { name: /新增产品/ })).toBeVisible();
-
-	await page.getByRole("menuitem", { name: "搜索列表", exact: true }).click();
-	await page.getByRole("menuitem", { name: "文章", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/lists\/search\/articles$/);
-	const searchContent = page.getByTestId("admin-shell-page-content");
-	await expect(
-		searchContent.getByRole("tab", { name: "文章" }),
-	).toHaveAttribute("aria-selected", "true");
-	await expect(page.getByText("所属类目", { exact: true })).toBeVisible();
-
-	await searchContent.getByRole("tab", { name: "项目" }).click();
-	await expect(page).toHaveURL(/\/examples\/lists\/search\/projects$/);
-	await expect(page.getByTestId("search-project-grid")).toBeVisible();
-
-	await searchContent.getByRole("tab", { name: "应用" }).click();
-	await expect(page).toHaveURL(/\/examples\/lists\/search\/applications$/);
-	await expect(page.getByText("活跃用户").first()).toBeVisible();
-
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "通用详情页", exact: true }).click();
-	await expect(page.getByText("记录摘要", { exact: true })).toBeVisible();
-	await expect(page.getByText("处理进度", { exact: true })).toBeVisible();
-
-	await page.getByRole("menuitem", { name: "结果页", exact: true }).click();
-	await page.getByRole("menuitem", { name: "成功结果页", exact: true }).click();
-	await expect(page).toHaveURL(/\/result\/success$/);
-	await expect(page.getByText("提交成功", { exact: true })).toBeVisible();
-
-	await page.getByRole("menuitem", { name: "异常页", exact: true }).click();
-	await page.getByRole("menuitem", { name: "403", exact: true }).click();
-	await expect(page).toHaveURL(/\/exception\/403$/);
-	await expect(
-		page.getByTestId("admin-shell-page-content").getByText("403", {
-			exact: true,
-		}),
-	).toBeVisible();
-});
-
-test("搜索列表在窄屏下保持完整且无页面级横向溢出", async ({ page }) => {
-	await page.setViewportSize({ height: 844, width: 390 });
-	await signIn(page);
-	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "搜索列表", exact: true }).click();
-	await page.getByRole("menuitem", { name: "文章", exact: true }).click();
-
-	await expect(
-		page
-			.getByTestId("admin-shell-page-content")
-			.getByRole("tab", { name: "文章" }),
-	).toBeVisible();
-	await expect(page.getByText("所属类目", { exact: true })).toBeVisible();
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-});
-
-test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async ({ page }) => {
-	await page.setViewportSize({ height: 844, width: 390 });
-	await signIn(page);
-
-	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "文件管理", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/files$/);
-	await expect(page.getByText("Fake 文件列表", { exact: true })).toBeVisible();
-	await expect(page.getByText("文件类型", { exact: true })).toHaveCount(0);
-	await page.getByText("展开", { exact: true }).click();
-	await expect(page.getByRole("combobox", { name: "文件类型" })).toBeVisible();
-
-	await page.locator('input[type="file"]').setInputFiles({
-		buffer: Buffer.from("fake-only demo"),
-		mimeType: "text/plain",
-		name: "端到端验收.txt",
-	});
-	await expect(page.getByText("Fake 文件已上传")).toBeVisible();
-	await page.getByPlaceholder("搜索文件名").fill("端到端验收");
-	await page.getByRole("button", { name: /查\s*询/ }).click();
-	await expect(page.getByRole("table")).toContainText("端到端验收.txt");
-	const uploadedRow = page
-		.getByRole("row")
-		.filter({ hasText: "端到端验收.txt" });
-	await uploadedRow.getByRole("button", { name: /删除/ }).click();
-	await page.getByRole("button", { name: /确认删除/ }).click();
-	await expect(page.getByText("暂无文件")).toBeVisible();
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-});
-
-test("批量操作表格的桌面底部批量栏避开侧边导航", async ({ page }) => {
-	await signIn(page);
-	await navigateWithinAdmin(page, "/examples/lists/batch-operations");
-	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
-	await expect(page.getByRole("table")).toContainText("TradeCode");
-
-	await page
-		.getByRole("checkbox", { name: "Select row 1", exact: true })
-		.click();
-	await page
-		.getByRole("checkbox", { name: "Select row 2", exact: true })
-		.click();
-	await expect(page.getByText("已选择 2 项")).toBeVisible();
-	await expect(page.getByText("取消选择")).toBeVisible();
-
-	const sidebarBounds = await page.locator(".ant-layout-sider").boundingBox();
-	const bulkBarBounds = await page
-		.getByTestId("batch-table-bulk-action-bar")
-		.boundingBox();
-	expect(sidebarBounds).not.toBeNull();
-	expect(bulkBarBounds).not.toBeNull();
-	expect(bulkBarBounds?.x).toBeCloseTo(
-		sidebarBounds ? sidebarBounds.x + sidebarBounds.width : 0,
-		0,
-	);
-	expect(
-		bulkBarBounds ? bulkBarBounds.x + bulkBarBounds.width : undefined,
-	).toBeCloseTo(page.viewportSize()?.width ?? 0, 0);
-
-	await page.locator("main").evaluate((element) => {
-		element.scrollTop = element.scrollHeight;
-	});
-	const footerBounds = await page
-		.locator(".ant-layout-footer")
-		.last()
-		.boundingBox();
-	const scrolledBulkBarBounds = await page
-		.getByTestId("batch-table-bulk-action-bar")
-		.boundingBox();
-	if (!footerBounds || !scrolledBulkBarBounds) {
-		throw new Error("Footer or batch toolbar bounds are missing");
-	}
-	expect(footerBounds.y + footerBounds.height <= scrolledBulkBarBounds.y).toBe(
-		true,
-	);
-});
-
-test("批量操作表格复用 Ant Design Pro 内容布局", async ({ page }) => {
-	await page.setViewportSize({ height: 900, width: 1440 });
-	await signIn(page);
-	await navigateWithinAdmin(page, "/examples/lists/batch-operations");
-	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
-	await expect(page.getByRole("table")).toContainText("TradeCode");
-
-	const pageContainer = page.getByTestId("pro-page-container");
-	await expect(pageContainer).toBeVisible();
-	const layout = await page.evaluate(() => {
-		const pageContent = document.querySelector(
-			'[data-testid="admin-shell-page-content"]',
-		);
-		const childrenContainer = document.querySelector(
-			".ant-pro-page-container-children-container",
-		);
-		const queryCard = document.querySelector(
-			".ant-pro-table > .ant-pro-table-search",
-		);
-		const tableCard = document.querySelector(
-			".ant-pro-table > .ant-pro-card:not(.ant-pro-table-search)",
-		);
-		const queryForm = document.querySelector(".ant-pro-query-filter");
-		const tableCardBody = tableCard?.querySelector(".ant-pro-card-body");
-
-		if (
-			!pageContent ||
-			!childrenContainer ||
-			!queryCard ||
-			!tableCard ||
-			!queryForm ||
-			!tableCardBody
-		) {
-			throw new Error("Ant Design Pro table layout is incomplete");
-		}
-
-		const queryBounds = queryCard.getBoundingClientRect();
-		const tableBounds = tableCard.getBoundingClientRect();
-		const pageContentStyle = getComputedStyle(pageContent);
-		const childrenStyle = getComputedStyle(childrenContainer);
-		const queryFormStyle = getComputedStyle(queryForm);
-		const tableCardBodyStyle = getComputedStyle(tableCardBody);
-
-		return {
-			childrenPaddingBlockStart: childrenStyle.paddingBlockStart,
-			childrenPaddingInline: childrenStyle.paddingInline,
-			pageContentPadding: pageContentStyle.padding,
-			panelGap: tableBounds.top - queryBounds.bottom,
-			queryPadding: queryFormStyle.padding,
-			tableBodyPadding: tableCardBodyStyle.padding,
-		};
-	});
-
-	expect(layout).toEqual({
-		childrenPaddingBlockStart: "24px",
-		childrenPaddingInline: "24px",
-		pageContentPadding: "0px",
-		panelGap: 16,
-		queryPadding: "24px",
-		tableBodyPadding: "0px 24px 16px",
-	});
-});
-
-test("批量操作表格支持选择、审批和删除确认", async ({ page }) => {
-	await page.setViewportSize({ height: 844, width: 390 });
-	await signIn(page);
-
-	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
-	await page
-		.getByRole("menuitem", { name: "批量操作表格", exact: true })
-		.click();
-	await expect(page).toHaveURL(/\/examples\/lists\/batch-operations$/);
-	await expect(page.getByText("查询表格", { exact: true })).toBeVisible();
-	await expect(page.getByRole("table")).toContainText("TradeCode");
-	await expect(page.getByRole("table")).toContainText("服务调用次数");
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-
-	await page
-		.getByRole("checkbox", { name: "Select row 1", exact: true })
-		.click();
-	await page
-		.getByRole("checkbox", { name: "Select row 2", exact: true })
-		.click();
-	await expect(page.getByText("已选择 2 项")).toBeVisible();
-	await expect(page.getByText("取消选择")).toBeVisible();
-	await expect(page.getByText(/服务调用次数总计/)).toBeVisible();
-	const bulkBarBounds = await page
-		.getByTestId("batch-table-bulk-action-bar")
-		.boundingBox();
-	expect(bulkBarBounds?.x).toBe(0);
-	expect(bulkBarBounds?.width).toBe(390);
-
-	await page.getByRole("button", { name: "批量审批" }).click();
-	await expect(
-		page.getByTestId("batch-table-bulk-action-bar"),
-	).not.toBeVisible();
-
-	await page
-		.getByRole("checkbox", { name: "Select row 1", exact: true })
-		.click();
-	await page.getByRole("button", { name: "批量删除" }).click();
-	await expect(page.getByText("确认批量删除")).toBeVisible();
-	await page.getByRole("button", { name: "确认删除" }).click();
-	await expect(page.getByText("已删除 1 项记录")).toBeVisible();
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
-});
-
-test("导入导出页面演示 Fake 校验、确认导入和异步导出", async ({ page }) => {
-	await signIn(page);
-
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "导入导出", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/import-export$/);
-	await expect(
-		page.getByText("用户资料导入模板", { exact: true }),
-	).toBeVisible();
-	await expect(page.getByText("异常明细导出", { exact: true })).toBeVisible();
-	await expect(
-		page.getByText("导出条件包含已停用字段，请调整后重试。"),
-	).toBeVisible();
-
-	await page.locator('input[type="file"]').setInputFiles({
-		buffer: Buffer.from("name,email"),
-		mimeType: "text/csv",
-		name: "users.csv",
-	});
-	await expect(page.getByText("校验失败明细", { exact: true })).toBeVisible();
-	await expect(page.getByText("邮箱格式不正确。")).toBeVisible();
-	await page.getByRole("button", { name: "确认导入" }).click();
-	await expect(page.getByText("导入完成", { exact: true })).toBeVisible();
-
-	await page.getByRole("button", { name: "创建导出" }).click();
-	await expect(page.getByText("导出任务已创建")).toBeVisible();
-	await expect(
-		page.getByRole("row").filter({ hasText: "用户资料导出" }).first(),
-	).toBeVisible();
-	await expect(page.getByText("已完成").first()).toBeVisible();
-});
-
-test("导入导出页面在 390px 深色模式下不溢出", async ({ page }) => {
-	await page.setViewportSize({ height: 844, width: 390 });
-	await page.addInitScript(() => {
-		window.localStorage.setItem(
-			"react-antd-admin.preference.theme-mode",
-			"dark",
-		);
-	});
-	await signIn(page);
-
-	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await page.getByRole("menuitem", { name: "导入导出", exact: true }).click();
-	await expect(page).toHaveURL(/\/examples\/import-export$/);
-	await expect(page.getByTestId("import-export-workspace")).toBeVisible();
-	await expect(page.getByText("导入校验", { exact: true })).toBeVisible();
-	await expect(page.getByText("异步导出任务", { exact: true })).toBeVisible();
-	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-	expect(
-		await page.evaluate(() => document.documentElement.scrollWidth),
-	).toBeLessThanOrEqual(390);
 });

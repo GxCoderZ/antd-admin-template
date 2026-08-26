@@ -9,7 +9,6 @@ export const platformPermissions = {
 	announcementsRead: "platform.announcements.read",
 	departmentsManage: "platform.departments.manage",
 	dictionariesManage: "platform.dictionaries.manage",
-	importExportManage: "platform.import-export.manage",
 	logsRead: "platform.logs.read",
 	positionsManage: "platform.positions.manage",
 	settingsManage: "platform.settings.manage",
