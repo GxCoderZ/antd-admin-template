@@ -85,7 +85,10 @@ export function AccountSettingsPage() {
 		<Flex
 			style={{
 				background: token.colorBgContainer,
+				border: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+				borderRadius: 8,
 				minHeight: 520,
+				overflow: "hidden",
 				width: "100%",
 			}}
 			vertical={compact}
