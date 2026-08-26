@@ -9,7 +9,6 @@ import {
 	SunOutlined,
 } from "@ant-design/icons";
 import {
-	Button,
 	Dropdown,
 	Grid,
 	message,
@@ -44,6 +43,7 @@ import {
 } from "../../i18n";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { CommandPalette } from "./CommandPalette";
+import { HeaderIconButton } from "./HeaderIconButton";
 import { NotificationPopover } from "./NotificationPopover";
 import { SettingsDrawer } from "./SettingsDrawer";
 
@@ -237,7 +237,7 @@ export function AdminShellHeader({
 			>
 				{hasSidebarBreakpoint ? (
 					<>
-						<Button
+						<HeaderIconButton
 							aria-label={t("adminShell.header.search")}
 							icon={<SearchOutlined aria-hidden />}
 							onClick={() => setCommandPaletteOpen(true)}
@@ -251,7 +251,7 @@ export function AdminShellHeader({
 							}}
 							trigger={["click"]}
 						>
-							<Button
+							<HeaderIconButton
 								aria-label={t("adminShell.header.language")}
 								icon={<GlobalOutlined aria-hidden />}
 								type="text"
@@ -266,13 +266,13 @@ export function AdminShellHeader({
 							}}
 							trigger={["click"]}
 						>
-							<Button
+							<HeaderIconButton
 								aria-label={t("theme.label")}
 								icon={themeIcon}
 								type="text"
 							/>
 						</Dropdown>
-						<Button
+						<HeaderIconButton
 							aria-label={t("adminShell.header.settings")}
 							icon={<SettingOutlined aria-hidden />}
 							onClick={() => setPreferencesOpen(true)}
@@ -299,7 +299,7 @@ export function AdminShellHeader({
 						}}
 						trigger={["click"]}
 					>
-						<Button
+						<HeaderIconButton
 							aria-label={t("adminShell.header.more")}
 							icon={<MoreOutlined aria-hidden />}
 							type="text"
@@ -317,7 +317,7 @@ export function AdminShellHeader({
 					placement="bottomRight"
 					trigger={["click"]}
 				>
-					<Button aria-label={currentUsername} type="text">
+					<HeaderIconButton aria-label={currentUsername} type="text">
 						<Space size={token.marginXS}>
 							<PlatformUserAvatar
 								displayName={currentUsername}
@@ -328,7 +328,7 @@ export function AdminShellHeader({
 							/>
 							{hasSidebarBreakpoint ? <Text>{currentUsername}</Text> : null}
 						</Space>
-					</Button>
+					</HeaderIconButton>
 				</Dropdown>
 			</Space>
 

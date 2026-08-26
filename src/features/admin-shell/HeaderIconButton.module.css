@@ -1,0 +1,43 @@
+.button {
+	--header-icon-button-ripple-size: 100%;
+	--header-icon-button-ripple-x: 50%;
+	--header-icon-button-ripple-y: 50%;
+
+	overflow: hidden;
+	position: relative;
+}
+
+.button::after {
+	animation: header-icon-button-ripple 220ms ease-out;
+	background: currentColor;
+	border-radius: 50%;
+	content: "";
+	display: none;
+	height: var(--header-icon-button-ripple-size);
+	left: var(--header-icon-button-ripple-x);
+	opacity: 0.14;
+	pointer-events: none;
+	position: absolute;
+	top: var(--header-icon-button-ripple-y);
+	transform: translate(-50%, -50%) scale(0);
+	width: var(--header-icon-button-ripple-size);
+	z-index: 0;
+}
+
+.button[data-rippling="true"]::after {
+	display: block;
+}
+
+@keyframes header-icon-button-ripple {
+	to {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.button::after {
+		animation: none;
+		display: none;
+	}
+}

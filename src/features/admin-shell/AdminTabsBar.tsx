@@ -26,7 +26,7 @@ import {
 	useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Button, Dropdown, Flex, type MenuProps, Tabs, theme } from "antd";
+import { Dropdown, Flex, type MenuProps, Tabs, theme } from "antd";
 import type {
 	CSSProperties,
 	HTMLAttributes,
@@ -47,6 +47,7 @@ import {
 	type AdminRouteMetadata,
 } from "../../app/adminRoutes";
 import { clearRouteSessionState } from "../../app/routeSessionState";
+import { HeaderIconButton } from "./HeaderIconButton";
 
 interface AdminTabsBarProps {
 	currentPage: AdminRouteMetadata;
@@ -501,13 +502,13 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 					gap={0}
 					style={{ height: "100%", paddingInlineEnd: token.marginXS }}
 				>
-					<Button
+					<HeaderIconButton
 						aria-label={t("adminShell.tabs.reload")}
 						icon={<ReloadOutlined aria-hidden />}
 						onClick={() => reloadTab(currentPage.key)}
 						type="text"
 					/>
-					<Button
+					<HeaderIconButton
 						aria-label={t("adminShell.tabs.fullscreen")}
 						icon={<FullscreenOutlined aria-hidden />}
 						onClick={toggleFullscreen}
@@ -521,7 +522,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 						}}
 						trigger={["click"]}
 					>
-						<Button
+						<HeaderIconButton
 							aria-label={t("adminShell.tabs.more")}
 							icon={<MoreOutlined aria-hidden />}
 							type="text"

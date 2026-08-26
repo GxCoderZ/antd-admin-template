@@ -30,6 +30,7 @@ import {
 	platformNotificationsQueryKey,
 	type PlatformNotification,
 } from "#src/api/notifications";
+import { HeaderIconButton } from "./HeaderIconButton";
 
 const { Text } = Typography;
 
@@ -234,7 +235,7 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
 					overflowCount={99}
 					size="small"
 				>
-					<Button
+					<HeaderIconButton
 						aria-label={t("adminShell.notificationCenter.button")}
 						icon={<BellOutlined aria-hidden />}
 						type="text"

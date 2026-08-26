@@ -10,7 +10,6 @@ import {
 } from "@ant-design/icons";
 import {
 	Breadcrumb,
-	Button,
 	Drawer,
 	Flex,
 	Grid,
@@ -40,6 +39,7 @@ import {
 import { usePermissionChecker } from "../../app/permissions";
 import type { MenuType, NavigationMode } from "../../app/preferenceStorage";
 import { AdminRouteIcon } from "./AdminRouteIcon";
+import { HeaderIconButton } from "./HeaderIconButton";
 import { TwoColumnServiceMenu } from "./TwoColumnServiceMenu";
 
 const { Header, Sider } = Layout;
@@ -520,7 +520,7 @@ export function AdminShellNavigation({
 						}}
 					>
 						{showMobileNavigation ? (
-							<Button
+							<HeaderIconButton
 								aria-label={t("adminShell.navigation.openMobile")}
 								icon={<MenuUnfoldOutlined aria-hidden />}
 								onClick={() => {
@@ -531,7 +531,7 @@ export function AdminShellNavigation({
 							/>
 						) : null}
 						{showSidebarNavigation ? (
-							<Button
+							<HeaderIconButton
 								aria-label={
 									isSidebarCollapsed
 										? t("adminShell.navigation.expand")
