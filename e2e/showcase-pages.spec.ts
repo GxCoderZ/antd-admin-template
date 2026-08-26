@@ -13,7 +13,9 @@ test("桌面导航可以打开 Ant Design Pro 成功结果页", async ({
 }, testInfo) => {
 	await login(page);
 	await page.getByRole("menuitem", { name: "结果页", exact: true }).click();
-	await page.getByRole("menuitem", { name: "成功页", exact: true }).click();
+	await page
+		.getByRole("menuitem", { name: "成功结果页", exact: true })
+		.click();
 
 	await expect(page).toHaveURL(/\/result\/success$/);
 	await expect(page.getByText("提交成功", { exact: true })).toBeVisible();
