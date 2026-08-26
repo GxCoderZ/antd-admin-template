@@ -33,6 +33,7 @@ import type {
 	FormInstance,
 	FormProps,
 	MenuProps,
+	TablePaginationConfig,
 	TableColumnsType,
 	TableProps,
 } from "antd";
@@ -98,15 +99,20 @@ interface LogTablePanelProps<Row extends { id: string }> {
 	errorTitle?: string;
 	initialLoading: boolean;
 	minimumWidth?: number;
-	onPageChange: (page: number, pageSize: number) => void;
+	onPageChange?: (page: number, pageSize: number) => void;
 	onReload: () => void;
-	onTableChange: NonNullable<TableProps<Row>["onChange"]>;
+	onTableChange?: TableProps<Row>["onChange"];
 	page: number;
 	pageSize: number;
+	pagination?: false;
 	primaryAction?: ReactNode;
 	queryPanel: ReactNode;
 	refreshing: boolean;
 	rowSelection?: TableProps<Row>["rowSelection"];
+	rowClassName?: TableProps<Row>["rowClassName"];
+	tableComponents?: TableProps<Row>["components"];
+	tableExtra?: ReactNode;
+	tableWrapper?: (table: ReactNode) => ReactNode;
 	testId: string;
 	title: string;
 	total: number;
@@ -261,10 +267,15 @@ export function LogTablePanel<Row extends { id: string }>({
 	onTableChange,
 	page,
 	pageSize,
+	pagination,
 	primaryAction,
 	queryPanel,
 	refreshing,
+	rowClassName,
 	rowSelection,
+	tableComponents,
+	tableExtra,
+	tableWrapper,
 	testId,
 	title,
 	total,
@@ -300,7 +311,26 @@ export function LogTablePanel<Row extends { id: string }>({
 		() => defaultPreferences.userTableDensity,
 	);
 	const [isFullscreen, setIsFullscreen] = useState(false);
-	const tableScrollX = tableColumns.minimumWidth || minimumWidth || "max-content";
+	const tableScrollX =
+		tableColumns.minimumWidth || minimumWidth || "max-content";
+	const tablePagination: false | TablePaginationConfig =
+		pagination === false
+			? false
+			: {
+					current: page,
+					...(onPageChange ? { onChange: onPageChange } : {}),
+					pageSize,
+					pageSizeOptions,
+					placement: ["bottomEnd"],
+					showSizeChanger: true,
+					showTotal: (nextTotal: number, range: [number, number]) =>
+						t("adminShell.logs.common.paginationTotal", {
+							end: range[1],
+							start: range[0],
+							total: nextTotal,
+						}),
+					total,
+				};
 
 	useEffect(() => {
 		const handleFullscreenChange = () => {
@@ -500,6 +530,9 @@ export function LogTablePanel<Row extends { id: string }>({
 					{description ? (
 						<div style={{ marginBottom: token.margin }}>{description}</div>
 					) : null}
+					{tableExtra ? (
+						<div style={{ marginBottom: token.margin }}>{tableExtra}</div>
+					) : null}
 					{error ? (
 						<Alert
 							action={
@@ -516,30 +549,36 @@ export function LogTablePanel<Row extends { id: string }>({
 							showIcon
 							type="error"
 						/>
+					) : tableWrapper ? (
+						tableWrapper(
+							<Table<Row>
+								columns={tableColumns.visibleColumns}
+								dataSource={dataSource}
+								loading={initialLoading || refreshing}
+								locale={{ emptyText }}
+								pagination={tablePagination}
+								rowKey="id"
+								{...(onTableChange ? { onChange: onTableChange } : {})}
+								{...(rowClassName ? { rowClassName } : {})}
+								{...(rowSelection ? { rowSelection } : {})}
+								{...(tableComponents ? { components: tableComponents } : {})}
+								scroll={{ x: tableScrollX }}
+								size={tableSize}
+								tableLayout="fixed"
+							/>,
+						)
 					) : (
 						<Table<Row>
 							columns={tableColumns.visibleColumns}
 							dataSource={dataSource}
 							loading={initialLoading || refreshing}
 							locale={{ emptyText }}
-							onChange={onTableChange}
-							pagination={{
-								current: page,
-								onChange: onPageChange,
-								pageSize,
-								pageSizeOptions,
-								placement: ["bottomEnd"],
-								showSizeChanger: true,
-								showTotal: (nextTotal, [start, end]) =>
-									t("adminShell.logs.common.paginationTotal", {
-										end,
-										start,
-										total: nextTotal,
-									}),
-								total,
-							}}
+							pagination={tablePagination}
 							rowKey="id"
+							{...(onTableChange ? { onChange: onTableChange } : {})}
+							{...(rowClassName ? { rowClassName } : {})}
 							{...(rowSelection ? { rowSelection } : {})}
+							{...(tableComponents ? { components: tableComponents } : {})}
 							scroll={{ x: tableScrollX }}
 							size={tableSize}
 							tableLayout="fixed"

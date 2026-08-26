@@ -279,7 +279,7 @@ describe("UsersPage", () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
-		await user.click(screen.getByRole("button", { name: "表格设置" }));
+		await user.click(screen.getByRole("button", { name: "列设置" }));
 
 		const requiredColumns = ["用户名", "状态", "操作"];
 		const optionalColumns = [
@@ -293,10 +293,7 @@ describe("UsersPage", () => {
 		];
 
 		for (const column of requiredColumns) {
-			expect(screen.getByRole("checkbox", { name: column })).toHaveAttribute(
-				"aria-disabled",
-				"true",
-			);
+			expect(screen.getByRole("checkbox", { name: column })).toBeDisabled();
 		}
 		for (const column of optionalColumns) {
 			expect(
@@ -339,7 +336,7 @@ describe("UsersPage", () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
-		await user.click(screen.getByRole("button", { name: "表格设置" }));
+		await user.click(screen.getByRole("button", { name: "列设置" }));
 		await user.click(screen.getByRole("checkbox", { name: /用户 ID$/ }));
 		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
 

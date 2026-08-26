@@ -38,7 +38,7 @@ function findRoute(method: string, url: string) {
 }
 
 describe("Fake batch table records", () => {
-	it("supports pagination, filtering and sorting", () => {
+	it("supports pagination and filtering", () => {
 		const listRecords = findRoute("get", "/platform/batch-table-records");
 		const firstPage = listRecords({
 			query: { page: "1", page_size: "10" },
@@ -56,7 +56,7 @@ describe("Fake batch table records", () => {
 
 		expect(firstPage.data.total).toBeGreaterThanOrEqual(30);
 		expect(firstPage.data.items).toHaveLength(10);
-		expect(firstPage.data.items[0]?.ruleName).toBe("TradeCode 99");
+		expect(firstPage.data.items[0]?.ruleName).toBe("TradeCode 1");
 		expect(onlineRecords.data.items.length).toBeGreaterThan(1);
 		expect(
 			onlineRecords.data.items.every((item) => item.status === "online"),
@@ -69,6 +69,21 @@ describe("Fake batch table records", () => {
 		).toBe(true);
 	});
 
+	it("sorts by service call count when requested", () => {
+		const listRecords = findRoute("get", "/platform/batch-table-records");
+		const sortedRecords = listRecords({
+			query: {
+				order: "asc",
+				page: "1",
+				page_size: "10",
+				sort: "call_count",
+			},
+		}) as BatchTableListPayload;
+		const callCounts = sortedRecords.data.items.map((item) => item.callCount);
+
+		expect(callCounts).toEqual([...callCounts].sort((left, right) => left - right));
+	});
+
 	it("persists bulk status and delete operations in session memory", () => {
 		const listRecords = findRoute("get", "/platform/batch-table-records");
 		const updateStatus = findRoute(
@@ -77,7 +92,7 @@ describe("Fake batch table records", () => {
 		);
 		const deleteRecords = findRoute("delete", "/platform/batch-table-records");
 		const listPayload = listRecords({
-			query: { page: "1", page_size: "3", sort: "rule_name", order: "asc" },
+			query: { page: "1", page_size: "3" },
 		}) as BatchTableListPayload;
 		const ids = listPayload.data.items.slice(0, 2).map((item) => item.id);
 
@@ -87,9 +102,9 @@ describe("Fake batch table records", () => {
 		const afterStatus = listRecords({
 			query: { page: "1", page_size: "100", status: "closed" },
 		}) as BatchTableListPayload;
-		expect(ids.every((id) => afterStatus.data.items.some((item) => item.id === id))).toBe(
-			true,
-		);
+		expect(
+			ids.every((id) => afterStatus.data.items.some((item) => item.id === id)),
+		).toBe(true);
 
 		deleteRecords({ body: { ids } });
 		const afterDelete = listRecords({

@@ -72,9 +72,8 @@ test("管理表格在标签切换后保留查询草稿和每页条数", async ({
 	await navigateWithinAdmin(page, "/organization/users");
 	await expect(page).toHaveURL(/\/organization\/users$/);
 
-	const queryInput = page.getByPlaceholder(
-		"搜索用户名、显示名称、邮箱或手机号",
-	);
+	const queryInput =
+		page.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号");
 	await queryInput.fill("42");
 
 	const usersTableCard = page.getByTestId("admin-users-table-card");
@@ -87,9 +86,10 @@ test("管理表格在标签切换后保留查询草稿和每页条数", async ({
 
 	await navigateWithinAdmin(page, "/access/roles");
 	await expect(page).toHaveURL(/\/access\/roles$/);
-	await expect(
-		page.getByRole("tab", { name: /角色管理/ }),
-	).toHaveAttribute("aria-selected", "true");
+	await expect(page.getByRole("tab", { name: /角色管理/ })).toHaveAttribute(
+		"aria-selected",
+		"true",
+	);
 	await page.getByRole("tab", { name: /用户管理/ }).click();
 
 	await expect(page).toHaveURL(/\/organization\/users$/);
@@ -566,11 +566,11 @@ test("公告管理支持通过 Fake API 新建并查询公告", async ({ page })
 	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/system\/announcements$/);
 	await expect(page.getByRole("table")).toContainText("系统维护通知");
-	for (const actionName of ["刷新", "表格密度", "表格设置", "表格全屏"]) {
+	for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
 		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
 	}
-	await page.getByRole("button", { name: "表格设置" }).click();
-	await expect(page.getByText("列展示", { exact: true })).toBeVisible();
+	await page.getByRole("button", { name: "列设置" }).click();
+	await expect(page.getByText("列显示", { exact: true })).toBeVisible();
 	await page.keyboard.press("Escape");
 
 	await page.getByRole("button", { name: "新建公告" }).click();
@@ -617,7 +617,7 @@ test("可编辑表格支持通过 Fake API 新增并查询行", async ({ page })
 	await page.getByRole("menuitem", { name: "可编辑表格", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/lists\/editable-table$/);
 	await expect(page.getByRole("table")).toContainText("月度预算复核");
-	for (const actionName of ["刷新", "表格密度", "表格设置", "表格全屏"]) {
+	for (const actionName of ["刷新", "表格密度", "列设置", "表格全屏"]) {
 		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
 	}
 
@@ -811,9 +811,23 @@ test("批量操作表格的桌面底部批量栏避开侧边导航", async ({ pa
 	);
 	expect(
 		bulkBarBounds ? bulkBarBounds.x + bulkBarBounds.width : undefined,
-	).toBeCloseTo(
-		page.viewportSize()?.width ?? 0,
-		0,
+	).toBeCloseTo(page.viewportSize()?.width ?? 0, 0);
+
+	await page.locator("main").evaluate((element) => {
+		element.scrollTop = element.scrollHeight;
+	});
+	const footerBounds = await page
+		.locator(".ant-layout-footer")
+		.last()
+		.boundingBox();
+	const scrolledBulkBarBounds = await page
+		.getByTestId("batch-table-bulk-action-bar")
+		.boundingBox();
+	if (!footerBounds || !scrolledBulkBarBounds) {
+		throw new Error("Footer or batch toolbar bounds are missing");
+	}
+	expect(footerBounds.y + footerBounds.height <= scrolledBulkBarBounds.y).toBe(
+		true,
 	);
 });
 
@@ -871,7 +885,7 @@ test("批量操作表格复用 Ant Design Pro 内容布局", async ({ page }) =>
 	});
 
 	expect(layout).toEqual({
-		childrenPaddingBlockStart: "0px",
+		childrenPaddingBlockStart: "32px",
 		childrenPaddingInline: "40px",
 		pageContentPadding: "0px",
 		panelGap: 16,

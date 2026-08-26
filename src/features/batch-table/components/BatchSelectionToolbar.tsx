@@ -33,6 +33,7 @@ export function BatchBulkActionBar({
 
 	return (
 		<FooterToolbar
+			data-admin-shell-footer-bar="true"
 			data-testid="batch-table-bulk-action-bar"
 			extra={
 				<div>
@@ -51,8 +52,7 @@ export function BatchBulkActionBar({
 			}
 			portalDom={false}
 			style={{
-				width:
-					"calc(100% - var(--admin-shell-fixed-left-offset, 0px))",
+				width: "calc(100% - var(--admin-shell-fixed-left-offset, 0px))",
 			}}
 		>
 			<Button

@@ -1,0 +1,3 @@
+.admin-shell-scroll-content:has([data-admin-shell-footer-bar="true"]) {
+	padding-bottom: 66px;
+}

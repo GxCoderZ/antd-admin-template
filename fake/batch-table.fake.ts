@@ -1,7 +1,6 @@
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 import type {
-	BatchTableRecord,
 	BatchTableSelectionInput,
 	BatchTableStatusMutation,
 	UpdateBatchTableRecordStatusInput,
@@ -35,20 +34,9 @@ function assertSelection(ids: string[]) {
 	}
 
 	const knownIds = new Set(batchTableRecords.map((item) => item.id));
-	return ids.every((id) => knownIds.has(id)) ? null : "Selected record not found";
-}
-
-function sortValue(record: BatchTableRecord, sort: string) {
-	switch (sort) {
-		case "call_count":
-			return record.callCount;
-		case "rule_name":
-			return Number(record.ruleName.match(/\d+$/)?.[0] ?? 0);
-		case "status":
-			return record.status;
-		default:
-			return record.lastScheduledAt;
-	}
+	return ids.every((id) => knownIds.has(id))
+		? null
+		: "Selected record not found";
 }
 
 export default defineFakeRoute([
@@ -69,8 +57,8 @@ export default defineFakeRoute([
 				.trim()
 				.replace(" ", "T");
 			const status = routeParam(query.status);
-			const sort = routeParam(query.sort) ?? "rule_name";
-			const order = routeParam(query.order) ?? "desc";
+			const sort = routeParam(query.sort);
+			const order = routeParam(query.order);
 			const filtered = batchTableRecords.filter(
 				(record) =>
 					(!ruleName || record.ruleName.toLowerCase().includes(ruleName)) &&
@@ -81,20 +69,16 @@ export default defineFakeRoute([
 						record.lastScheduledAt.startsWith(lastScheduledAt)) &&
 					(!status || record.status === status),
 			);
-			const sorted = [...filtered].sort(
-				(left, right) => {
-					const leftValue = sortValue(left, sort);
-					const rightValue = sortValue(right, sort);
-					const comparison =
-						typeof leftValue === "number" && typeof rightValue === "number"
-							? leftValue - rightValue
-							: String(leftValue).localeCompare(String(rightValue));
+			const items =
+				sort === "call_count"
+					? [...filtered].sort(
+							(left, right) =>
+								(left.callCount - right.callCount) *
+								(order === "desc" ? -1 : 1),
+						)
+					: filtered;
 
-					return comparison * (order === "asc" ? 1 : -1);
-				},
-			);
-
-			return resultSuccess(pageRows(sorted, page, pageSize));
+			return resultSuccess(pageRows(items, page, pageSize));
 		},
 	},
 	{

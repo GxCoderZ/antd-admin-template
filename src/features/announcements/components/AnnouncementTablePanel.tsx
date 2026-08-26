@@ -1,51 +1,22 @@
-import {
-	ColumnHeightOutlined,
-	FullscreenExitOutlined,
-	FullscreenOutlined,
-	PlusOutlined,
-	ReloadOutlined,
-	SettingOutlined,
-} from "@ant-design/icons";
-import {
-	Button,
-	Card,
-	Checkbox,
-	ConfigProvider,
-	Dropdown,
-	Flex,
-	type MenuProps,
-	Popover,
-	Space,
-	Table,
-	Tag,
-	theme,
-	Tooltip,
-	Tree,
-} from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, Space, Tag, theme } from "antd";
 import type { TableProps } from "antd";
-import { useMemo, useRef, useSyncExternalStore } from "react";
+import type { ReactNode } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
-import {
-	defaultPreferences,
-	getTableColumnSettingsStorageKey,
-	readUserTableDensityPreference,
-	subscribeToPreferenceChanges,
-	writeUserTableDensityPreference,
-} from "../../../app/preferenceStorage";
+import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
 import { resolveTableSort } from "../../../app/tableSorting";
-import {
-	type ResponsiveTableColumnConfig,
-	useResponsiveTableColumns,
-} from "../../../app/tableColumnVisibility";
+import type { ResponsiveTableColumnConfig } from "../../../app/tableColumnVisibility";
 import { TableActionButton } from "../../../app/TableActionButton";
 import type {
 	ListPlatformAnnouncementsInput,
 	PlatformAnnouncement,
 	PlatformAnnouncementStatus,
 } from "#src/api/announcements";
+import { LogTablePanel } from "../../operations/LogTablePanel";
 
 type AnnouncementSort = NonNullable<ListPlatformAnnouncementsInput["sort"]>;
 
@@ -66,21 +37,19 @@ interface AnnouncementTableData {
 interface AnnouncementTablePanelProps {
 	canManage: boolean;
 	data: AnnouncementTableData | undefined;
-	isFullscreen: boolean;
-	loading: boolean;
+	error: unknown;
+	initialLoading: boolean;
 	onChange: (state: AnnouncementTableState) => void;
 	onCreate: () => void;
 	onDelete: (announcement: PlatformAnnouncement) => void;
 	onEdit: (announcement: PlatformAnnouncement) => void;
 	onReload: () => void;
-	onToggleFullscreen: () => void;
+	queryPanel: ReactNode;
 	refreshing: boolean;
 	tableState: AnnouncementTableState;
 }
 
-const columnKeys = ["title", "status", "updatedAt", "actions"] as const;
-type AnnouncementColumnKey = (typeof columnKeys)[number];
-const announcementColumnVisibility: readonly ResponsiveTableColumnConfig<AnnouncementColumnKey>[] =
+const announcementColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
 	[
 		{ key: "title", priority: "compact", required: true },
 		{ key: "status", priority: "compact" },
@@ -97,33 +66,20 @@ const tableSortToContractSort: Record<string, AnnouncementSort> = {
 export function AnnouncementTablePanel({
 	canManage,
 	data,
-	isFullscreen,
-	loading,
+	error,
+	initialLoading,
 	onChange,
 	onCreate,
 	onDelete,
 	onEdit,
 	onReload,
-	onToggleFullscreen,
+	queryPanel,
 	refreshing,
 	tableState,
 }: AnnouncementTablePanelProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const formatPreferences = useLocalePreferences();
-	const tableSize = useSyncExternalStore(
-		subscribeToPreferenceChanges,
-		readUserTableDensityPreference,
-		() => defaultPreferences.userTableDensity,
-	);
-	const tableContainerRef = useRef<HTMLDivElement>(null);
-	const availableColumnKeys = useMemo<readonly AnnouncementColumnKey[]>(
-		() =>
-			canManage
-				? columnKeys
-				: columnKeys.filter((columnKey) => columnKey !== "actions"),
-		[canManage],
-	);
 	const columns = useMemo<
 		NonNullable<TableProps<PlatformAnnouncement>["columns"]>
 	>(() => {
@@ -200,107 +156,6 @@ export function AnnouncementTablePanel({
 		tableState.sort,
 		token.controlHeight,
 	]);
-	const tableColumns = useResponsiveTableColumns<
-		PlatformAnnouncement,
-		AnnouncementColumnKey
-	>({
-		availableColumnKeys,
-		columnKeys,
-		columns,
-		configs: announcementColumnVisibility,
-		containerRef: tableContainerRef,
-		storageKey: getTableColumnSettingsStorageKey("announcements"),
-	});
-	const columnSettingsTitle = (
-		<Flex align="center" justify="space-between">
-			<Checkbox
-				checked={tableColumns.isAllColumnsVisible}
-				indeterminate={tableColumns.isSomeColumnsVisible}
-				onChange={(event) => {
-					tableColumns.setVisibleColumnKeys(
-						event.target.checked
-							? tableColumns.availableColumnKeys
-							: tableColumns.requiredColumnKeys,
-					);
-				}}
-			>
-				{t("adminShell.announcements.columnSettings.title")}
-			</Checkbox>
-			<Button
-				onClick={() => {
-					tableColumns.resetColumnSettings();
-				}}
-				size="small"
-				type="link"
-			>
-				{t("adminShell.announcements.columnSettings.reset")}
-			</Button>
-		</Flex>
-	);
-	const columnSettings = (
-		<Flex
-			gap={token.marginXS}
-			style={{ width: token.controlHeightLG * 5 - token.paddingSM * 2 }}
-			vertical
-		>
-			<ConfigProvider
-				theme={{
-					components: {
-						Tree: { titleHeight: token.controlHeightSM - token.marginXXS },
-					},
-				}}
-			>
-				<Tree
-					blockNode
-					checkable
-					checkedKeys={tableColumns.visibleColumnKeys}
-					draggable
-					onCheck={(checkedKeys) => {
-						const nextCheckedKeys = Array.isArray(checkedKeys)
-							? checkedKeys
-							: checkedKeys.checked;
-						tableColumns.setVisibleColumnKeys(
-							tableColumns.availableColumnKeys.filter((columnKey) =>
-								nextCheckedKeys.includes(columnKey),
-							),
-						);
-					}}
-					onDrop={({ dragNode, node, dropPosition }) => {
-						const dragKey = dragNode.key;
-						const targetKey = node.key;
-						const targetPosition = Number(node.pos.split("-").at(-1));
-
-						tableColumns.setColumnOrder((existingOrder) => {
-							const nextOrder = existingOrder.filter(
-								(columnKey) => columnKey !== dragKey,
-							);
-							const targetIndex = nextOrder.indexOf(targetKey);
-							const insertIndex =
-								dropPosition - targetPosition < 0
-									? targetIndex
-									: targetIndex + 1;
-							nextOrder.splice(insertIndex, 0, dragKey);
-							return nextOrder;
-						});
-					}}
-					selectable={false}
-					showLine={false}
-					treeData={tableColumns.columnOrder.map((columnKey) => ({
-						disabled: tableColumns.requiredColumnKeys.some(
-							(requiredKey) => requiredKey === columnKey,
-						),
-						key: columnKey,
-						title: t(`adminShell.announcements.columns.${columnKey}`),
-					}))}
-				/>
-			</ConfigProvider>
-		</Flex>
-	);
-	const changeTableSize: NonNullable<MenuProps["onClick"]> = ({ key }) => {
-		if (key === "large" || key === "middle" || key === "small") {
-			writeUserTableDensityPreference(key);
-		}
-	};
 	const handleTableChange: NonNullable<
 		TableProps<PlatformAnnouncement>["onChange"]
 	> = (pagination, _filters, sorterState) => {
@@ -321,135 +176,43 @@ export function AnnouncementTablePanel({
 	};
 
 	return (
-		<div ref={tableContainerRef}>
-			<Card
-				data-testid="admin-announcements-table-card"
-				extra={
-					<Space>
-						{canManage ? (
-							<Button
-								icon={<PlusOutlined aria-hidden />}
-								onClick={onCreate}
-								type="primary"
-							>
-								{t("adminShell.announcements.create")}
-							</Button>
-						) : null}
-						<Tooltip title={t("adminShell.announcements.reload")}>
-							<Button
-								aria-label={t("adminShell.announcements.reload")}
-								color="default"
-								icon={<ReloadOutlined aria-hidden />}
-								loading={refreshing}
-								onClick={onReload}
-								variant="link"
-							/>
-						</Tooltip>
-						<Dropdown
-							menu={{
-								items: [
-									{
-										key: "large",
-										label: t("adminShell.announcements.densityOptions.large"),
-									},
-									{
-										key: "middle",
-										label: t("adminShell.announcements.densityOptions.middle"),
-									},
-									{
-										key: "small",
-										label: t("adminShell.announcements.densityOptions.small"),
-									},
-								],
-								onClick: changeTableSize,
-								selectedKeys: [tableSize],
-							}}
-							placement="bottomRight"
-							trigger={["click"]}
-						>
-							<Tooltip title={t("adminShell.announcements.density")}>
-								<Button
-									aria-label={t("adminShell.announcements.density")}
-									color="default"
-									icon={<ColumnHeightOutlined aria-hidden />}
-									variant="link"
-								/>
-							</Tooltip>
-						</Dropdown>
-						<Popover
-							arrow={false}
-							content={columnSettings}
-							placement="bottomRight"
-							title={columnSettingsTitle}
-							trigger="click"
-						>
-							<Tooltip title={t("adminShell.announcements.tableSettings")}>
-								<Button
-									aria-label={t("adminShell.announcements.tableSettings")}
-									color="default"
-									icon={<SettingOutlined aria-hidden />}
-									variant="link"
-								/>
-							</Tooltip>
-						</Popover>
-						<Tooltip
-							title={t(
-								isFullscreen
-									? "adminShell.announcements.exitFullscreen"
-									: "adminShell.announcements.fullscreen",
-							)}
-						>
-							<Button
-								aria-label={t(
-									isFullscreen
-										? "adminShell.announcements.exitFullscreen"
-										: "adminShell.announcements.fullscreen",
-								)}
-								color="default"
-								icon={
-									isFullscreen ? (
-										<FullscreenExitOutlined aria-hidden />
-									) : (
-										<FullscreenOutlined aria-hidden />
-									)
-								}
-								onClick={onToggleFullscreen}
-								variant="link"
-							/>
-						</Tooltip>
-					</Space>
-				}
-				styles={{
-					header: { minHeight: token.controlHeightLG + token.marginLG },
-				}}
-				title={t("adminShell.announcements.tableTitle")}
-			>
-				<Table<PlatformAnnouncement>
-					columns={tableColumns.visibleColumns}
-					dataSource={data?.items ?? []}
-					loading={loading}
-					locale={{ emptyText: t("adminShell.announcements.empty") }}
-					onChange={handleTableChange}
-					pagination={{
-						current: data?.page ?? tableState.page,
-						pageSize: data?.pageSize ?? tableState.pageSize,
-						pageSizeOptions: [10, 20, 50, 100],
-						placement: ["bottomEnd"],
-						showSizeChanger: true,
-						showTotal: (total, [start, end]) =>
-							t("adminShell.announcements.paginationTotal", {
-								end,
-								start,
-								total,
-							}),
-						total: data?.total ?? 0,
-					}}
-					rowKey="id"
-					scroll={{ x: tableColumns.minimumWidth }}
-					size={tableSize}
-					tableLayout="fixed"
-				/>
-			</Card>
-		</div>
+		<LogTablePanel<PlatformAnnouncement>
+			columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+				"announcements",
+			)}
+			columnVisibility={announcementColumnVisibility}
+			columns={columns}
+			dataSource={data?.items ?? []}
+			emptyText={t("adminShell.announcements.empty")}
+			error={error}
+			errorFallback={t("adminShell.announcements.errors.fallback")}
+			errorTitle={t("adminShell.announcements.errors.load")}
+			initialLoading={initialLoading}
+			minimumWidth={token.controlHeight * 20}
+			onPageChange={(page, pageSize) =>
+				onChange({ ...tableState, page, pageSize })
+			}
+			onReload={onReload}
+			onTableChange={handleTableChange}
+			page={data?.page ?? tableState.page}
+			pageSize={data?.pageSize ?? tableState.pageSize}
+			primaryAction={
+				canManage ? (
+					<Button
+						icon={<PlusOutlined aria-hidden />}
+						onClick={onCreate}
+						type="primary"
+					>
+						{t("adminShell.announcements.create")}
+					</Button>
+				) : undefined
+			}
+			queryPanel={queryPanel}
+			refreshing={refreshing}
+			testId="admin-announcements-table-card"
+			title={t("adminShell.announcements.tableTitle")}
+			total={data?.total ?? 0}
+			workspaceTestId="admin-announcements-table-workspace"
+		/>
 	);
 }

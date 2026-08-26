@@ -16,6 +16,8 @@ import type { Key } from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useRouteSessionState } from "../../app/routeSessionState";
+import { resolveTableSort } from "../../app/tableSorting";
 import {
 	batchTableRecordsQueryKey,
 	deleteBatchTableRecords,
@@ -28,7 +30,6 @@ import {
 	type ListBatchTableRecordsInput,
 } from "#src/api/batch-table";
 import { ApiProblemError } from "#src/api/client";
-import { resolveTableSort } from "../../app/tableSorting";
 import { BatchBulkActionBar } from "./components/BatchSelectionToolbar";
 
 interface BatchTableFilterValues {
@@ -40,19 +41,21 @@ interface BatchTableFilterValues {
 }
 
 interface BatchTableState {
-	order: ListBatchTableRecordsInput["order"];
+	order?: ListBatchTableRecordsInput["order"];
 	page: number;
 	pageSize: number;
-	sort: ListBatchTableRecordsInput["sort"];
+	sort?: ListBatchTableRecordsInput["sort"];
 }
 
 const defaultFilters: BatchTableFilterValues = {};
+const defaultTableState: BatchTableState = {
+	page: 1,
+	pageSize: 20,
+};
 const pageSizeOptions = [10, 20, 50, 100];
+const batchTableRouteKey = "/examples/lists/batch-operations";
 const batchTableSortMap = {
 	callCount: "call_count",
-	lastScheduledAt: "last_scheduled_at",
-	ruleName: "rule_name",
-	status: "status",
 } as const satisfies Record<string, BatchTableRecordSort>;
 
 function formatCallCount(value: number) {
@@ -71,16 +74,18 @@ export function BatchOperationsTablePage() {
 	const { t } = useTranslation();
 	const [messageApi, messageContext] = message.useMessage();
 	const queryClient = useQueryClient();
-	const [filters, setFilters] =
-		useState<BatchTableFilterValues>(defaultFilters);
+	const [filters, setFilters] = useRouteSessionState<BatchTableFilterValues>({
+		initialState: defaultFilters,
+		routeKey: batchTableRouteKey,
+		stateKey: "query-applied",
+	});
 	const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
 	const [selectedRows, setSelectedRows] = useState<BatchTableRecord[]>([]);
 	const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-	const [tableState, setTableState] = useState<BatchTableState>({
-		order: "desc",
-		page: 1,
-		pageSize: 20,
-		sort: "rule_name",
+	const [tableState, setTableState] = useRouteSessionState<BatchTableState>({
+		initialState: defaultTableState,
+		routeKey: batchTableRouteKey,
+		stateKey: "table",
 	});
 	const selectedIds = selectedRowKeys.map(String);
 	const hasSelection = selectedIds.length > 0;
@@ -104,7 +109,7 @@ export function BatchOperationsTablePage() {
 				? { lastScheduledAt: filters.lastScheduledAt.trim() }
 				: {}),
 			...(filters.status ? { status: filters.status } : {}),
-			...(tableState.sort && tableState.order
+			...(tableState.sort === "call_count" && tableState.order
 				? { order: tableState.order, sort: tableState.sort }
 				: {}),
 		}),
@@ -124,7 +129,8 @@ export function BatchOperationsTablePage() {
 	};
 	const statusMutation = useMutation({
 		mutationFn: updateBatchTableRecordStatus,
-		onError: () => void messageApi.error(t("adminShell.batchTable.statusError")),
+		onError: () =>
+			void messageApi.error(t("adminShell.batchTable.statusError")),
 		onSuccess: async (_result, input) => {
 			await invalidateList();
 			clearSelection();
@@ -138,7 +144,8 @@ export function BatchOperationsTablePage() {
 	});
 	const deleteMutation = useMutation({
 		mutationFn: deleteBatchTableRecords,
-		onError: () => void messageApi.error(t("adminShell.batchTable.deleteError")),
+		onError: () =>
+			void messageApi.error(t("adminShell.batchTable.deleteError")),
 		onSuccess: async (_result, input) => {
 			await invalidateList();
 			setDeleteConfirmOpen(false);
@@ -148,12 +155,6 @@ export function BatchOperationsTablePage() {
 			);
 		},
 	});
-	const sortOrder = (column: BatchTableRecordSort) =>
-		tableState.sort === column && tableState.order
-			? tableState.order === "asc"
-				? "ascend"
-				: "descend"
-			: null;
 	const columns: ProColumns<BatchTableRecord>[] = [
 		{
 			dataIndex: "ruleName",
@@ -168,8 +169,6 @@ export function BatchOperationsTablePage() {
 					{dom}
 				</Button>
 			),
-			sorter: true,
-			sortOrder: sortOrder("rule_name"),
 			title: t("adminShell.batchTable.columns.ruleName"),
 		},
 		{
@@ -183,14 +182,17 @@ export function BatchOperationsTablePage() {
 			key: "callCount",
 			renderText: formatCallCount,
 			sorter: true,
-			sortOrder: sortOrder("call_count"),
+			sortOrder:
+				tableState.sort === "call_count" && tableState.order
+					? tableState.order === "asc"
+						? "ascend"
+						: "descend"
+					: null,
 			title: t("adminShell.batchTable.columns.callCount"),
 		},
 		{
 			dataIndex: "status",
 			key: "status",
-			sorter: true,
-			sortOrder: sortOrder("status"),
 			title: t("adminShell.batchTable.columns.status"),
 			valueEnum: {
 				closed: {
@@ -215,8 +217,6 @@ export function BatchOperationsTablePage() {
 			dataIndex: "lastScheduledAt",
 			key: "lastScheduledAt",
 			render: (_, record) => formatProDateTime(record.lastScheduledAt),
-			sorter: true,
-			sortOrder: sortOrder("last_scheduled_at"),
 			title: t("adminShell.batchTable.columns.lastScheduledAt"),
 			valueType: "dateTime",
 		},
@@ -258,9 +258,7 @@ export function BatchOperationsTablePage() {
 			...(values.lastScheduledAt?.trim()
 				? { lastScheduledAt: values.lastScheduledAt.trim() }
 				: {}),
-			...(values.ruleName?.trim()
-				? { ruleName: values.ruleName.trim() }
-				: {}),
+			...(values.ruleName?.trim() ? { ruleName: values.ruleName.trim() } : {}),
 			...(values.status ? { status: values.status } : {}),
 		});
 		clearSelection();
@@ -282,6 +280,7 @@ export function BatchOperationsTablePage() {
 				batchTableSortMap,
 			);
 			setTableState((value) => ({
+				...value,
 				order: nextSort.order,
 				page: 1,
 				pageSize: pagination.pageSize ?? value.pageSize,
@@ -302,10 +301,7 @@ export function BatchOperationsTablePage() {
 	};
 
 	return (
-		<PageContainer
-			childrenContentStyle={{ paddingBlockStart: 0 }}
-			pageHeaderRender={false}
-		>
+		<PageContainer pageHeaderRender={false}>
 			{messageContext}
 			<ProTable<BatchTableRecord, BatchTableFilterValues>
 				columns={columns}

@@ -14,26 +14,24 @@ export interface UserTableState {
 }
 
 export const defaultUserFilterValues: UserFilterValues = { status: "all" };
-export const userColumnKeys = [
-	"id",
-	"username",
-	"displayName",
-	"department",
-	"jobTitle",
-	"roles",
-	"phone",
-	"email",
-	"status",
-	"authSource",
-	"mfaEnabled",
-	"mustChangePassword",
-	"lastLoginAt",
-	"lastLoginIp",
-	"createdAt",
-	"updatedAt",
-	"actions",
-] as const;
-export type UserColumnKey = (typeof userColumnKeys)[number];
+export type UserColumnKey =
+	| "actions"
+	| "authSource"
+	| "createdAt"
+	| "department"
+	| "displayName"
+	| "email"
+	| "id"
+	| "jobTitle"
+	| "lastLoginAt"
+	| "lastLoginIp"
+	| "mfaEnabled"
+	| "mustChangePassword"
+	| "phone"
+	| "roles"
+	| "status"
+	| "updatedAt"
+	| "username";
 export const userColumnWidthMultipliers: Record<UserColumnKey, number> = {
 	actions: 4,
 	authSource: 3,

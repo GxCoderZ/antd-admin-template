@@ -1,8 +1,5 @@
 export type BatchTableRecordStatus =
-	| "closed"
-	| "exception"
-	| "online"
-	| "running";
+	"closed" | "exception" | "online" | "running";
 
 export type BatchTableStatusMutation = "closed" | "online";
 
@@ -16,11 +13,7 @@ export interface BatchTableRecord {
 	status: BatchTableRecordStatus;
 }
 
-export type BatchTableRecordSort =
-	| "call_count"
-	| "last_scheduled_at"
-	| "rule_name"
-	| "status";
+export type BatchTableRecordSort = "call_count";
 
 export interface ListBatchTableRecordsInput {
 	callCount?: string;
@@ -45,7 +38,6 @@ export interface BatchTableSelectionInput {
 	ids: string[];
 }
 
-export interface UpdateBatchTableRecordStatusInput
-	extends BatchTableSelectionInput {
+export interface UpdateBatchTableRecordStatusInput extends BatchTableSelectionInput {
 	status: BatchTableStatusMutation;
 }

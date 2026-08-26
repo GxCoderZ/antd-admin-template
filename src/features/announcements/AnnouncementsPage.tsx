@@ -4,8 +4,8 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { Alert, Button, Flex, Modal, theme } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Modal } from "antd";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { platformPermissions, usePermission } from "../../app/permissions";
@@ -44,15 +44,13 @@ const defaultAnnouncementTableState: AnnouncementTableState = {
 
 export function AnnouncementsPage() {
 	const { t } = useTranslation();
-	const { token } = theme.useToken();
 	const queryClient = useQueryClient();
 	const canManage = usePermission(platformPermissions.announcementsManage);
-	const [filters, setFilters] =
-		useRouteSessionState<AnnouncementFilterValues>({
-			initialState: defaultAnnouncementFilterValues,
-			routeKey: announcementsRouteKey,
-			stateKey: "query-applied",
-		});
+	const [filters, setFilters] = useRouteSessionState<AnnouncementFilterValues>({
+		initialState: defaultAnnouncementFilterValues,
+		routeKey: announcementsRouteKey,
+		stateKey: "query-applied",
+	});
 	const [tableState, setTableState] =
 		useRouteSessionState<AnnouncementTableState>({
 			initialState: defaultAnnouncementTableState,
@@ -64,9 +62,7 @@ export function AnnouncementsPage() {
 		useState<PlatformAnnouncement | null>(null);
 	const [deletingAnnouncement, setDeletingAnnouncement] =
 		useState<PlatformAnnouncement | null>(null);
-	const [isTableFullscreen, setIsTableFullscreen] = useState(false);
 	const querySubmission = useQuerySubmission();
-	const tableWorkspaceRef = useRef<HTMLDivElement>(null);
 	const queryParams = useMemo<ListPlatformAnnouncementsInput>(() => {
 		const q = filters.q?.trim();
 		const params: ListPlatformAnnouncementsInput = {
@@ -119,90 +115,18 @@ export function AnnouncementsPage() {
 		},
 	});
 
-	useEffect(() => {
-		const syncTableFullscreenState = () => {
-			setIsTableFullscreen(
-				document.fullscreenElement === tableWorkspaceRef.current,
-			);
-		};
-
-		document.addEventListener("fullscreenchange", syncTableFullscreenState);
-		return () => {
-			document.removeEventListener(
-				"fullscreenchange",
-				syncTableFullscreenState,
-			);
-		};
-	}, []);
-
-	const toggleTableFullscreen = () => {
-		const tableWorkspace = tableWorkspaceRef.current;
-
-		if (!tableWorkspace) {
-			return;
-		}
-
-		if (document.fullscreenElement === tableWorkspace) {
-			void document.exitFullscreen?.();
-			return;
-		}
-
-		void tableWorkspace.requestFullscreen?.();
-	};
 	const resetTablePage = () => {
 		setTableState((currentState) => ({ ...currentState, page: 1 }));
 		querySubmission.submit();
 	};
 
 	return (
-		<Flex
-			gap={token.marginLG}
-			ref={tableWorkspaceRef}
-			style={
-				isTableFullscreen
-					? {
-							background: token.colorBgLayout,
-							boxSizing: "border-box",
-							height: "100%",
-							overflow: "auto",
-							padding: token.paddingLG,
-						}
-					: undefined
-			}
-			vertical
-		>
-			{query.isError ? (
-				<Alert
-					action={
-						<Button onClick={() => void query.refetch()} size="small">
-							{t("adminShell.announcements.retry")}
-						</Button>
-					}
-					description={t("adminShell.announcements.errors.fallback")}
-					showIcon
-					title={t("adminShell.announcements.errors.load")}
-					type="error"
-				/>
-			) : null}
-
-			<AnnouncementQueryPanel
-				initialFilters={defaultAnnouncementFilterValues}
-				loading={query.isFetching && !query.isPending}
-				onApply={(nextFilters) => {
-					setFilters(nextFilters);
-					resetTablePage();
-				}}
-				onReset={() => {
-					setFilters(defaultAnnouncementFilterValues);
-					resetTablePage();
-				}}
-			/>
-
+		<>
 			<AnnouncementTablePanel
 				canManage={canManage}
 				data={query.data}
-				isFullscreen={isTableFullscreen}
-				loading={query.isFetching}
+				error={query.error}
+				initialLoading={query.isPending}
 				onChange={setTableState}
 				onCreate={() => {
 					saveMutation.reset();
@@ -219,7 +143,20 @@ export function AnnouncementsPage() {
 					setFormOpen(true);
 				}}
 				onReload={() => void query.refetch()}
-				onToggleFullscreen={toggleTableFullscreen}
+				queryPanel={
+					<AnnouncementQueryPanel
+						initialFilters={defaultAnnouncementFilterValues}
+						loading={query.isFetching && !query.isPending}
+						onApply={(nextFilters) => {
+							setFilters(nextFilters);
+							resetTablePage();
+						}}
+						onReset={() => {
+							setFilters(defaultAnnouncementFilterValues);
+							resetTablePage();
+						}}
+					/>
+				}
 				refreshing={query.isFetching && !query.isPending}
 				tableState={tableState}
 			/>
@@ -265,6 +202,6 @@ export function AnnouncementsPage() {
 					})
 				)}
 			</Modal>
-		</Flex>
+		</>
 	);
 }

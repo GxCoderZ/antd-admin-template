@@ -31,6 +31,7 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import { resolveTableSort } from "../../app/tableSorting";
 import { TableActionButton } from "../../app/TableActionButton";
 import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
@@ -70,7 +71,11 @@ interface TableState {
 }
 
 const defaultFilters: FilterValues = { status: "all" };
-const sortMap: Record<string, NonNullable<ListContentCategoryItemsInput["sort"]>> = {
+const contentCategoriesRouteKey = "/examples/tree-category";
+const sortMap: Record<
+	string,
+	NonNullable<ListContentCategoryItemsInput["sort"]>
+> = {
 	categoryName: "category",
 	owner: "owner",
 	status: "status",
@@ -105,20 +110,47 @@ export function ContentCategoryManagementPage() {
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [modal, modalContextHolder] = Modal.useModal();
 	const [filterForm] = Form.useForm<FilterValues>();
-	const [categorySearch, setCategorySearch] = useState("");
-	const [selectedCategoryId, setSelectedCategoryId] = useState("all");
-	const [draftFilters, setDraftFilters] = useState<FilterValues>(defaultFilters);
-	const [filters, setFilters] = useState<FilterValues>(defaultFilters);
-	const [filtersExpanded, setFiltersExpanded] = useState(false);
-	const [editingCategory, setEditingCategory] = useState<ContentCategory | null>(null);
+	const [categorySearch, setCategorySearch] = useRouteSessionState({
+		initialState: "",
+		routeKey: contentCategoriesRouteKey,
+		stateKey: "category-search",
+	});
+	const [selectedCategoryId, setSelectedCategoryId] = useRouteSessionState({
+		initialState: "all",
+		routeKey: contentCategoriesRouteKey,
+		stateKey: "selected-category",
+	});
+	const [draftFilters, setDraftFilters] = useRouteSessionState<FilterValues>({
+		initialState: defaultFilters,
+		routeKey: contentCategoriesRouteKey,
+		stateKey: "query-draft",
+	});
+	const [filters, setFilters] = useRouteSessionState<FilterValues>({
+		initialState: defaultFilters,
+		routeKey: contentCategoriesRouteKey,
+		stateKey: "query-applied",
+	});
+	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: contentCategoriesRouteKey,
+		stateKey: "query-expanded",
+	});
+	const [editingCategory, setEditingCategory] =
+		useState<ContentCategory | null>(null);
 	const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
-	const [editingItem, setEditingItem] = useState<ContentCategoryItem | null>(null);
+	const [editingItem, setEditingItem] = useState<ContentCategoryItem | null>(
+		null,
+	);
 	const [itemEditorOpen, setItemEditorOpen] = useState(false);
-	const [tableState, setTableState] = useState<TableState>({
-		order: "desc",
-		page: 1,
-		pageSize: 10,
-		sort: "updated_at",
+	const [tableState, setTableState] = useRouteSessionState<TableState>({
+		initialState: {
+			order: "desc",
+			page: 1,
+			pageSize: 10,
+			sort: "updated_at",
+		},
+		routeKey: contentCategoriesRouteKey,
+		stateKey: "table",
 	});
 	const querySubmission = useQuerySubmission();
 	const queryLayout = useQueryFilterLayout({
@@ -146,7 +178,9 @@ export function ContentCategoryManagementPage() {
 	);
 	const itemQueryInput = useMemo<ListContentCategoryItemsInput>(
 		() => ({
-			...(selectedCategoryId !== "all" ? { categoryId: selectedCategoryId } : {}),
+			...(selectedCategoryId !== "all"
+				? { categoryId: selectedCategoryId }
+				: {}),
 			...(filters.q?.trim() ? { q: filters.q.trim() } : {}),
 			...(filters.status !== "all" ? { status: filters.status } : {}),
 			...(tableState.order ? { order: tableState.order } : {}),
@@ -176,12 +210,17 @@ export function ContentCategoryManagementPage() {
 			editingCategory
 				? updateContentCategory({ categoryId: editingCategory.id, input })
 				: createContentCategory(input),
-		onError: () => void messageApi.error(t("adminShell.contentCategories.feedback.saveError")),
+		onError: () =>
+			void messageApi.error(
+				t("adminShell.contentCategories.feedback.saveError"),
+			),
 		onSuccess: async () => {
 			await refreshAll();
 			setCategoryEditorOpen(false);
 			setEditingCategory(null);
-			void messageApi.success(t("adminShell.contentCategories.feedback.categorySaved"));
+			void messageApi.success(
+				t("adminShell.contentCategories.feedback.categorySaved"),
+			);
 		},
 	});
 	const itemSaveMutation = useMutation({
@@ -189,29 +228,44 @@ export function ContentCategoryManagementPage() {
 			editingItem
 				? updateContentCategoryItem({ input, itemId: editingItem.id })
 				: createContentCategoryItem(input),
-		onError: () => void messageApi.error(t("adminShell.contentCategories.feedback.saveError")),
+		onError: () =>
+			void messageApi.error(
+				t("adminShell.contentCategories.feedback.saveError"),
+			),
 		onSuccess: async () => {
 			await refreshAll();
 			setItemEditorOpen(false);
 			setEditingItem(null);
-			void messageApi.success(t("adminShell.contentCategories.feedback.contentSaved"));
+			void messageApi.success(
+				t("adminShell.contentCategories.feedback.contentSaved"),
+			);
 		},
 	});
 	const categoryDeleteMutation = useMutation({
 		mutationFn: deleteContentCategory,
-		onError: () => void messageApi.error(t("adminShell.contentCategories.feedback.categoryNotEmpty")),
+		onError: () =>
+			void messageApi.error(
+				t("adminShell.contentCategories.feedback.categoryNotEmpty"),
+			),
 		onSuccess: async () => {
 			setSelectedCategoryId("all");
 			await refreshAll();
-			void messageApi.success(t("adminShell.contentCategories.feedback.categoryDeleted"));
+			void messageApi.success(
+				t("adminShell.contentCategories.feedback.categoryDeleted"),
+			);
 		},
 	});
 	const itemDeleteMutation = useMutation({
 		mutationFn: deleteContentCategoryItem,
-		onError: () => void messageApi.error(t("adminShell.contentCategories.feedback.deleteError")),
+		onError: () =>
+			void messageApi.error(
+				t("adminShell.contentCategories.feedback.deleteError"),
+			),
 		onSuccess: async () => {
 			await refreshAll();
-			void messageApi.success(t("adminShell.contentCategories.feedback.contentDeleted"));
+			void messageApi.success(
+				t("adminShell.contentCategories.feedback.contentDeleted"),
+			);
 		},
 	});
 	const sortOrder = useCallback(
@@ -290,7 +344,10 @@ export function ContentCategoryManagementPage() {
 							icon={<DeleteOutlined aria-hidden />}
 							onClick={() => {
 								modal.confirm({
-									content: t("adminShell.contentCategories.confirmDeleteContent", { title: item.title }),
+									content: t(
+										"adminShell.contentCategories.confirmDeleteContent",
+										{ title: item.title },
+									),
 									okButtonProps: { danger: true },
 									onOk: () => itemDeleteMutation.mutateAsync(item.id),
 									title: t("adminShell.contentCategories.deleteContent"),
@@ -307,12 +364,9 @@ export function ContentCategoryManagementPage() {
 		],
 		[formatPreferences, itemDeleteMutation, modal, sortOrder, t],
 	);
-	const onTableChange: NonNullable<TableProps<ContentCategoryItem>["onChange"]> = (
-		_pagination,
-		_filters,
-		sorterState,
-		extra,
-	) => {
+	const onTableChange: NonNullable<
+		TableProps<ContentCategoryItem>["onChange"]
+	> = (_pagination, _filters, sorterState, extra) => {
 		if (extra.action !== "sort") return;
 		const sorter = Array.isArray(sorterState) ? sorterState[0] : sorterState;
 		const next = resolveTableSort(sorter?.columnKey, sorter?.order, sortMap);
@@ -346,25 +400,52 @@ export function ContentCategoryManagementPage() {
 			testId="content-category-query"
 		>
 			<Col span={queryLayout.columnSpan}>
-				<Form.Item label={t("adminShell.contentCategories.filters.keyword")} name="q">
+				<Form.Item
+					label={t("adminShell.contentCategories.filters.keyword")}
+					name="q"
+				>
 					<Input
 						allowClear
-						onChange={(event) => setDraftFilters((current) => ({ ...current, q: event.target.value }))}
+						onChange={(event) =>
+							setDraftFilters((current) => ({
+								...current,
+								q: event.target.value,
+							}))
+						}
 						placeholder={t("adminShell.contentCategories.searchContent")}
 					/>
 				</Form.Item>
 			</Col>
 			<Col
 				span={queryLayout.columnSpan}
-				style={{ display: filtersExpanded || queryLayout.collapsedFieldCount > 1 ? undefined : "none" }}
+				style={{
+					display:
+						filtersExpanded || queryLayout.collapsedFieldCount > 1
+							? undefined
+							: "none",
+				}}
 			>
-				<Form.Item label={t("adminShell.contentCategories.filters.status")} name="status">
+				<Form.Item
+					label={t("adminShell.contentCategories.filters.status")}
+					name="status"
+				>
 					<Select<FilterValues["status"]>
-						onChange={(status) => setDraftFilters((current) => ({ ...current, status }))}
+						onChange={(status) =>
+							setDraftFilters((current) => ({ ...current, status }))
+						}
 						options={[
-							{ label: t("adminShell.contentCategories.itemStatuses.all"), value: "all" },
-							{ label: t("adminShell.contentCategories.itemStatuses.draft"), value: "draft" },
-							{ label: t("adminShell.contentCategories.itemStatuses.published"), value: "published" },
+							{
+								label: t("adminShell.contentCategories.itemStatuses.all"),
+								value: "all",
+							},
+							{
+								label: t("adminShell.contentCategories.itemStatuses.draft"),
+								value: "draft",
+							},
+							{
+								label: t("adminShell.contentCategories.itemStatuses.published"),
+								value: "published",
+							},
 						]}
 					/>
 				</Form.Item>
@@ -382,13 +463,19 @@ export function ContentCategoryManagementPage() {
 			{messageContextHolder}
 			{modalContextHolder}
 			<Flex align="stretch" gap={token.marginLG} vertical={!screens.lg}>
-				<div style={{ flex: screens.lg ? "0 0 300px" : "1 1 auto", minWidth: 0 }}>
+				<div
+					style={{ flex: screens.lg ? "0 0 300px" : "1 1 auto", minWidth: 0 }}
+				>
 					{categoriesQuery.isError ? (
 						<Alert
-							action={<Button onClick={() => void categoriesQuery.refetch()}>{t("adminShell.logs.common.retry")}</Button>}
-						message={t("adminShell.contentCategories.feedback.loadError")}
-						showIcon
-						type="error"
+							action={
+								<Button onClick={() => void categoriesQuery.refetch()}>
+									{t("adminShell.logs.common.retry")}
+								</Button>
+							}
+							message={t("adminShell.contentCategories.feedback.loadError")}
+							showIcon
+							type="error"
 						/>
 					) : (
 						<CategoryTreePanel
@@ -401,9 +488,13 @@ export function ContentCategoryManagementPage() {
 							onDelete={() => {
 								if (!selectedCategory) return;
 								modal.confirm({
-									content: t("adminShell.contentCategories.confirmDeleteCategory", { name: selectedCategory.name }),
+									content: t(
+										"adminShell.contentCategories.confirmDeleteCategory",
+										{ name: selectedCategory.name },
+									),
 									okButtonProps: { danger: true },
-									onOk: () => categoryDeleteMutation.mutateAsync(selectedCategory.id),
+									onOk: () =>
+										categoryDeleteMutation.mutateAsync(selectedCategory.id),
 									title: t("adminShell.contentCategories.deleteCategory"),
 								});
 							}}
@@ -424,7 +515,9 @@ export function ContentCategoryManagementPage() {
 				</div>
 				<div style={{ flex: "1 1 0", minWidth: 0 }}>
 					<LogTablePanel
-						columnSettingsStorageKey={getTableColumnSettingsStorageKey("content-categories")}
+						columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+							"content-categories",
+						)}
 						columnVisibility={columnVisibility}
 						columns={columns}
 						dataSource={itemsQuery.data?.items ?? []}
@@ -432,7 +525,9 @@ export function ContentCategoryManagementPage() {
 						error={itemsQuery.error}
 						errorTitle={t("adminShell.contentCategories.feedback.loadError")}
 						initialLoading={itemsQuery.isPending}
-						onPageChange={(page, pageSize) => setTableState((current) => ({ ...current, page, pageSize }))}
+						onPageChange={(page, pageSize) =>
+							setTableState((current) => ({ ...current, page, pageSize }))
+						}
 						onReload={() => void itemsQuery.refetch()}
 						onTableChange={onTableChange}
 						page={tableState.page}
@@ -462,7 +557,9 @@ export function ContentCategoryManagementPage() {
 			<CategoryEditorDrawer
 				category={editingCategory}
 				categoryOptions={categoryOptions}
-				defaultParentId={selectedCategoryId === "all" ? null : selectedCategoryId}
+				defaultParentId={
+					selectedCategoryId === "all" ? null : selectedCategoryId
+				}
 				loading={categorySaveMutation.isPending}
 				onClose={() => setCategoryEditorOpen(false)}
 				onSave={(input) => categorySaveMutation.mutate(input)}

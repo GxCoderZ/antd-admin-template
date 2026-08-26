@@ -36,6 +36,7 @@ import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	TableActionButton,
 	TableActionMenu,
@@ -60,15 +61,17 @@ interface DepartmentFilterValues {
 
 const defaultDepartmentFilterValues: DepartmentFilterValues = { status: "all" };
 const formId = "department-form";
-const departmentColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
-	{ key: "name", priority: "compact", required: true },
-	{ key: "code", priority: "regular" },
-	{ key: "status", priority: "compact" },
-	{ key: "memberCount", priority: "spacious" },
-	{ key: "positionCount", priority: "spacious" },
-	{ key: "updatedAt", priority: "optional" },
-	{ key: "actions", priority: "compact", required: true },
-];
+const departmentsRouteKey = "/organization/departments";
+const departmentColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
+	[
+		{ key: "name", priority: "compact", required: true },
+		{ key: "code", priority: "regular" },
+		{ key: "status", priority: "compact" },
+		{ key: "memberCount", priority: "spacious" },
+		{ key: "positionCount", priority: "spacious" },
+		{ key: "updatedAt", priority: "optional" },
+		{ key: "actions", priority: "compact", required: true },
+	];
 
 function flattenDepartments(
 	departments: PlatformDepartment[],
@@ -100,13 +103,22 @@ export function DepartmentsPage() {
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [filterForm] = Form.useForm<DepartmentFilterValues>();
 	const [editorForm] = Form.useForm<CreatePlatformDepartmentInput>();
-	const [draftFilters, setDraftFilters] = useState<DepartmentFilterValues>(
-		defaultDepartmentFilterValues,
-	);
-	const [filters, setFilters] = useState<DepartmentFilterValues>(
-		defaultDepartmentFilterValues,
-	);
-	const [filtersExpanded, setFiltersExpanded] = useState(false);
+	const [draftFilters, setDraftFilters] =
+		useRouteSessionState<DepartmentFilterValues>({
+			initialState: defaultDepartmentFilterValues,
+			routeKey: departmentsRouteKey,
+			stateKey: "query-draft",
+		});
+	const [filters, setFilters] = useRouteSessionState<DepartmentFilterValues>({
+		initialState: defaultDepartmentFilterValues,
+		routeKey: departmentsRouteKey,
+		stateKey: "query-applied",
+	});
+	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: departmentsRouteKey,
+		stateKey: "query-expanded",
+	});
 	const [editingDepartment, setEditingDepartment] =
 		useState<PlatformDepartment | null>(null);
 	const [creatingRoot, setCreatingRoot] = useState(false);
@@ -448,7 +460,9 @@ export function DepartmentsPage() {
 		<>
 			{messageContextHolder}
 			<LogTablePanel<PlatformDepartment>
-				columnSettingsStorageKey={getTableColumnSettingsStorageKey("departments")}
+				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+					"departments",
+				)}
 				columnVisibility={departmentColumnVisibility}
 				columns={columns}
 				dataSource={departmentsQuery.data ?? []}
@@ -458,11 +472,10 @@ export function DepartmentsPage() {
 				error={departmentsQuery.error}
 				initialLoading={departmentsQuery.isPending}
 				minimumWidth={token.controlHeight * 34}
-				onPageChange={() => undefined}
 				onReload={() => void departmentsQuery.refetch()}
-				onTableChange={() => undefined}
 				page={1}
 				pageSize={100}
+				pagination={false}
 				primaryAction={
 					<Button
 						icon={<PlusOutlined aria-hidden />}

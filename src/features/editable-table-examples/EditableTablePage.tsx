@@ -1,34 +1,19 @@
-import {
-	ColumnHeightOutlined,
-	FullscreenExitOutlined,
-	FullscreenOutlined,
-	PlusOutlined,
-	ReloadOutlined,
-	SettingOutlined,
-} from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import {
 	Alert,
 	Button,
-	Card,
-	Checkbox,
 	Col,
-	ConfigProvider,
-	Dropdown,
-	Flex,
 	Form,
 	Input,
 	InputNumber,
 	Popconfirm,
-	Popover,
 	Progress,
 	Select,
 	Space,
-	Table,
 	Tag,
 	theme,
-	Tooltip,
 } from "antd";
-import type { FormProps, MenuProps, TableColumnsType, TableProps } from "antd";
+import type { TableColumnsType, TableProps } from "antd";
 import {
 	keepPreviousData,
 	useMutation,
@@ -36,32 +21,18 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import type { HTMLAttributes, ReactNode } from "react";
-import {
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	useSyncExternalStore,
-} from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
-import {
-	defaultPreferences,
-	getTableColumnSettingsStorageKey,
-	readUserTableDensityPreference,
-	subscribeToPreferenceChanges,
-	writeUserTableDensityPreference,
-} from "../../app/preferenceStorage";
+import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import {
 	useQueryFilterLayout,
 	useQuerySubmission,
 } from "../../app/queryFilterLayout";
-import {
-	type ResponsiveTableColumnConfig,
-	useResponsiveTableColumns,
-} from "../../app/tableColumnVisibility";
+import { useRouteSessionState } from "../../app/routeSessionState";
+import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
 import { resolveTableSort } from "../../app/tableSorting";
 import {
 	createEditableTableRow,
@@ -74,18 +45,9 @@ import {
 	type SaveEditableTableRowInput,
 	updateEditableTableRow,
 } from "#src/api/editable-table-examples";
-import { LogQueryPanel } from "../operations/LogTablePanel";
+import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
 
 type EditableTableSort = NonNullable<ListEditableTableRowsInput["sort"]>;
-type EditableTableColumnKey =
-	| "name"
-	| "owner"
-	| "status"
-	| "priority"
-	| "progress"
-	| "updatedAt"
-	| "actions";
-
 interface EditableTableFilterValues {
 	q?: string;
 	status: "all" | EditableTableRowStatus;
@@ -109,26 +71,23 @@ interface EditableCellProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
 }
 
 const newRowId = "__editable-table-new-row__";
-const pageSizeOptions = [10, 20, 50, 100];
-const columnKeys: readonly EditableTableColumnKey[] = [
-	"name",
-	"owner",
-	"status",
-	"priority",
-	"progress",
-	"updatedAt",
-	"actions",
+const editableTableRouteKey = "/examples/lists/editable-table";
+const defaultEditableFilters: EditableTableFilterValues = { status: "all" };
+const defaultEditableTableState: EditableTableState = {
+	order: "desc",
+	page: 1,
+	pageSize: 20,
+	sort: "updated_at",
+};
+const columnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
+	{ key: "name", priority: "compact", required: true },
+	{ key: "owner", priority: "compact" },
+	{ key: "status", priority: "compact" },
+	{ key: "priority", priority: "regular" },
+	{ key: "progress", priority: "regular" },
+	{ key: "updatedAt", priority: "spacious" },
+	{ key: "actions", priority: "compact", required: true },
 ];
-const columnVisibility: readonly ResponsiveTableColumnConfig<EditableTableColumnKey>[] =
-	[
-		{ key: "name", priority: "compact", required: true },
-		{ key: "owner", priority: "compact" },
-		{ key: "status", priority: "compact" },
-		{ key: "priority", priority: "regular" },
-		{ key: "progress", priority: "regular" },
-		{ key: "updatedAt", priority: "spacious" },
-		{ key: "actions", priority: "compact", required: true },
-	];
 const tableSortToContractSort: Record<string, EditableTableSort> = {
 	name: "name",
 	owner: "owner",
@@ -225,21 +184,26 @@ function statusColor(status: EditableTableRowStatus) {
 }
 
 function EditableTableQueryPanel({
+	draftFilters,
+	expanded,
 	initialFilters,
 	loading,
 	onApply,
+	onDraftFiltersChange,
+	onExpandedChange,
 	onReset,
 }: {
+	draftFilters: EditableTableFilterValues;
+	expanded: boolean;
 	initialFilters: EditableTableFilterValues;
 	loading: boolean;
 	onApply: (filters: EditableTableFilterValues) => void;
+	onDraftFiltersChange: (filters: EditableTableFilterValues) => void;
+	onExpandedChange: (expanded: boolean) => void;
 	onReset: () => void;
 }) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<EditableTableFilterValues>();
-	const [draftFilters, setDraftFilters] =
-		useState<EditableTableFilterValues>(initialFilters);
-	const [expanded, setExpanded] = useState(false);
 	const {
 		canExpand,
 		collapsedFieldCount,
@@ -263,11 +227,11 @@ function EditableTableQueryPanel({
 			loading={loading}
 			onFinish={() => onApply(draftFilters)}
 			onReset={() => {
-				setDraftFilters(initialFilters);
+				onDraftFiltersChange(initialFilters);
 				form.setFieldsValue(initialFilters);
 				onReset();
 			}}
-			onToggle={() => setExpanded((currentExpanded) => !currentExpanded)}
+			onToggle={() => onExpandedChange(!expanded)}
 			submitterOffset={submitterOffset}
 			testId="editable-table-query-form"
 		>
@@ -281,13 +245,14 @@ function EditableTableQueryPanel({
 						allowClear
 						maxLength={100}
 						onChange={(event) =>
-							setDraftFilters((currentFilters) => ({
-								...currentFilters,
+							onDraftFiltersChange({
+								...draftFilters,
 								q: event.target.value,
-							}))
+							})
 						}
 						placeholder={t("adminShell.editableTable.placeholders.query")}
 						style={{ width: "100%" }}
+						value={draftFilters.q}
 					/>
 				</Form.Item>
 			</Col>
@@ -301,10 +266,10 @@ function EditableTableQueryPanel({
 						<Select
 							aria-label={t("adminShell.editableTable.filters.status")}
 							onChange={(status: EditableTableFilterValues["status"]) =>
-								setDraftFilters((currentFilters) => ({
-									...currentFilters,
+								onDraftFiltersChange({
+									...draftFilters,
 									status,
-								}))
+								})
 							}
 							options={[
 								{
@@ -325,6 +290,7 @@ function EditableTableQueryPanel({
 								},
 							]}
 							style={{ width: "100%" }}
+							value={draftFilters.status}
 						/>
 					</Form.Item>
 				</Col>
@@ -339,25 +305,32 @@ export function EditableTablePage() {
 	const [form] = Form.useForm<EditableTableFormValues>();
 	const queryClient = useQueryClient();
 	const formatPreferences = useLocalePreferences();
-	const workspaceRef = useRef<HTMLDivElement>(null);
-	const [isFullscreen, setIsFullscreen] = useState(false);
-	const [filters, setFilters] = useState<EditableTableFilterValues>({
-		status: "all",
+	const [draftFilters, setDraftFilters] =
+		useRouteSessionState<EditableTableFilterValues>({
+			initialState: defaultEditableFilters,
+			routeKey: editableTableRouteKey,
+			stateKey: "query-draft",
+		});
+	const [filters, setFilters] = useRouteSessionState<EditableTableFilterValues>(
+		{
+			initialState: defaultEditableFilters,
+			routeKey: editableTableRouteKey,
+			stateKey: "query-applied",
+		},
+	);
+	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: editableTableRouteKey,
+		stateKey: "query-expanded",
 	});
-	const [tableState, setTableState] = useState<EditableTableState>({
-		order: "desc",
-		page: 1,
-		pageSize: 20,
-		sort: "updated_at",
+	const [tableState, setTableState] = useRouteSessionState<EditableTableState>({
+		initialState: defaultEditableTableState,
+		routeKey: editableTableRouteKey,
+		stateKey: "table",
 	});
 	const [editingKey, setEditingKey] = useState<string>("");
 	const [draftRow, setDraftRow] = useState<EditableTableRow | null>(null);
 	const querySubmission = useQuerySubmission();
-	const tableSize = useSyncExternalStore(
-		subscribeToPreferenceChanges,
-		readUserTableDensityPreference,
-		() => defaultPreferences.userTableDensity,
-	);
 	const queryParams = useMemo<ListEditableTableRowsInput>(() => {
 		const q = filters.q?.trim();
 		const params: ListEditableTableRowsInput = {
@@ -477,24 +450,6 @@ export function EditableTablePage() {
 		setEditingKey(newRowId);
 	};
 
-	useEffect(() => {
-		const handleFullscreenChange = () => {
-			setIsFullscreen(document.fullscreenElement === workspaceRef.current);
-		};
-
-		document.addEventListener("fullscreenchange", handleFullscreenChange);
-		return () =>
-			document.removeEventListener("fullscreenchange", handleFullscreenChange);
-	}, []);
-
-	const toggleFullscreen = async () => {
-		if (document.fullscreenElement === workspaceRef.current) {
-			await document.exitFullscreen?.();
-			return;
-		}
-
-		await workspaceRef.current?.requestFullscreen?.();
-	};
 	const resetTablePage = () => {
 		setTableState((currentState) => ({ ...currentState, page: 1 }));
 		querySubmission.submit();
@@ -668,286 +623,97 @@ export function EditableTablePage() {
 			}),
 		};
 	}) as TableColumnsType<EditableTableRow>;
-	const tableColumns = useResponsiveTableColumns<
-		EditableTableRow,
-		EditableTableColumnKey
-	>({
-		columnKeys,
-		columns,
-		configs: columnVisibility,
-		containerRef: workspaceRef,
-		storageKey: getTableColumnSettingsStorageKey("editable-table-examples"),
-	});
-	const columnSettings = (
-		<Flex
-			gap={token.marginXS}
-			style={{ minWidth: token.controlHeight * 6 }}
-			vertical
-		>
-			<Flex align="center" justify="space-between">
-				<Checkbox
-					checked={tableColumns.isAllColumnsVisible}
-					indeterminate={tableColumns.isSomeColumnsVisible}
-					onChange={(event) => {
-						tableColumns.setVisibleColumnKeys(
-							event.target.checked
-								? tableColumns.availableColumnKeys
-								: tableColumns.requiredColumnKeys,
-						);
-					}}
-				>
-					{t("adminShell.editableTable.columnSettings.title")}
-				</Checkbox>
-				<Button
-					onClick={tableColumns.resetColumnSettings}
-					size="small"
-					type="link"
-				>
-					{t("adminShell.editableTable.columnSettings.reset")}
-				</Button>
-			</Flex>
-			<Checkbox.Group
-				onChange={(keys) =>
-					tableColumns.setVisibleColumnKeys(
-						keys.map(String) as EditableTableColumnKey[],
-					)
-				}
-				value={tableColumns.visibleColumnKeys}
-			>
-				<Flex gap={token.marginXS} vertical>
-					{tableColumns.columnOrder.map((columnKey) => (
-						<Checkbox
-							disabled={tableColumns.requiredColumnKeys.includes(columnKey)}
-							key={columnKey}
-							value={columnKey}
-						>
-							{t(`adminShell.editableTable.columns.${columnKey}`)}
-						</Checkbox>
-					))}
-				</Flex>
-			</Checkbox.Group>
-		</Flex>
-	);
-	const densityItems: MenuProps["items"] = [
-		{
-			key: "large",
-			label: t("adminShell.editableTable.densityOptions.large"),
-		},
-		{
-			key: "middle",
-			label: t("adminShell.editableTable.densityOptions.middle"),
-		},
-		{
-			key: "small",
-			label: t("adminShell.editableTable.densityOptions.small"),
-		},
-	];
-	const formLayout: FormProps["layout"] = "vertical";
+	const tableExtra =
+		saveMutation.isError || deleteMutation.isError ? (
+			<Space direction="vertical" style={{ width: "100%" }}>
+				{saveMutation.isError ? (
+					<Alert
+						description={t("adminShell.editableTable.errors.save")}
+						showIcon
+						type="error"
+					/>
+				) : null}
+				{deleteMutation.isError ? (
+					<Alert
+						description={t("adminShell.editableTable.errors.delete")}
+						showIcon
+						type="error"
+					/>
+				) : null}
+			</Space>
+		) : undefined;
 
 	return (
-		<ConfigProvider
-			getPopupContainer={() =>
-				isFullscreen ? (workspaceRef.current ?? document.body) : document.body
+		<LogTablePanel<EditableTableRow>
+			columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+				"editable-table-examples",
+			)}
+			columnVisibility={columnVisibility}
+			columns={columns}
+			dataSource={dataSource}
+			emptyText={t("adminShell.editableTable.empty")}
+			error={query.error}
+			errorFallback={t("adminShell.editableTable.errors.fallback")}
+			errorTitle={t("adminShell.editableTable.errors.load")}
+			initialLoading={query.isPending}
+			onPageChange={(page, pageSize) =>
+				setTableState((currentState) => ({
+					...currentState,
+					page,
+					pageSize,
+				}))
 			}
-		>
-			<Flex
-				data-testid="editable-table-workspace"
-				gap={token.marginLG}
-				ref={workspaceRef}
-				style={
-					isFullscreen
-						? {
-								background: token.colorBgLayout,
-								boxSizing: "border-box",
-								height: "100%",
-								overflow: "auto",
-								padding: token.paddingLG,
-							}
-						: undefined
-				}
-				vertical
-			>
+			onReload={() => void query.refetch()}
+			onTableChange={handleTableChange}
+			page={query.data?.page ?? tableState.page}
+			pageSize={query.data?.pageSize ?? tableState.pageSize}
+			primaryAction={
+				<Button
+					disabled={hasEditingRow}
+					icon={<PlusOutlined aria-hidden />}
+					onClick={addRow}
+					type="primary"
+				>
+					{t("adminShell.editableTable.addRow")}
+				</Button>
+			}
+			queryPanel={
 				<EditableTableQueryPanel
-					initialFilters={{ status: "all" }}
+					draftFilters={draftFilters}
+					expanded={filtersExpanded}
+					initialFilters={defaultEditableFilters}
 					loading={query.isFetching && !query.isPending}
 					onApply={(nextFilters) => {
 						setFilters(nextFilters);
 						resetTablePage();
 					}}
+					onDraftFiltersChange={setDraftFilters}
+					onExpandedChange={setFiltersExpanded}
 					onReset={() => {
-						setFilters({ status: "all" });
+						setFilters(defaultEditableFilters);
 						resetTablePage();
 					}}
 				/>
-				<Card
-					data-testid="editable-table-card"
-					title={
-						<Flex
-							align="center"
-							gap={token.marginXS}
-							justify="space-between"
-							wrap
-						>
-							<span>{t("adminShell.editableTable.tableTitle")}</span>
-							<Space>
-								<Button
-									disabled={hasEditingRow}
-									icon={<PlusOutlined aria-hidden />}
-									onClick={addRow}
-									type="primary"
-								>
-									{t("adminShell.editableTable.addRow")}
-								</Button>
-								<Tooltip title={t("adminShell.editableTable.reload")}>
-									<Button
-										aria-label={t("adminShell.editableTable.reload")}
-										color="default"
-										icon={<ReloadOutlined aria-hidden />}
-										loading={query.isFetching && !query.isPending}
-										onClick={() => void query.refetch()}
-										variant="link"
-									/>
-								</Tooltip>
-								<Dropdown
-									menu={{
-										items: densityItems,
-										onClick: ({ key }) => {
-											if (
-												key === "large" ||
-												key === "middle" ||
-												key === "small"
-											) {
-												writeUserTableDensityPreference(key);
-											}
-										},
-										selectedKeys: [tableSize ?? "middle"],
-									}}
-									placement="bottomRight"
-									trigger={["click"]}
-								>
-									<Tooltip title={t("adminShell.editableTable.density")}>
-										<Button
-											aria-label={t("adminShell.editableTable.density")}
-											color="default"
-											icon={<ColumnHeightOutlined aria-hidden />}
-											variant="link"
-										/>
-									</Tooltip>
-								</Dropdown>
-								<Popover
-									arrow={false}
-									content={columnSettings}
-									placement="bottomRight"
-									trigger="click"
-								>
-									<Tooltip title={t("adminShell.editableTable.tableSettings")}>
-										<Button
-											aria-label={t("adminShell.editableTable.tableSettings")}
-											color="default"
-											icon={<SettingOutlined aria-hidden />}
-											variant="link"
-										/>
-									</Tooltip>
-								</Popover>
-								<Tooltip
-									title={t(
-										isFullscreen
-											? "adminShell.editableTable.exitFullscreen"
-											: "adminShell.editableTable.fullscreen",
-									)}
-								>
-									<Button
-										aria-label={t(
-											isFullscreen
-												? "adminShell.editableTable.exitFullscreen"
-												: "adminShell.editableTable.fullscreen",
-										)}
-										color="default"
-										icon={
-											isFullscreen ? (
-												<FullscreenExitOutlined aria-hidden />
-											) : (
-												<FullscreenOutlined aria-hidden />
-											)
-										}
-										onClick={() => void toggleFullscreen()}
-										variant="link"
-									/>
-								</Tooltip>
-							</Space>
-						</Flex>
-					}
-					styles={{
-						header: {
-							minHeight: token.controlHeightLG + token.marginLG,
-						},
-						title: { overflow: "visible" },
-					}}
+			}
+			refreshing={
+				(query.isFetching && !query.isPending) || saveMutation.isPending
+			}
+			rowClassName="editable-row"
+			tableComponents={{ body: { cell: EditableCell } }}
+			tableExtra={tableExtra}
+			tableWrapper={(table) => (
+				<Form<EditableTableFormValues>
+					component={false}
+					form={form}
+					layout="vertical"
 				>
-					<Flex gap={token.margin} vertical>
-						{query.isError ? (
-							<Alert
-								action={
-									<Button onClick={() => void query.refetch()}>
-										{t("adminShell.editableTable.retry")}
-									</Button>
-								}
-								description={t("adminShell.editableTable.errors.fallback")}
-								showIcon
-								title={t("adminShell.editableTable.errors.load")}
-								type="error"
-							/>
-						) : null}
-						{saveMutation.isError ? (
-							<Alert
-								description={t("adminShell.editableTable.errors.save")}
-								showIcon
-								type="error"
-							/>
-						) : null}
-						{deleteMutation.isError ? (
-							<Alert
-								description={t("adminShell.editableTable.errors.delete")}
-								showIcon
-								type="error"
-							/>
-						) : null}
-						<Form<EditableTableFormValues>
-							component={false}
-							form={form}
-							layout={formLayout}
-						>
-							<Table<EditableTableRow>
-								columns={tableColumns.visibleColumns}
-								components={{ body: { cell: EditableCell } }}
-								dataSource={query.isError ? [] : dataSource}
-								loading={query.isFetching || saveMutation.isPending}
-								locale={{ emptyText: t("adminShell.editableTable.empty") }}
-								onChange={handleTableChange}
-								pagination={{
-									current: query.data?.page ?? tableState.page,
-									pageSize: query.data?.pageSize ?? tableState.pageSize,
-									pageSizeOptions,
-									placement: ["bottomEnd"],
-									showSizeChanger: true,
-									showTotal: (total, [start, end]) =>
-										t("adminShell.editableTable.paginationTotal", {
-											end,
-											start,
-											total,
-										}),
-									total: query.data?.total ?? 0,
-								}}
-								rowClassName="editable-row"
-								rowKey="id"
-								scroll={{ x: tableColumns.minimumWidth || "max-content" }}
-								size={tableSize}
-								tableLayout="fixed"
-							/>
-						</Form>
-					</Flex>
-				</Card>
-			</Flex>
-		</ConfigProvider>
+					{table}
+				</Form>
+			)}
+			testId="editable-table-card"
+			title={t("adminShell.editableTable.tableTitle")}
+			total={query.data?.total ?? 0}
+			workspaceTestId="editable-table-workspace"
+		/>
 	);
 }

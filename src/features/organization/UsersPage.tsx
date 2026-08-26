@@ -108,12 +108,11 @@ export function UsersPage() {
 			routeKey: usersRouteKey,
 			stateKey: "query-draft",
 		});
-	const [userFilters, setUserFilters] =
-		useRouteSessionState<UserFilterValues>({
-			initialState: defaultUserFilterValues,
-			routeKey: usersRouteKey,
-			stateKey: "query-applied",
-		});
+	const [userFilters, setUserFilters] = useRouteSessionState<UserFilterValues>({
+		initialState: defaultUserFilterValues,
+		routeKey: usersRouteKey,
+		stateKey: "query-applied",
+	});
 	const [userFiltersExpanded, setUserFiltersExpanded] = useRouteSessionState({
 		initialState: false,
 		routeKey: usersRouteKey,
@@ -501,6 +500,9 @@ export function UsersPage() {
 				roleMutation.reset();
 				setRoleUser(user);
 			}}
+			onPageChange={(page, pageSize) =>
+				setUserTableState((state) => ({ ...state, page, pageSize }))
+			}
 			onQuery={queryUsers}
 			onReload={() => void userQuery.refetch()}
 			onResetFilters={resetUserFilters}

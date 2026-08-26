@@ -27,6 +27,7 @@ import { resolveInitialLanguage } from "../../i18n";
 import { AdminShellHeader } from "./AdminShellHeader";
 import { AdminShellNavigation } from "./AdminShellNavigation";
 import { AdminTabsBar } from "./AdminTabsBar";
+import "./AdminShellPage.css";
 
 const { Content, Footer } = Layout;
 
@@ -172,6 +173,7 @@ export function AdminShellPage({
 					/>
 
 					<Content
+						className="admin-shell-scroll-content"
 						style={{
 							flex: "1 1 auto",
 							minHeight: 0,

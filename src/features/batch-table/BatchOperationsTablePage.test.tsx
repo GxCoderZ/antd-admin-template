@@ -47,6 +47,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	sessionStorage.clear();
 	mocks.listRecords.mockReset().mockResolvedValue({
 		items: records,
 		page: 1,
@@ -98,6 +99,34 @@ describe("BatchOperationsTablePage", () => {
 		expect(await screen.findByText("TradeCode 1")).toBeVisible();
 		expect(screen.getByLabelText("规则名称")).toBeVisible();
 		expect(screen.getByRole("button", { name: "新建" })).toBeVisible();
+		expect(mocks.listRecords.mock.calls[0]?.[0]).not.toHaveProperty("order");
+		expect(mocks.listRecords.mock.calls[0]?.[0]).not.toHaveProperty("sort");
+		const sortableHeaders = screen
+			.getAllByRole("columnheader")
+			.filter((header) =>
+				header.classList.contains("ant-table-column-has-sorters"),
+			);
+		expect(sortableHeaders).toHaveLength(1);
+		expect(sortableHeaders[0]).toHaveTextContent("服务调用次数");
+	});
+
+	it("sorts by service call count only", async () => {
+		const user = renderPage();
+
+		await screen.findByText("TradeCode 1");
+		const callCountHeader = screen
+			.getAllByRole("columnheader")
+			.find((header) => header.textContent?.includes("服务调用次数"));
+		if (!callCountHeader) {
+			throw new Error("Service call count header is missing");
+		}
+		await user.click(callCountHeader);
+
+		await waitFor(() => {
+			expect(mocks.listRecords.mock.calls.at(-1)?.[0]).toEqual(
+				expect.objectContaining({ order: "asc", sort: "call_count" }),
+			);
+		});
 	});
 
 	it("submits filters through the API contract", async () => {
@@ -108,9 +137,14 @@ describe("BatchOperationsTablePage", () => {
 		await user.click(screen.getByRole("button", { name: /查\s*询/ }));
 
 		await waitFor(() => {
-			expect(mocks.listRecords).toHaveBeenLastCalledWith(
+			expect(mocks.listRecords.mock.calls.at(-1)?.[0]).not.toHaveProperty(
+				"order",
+			);
+			expect(mocks.listRecords.mock.calls.at(-1)?.[0]).not.toHaveProperty(
+				"sort",
+			);
+			expect(mocks.listRecords.mock.calls.at(-1)?.[0]).toEqual(
 				expect.objectContaining({ ruleName: "TradeCode" }),
-				expect.any(AbortSignal),
 			);
 		});
 	});

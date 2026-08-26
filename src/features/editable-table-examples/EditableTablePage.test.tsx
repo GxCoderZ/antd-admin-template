@@ -57,6 +57,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	sessionStorage.clear();
 	mocks.listEditableTableRows.mockReset().mockResolvedValue({
 		items: rows,
 		page: 1,
@@ -134,7 +135,7 @@ describe("EditableTablePage", () => {
 				"新增行",
 				"刷新",
 				"表格密度",
-				"表格设置",
+				"列设置",
 				"表格全屏",
 			]) {
 				expect(screen.getByRole("button", { name: actionName })).toBeVisible();
