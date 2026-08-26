@@ -76,6 +76,7 @@ export function AdminShellPage({
 		useLocalePreferences();
 	const currentPage = getAdminRouteMetadata(location.pathname);
 	const usesPageContainer = currentPage.contentLayout === "pageContainer";
+	const usesTableLayout = currentPage.contentLayout === "table";
 	const openRouteTab = (nextPath: string) => {
 		const nextPage = adminRouteByPath.get(nextPath);
 
@@ -183,11 +184,12 @@ export function AdminShellPage({
 								data-testid="admin-shell-page-content"
 								gap={usesPageContainer ? 0 : token.marginLG}
 								style={{
-									padding: usesPageContainer
+									paddingBlock: usesPageContainer
 										? 0
-										: `${
-												showSidebarNavigation ? token.paddingLG : token.padding
-											}px ${token.paddingLG}px`,
+										: usesTableLayout || showSidebarNavigation
+											? token.paddingLG
+											: token.padding,
+									paddingInline: usesPageContainer ? 0 : token.paddingLG,
 									width: "100%",
 								}}
 								vertical

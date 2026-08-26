@@ -64,7 +64,7 @@ interface AdminRouteAlias {
 
 export interface AdminRouteMetadata {
 	aliases?: readonly AdminRouteAlias[];
-	contentLayout?: "pageContainer";
+	contentLayout?: "pageContainer" | "table";
 	groupKey: AdminRouteGroupKey;
 	iconKey?: AdminRouteIconKey;
 	key: string;
@@ -307,6 +307,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.dashboard",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "system",
 		iconKey: "users",
 		key: "/organization/users",
@@ -316,6 +317,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.users",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "system",
 		iconKey: "roles",
 		key: "/access/roles",
@@ -325,6 +327,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.roles",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "system",
 		iconKey: "departments",
 		key: "/organization/departments",
@@ -334,6 +337,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.departments",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "system",
 		iconKey: "positions",
 		key: "/organization/positions",
@@ -343,6 +347,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.positions",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "system",
 		iconKey: "dictionaries",
 		key: "/system/dictionaries",
@@ -352,6 +357,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.dictionaries",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "system",
 		iconKey: "announcements",
 		key: "/system/announcements",
@@ -361,6 +367,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.announcements",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "operations",
 		iconKey: "auditLogs",
 		key: "/operations/audit-logs",
@@ -370,6 +377,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.auditLogs",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "operations",
 		iconKey: "loginLogs",
 		key: "/operations/login-logs",
@@ -424,6 +432,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.searchApplications",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "listExamples",
 		iconKey: "editableTable",
 		key: "/examples/lists/editable-table",
@@ -440,6 +449,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.cardList",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "examples",
 		iconKey: "treeCategory",
 		key: "/examples/tree-category",
@@ -486,6 +496,7 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.failureResult",
 	},
 	{
+		contentLayout: "table",
 		groupKey: "examples",
 		iconKey: "settings",
 		key: "/examples/files",

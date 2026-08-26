@@ -133,6 +133,7 @@
 - 尺寸、颜色、圆角、边框、阴影优先使用 Theme Token 和组件默认值。领域样式留在领域内；跨页面规则归应用层。
 - 数据管理页默认使用完整内容区宽度；表单、详情、设置页保持可读宽度。
 - PageContainer 内容区四周使用 `token.paddingLG`；通过公开 Token 配置，壳层不得重复添加 padding。
+- 独立表格页在路由声明 `contentLayout: "table"`，由壳层统一提供四周 `token.paddingLG`；Card、Drawer、Modal 内嵌表格沿用容器间距，不重复添加页面 padding。
 - 卡片不增加重阴影、异常圆角或重复标题。Drawer/Modal 宽度响应内容；长内容独立滚动、操作区固定；390px 下占满可用宽度。
 - 覆盖必要的 hover、focus、active、disabled、loading、error、danger 状态。
 - 路由和大内容区域用 Skeleton；表格刷新只用 Table `loading`。

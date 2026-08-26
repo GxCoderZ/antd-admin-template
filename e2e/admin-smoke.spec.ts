@@ -330,6 +330,46 @@ test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
 	await expect(page.getByText("收起", { exact: true })).toBeVisible();
 });
 
+test("独立表格页面在窄屏下统一使用 24px 四周外层间距", async ({
+	page,
+}) => {
+	await page.setViewportSize({ height: 844, width: 390 });
+	await signIn(page);
+
+	const tablePagePaths = [
+		"/organization/users",
+		"/access/roles",
+		"/organization/departments",
+		"/organization/positions",
+		"/system/dictionaries",
+		"/system/announcements",
+		"/operations/audit-logs",
+		"/operations/login-logs",
+		"/examples/lists/editable-table",
+		"/examples/tree-category",
+		"/examples/files",
+	] as const;
+
+	for (const path of tablePagePaths) {
+		await navigateWithinAdmin(page, path);
+		await expect(page).toHaveURL(new RegExp(`${path}$`));
+
+		const pageContent = page.getByTestId("admin-shell-page-content");
+		await expect(pageContent.locator(".ant-table").first()).toBeVisible();
+		const padding = await pageContent.evaluate((element) => {
+			const style = getComputedStyle(element);
+			return [
+				style.paddingTop,
+				style.paddingRight,
+				style.paddingBottom,
+				style.paddingLeft,
+			];
+		});
+
+		expect(padding, path).toEqual(["24px", "24px", "24px", "24px"]);
+	}
+});
+
 test("角色管理支持查询、分页和标准表格工具", async ({ page }) => {
 	await signIn(page);
 
