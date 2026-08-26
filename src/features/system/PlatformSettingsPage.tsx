@@ -220,7 +220,7 @@ export function PlatformSettingsPage() {
 				onChange={changeSection}
 				tabBarStyle={{ margin: 0 }}
 			/>
-			<Card styles={{ body: { minHeight: 520 } }} variant="borderless">
+			<Card styles={{ body: { minHeight: 520 } }}>
 				<section aria-label={selectedSectionLabel}>
 					{selectedSection === "general" ? (
 						<PlatformGeneralSettings />

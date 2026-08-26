@@ -95,7 +95,7 @@ describe("PlatformSettingsPage", () => {
 			screen.queryByRole("heading", { name: "站点标题" }),
 		).not.toBeInTheDocument();
 		expect(contentCard).toHaveClass("ant-card");
-		expect(contentCard).not.toHaveClass("ant-card-bordered");
+		expect(contentCard).toHaveClass("ant-card-bordered");
 		expect(contentCard).not.toContainElement(generalTab);
 		expect(generalTab.closest(".ant-card")).toBeNull();
 	});
