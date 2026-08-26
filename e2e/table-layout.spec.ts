@@ -7,7 +7,7 @@ async function navigateWithinAdmin(page: Page, path: string) {
 	}, path);
 }
 
-test("普通管理表格正文使用官方内边距", async ({ page }) => {
+test("ProTable 管理表格使用官方内容间距", async ({ page }) => {
 	await page.setViewportSize({ height: 900, width: 1440 });
 	await page.goto("/login");
 	await page.locator('input[autocomplete="username"]').fill("admin");
@@ -20,7 +20,8 @@ test("普通管理表格正文使用官方内边距", async ({ page }) => {
 	const tableCard = page.getByTestId("admin-users-table-card");
 	await expect(tableCard.getByRole("table")).toBeVisible();
 	const bodyPadding = await tableCard
-		.locator(".ant-card-body")
+		.locator(".ant-pro-card-body")
+		.last()
 		.evaluate((body) => {
 			const style = getComputedStyle(body);
 			return [

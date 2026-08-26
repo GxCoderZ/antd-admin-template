@@ -178,6 +178,13 @@ function renderUsersPage() {
 	return user;
 }
 
+async function openUserColumnSettings(
+	user: ReturnType<typeof userEvent.setup>,
+) {
+	await user.click(screen.getByRole("img", { name: "setting" }));
+	await screen.findByRole("checkbox", { name: /用户 ID$/ });
+}
+
 describe("UsersPage", () => {
 	it("keeps edit visible and moves secondary row actions into more", async () => {
 		const user = renderUsersPage();
@@ -301,7 +308,7 @@ describe("UsersPage", () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
-		await user.click(screen.getByRole("button", { name: "列设置" }));
+		await openUserColumnSettings(user);
 
 		const requiredColumns = ["用户名", "状态", "操作"];
 		const optionalColumns = [
@@ -315,7 +322,11 @@ describe("UsersPage", () => {
 		];
 
 		for (const column of requiredColumns) {
-			expect(screen.getByRole("checkbox", { name: column })).toBeDisabled();
+			expect(
+				screen.getByRole("checkbox", {
+					name: new RegExp(`^(holder )?${column}$`),
+				}),
+			).toHaveAttribute("aria-disabled", "true");
 		}
 		for (const column of optionalColumns) {
 			expect(
@@ -365,7 +376,7 @@ describe("UsersPage", () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
-		await user.click(screen.getByRole("button", { name: "列设置" }));
+		await openUserColumnSettings(user);
 		await user.click(screen.getByRole("checkbox", { name: /用户 ID$/ }));
 		expect(
 			screen.queryByRole("columnheader", { name: "用户 ID" }),

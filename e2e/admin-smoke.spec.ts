@@ -314,7 +314,7 @@ test("仪表盘标签固定首位且不参与拖拽让位", async ({ page }) => 
 	await expect(page.getByRole("menuitem", { name: "重新加载" })).toHaveCount(0);
 });
 
-test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
+test("用户管理查询栏在窄屏下保持核心筛选可见", async ({ page }) => {
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
 
@@ -334,14 +334,12 @@ test("用户管理查询栏在窄屏下自适应收起", async ({ page }) => {
 	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/organization\/users$/);
 
-	const statusFilter = page.getByRole("combobox", { name: "状态" });
-	await expect(statusFilter).toHaveCount(0);
-	await page.getByText("展开", { exact: true }).click();
+	const statusFilter = page.getByRole("combobox", { name: "账号状态" });
 	await expect(statusFilter).toBeVisible();
 	await navigateWithinAdmin(page, "/access/roles");
 	await navigateWithinAdmin(page, "/organization/users");
 	await expect(statusFilter).toBeVisible();
-	await expect(page.getByText("收起", { exact: true })).toBeVisible();
+	await expect(page.getByText("展开", { exact: true })).toHaveCount(0);
 });
 
 test("独立表格页面在窄屏下统一使用 24px 四周外层间距", async ({ page }) => {
@@ -495,18 +493,14 @@ test("用户管理角色抽屉通过草稿选择统一保存", async ({ page }) 
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/organization\/users$/);
-	await page
-		.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号")
-		.fill("admin");
-	await page.getByRole("button", { name: /查\s*询/ }).click();
-	await expect(page.getByRole("table")).toContainText("admin");
+	await expect(page.getByRole("table")).toContainText("owen.song");
 
 	await page.getByRole("button", { name: "更多", exact: true }).first().click();
 	await page.getByRole("menuitem", { name: "角色", exact: true }).click();
 
 	const drawer = page
 		.locator(".ant-drawer")
-		.filter({ hasText: "admin 的角色" });
+		.filter({ hasText: "owen.song 的角色" });
 	await expect(
 		drawer.getByRole("combobox", { name: "角色选择" }),
 	).toBeVisible();
@@ -526,7 +520,7 @@ test("用户管理角色抽屉通过草稿选择统一保存", async ({ page }) 
 	await page.getByRole("menuitem", { name: "角色", exact: true }).click();
 	const reopenedDrawer = page
 		.locator(".ant-drawer")
-		.filter({ hasText: "admin 的角色" });
+		.filter({ hasText: "owen.song 的角色" });
 	await expect(reopenedDrawer.getByText("只读审计员").first()).toBeVisible();
 	await expect(reopenedDrawer.getByText("暂无未保存变更")).toBeVisible();
 });
@@ -627,7 +621,7 @@ test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) 
 	await expect(page.getByRole("heading", { name: "通知中心" })).toBeVisible();
 	const notificationCenter = page.locator("main");
 	const firstUnreadItem = notificationCenter
-		.locator(".ant-list-item")
+		.locator('[data-testid^="notification-center-item-"]')
 		.filter({ hasText: "待办事项即将到期 2" });
 	await firstUnreadItem.getByRole("button", { name: "标记已读" }).click();
 	await expect(

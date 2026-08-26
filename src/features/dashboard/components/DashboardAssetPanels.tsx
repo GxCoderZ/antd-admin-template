@@ -266,8 +266,8 @@ export function DashboardAssetPanels({
 					>
 						<Timeline
 							items={(statistics?.recentActivities ?? []).map((activity) => ({
-								children: <ActivityItem activity={activity} />,
 								color: activity.result === "success" ? "green" : "red",
+								content: <ActivityItem activity={activity} />,
 								key: activity.id,
 							}))}
 						/>

@@ -6,12 +6,12 @@ import {
 	TeamOutlined,
 } from "@ant-design/icons";
 import { Badge, Space, Tag, theme, Tooltip, Typography } from "antd";
-import type { TableProps } from "antd";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
+import type { ManagementProTableColumn } from "../../../app/ManagementProTable";
 import { PlatformUserAvatar } from "../../../app/PlatformUserAvatar";
 import {
 	TableActionButton,
@@ -68,24 +68,27 @@ export function useUserTableColumns({
 	const { token } = theme.useToken();
 	const formatPreferences = useLocalePreferences();
 
-	return useMemo<NonNullable<TableProps<PlatformUser>["columns"]>>(() => {
+	return useMemo<ManagementProTableColumn<PlatformUser>[]>(() => {
 		const sortOrder = (column: ListPlatformUsersInput["sort"]) =>
 			tableState.sort === column && tableState.order
 				? tableState.order === "asc"
 					? "ascend"
 					: "descend"
 				: null;
-		const dataColumns: NonNullable<TableProps<PlatformUser>["columns"]> = [
+		const dataColumns: ManagementProTableColumn<PlatformUser>[] = [
 			{
 				dataIndex: "id",
 				key: "id",
-				render: (id: string) => <Text code>{id}</Text>,
+				render: (_, row) => <Text code>{row.id}</Text>,
+				search: false,
 				title: t("adminShell.users.columns.id"),
 				width: token.controlHeight * userColumnWidthMultipliers.id,
 			},
 			{
 				dataIndex: "username",
+				disable: true,
 				key: "username",
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("username"),
@@ -95,19 +98,20 @@ export function useUserTableColumns({
 			{
 				dataIndex: "displayName",
 				key: "displayName",
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("display_name"),
-				render: (displayName: string, row: PlatformUser) => (
+				render: (_, row) => (
 					<Space size={token.marginXS}>
 						<PlatformUserAvatar
-							displayName={displayName || row.username}
+							displayName={row.displayName || row.username}
 							revision={row.updatedAt}
 							size="small"
 							userId={row.id}
 						/>
 						<TableActionButton onClick={() => onView(row)}>
-							{displayName}
+							{row.displayName}
 						</TableActionButton>
 					</Space>
 				),
@@ -117,8 +121,8 @@ export function useUserTableColumns({
 			{
 				dataIndex: "department",
 				key: "department",
-				render: (department: PlatformUser["department"]) =>
-					t(`adminShell.users.departments.${department}`),
+				search: false,
+				render: (_, row) => t(`adminShell.users.departments.${row.department}`),
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("department"),
@@ -128,28 +132,29 @@ export function useUserTableColumns({
 			{
 				dataIndex: "jobTitle",
 				key: "jobTitle",
-				render: (jobTitle: string) =>
-					jobTitle || <Text type="secondary">-</Text>,
+				render: (_, row) => row.jobTitle || <Text type="secondary">-</Text>,
+				search: false,
 				title: t("adminShell.users.columns.jobTitle"),
 				width: token.controlHeight * userColumnWidthMultipliers.jobTitle,
 			},
 			{
 				dataIndex: "roles",
 				key: "roles",
-				render: (roles: PlatformUser["roles"]) =>
-					roles.length > 0 ? (
+				search: false,
+				render: (_, row) =>
+					row.roles.length > 0 ? (
 						<Space size={[token.marginXXS, token.marginXXS]} wrap>
-							{roles.slice(0, 2).map((role) => (
+							{row.roles.slice(0, 2).map((role) => (
 								<Tag key={role.id}>{role.displayName}</Tag>
 							))}
-							{roles.length > 2 ? (
+							{row.roles.length > 2 ? (
 								<Tooltip
-									title={roles
+									title={row.roles
 										.slice(2)
 										.map((role) => role.displayName)
 										.join("、")}
 								>
-									<Tag>+{roles.length - 2}</Tag>
+									<Tag>+{row.roles.length - 2}</Tag>
 								</Tooltip>
 							) : null}
 						</Space>
@@ -162,7 +167,8 @@ export function useUserTableColumns({
 			{
 				dataIndex: "phone",
 				key: "phone",
-				render: (phone: string) => phone || <Text type="secondary">-</Text>,
+				render: (_, row) => row.phone || <Text type="secondary">-</Text>,
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("phone"),
@@ -172,6 +178,7 @@ export function useUserTableColumns({
 			{
 				dataIndex: "email",
 				key: "email",
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("email"),
@@ -180,13 +187,15 @@ export function useUserTableColumns({
 			},
 			{
 				dataIndex: "status",
+				disable: true,
 				key: "status",
-				render: (status: PlatformUser["status"]) => (
+				render: (_, row) => (
 					<Badge
-						status={userStatusBadgeByStatus[status]}
-						text={t(`adminShell.users.statuses.${status}`)}
+						status={userStatusBadgeByStatus[row.status]}
+						text={t(`adminShell.users.statuses.${row.status}`)}
 					/>
 				),
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("status"),
@@ -196,9 +205,10 @@ export function useUserTableColumns({
 			{
 				dataIndex: "authSource",
 				key: "authSource",
-				render: (authSource: PlatformUser["authSource"]) => (
-					<Tag color={userAuthSourceTagColor[authSource]}>
-						{t(`adminShell.users.authSources.${authSource}`)}
+				search: false,
+				render: (_, row) => (
+					<Tag color={userAuthSourceTagColor[row.authSource]}>
+						{t(`adminShell.users.authSources.${row.authSource}`)}
 					</Tag>
 				),
 				sortDirections: ["ascend", "descend"],
@@ -210,11 +220,12 @@ export function useUserTableColumns({
 			{
 				dataIndex: "mfaEnabled",
 				key: "mfaEnabled",
-				render: (enabled: boolean) => (
+				search: false,
+				render: (_, row) => (
 					<Badge
-						status={enabled ? "success" : "default"}
+						status={row.mfaEnabled ? "success" : "default"}
 						text={t(
-							enabled
+							row.mfaEnabled
 								? "adminShell.users.columnValues.enabled"
 								: "adminShell.users.columnValues.disabled",
 						)}
@@ -226,11 +237,12 @@ export function useUserTableColumns({
 			{
 				dataIndex: "mustChangePassword",
 				key: "mustChangePassword",
-				render: (mustChangePassword?: boolean) => (
+				search: false,
+				render: (_, row) => (
 					<Badge
-						status={mustChangePassword ? "warning" : "success"}
+						status={row.mustChangePassword ? "warning" : "success"}
 						text={t(
-							mustChangePassword
+							row.mustChangePassword
 								? "adminShell.users.columnValues.changeRequired"
 								: "adminShell.users.columnValues.normal",
 						)}
@@ -243,9 +255,10 @@ export function useUserTableColumns({
 			{
 				dataIndex: "lastLoginAt",
 				key: "lastLoginAt",
-				render: (lastLoginAt: string | null) =>
-					lastLoginAt ? (
-						formatDateTime(lastLoginAt, formatPreferences)
+				search: false,
+				render: (_, row) =>
+					row.lastLoginAt ? (
+						formatDateTime(row.lastLoginAt, formatPreferences)
 					) : (
 						<Text type="secondary">
 							{t("adminShell.users.columnValues.never")}
@@ -260,9 +273,10 @@ export function useUserTableColumns({
 			{
 				dataIndex: "lastLoginIp",
 				key: "lastLoginIp",
-				render: (lastLoginIp: string | null) =>
-					lastLoginIp ? (
-						<Text code>{lastLoginIp}</Text>
+				search: false,
+				render: (_, row) =>
+					row.lastLoginIp ? (
+						<Text code>{row.lastLoginIp}</Text>
 					) : (
 						<Text type="secondary">-</Text>
 					),
@@ -272,8 +286,8 @@ export function useUserTableColumns({
 			{
 				dataIndex: "createdAt",
 				key: "createdAt",
-				render: (createdAt: string) =>
-					formatDateTime(createdAt, formatPreferences),
+				search: false,
+				render: (_, row) => formatDateTime(row.createdAt, formatPreferences),
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("created_at"),
@@ -283,8 +297,8 @@ export function useUserTableColumns({
 			{
 				dataIndex: "updatedAt",
 				key: "updatedAt",
-				render: (updatedAt: string) =>
-					formatDateTime(updatedAt, formatPreferences),
+				search: false,
+				render: (_, row) => formatDateTime(row.updatedAt, formatPreferences),
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("updated_at"),
@@ -294,6 +308,7 @@ export function useUserTableColumns({
 		];
 
 		dataColumns.push({
+			disable: true,
 			key: "actions",
 			render: (_: unknown, row: PlatformUser) => (
 				<Space size="medium">
@@ -349,7 +364,9 @@ export function useUserTableColumns({
 					/>
 				</Space>
 			),
+			search: false,
 			title: t("adminShell.users.columns.actions"),
+			valueType: "option",
 			width: token.controlHeight * userColumnWidthMultipliers.actions,
 		});
 

@@ -10,7 +10,7 @@ import {
 	theme,
 	Typography,
 } from "antd";
-import type { TableColumnsType } from "antd";
+import type { DescriptionsProps, TableColumnsType } from "antd";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
@@ -256,7 +256,7 @@ export function AboutSystemPage() {
 			: status === "approved"
 				? "processing"
 				: "default";
-	const systemInfoItems = systemInfoQuery.data
+	const systemInfoItems: DescriptionsProps["items"] = systemInfoQuery.data
 		? [
 				{
 					key: "service",
@@ -286,6 +286,7 @@ export function AboutSystemPage() {
 				{
 					key: "builtAt",
 					label: t("adminShell.about.runtime.builtAt"),
+					span: "filled",
 					children: formatDateTime(
 						systemInfoQuery.data.builtAt,
 						formatPreferences,

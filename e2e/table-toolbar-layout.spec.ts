@@ -7,7 +7,7 @@ async function navigateWithinAdmin(page: Page, path: string) {
 	}, path);
 }
 
-test("管理表格工具栏位于 Card 正文顶部", async ({ page }) => {
+test("ProTable 管理表格工具栏位于表格主体上方", async ({ page }) => {
 	await page.setViewportSize({ height: 900, width: 1440 });
 	await page.goto("/login");
 	await page.locator('input[autocomplete="username"]').fill("admin");
@@ -20,18 +20,23 @@ test("管理表格工具栏位于 Card 正文顶部", async ({ page }) => {
 	const tableCard = page.getByTestId("admin-users-table-card");
 	await expect(tableCard.getByRole("table")).toBeVisible();
 	const structure = await tableCard.evaluate((card) => {
-		const body = card.querySelector(":scope > .ant-card-body");
-		const toolbar = body?.querySelector(":scope > .ant-pro-table-list-toolbar");
-		if (!body || !toolbar) {
+		const proTable = card.querySelector(":scope > .ant-pro-table");
+		const toolbar = proTable?.querySelector(".ant-pro-table-list-toolbar");
+		const table = proTable?.querySelector(".ant-table-wrapper");
+		if (!proTable || !toolbar || !table) {
 			return null;
 		}
 
 		return {
-			hasCardHead: Boolean(card.querySelector(":scope > .ant-card-head")),
-			toolbarTopInset:
-				toolbar.getBoundingClientRect().top - body.getBoundingClientRect().top,
+			hasLegacyCardHead: Boolean(card.querySelector(":scope > .ant-card-head")),
+			toolbarBeforeTable:
+				toolbar.getBoundingClientRect().bottom <=
+				table.getBoundingClientRect().top,
 		};
 	});
 
-	expect(structure).toEqual({ hasCardHead: false, toolbarTopInset: 0 });
+	expect(structure).toEqual({
+		hasLegacyCardHead: false,
+		toolbarBeforeTable: true,
+	});
 });

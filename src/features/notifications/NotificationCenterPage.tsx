@@ -7,7 +7,7 @@ import {
 	Card,
 	Empty,
 	Flex,
-	List,
+	Listy,
 	Pagination,
 	Segmented,
 	Skeleton,
@@ -128,53 +128,46 @@ export function NotificationCenterPage() {
 					<Empty description={t("adminShell.notificationCenter.empty")} />
 				) : (
 					<>
-						<List
-							dataSource={query.data.items}
-							renderItem={(item) => (
-								<List.Item
-									{...(!item.readAt
-										? {
-												actions: [
-													<Button
-														key="read"
-														loading={
-															readMutation.isPending &&
-															readMutation.variables === item.id
-														}
-														onClick={() => readMutation.mutate(item.id)}
-														type="link"
-													>
-														{t("adminShell.notificationCenter.markRead")}
-													</Button>,
-												],
-											}
-										: {})}
+						<Listy
+							itemRender={(item) => (
+								<Flex
+									align="flex-start"
+									data-testid={`notification-center-item-${item.id}`}
+									gap={token.margin}
+									justify="space-between"
+									wrap
 								>
-									<List.Item.Meta
-										description={
-											<Space orientation="vertical" size={token.marginXXS}>
-												<Text>{item.content}</Text>
-												<Text type="secondary">
-													{new Date(item.createdAt).toLocaleString()}
-												</Text>
-											</Space>
-										}
-										title={
-											<Space wrap>
-												<Badge
-													status={item.readAt ? "default" : "processing"}
-												/>
-												<Text strong={!item.readAt}>{item.title}</Text>
-												<Tag color={kindColor[item.kind]}>
-													{t(
-														`adminShell.notificationCenter.kinds.${item.kind}`,
-													)}
-												</Tag>
-											</Space>
-										}
-									/>
-								</List.Item>
+									<Flex gap={token.marginXXS} style={{ minWidth: 0 }} vertical>
+										<Space wrap>
+											<Badge status={item.readAt ? "default" : "processing"} />
+											<Text strong={!item.readAt}>{item.title}</Text>
+											<Tag color={kindColor[item.kind]}>
+												{t(`adminShell.notificationCenter.kinds.${item.kind}`)}
+											</Tag>
+										</Space>
+										<Space orientation="vertical" size={token.marginXXS}>
+											<Text>{item.content}</Text>
+											<Text type="secondary">
+												{new Date(item.createdAt).toLocaleString()}
+											</Text>
+										</Space>
+									</Flex>
+									{!item.readAt ? (
+										<Button
+											loading={
+												readMutation.isPending &&
+												readMutation.variables === item.id
+											}
+											onClick={() => readMutation.mutate(item.id)}
+											type="link"
+										>
+											{t("adminShell.notificationCenter.markRead")}
+										</Button>
+									) : null}
+								</Flex>
 							)}
+							items={query.data.items}
+							rowKey="id"
 						/>
 						<Flex justify="end" style={{ marginTop: token.margin }}>
 							<Pagination

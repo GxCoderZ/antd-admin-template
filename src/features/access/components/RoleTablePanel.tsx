@@ -12,7 +12,6 @@ import {
 	Tooltip,
 	Typography,
 } from "antd";
-import type { ChangeEvent } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -104,8 +103,6 @@ export function RoleTablePanel({
 				dataIndex: "q",
 				fieldProps: {
 					allowClear: true,
-					onChange: (event: ChangeEvent<HTMLInputElement>) =>
-						onDraftFiltersChange({ q: event.target.value }),
 					placeholder: t("adminShell.roles.placeholders.q"),
 				},
 				hideInTable: true,
@@ -292,7 +289,6 @@ export function RoleTablePanel({
 		onDelete,
 		onRename,
 		onView,
-		onDraftFiltersChange,
 		deletePending,
 		draftFilters.q,
 		openActionRoleId,
@@ -332,6 +328,12 @@ export function RoleTablePanel({
 				onPageChange={onPageChange}
 				onReload={onReload}
 				onReset={onResetFilters}
+				searchForm={{
+					onValuesChange: (_, values: RoleFilterValues) => {
+						const q = values.q?.trim();
+						onDraftFiltersChange(q ? { q } : {});
+					},
+				}}
 				onSubmit={(values) => {
 					const q = values.q?.trim();
 					onQuery(q ? { q } : {});

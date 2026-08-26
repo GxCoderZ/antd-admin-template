@@ -1,19 +1,22 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Col, Form, Input, Select } from "antd";
-import type { FormInstance, TableProps } from "antd";
+import { Alert, Button, Flex, theme } from "antd";
+import type { TableProps } from "antd";
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+	ManagementProTable,
+	type ManagementProTableColumn,
+} from "../../../app/ManagementProTable";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
-import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
-import { LogQueryPanel, LogTablePanel } from "../../operations/LogTablePanel";
 import type { PlatformUser } from "#src/api/users";
 import { getProblemFallback } from "../userProblems";
 import {
 	defaultUserFilterValues,
 	type UserFilterValues,
 	type UserTableState,
-	userColumnVisibility,
+	userColumnWidthMultipliers,
 } from "../userTableTypes";
 import { useUserTableColumns } from "./useUserTableColumns";
 
@@ -30,18 +33,15 @@ interface UsersTablePanelProps {
 	data: UserPageData | undefined;
 	draftFilters: UserFilterValues;
 	error: unknown;
-	filterForm: FormInstance<UserFilterValues>;
-	filtersExpanded: boolean;
 	initialLoading: boolean;
 	onCreate: () => void;
 	onDelete: (user: PlatformUser) => void;
 	onDraftFiltersChange: (filters: UserFilterValues) => void;
 	onEdit: (user: PlatformUser) => void;
 	onForceLogout: (user: PlatformUser) => void;
-	onFiltersExpandedChange: (expanded: boolean) => void;
 	onManageRoles: (user: PlatformUser) => void;
 	onPageChange: (page: number, pageSize: number) => void;
-	onQuery: () => void;
+	onQuery: (filters: UserFilterValues) => void;
 	onReload: () => void;
 	onResetFilters: () => void;
 	onResetPassword: (user: PlatformUser) => void;
@@ -58,15 +58,12 @@ export function UsersTablePanel({
 	data,
 	draftFilters,
 	error,
-	filterForm,
-	filtersExpanded,
 	initialLoading,
 	onCreate,
 	onDelete,
 	onDraftFiltersChange,
 	onEdit,
 	onForceLogout,
-	onFiltersExpandedChange,
 	onManageRoles,
 	onPageChange,
 	onQuery,
@@ -80,16 +77,8 @@ export function UsersTablePanel({
 	tableState,
 }: UsersTablePanelProps) {
 	const { t } = useTranslation();
-	const {
-		canExpand,
-		collapsedFieldCount,
-		columnSpan,
-		containerRef,
-		formLayout,
-		submitterOffset,
-	} = useQueryFilterLayout({ expanded: filtersExpanded, fieldCount: 2 });
-	const showStatusFilter = filtersExpanded || collapsedFieldCount >= 2;
-	const columns = useUserTableColumns({
+	const { token } = theme.useToken();
+	const tableColumns = useUserTableColumns({
 		canManageUsers,
 		currentUserId,
 		onDelete,
@@ -100,116 +89,122 @@ export function UsersTablePanel({
 		onView,
 		tableState,
 	});
-	const queryPanel = (
-		<LogQueryPanel<UserFilterValues>
-			actionsTestId="admin-users-query-actions"
-			canExpand={canExpand}
-			columnSpan={columnSpan}
-			containerRef={containerRef}
-			expanded={filtersExpanded}
-			form={filterForm}
-			formLayout={formLayout}
-			initialValues={defaultUserFilterValues}
-			loading={refreshing}
-			onFinish={onQuery}
-			onReset={onResetFilters}
-			onToggle={() => onFiltersExpandedChange(!filtersExpanded)}
-			submitterOffset={submitterOffset}
-			testId="admin-users-query-form"
-		>
-			<Col span={columnSpan}>
-				<Form.Item
-					label={t("adminShell.users.filters.q")}
-					style={{ marginBottom: 0 }}
-				>
-					<Input
-						allowClear
-						onChange={(event) =>
-							onDraftFiltersChange({
-								...draftFilters,
-								q: event.target.value,
-							})
-						}
-						placeholder={t("adminShell.users.placeholders.q")}
-						style={{ width: "100%" }}
-						value={draftFilters.q}
-					/>
-				</Form.Item>
-			</Col>
-			{showStatusFilter ? (
-				<Col span={columnSpan}>
-					<Form.Item
-						label={t("adminShell.users.filters.status")}
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							aria-label={t("adminShell.users.filters.status")}
-							onChange={(status: UserFilterValues["status"]) =>
-								onDraftFiltersChange({ ...draftFilters, status })
-							}
-							options={[
-								{ label: t("adminShell.users.allStatuses"), value: "all" },
-								{
-									label: t("adminShell.users.statuses.active"),
-									value: "active",
-								},
-								{
-									label: t("adminShell.users.statuses.locked"),
-									value: "locked",
-								},
-								{
-									label: t("adminShell.users.statuses.disabled"),
-									value: "disabled",
-								},
-							]}
-							style={{ width: "100%" }}
-							value={draftFilters.status}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
-		</LogQueryPanel>
+	const columns = useMemo<ManagementProTableColumn<PlatformUser>[]>(
+		() => [
+			{
+				dataIndex: "q",
+				fieldProps: {
+					allowClear: true,
+					placeholder: t("adminShell.users.placeholders.q"),
+				},
+				hideInTable: true,
+				initialValue: draftFilters.q,
+				title: t("adminShell.users.filters.q"),
+			},
+			{
+				dataIndex: "status",
+				fieldProps: {
+					options: [
+						{ label: t("adminShell.users.allStatuses"), value: "all" },
+						{
+							label: t("adminShell.users.statuses.active"),
+							value: "active",
+						},
+						{
+							label: t("adminShell.users.statuses.locked"),
+							value: "locked",
+						},
+						{
+							label: t("adminShell.users.statuses.disabled"),
+							value: "disabled",
+						},
+					],
+				},
+				hideInTable: true,
+				initialValue: draftFilters.status,
+				key: "statusFilter",
+				title: t("adminShell.users.filters.status"),
+				valueType: "select",
+			},
+			...tableColumns,
+		],
+		[draftFilters.q, draftFilters.status, t, tableColumns],
+	);
+	const minimumWidth = Object.values(userColumnWidthMultipliers).reduce(
+		(total, multiplier) => total + token.controlHeight * multiplier,
+		0,
 	);
 
 	return (
 		<>
 			{overlays}
-			<LogTablePanel<PlatformUser>
-				columnSettingsStorageKey={getTableColumnSettingsStorageKey("users")}
-				columnVisibility={userColumnVisibility}
-				columns={columns}
-				dataSource={data?.items ?? []}
-				emptyText={t("adminShell.users.empty")}
-				error={error}
-				errorFallback={getProblemFallback(
-					error,
-					t("adminShell.users.errors.fallback"),
-				)}
-				errorTitle={t("adminShell.users.errors.request")}
-				initialLoading={initialLoading}
-				onPageChange={onPageChange}
-				onReload={onReload}
-				onTableChange={onTableChange}
-				page={data?.page ?? tableState.page}
-				pageSize={data?.pageSize ?? tableState.pageSize}
-				primaryAction={
-					canManageUsers ? (
-						<Button
-							icon={<PlusOutlined aria-hidden />}
-							onClick={onCreate}
-							type="primary"
-						>
-							{t("adminShell.users.create")}
-						</Button>
-					) : undefined
-				}
-				queryPanel={queryPanel}
-				refreshing={refreshing}
-				testId="admin-users-table-card"
-				title={t("adminShell.users.tableTitle")}
-				total={data?.total ?? 0}
-				workspaceTestId="admin-users-table-workspace"
-			/>
+			<Flex gap={token.marginLG} vertical>
+				{error ? (
+					<Alert
+						action={
+							<Button onClick={onReload}>
+								{t("adminShell.logs.common.retry")}
+							</Button>
+						}
+						description={getProblemFallback(
+							error,
+							t("adminShell.users.errors.fallback"),
+						)}
+						showIcon
+						title={t("adminShell.users.errors.request")}
+						type="error"
+					/>
+				) : null}
+				<ManagementProTable<PlatformUser, UserFilterValues>
+					columnSettingsStorageKey={getTableColumnSettingsStorageKey("users")}
+					columns={columns}
+					dataSource={data?.items ?? []}
+					emptyText={t("adminShell.users.empty")}
+					initialLoading={initialLoading}
+					minimumWidth={minimumWidth}
+					onPageChange={onPageChange}
+					onReload={onReload}
+					onReset={onResetFilters}
+					search={{
+						collapseRender: false,
+						defaultCollapsed: false,
+					}}
+					searchForm={{
+						onValuesChange: (_, values: Partial<UserFilterValues>) => {
+							const q = values.q?.trim();
+							onDraftFiltersChange({
+								status: values.status ?? defaultUserFilterValues.status,
+								...(q ? { q } : {}),
+							});
+						},
+					}}
+					onSubmit={(values) => {
+						const q = values.q?.trim();
+						onQuery({
+							status: values.status ?? defaultUserFilterValues.status,
+							...(q ? { q } : {}),
+						});
+					}}
+					onTableChange={onTableChange}
+					page={data?.page ?? tableState.page}
+					pageSize={data?.pageSize ?? tableState.pageSize}
+					primaryAction={
+						canManageUsers ? (
+							<Button
+								icon={<PlusOutlined aria-hidden />}
+								onClick={onCreate}
+								type="primary"
+							>
+								{t("adminShell.users.create")}
+							</Button>
+						) : undefined
+					}
+					refreshing={refreshing}
+					testId="admin-users-table-card"
+					title={t("adminShell.users.tableTitle")}
+					total={data?.total ?? 0}
+				/>
+			</Flex>
 		</>
 	);
 }

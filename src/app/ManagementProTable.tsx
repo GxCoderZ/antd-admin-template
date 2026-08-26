@@ -27,6 +27,10 @@ function isUserTableDensity(value: unknown): value is UserTableDensity {
 	return tableDensities.some((density) => density === value);
 }
 
+function getProTableColumnSettingsStorageKey(storageKey: string) {
+	return `${storageKey}:pro-table`;
+}
+
 export interface ManagementProTableProps<
 	Row extends { id: string },
 	SearchValues extends object,
@@ -99,6 +103,13 @@ export function ManagementProTable<
 			}),
 		total,
 	};
+	const tableSearch: ProTableProps<Row, SearchValues>["search"] =
+		search === false
+			? false
+			: {
+					labelWidth: 120,
+					...(search ?? {}),
+				};
 
 	return (
 		<div data-testid={testId}>
@@ -106,7 +117,9 @@ export function ManagementProTable<
 				cardBordered={false}
 				columns={columns}
 				columnsState={{
-					persistenceKey: columnSettingsStorageKey,
+					persistenceKey: getProTableColumnSettingsStorageKey(
+						columnSettingsStorageKey,
+					),
 					persistenceType: "localStorage",
 				}}
 				dataSource={dataSource}
@@ -128,11 +141,12 @@ export function ManagementProTable<
 					reload: onReload,
 					setting: {
 						draggable: true,
+						listsHeight: 520,
 					},
 				}}
 				pagination={tablePagination}
 				rowKey="id"
-				search={search ?? { labelWidth: 120 }}
+				search={tableSearch}
 				size={tableSize}
 				tableAlertRender={false}
 				tableLayout="fixed"

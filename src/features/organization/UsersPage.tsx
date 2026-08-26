@@ -103,7 +103,6 @@ export function UsersPage() {
 	const [deletingUser, setDeletingUser] = useState<PlatformUser | null>(null);
 	const [roleUser, setRoleUser] = useState<PlatformUser | null>(null);
 	const [resetPasswordForm] = Form.useForm<ResetPlatformUserPasswordInput>();
-	const [userFilterForm] = Form.useForm<UserFilterValues>();
 	const [userDraftFilters, setUserDraftFilters] =
 		useRouteSessionState<UserFilterValues>({
 			initialState: defaultUserFilterValues,
@@ -114,11 +113,6 @@ export function UsersPage() {
 		initialState: defaultUserFilterValues,
 		routeKey: usersRouteKey,
 		stateKey: "query-applied",
-	});
-	const [userFiltersExpanded, setUserFiltersExpanded] = useRouteSessionState({
-		initialState: false,
-		routeKey: usersRouteKey,
-		stateKey: "query-expanded",
 	});
 	const [userTableState, setUserTableState] =
 		useRouteSessionState<UserTableState>({
@@ -309,8 +303,9 @@ export function UsersPage() {
 			userId: editingUser.id,
 		});
 	};
-	const queryUsers = () => {
-		setUserFilters(userDraftFilters);
+	const queryUsers = (nextFilters: UserFilterValues) => {
+		setUserDraftFilters(nextFilters);
+		setUserFilters(nextFilters);
 		setUserTableState((state) => ({ ...state, page: 1 }));
 		userQuerySubmission.submit();
 	};
@@ -498,8 +493,6 @@ export function UsersPage() {
 			data={userQuery.data}
 			draftFilters={userDraftFilters}
 			error={userQuery.error}
-			filterForm={userFilterForm}
-			filtersExpanded={userFiltersExpanded}
 			initialLoading={userQuery.isPending}
 			onCreate={() => setCreateUserOpen(true)}
 			onDelete={(user) => {
@@ -515,7 +508,6 @@ export function UsersPage() {
 				forceLogoutMutation.reset();
 				setForceLogoutUser(user);
 			}}
-			onFiltersExpandedChange={setUserFiltersExpanded}
 			onManageRoles={(user) => {
 				roleMutation.reset();
 				setRoleUser(user);
