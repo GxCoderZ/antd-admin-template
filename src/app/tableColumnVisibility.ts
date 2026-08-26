@@ -1,7 +1,6 @@
-import { theme } from "antd";
 import type { TableColumnsType } from "antd";
 import type { RefObject } from "react";
-import { useLayoutEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
 	clearTableColumnSettingsPreference,
@@ -26,13 +25,6 @@ interface UseResponsiveTableColumnsInput<Row, Key extends string> {
 	containerRef: RefObject<HTMLElement | null>;
 	storageKey: string;
 }
-
-const priorityRank: Record<ResponsiveTableColumnPriority, number> = {
-	compact: 0,
-	regular: 1,
-	spacious: 2,
-	optional: 3,
-};
 
 function uniqueKnownKeys<Key extends string>(
 	keys: readonly string[],
@@ -68,15 +60,8 @@ export function useResponsiveTableColumns<Row, Key extends string>({
 	columnKeys,
 	columns,
 	configs,
-	containerRef,
 	storageKey,
 }: UseResponsiveTableColumnsInput<Row, Key>) {
-	const { token } = theme.useToken();
-	const initialWidth =
-		typeof document === "undefined"
-			? token.screenXLMin
-			: document.body.clientWidth || token.screenXLMin;
-	const [containerWidth, setContainerWidth] = useState(initialWidth);
 	const allowedColumnKeys = useMemo(() => [...columnKeys], [columnKeys]);
 	const availableKeys = useMemo(
 		() =>
@@ -115,46 +100,8 @@ export function useResponsiveTableColumns<Row, Key extends string>({
 			: null,
 	);
 
-	useLayoutEffect(() => {
-		const container = containerRef.current;
-		if (!container) {
-			return undefined;
-		}
-
-		const updateWidth = (width: number) => {
-			if (width > token.margin + token.lineWidth) {
-				setContainerWidth(width);
-			}
-		};
-		const observer = new ResizeObserver(([entry]) => {
-			updateWidth(entry?.contentRect.width ?? 0);
-		});
-
-		updateWidth(container.getBoundingClientRect().width);
-		observer.observe(container);
-
-		return () => observer.disconnect();
-	}, [containerRef, token.lineWidth, token.margin]);
-
-	const responsiveVisibleColumnKeys = useMemo(() => {
-		const maximumPriority =
-			containerWidth < token.screenLGMin ? "compact" : "regular";
-		const maximumRank = priorityRank[maximumPriority];
-
-		return availableKeys.filter((columnKey) => {
-			const config = configByKey.get(columnKey);
-			if (config?.required) {
-				return true;
-			}
-			if (!config || config.priority === "optional") {
-				return false;
-			}
-			return priorityRank[config.priority] <= maximumRank;
-		});
-	}, [availableKeys, configByKey, containerWidth, token.screenLGMin]);
-
 	const visibleColumnKeys = withRequiredKeys(
-		manualVisibleColumnKeys ?? responsiveVisibleColumnKeys,
+		manualVisibleColumnKeys ?? availableKeys,
 		requiredColumnKeys,
 		availableKeys,
 	);

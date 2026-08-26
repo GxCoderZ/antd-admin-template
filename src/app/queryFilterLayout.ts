@@ -3,6 +3,7 @@ import type { FormProps } from "antd";
 import { useLayoutEffect, useReducer, useRef, useState } from "react";
 
 const antGridColumnCount = 24;
+type QueryFilterLayoutMode = "compact" | "narrow" | "regular" | "wide";
 
 interface QueryFilterLayoutOptions {
 	expanded: boolean;
@@ -15,28 +16,59 @@ export function useQuerySubmission() {
 	return { revision, submit };
 }
 
+export function resolveQueryFilterLayoutMode(
+	width: number,
+	screenSMMin: number,
+	screenMDMin: number,
+	screenXXLMin: number,
+): QueryFilterLayoutMode {
+	if (width < screenSMMin) {
+		return "compact";
+	}
+	if (width < screenMDMin) {
+		return "narrow";
+	}
+	if (width < screenXXLMin) {
+		return "regular";
+	}
+	return "wide";
+}
+
+function getColumnCount(mode: QueryFilterLayoutMode) {
+	if (mode === "compact") {
+		return 1;
+	}
+	if (mode === "narrow") {
+		return 2;
+	}
+	if (mode === "regular") {
+		return 3;
+	}
+	return 4;
+}
+
 export function useQueryFilterLayout({
 	expanded,
 	fieldCount,
 }: QueryFilterLayoutOptions) {
 	const { token } = theme.useToken();
 	const containerRef = useRef<HTMLDivElement>(null);
-	const [containerWidth, setContainerWidth] = useState(() =>
-		typeof document === "undefined"
-			? token.screenLG
-			: document.body.clientWidth || token.screenLG,
+	const [layoutMode, setLayoutMode] = useState(() =>
+		resolveQueryFilterLayoutMode(
+			typeof document === "undefined"
+				? token.screenLG
+				: document.body.clientWidth || token.screenLG,
+			token.screenSMMin,
+			token.screenMDMin,
+			token.screenXXLMin,
+		),
 	);
-	const columnCount =
-		containerWidth < token.screenSMMin
-			? 1
-			: containerWidth < token.screenMDMin
-				? 2
-				: containerWidth < token.screenXXLMin
-					? 3
-					: 4;
+	const columnCount = getColumnCount(layoutMode);
 	const columnSpan = antGridColumnCount / columnCount;
 	const formLayout: FormProps["layout"] =
-		containerWidth < token.screenMDMin ? "vertical" : "horizontal";
+		layoutMode === "compact" || layoutMode === "narrow"
+			? "vertical"
+			: "horizontal";
 	const collapsedFieldCount = Math.min(
 		fieldCount,
 		Math.max(1, columnCount - 1),
@@ -55,20 +87,33 @@ export function useQueryFilterLayout({
 			return undefined;
 		}
 
-		const updateWidth = (width: number) => {
+		const updateLayoutMode = (width: number) => {
 			if (width > token.margin + token.lineWidth) {
-				setContainerWidth(width);
+				setLayoutMode(
+					resolveQueryFilterLayoutMode(
+						width,
+						token.screenSMMin,
+						token.screenMDMin,
+						token.screenXXLMin,
+					),
+				);
 			}
 		};
 		const observer = new ResizeObserver(([entry]) => {
-			updateWidth(entry?.contentRect.width ?? 0);
+			updateLayoutMode(entry?.contentRect.width ?? 0);
 		});
 
-		updateWidth(container.getBoundingClientRect().width);
+		updateLayoutMode(container.getBoundingClientRect().width);
 		observer.observe(container);
 
 		return () => observer.disconnect();
-	}, [token.lineWidth, token.margin]);
+	}, [
+		token.lineWidth,
+		token.margin,
+		token.screenMDMin,
+		token.screenSMMin,
+		token.screenXXLMin,
+	]);
 
 	return {
 		canExpand: collapsedFieldCount < fieldCount,

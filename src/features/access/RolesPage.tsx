@@ -63,7 +63,6 @@ const roleTableSortToContractSort: Record<
 export function RolesPage() {
 	const queryClient = useQueryClient();
 	const [createForm] = Form.useForm<CreatePlatformRoleInput>();
-	const [filterForm] = Form.useForm<RoleFilterValues>();
 	const [renameForm] = Form.useForm<RenameRoleFormValues>();
 	const [createOpen, setCreateOpen] = useState(false);
 	const [renamingRole, setRenamingRole] = useState<PlatformRole | null>(null);
@@ -150,8 +149,9 @@ export function RolesPage() {
 		403,
 	);
 
-	const queryRoles = () => {
-		setFilters(draftFilters);
+	const queryRoles = (nextFilters: RoleFilterValues) => {
+		setDraftFilters(nextFilters);
+		setFilters(nextFilters);
 		setTableState((current) => ({ ...current, page: 1 }));
 		querySubmission.submit();
 	};
@@ -269,7 +269,6 @@ export function RolesPage() {
 				deletePending={deleteMutation.isPending}
 				draftFilters={draftFilters}
 				error={rolesQuery.error}
-				filterForm={filterForm}
 				initialLoading={rolesQuery.isPending}
 				onConfigurePermissions={(role) => {
 					permissionMutation.reset();

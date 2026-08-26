@@ -297,7 +297,7 @@ describe("UsersPage", () => {
 		});
 	});
 
-	it("provides required, recommended, and optional user columns", async () => {
+	it("provides protected and configurable user columns", async () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
@@ -326,50 +326,61 @@ describe("UsersPage", () => {
 		const userIdCheckbox = screen.getByRole("checkbox", {
 			name: /用户 ID$/,
 		});
-		expect(userIdCheckbox).not.toBeChecked();
+		expect(userIdCheckbox).toBeChecked();
 		await user.click(userIdCheckbox);
-		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+		expect(
+			screen.queryByRole("columnheader", { name: "用户 ID" }),
+		).not.toBeInTheDocument();
 	});
 
-	it("keeps the desktop default readable without secondary contact columns", async () => {
+	it("keeps all user columns visible by default", async () => {
 		renderUsersPage();
 
 		await screen.findByText("admin");
 
 		for (const column of [
+			"用户 ID",
 			"用户名",
 			"显示名称",
 			"部门",
+			"岗位",
 			"角色",
+			"手机号",
+			"邮箱",
 			"状态",
+			"账号来源",
+			"MFA 状态",
+			"密码状态",
 			"最近登录",
+			"最近登录 IP",
+			"创建时间",
+			"更新时间",
 			"操作",
 		]) {
 			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
 		}
-		for (const column of ["手机号", "邮箱", "创建时间"]) {
-			expect(
-				screen.queryByRole("columnheader", { name: column }),
-			).not.toBeInTheDocument();
-		}
 	});
 
-	it("persists manually enabled optional user columns", async () => {
+	it("persists manually hidden user columns", async () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
 		await user.click(screen.getByRole("button", { name: "列设置" }));
 		await user.click(screen.getByRole("checkbox", { name: /用户 ID$/ }));
-		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+		expect(
+			screen.queryByRole("columnheader", { name: "用户 ID" }),
+		).not.toBeInTheDocument();
 
 		cleanup();
 		renderUsersPage();
 
 		await screen.findByText("admin");
-		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+		expect(
+			screen.queryByRole("columnheader", { name: "用户 ID" }),
+		).not.toBeInTheDocument();
 	});
 
-	it("keeps the same default columns on spacious screens", async () => {
+	it("keeps all default columns on spacious screens", async () => {
 		Object.defineProperty(document.body, "clientWidth", {
 			configurable: true,
 			value: 1_520,
@@ -378,10 +389,8 @@ describe("UsersPage", () => {
 		renderUsersPage();
 
 		await screen.findByText("admin");
-		for (const column of ["手机号", "邮箱", "创建时间"]) {
-			expect(
-				screen.queryByRole("columnheader", { name: column }),
-			).not.toBeInTheDocument();
+		for (const column of ["用户 ID", "手机号", "邮箱", "创建时间"]) {
+			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
 		}
 	});
 });

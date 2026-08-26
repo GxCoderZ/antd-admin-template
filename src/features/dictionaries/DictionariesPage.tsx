@@ -97,13 +97,15 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const workspaceRef = useRef<HTMLDivElement>(null);
 	const completeQueryPanelWidth =
 		token.screenMDMin + token.paddingLG * 2 + token.marginXXS;
-	const [workspaceWidth, setWorkspaceWidth] = useState(() =>
-		typeof document === "undefined"
-			? completeQueryPanelWidth * 2 + token.marginLG
-			: document.body.clientWidth ||
-				completeQueryPanelWidth * 2 + token.marginLG,
-	);
-	const splitLayout = workspaceWidth >= completeQueryPanelWidth * 2 + token.marginLG;
+	const splitLayoutThreshold = completeQueryPanelWidth * 2 + token.marginLG;
+	const [splitLayout, setSplitLayout] = useState(() => {
+		const initialWidth =
+			typeof document === "undefined"
+				? splitLayoutThreshold
+				: document.body.clientWidth || splitLayoutThreshold;
+
+		return initialWidth >= splitLayoutThreshold;
+	});
 	const queryClient = useQueryClient();
 	const [messageApi, messageContext] = message.useMessage();
 	const formatPreferences = useLocalePreferences();
@@ -170,20 +172,20 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			return undefined;
 		}
 
-		const updateWorkspaceWidth = (width: number) => {
+		const updateSplitLayout = (width: number) => {
 			if (width > token.margin + token.lineWidth) {
-				setWorkspaceWidth(width);
+				setSplitLayout(width >= splitLayoutThreshold);
 			}
 		};
 		const observer = new ResizeObserver(([entry]) => {
-			updateWorkspaceWidth(entry?.contentRect.width ?? 0);
+			updateSplitLayout(entry?.contentRect.width ?? 0);
 		});
 
-		updateWorkspaceWidth(workspace.getBoundingClientRect().width);
+		updateSplitLayout(workspace.getBoundingClientRect().width);
 		observer.observe(workspace);
 
 		return () => observer.disconnect();
-	}, [token.lineWidth, token.margin]);
+	}, [splitLayoutThreshold, token.lineWidth, token.margin]);
 	const typeQueryParams = useMemo<ListPlatformDictionaryTypesInput>(() => {
 		const q = typeFilters.q?.trim();
 		const params: ListPlatformDictionaryTypesInput = {

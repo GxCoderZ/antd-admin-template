@@ -94,30 +94,32 @@ function renderLogTablePanel() {
 }
 
 describe("LogTablePanel", () => {
-	it("keeps compact defaults readable and persists manual column choices", async () => {
+	it("keeps all columns visible and persists manual column choices", async () => {
 		const user = renderLogTablePanel();
 
 		expect(screen.getByRole("columnheader", { name: "账号" })).toBeVisible();
 		expect(screen.getByRole("columnheader", { name: "结果" })).toBeVisible();
 		expect(screen.getByRole("columnheader", { name: "操作" })).toBeVisible();
-		expect(
-			screen.queryByRole("columnheader", { name: "IP 地址" }),
-		).not.toBeInTheDocument();
+		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
 
 		await user.click(screen.getByRole("button", { name: "列设置" }));
 		expect(screen.getByRole("checkbox", { name: "账号" })).toBeDisabled();
 		expect(screen.getByRole("checkbox", { name: "操作" })).toBeDisabled();
 		await user.click(screen.getByRole("checkbox", { name: "IP 地址" }));
-		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
+		expect(
+			screen.queryByRole("columnheader", { name: "IP 地址" }),
+		).not.toBeInTheDocument();
 		expect(
 			screen
 				.getAllByRole("columnheader")
 				.map((columnHeader) => columnHeader.textContent),
-		).toEqual(["账号", "结果", "IP 地址", "操作"]);
+		).toEqual(["账号", "结果", "操作"]);
 
 		cleanup();
 		renderLogTablePanel();
 
-		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
+		expect(
+			screen.queryByRole("columnheader", { name: "IP 地址" }),
+		).not.toBeInTheDocument();
 	});
 });

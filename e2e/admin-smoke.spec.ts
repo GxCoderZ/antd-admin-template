@@ -387,10 +387,15 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	await expect(page).toHaveURL(/\/access\/roles$/);
 
 	await expect(page.getByPlaceholder("搜索角色名称或标识")).toBeVisible();
-	for (const actionName of ["刷新", "表格密度", "列设置"]) {
-		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
+	const roleTableCard = page.getByTestId("admin-roles-table-card");
+	const toolbarSettings = roleTableCard.locator(
+		".ant-pro-table-list-toolbar-setting-item",
+	);
+	await expect(toolbarSettings).toHaveCount(4);
+	for (const [index, tooltip] of ["刷新", "密度", "列设置"].entries()) {
+		await toolbarSettings.nth(index).hover();
+		await expect(page.getByRole("tooltip", { name: tooltip })).toBeVisible();
 	}
-	await expect(page.getByRole("button", { name: "right" })).toBeEnabled();
 
 	await page.getByPlaceholder("搜索角色名称或标识").fill("只读审计员");
 	await page.getByRole("button", { name: /查\s*询/ }).click();

@@ -2,48 +2,35 @@ import { DownOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import {
 	Alert,
 	Button,
-	Col,
 	Dropdown,
 	Flex,
-	Form,
-	Input,
 	Space,
 	Tag,
-	type FormInstance,
 	type MenuProps,
 	type TableProps,
 	theme,
 	Tooltip,
 	Typography,
 } from "antd";
+import type { ChangeEvent } from "react";
 import { useMemo } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
+import {
+	ManagementProTable,
+	type ManagementProTableColumn,
+} from "../../../app/ManagementProTable";
 import { TableActionButton } from "../../../app/TableActionButton";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
-import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
-import type { ResponsiveTableColumnConfig } from "../../../app/tableColumnVisibility";
-import { LogQueryPanel, LogTablePanel } from "../../operations/LogTablePanel";
 import type { ListPlatformRolesInput, PlatformRole } from "#src/api/roles";
 import { permissionGroups } from "../rolePermissions";
 import { getRoleErrorTitleKey, getRoleProblemDetail } from "../roleProblems";
 
 const { Text } = Typography;
 type RoleSort = NonNullable<ListPlatformRolesInput["sort"]>;
-const roleColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
-	{ key: "displayName", priority: "compact", required: true },
-	{ key: "roleKey", priority: "compact" },
-	{ key: "memberCount", priority: "compact" },
-	{ key: "permissions", priority: "regular" },
-	{ key: "id", priority: "optional" },
-	{ key: "builtIn", priority: "optional" },
-	{ key: "createdAt", priority: "optional" },
-	{ key: "updatedAt", priority: "optional" },
-	{ key: "actions", priority: "compact", required: true },
-];
 
 export interface RoleFilterValues {
 	q?: string;
@@ -54,14 +41,13 @@ interface RoleTablePanelProps {
 	deletePending: boolean;
 	draftFilters: RoleFilterValues;
 	error: unknown;
-	filterForm: FormInstance<RoleFilterValues>;
 	initialLoading: boolean;
 	onConfigurePermissions: (role: PlatformRole) => void;
 	onCreate: () => void;
 	onDelete: (role: PlatformRole) => void;
 	onDraftFiltersChange: (filters: RoleFilterValues) => void;
 	onPageChange: (page: number, pageSize: number) => void;
-	onQuery: () => void;
+	onQuery: (filters: RoleFilterValues) => void;
 	onReload: () => void;
 	onRename: (role: PlatformRole) => void;
 	onResetFilters: () => void;
@@ -76,14 +62,11 @@ interface RoleTablePanelProps {
 	total: number;
 }
 
-const defaultRoleFilterValues: RoleFilterValues = {};
-
 export function RoleTablePanel({
 	data,
 	deletePending,
 	draftFilters,
 	error,
-	filterForm,
 	initialLoading,
 	onConfigurePermissions,
 	onCreate,
@@ -108,11 +91,7 @@ export function RoleTablePanel({
 	const { token } = theme.useToken();
 	const formatPreferences = useLocalePreferences();
 	const [openActionRoleId, setOpenActionRoleId] = useState<string | null>(null);
-	const { canExpand, columnSpan, containerRef, formLayout, submitterOffset } =
-		useQueryFilterLayout({ expanded: false, fieldCount: 1 });
-	const columns = useMemo<
-		NonNullable<TableProps<PlatformRole>["columns"]>
-	>(() => {
+	const columns = useMemo<ManagementProTableColumn<PlatformRole>[]>(() => {
 		const sortOrder = (column: RoleSort) =>
 			roleSort === column && roleOrder
 				? roleOrder === "asc"
@@ -122,8 +101,22 @@ export function RoleTablePanel({
 
 		return [
 			{
+				dataIndex: "q",
+				fieldProps: {
+					allowClear: true,
+					onChange: (event: ChangeEvent<HTMLInputElement>) =>
+						onDraftFiltersChange({ q: event.target.value }),
+					placeholder: t("adminShell.roles.placeholders.q"),
+				},
+				hideInTable: true,
+				initialValue: draftFilters.q,
+				title: t("adminShell.roles.filters.q"),
+			},
+			{
 				dataIndex: "displayName",
+				disable: true,
 				key: "displayName",
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("display_name"),
@@ -133,7 +126,8 @@ export function RoleTablePanel({
 			{
 				dataIndex: "roleKey",
 				key: "roleKey",
-				render: (roleKey: string) => <Text code>{roleKey}</Text>,
+				render: (_, role) => <Text code>{role.roleKey}</Text>,
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("role_key"),
@@ -144,7 +138,8 @@ export function RoleTablePanel({
 				align: "right",
 				dataIndex: "memberCount",
 				key: "memberCount",
-				render: (memberCount?: number) => memberCount ?? 0,
+				render: (_, role) => role.memberCount ?? 0,
+				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("member_count"),
@@ -178,44 +173,48 @@ export function RoleTablePanel({
 						</Text>
 					);
 				},
+				search: false,
 				title: t("adminShell.roles.columns.permissions"),
 				width: token.controlHeight * 14,
 			},
 			{
 				dataIndex: "id",
 				key: "id",
-				render: (id: string) => <Text code>{id}</Text>,
+				render: (_, role) => <Text code>{role.id}</Text>,
+				search: false,
 				title: t("adminShell.roles.columns.id"),
 				width: token.controlHeight * 5,
 			},
 			{
 				dataIndex: "builtIn",
 				key: "builtIn",
-				render: (builtIn: boolean) => (
-					<Tag {...(builtIn ? { color: "processing" } : {})}>
-						{t(`adminShell.roles.types.${builtIn ? "builtIn" : "custom"}`)}
+				render: (_, role) => (
+					<Tag {...(role.builtIn ? { color: "processing" } : {})}>
+						{t(`adminShell.roles.types.${role.builtIn ? "builtIn" : "custom"}`)}
 					</Tag>
 				),
+				search: false,
 				title: t("adminShell.roles.columns.builtIn"),
 				width: token.controlHeight * 3,
 			},
 			{
 				dataIndex: "createdAt",
 				key: "createdAt",
-				render: (createdAt: string) =>
-					formatDateTime(createdAt, formatPreferences),
+				render: (_, role) => formatDateTime(role.createdAt, formatPreferences),
+				search: false,
 				title: t("adminShell.roles.columns.createdAt"),
 				width: token.controlHeight * 5,
 			},
 			{
 				dataIndex: "updatedAt",
 				key: "updatedAt",
-				render: (updatedAt: string) =>
-					formatDateTime(updatedAt, formatPreferences),
+				render: (_, role) => formatDateTime(role.updatedAt, formatPreferences),
+				search: false,
 				title: t("adminShell.roles.columns.updatedAt"),
 				width: token.controlHeight * 5,
 			},
 			{
+				disable: true,
 				key: "actions",
 				render: (_: unknown, role: PlatformRole) => {
 					const isBuiltIn = role.builtIn;
@@ -282,7 +281,9 @@ export function RoleTablePanel({
 						</Space>
 					);
 				},
+				search: false,
 				title: t("adminShell.roles.columns.actions"),
+				valueType: "option",
 				width: token.controlHeight * 4,
 			},
 		];
@@ -291,7 +292,9 @@ export function RoleTablePanel({
 		onDelete,
 		onRename,
 		onView,
+		onDraftFiltersChange,
 		deletePending,
+		draftFilters.q,
 		openActionRoleId,
 		renamePending,
 		roleOrder,
@@ -319,17 +322,20 @@ export function RoleTablePanel({
 					type="error"
 				/>
 			) : null}
-			<LogTablePanel<PlatformRole>
+			<ManagementProTable<PlatformRole, RoleFilterValues>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey("roles")}
-				columnVisibility={roleColumnVisibility}
 				columns={columns}
 				dataSource={data}
 				emptyText={t("adminShell.roles.empty")}
-				error={undefined}
 				initialLoading={initialLoading}
 				minimumWidth={token.controlHeight * 39}
 				onPageChange={onPageChange}
 				onReload={onReload}
+				onReset={onResetFilters}
+				onSubmit={(values) => {
+					const q = values.q?.trim();
+					onQuery(q ? { q } : {});
+				}}
 				onTableChange={onTableChange}
 				page={page}
 				pageSize={pageSize}
@@ -342,46 +348,10 @@ export function RoleTablePanel({
 						{t("adminShell.roles.create")}
 					</Button>
 				}
-				queryPanel={
-					<LogQueryPanel<RoleFilterValues>
-						actionsTestId="admin-roles-query-actions"
-						canExpand={canExpand}
-						columnSpan={columnSpan}
-						containerRef={containerRef}
-						expanded={false}
-						form={filterForm}
-						formLayout={formLayout}
-						initialValues={defaultRoleFilterValues}
-						loading={refreshing}
-						onFinish={onQuery}
-						onReset={onResetFilters}
-						onToggle={() => undefined}
-						submitterOffset={submitterOffset}
-						testId="admin-roles-query-form"
-					>
-						<Col span={columnSpan}>
-							<Form.Item
-								label={t("adminShell.roles.filters.q")}
-								style={{ marginBottom: 0 }}
-							>
-								<Input
-									allowClear
-									onChange={(event) =>
-										onDraftFiltersChange({ q: event.target.value })
-									}
-									placeholder={t("adminShell.roles.placeholders.q")}
-									style={{ width: "100%" }}
-									value={draftFilters.q}
-								/>
-							</Form.Item>
-						</Col>
-					</LogQueryPanel>
-				}
 				refreshing={refreshing}
 				testId="admin-roles-table-card"
 				title={t("adminShell.roles.tableTitle")}
 				total={total}
-				workspaceTestId="admin-roles-table-workspace"
 			/>
 		</Flex>
 	);

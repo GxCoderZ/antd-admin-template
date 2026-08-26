@@ -1,6 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -365,20 +371,34 @@ describe("DictionariesPage", () => {
 	});
 
 	it("deletes dictionary items only after explicit confirmation", async () => {
-		const user = renderDictionariesPage();
+		renderDictionariesPage();
 
 		await waitFor(() => {
 			expect(mocks.listPlatformDictionaryItems).toHaveBeenCalled();
 		});
 		const itemTable = screen.getByTestId("admin-dictionaries-item-table");
 		await waitFor(() => {
-			expect(
-				within(itemTable).getByRole("button", { name: "更多" }),
-			).toBeVisible();
+			expect(itemTable.textContent).toContain("更多");
 		});
-		await user.click(within(itemTable).getByRole("button", { name: "更多" }));
-		await user.click(screen.getByRole("menuitem", { name: /删除/ }));
-		await user.click(screen.getByRole("button", { name: "确认删除" }));
+		const moreButton = Array.from(itemTable.querySelectorAll("button")).find(
+			(button) => button.textContent?.includes("更多"),
+		);
+		if (!moreButton) {
+			throw new Error("Dictionary item action menu was not rendered.");
+		}
+		fireEvent.click(moreButton);
+		const deleteMenuItem = (await screen.findByText("删除")).closest(
+			'[role="menuitem"]',
+		);
+		if (!deleteMenuItem) {
+			throw new Error("Dictionary item delete menu item was not rendered.");
+		}
+		fireEvent.click(deleteMenuItem);
+		const confirmButton = screen.getByText("确认删除").closest("button");
+		if (!confirmButton) {
+			throw new Error("Delete confirmation button was not rendered.");
+		}
+		fireEvent.click(confirmButton);
 
 		await waitFor(() => {
 			expect(mocks.deletePlatformDictionaryItem.mock.calls[0]?.[0]).toBe(
