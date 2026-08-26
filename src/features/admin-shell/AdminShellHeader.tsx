@@ -43,6 +43,7 @@ import {
 } from "../../i18n";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { CommandPalette } from "./CommandPalette";
+import { NotificationPopover } from "./NotificationPopover";
 import { SettingsDrawer } from "./SettingsDrawer";
 
 const { Text } = Typography;
@@ -311,6 +312,7 @@ export function AdminShellHeader({
 						/>
 					</Dropdown>
 				)}
+				<NotificationPopover onNavigate={onNavigate} />
 				<Dropdown
 					menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
 					trigger={["click"]}

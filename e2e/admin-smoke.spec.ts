@@ -569,15 +569,25 @@ test("可编辑表格在 390px 窄屏下保留横向滚动且页面不溢出", a
 test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) => {
 	await signIn(page);
 
-	await page.getByRole("button", { name: "Platform Admin" }).click();
-	await page.getByRole("menuitem", { name: "通知中心" }).click();
+	await page.getByRole("button", { name: "通知" }).click();
+	const notificationPopover = page.getByTestId("notification-popover");
+	await expect(notificationPopover).toBeVisible();
+	await expect(
+		notificationPopover.getByRole("button", { name: "查看全部消息" }),
+	).toBeVisible();
+	await notificationPopover
+		.getByRole("button", { name: "查看全部消息" })
+		.click();
 	await expect(page).toHaveURL(/\/account\/notifications$/);
 	await expect(page.getByRole("heading", { name: "通知中心" })).toBeVisible();
-	const markReadButtons = page.getByRole("button", { name: "标记已读" });
-	await expect(markReadButtons.first()).toBeVisible();
-	const unreadCount = await markReadButtons.count();
-	await markReadButtons.first().click();
-	await expect(markReadButtons).toHaveCount(unreadCount - 1);
+	const notificationCenter = page.locator("main");
+	const firstUnreadItem = notificationCenter
+		.locator(".ant-list-item")
+		.filter({ hasText: "待办事项即将到期 2" });
+	await firstUnreadItem.getByRole("button", { name: "标记已读" }).click();
+	await expect(
+		firstUnreadItem.getByRole("button", { name: "标记已读" }),
+	).toHaveCount(0);
 	await page.getByText("未读", { exact: true }).click();
 	await expect(page.getByText("暂无站内通知")).toHaveCount(0);
 	await page.getByRole("button", { name: /全部已读/ }).click();
