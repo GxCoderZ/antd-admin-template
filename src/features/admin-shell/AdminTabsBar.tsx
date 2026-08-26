@@ -57,8 +57,11 @@ interface OpenTabsState {
 	tabKeys: string[];
 }
 
-interface DraggableTabNodeProps extends HTMLAttributes<HTMLDivElement> {
+interface TabNodeProps extends HTMLAttributes<HTMLDivElement> {
 	"data-node-key": string;
+}
+
+interface DraggableTabNodeProps extends TabNodeProps {
 	draggableDescription: string;
 }
 
@@ -81,7 +84,6 @@ function DraggableTabNode({
 	...tabProps
 }: Readonly<DraggableTabNodeProps>) {
 	const tabKey = tabProps["data-node-key"];
-	const isFixed = tabKey === dashboardPath;
 	const {
 		attributes,
 		isDragging,
@@ -89,37 +91,43 @@ function DraggableTabNode({
 		setNodeRef,
 		transform,
 		transition,
-	} = useSortable({ disabled: isFixed, id: tabKey });
+	} = useSortable({ id: tabKey });
 	const child = children as ReactElement<Record<string, unknown>>;
 	const style: CSSProperties = {
 		...tabProps.style,
-		cursor: isFixed ? "default" : isDragging ? "grabbing" : "grab",
+		cursor: isDragging ? "grabbing" : "grab",
 		transform: CSS.Translate.toString(transform),
 		transition: isDragging ? "none" : transition,
 		zIndex: isDragging ? 1 : undefined,
 	};
-	const sortableListeners = isFixed
-		? {}
-		: {
-				onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
-					if (!isInteractiveEventTarget(event)) {
-						listeners?.onKeyDown?.(event);
-					}
-				},
-				onPointerDown: (event: PointerEvent<HTMLElement>) => {
-					if (event.button === 0 && !isInteractiveEventTarget(event)) {
-						listeners?.onPointerDown?.(event);
-					}
-				},
-			};
+	const sortableListeners = {
+		onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+			if (!isInteractiveEventTarget(event)) {
+				listeners?.onKeyDown?.(event);
+			}
+		},
+		onPointerDown: (event: PointerEvent<HTMLElement>) => {
+			if (event.button === 0 && !isInteractiveEventTarget(event)) {
+				listeners?.onPointerDown?.(event);
+			}
+		},
+	};
 
 	return cloneElement(child, {
-		"aria-describedby": isFixed ? undefined : attributes["aria-describedby"],
-		"aria-disabled": isFixed ? undefined : attributes["aria-disabled"],
-		"aria-roledescription": isFixed ? undefined : draggableDescription,
+		"aria-describedby": attributes["aria-describedby"],
+		"aria-disabled": attributes["aria-disabled"],
+		"aria-roledescription": draggableDescription,
 		ref: setNodeRef,
 		style,
 		...sortableListeners,
+	});
+}
+
+function FixedTabNode({ children, ...tabProps }: Readonly<TabNodeProps>) {
+	const child = children as ReactElement<Record<string, unknown>>;
+
+	return cloneElement(child, {
+		style: { ...tabProps.style, cursor: "default" },
 	});
 }
 
@@ -430,17 +438,24 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 						strategy={horizontalListSortingStrategy}
 					>
 						<DefaultTabBar {...tabBarProps}>
-							{(node) => (
-								<DraggableTabNode
-									{...(node as ReactElement<DraggableTabNodeProps>).props}
-									draggableDescription={t(
-										"adminShell.tabs.draggableDescription",
-									)}
-									key={node.key}
-								>
-									{node}
-								</DraggableTabNode>
-							)}
+							{(node) => {
+								const tabNodeProps = (node as ReactElement<TabNodeProps>).props;
+								return node.key === dashboardPath ? (
+									<FixedTabNode {...tabNodeProps} key={node.key}>
+										{node}
+									</FixedTabNode>
+								) : (
+									<DraggableTabNode
+										{...tabNodeProps}
+										draggableDescription={t(
+											"adminShell.tabs.draggableDescription",
+										)}
+										key={node.key}
+									>
+										{node}
+									</DraggableTabNode>
+								);
+							}}
 						</DefaultTabBar>
 					</SortableContext>
 				</DndContext>

@@ -145,11 +145,14 @@ test("仪表盘标签固定首位且不参与拖拽让位", async ({ page }) => 
 		.toEqual(["仪表盘", "角色管理"]);
 
 	const dashboardTabNode = dashboardTab.locator("xpath=..");
+	const rolesTabNode = rolesTab.locator("xpath=..");
 	const dashboardBox = await dashboardTabNode.boundingBox();
 	const rolesBox = await rolesTab.boundingBox();
+	const rolesTabNodeBox = await rolesTabNode.boundingBox();
 	expect(dashboardBox).not.toBeNull();
 	expect(rolesBox).not.toBeNull();
-	if (!dashboardBox || !rolesBox) {
+	expect(rolesTabNodeBox).not.toBeNull();
+	if (!dashboardBox || !rolesBox || !rolesTabNodeBox) {
 		return;
 	}
 
@@ -169,8 +172,13 @@ test("仪表盘标签固定首位且不参与拖拽让位", async ({ page }) => 
 	);
 	await page.waitForTimeout(100);
 	const fixedDashboardBox = await dashboardTabNode.boundingBox();
+	const draggedRolesBox = await rolesTabNode.boundingBox();
 	expect(fixedDashboardBox?.x).toBeCloseTo(dashboardBox.x, 0);
 	expect(fixedDashboardBox?.y).toBeCloseTo(dashboardBox.y, 0);
+	expect(draggedRolesBox?.x).toBeLessThan(rolesTabNodeBox.x - 40);
+	expect(
+		await rolesTabNode.evaluate((element) => getComputedStyle(element).opacity),
+	).toBe("1");
 	await page.mouse.up();
 
 	await expect
