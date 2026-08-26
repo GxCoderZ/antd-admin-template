@@ -138,11 +138,7 @@ export function useResponsiveTableColumns<Row, Key extends string>({
 
 	const responsiveVisibleColumnKeys = useMemo(() => {
 		const maximumPriority =
-			containerWidth < token.screenLGMin
-				? "compact"
-				: containerWidth < token.screenXLMin
-					? "regular"
-					: "spacious";
+			containerWidth < token.screenLGMin ? "compact" : "regular";
 		const maximumRank = priorityRank[maximumPriority];
 
 		return availableKeys.filter((columnKey) => {
@@ -155,13 +151,7 @@ export function useResponsiveTableColumns<Row, Key extends string>({
 			}
 			return priorityRank[config.priority] <= maximumRank;
 		});
-	}, [
-		availableKeys,
-		configByKey,
-		containerWidth,
-		token.screenLGMin,
-		token.screenXLMin,
-	]);
+	}, [availableKeys, configByKey, containerWidth, token.screenLGMin]);
 
 	const visibleColumnKeys = withRequiredKeys(
 		manualVisibleColumnKeys ?? responsiveVisibleColumnKeys,

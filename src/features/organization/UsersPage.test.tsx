@@ -350,7 +350,7 @@ describe("UsersPage", () => {
 		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
 	});
 
-	it("adds secondary contact columns on spacious screens", async () => {
+	it("keeps the same default columns on spacious screens", async () => {
 		Object.defineProperty(document.body, "clientWidth", {
 			configurable: true,
 			value: 1_520,
@@ -360,7 +360,9 @@ describe("UsersPage", () => {
 
 		await screen.findByText("admin");
 		for (const column of ["手机号", "邮箱", "创建时间"]) {
-			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
+			expect(
+				screen.queryByRole("columnheader", { name: column }),
+			).not.toBeInTheDocument();
 		}
 	});
 });
