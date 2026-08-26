@@ -75,6 +75,7 @@ export interface AdminNavigationGroup {
 	iconKey: AdminGroupIconKey;
 	key: Exclude<AdminRouteGroupKey, "dashboard" | "account">;
 	nodes: readonly AdminNavigationNode[];
+	sidebarMode?: "group" | "submenu";
 	titleKey: string;
 }
 
@@ -593,6 +594,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 				],
 			},
 		],
+		sidebarMode: "group",
 		titleKey: "adminShell.navigation.examples",
 	},
 	{
@@ -652,9 +654,9 @@ export const adminNavigationGroupByKey = new Map<
 	AdminNavigationGroup
 >(adminNavigationGroups.map((group) => [group.key, group]));
 
-export const adminSidebarGroupKeys = adminNavigationGroups.map(
-	(group) => group.key,
-);
+export const adminCollapsibleSidebarGroupKeys = adminNavigationGroups
+	.filter((group) => group.sidebarMode !== "group")
+	.map((group) => group.key);
 
 export function getAdminRouteMetadata(pathname: string) {
 	return (
@@ -667,5 +669,7 @@ export function getAdminRouteOpenKeys(route: AdminRouteMetadata) {
 		return [];
 	}
 
-	return [route.groupKey, ...(route.navigationParentKeys ?? [])];
+	return adminCollapsibleSidebarGroupKeys.includes(route.groupKey)
+		? [route.groupKey, ...(route.navigationParentKeys ?? [])]
+		: [...(route.navigationParentKeys ?? [])];
 }

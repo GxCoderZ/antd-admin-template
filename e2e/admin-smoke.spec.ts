@@ -245,7 +245,10 @@ test("用户管理角色抽屉在 390px 窄屏下不溢出", async ({ page }) =>
 test("表单示例通过 Fake API 完成基础与分步提交", async ({ page }) => {
 	await signIn(page);
 
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "页面示例", exact: true }),
+	).toHaveCount(0);
+	await expect(page.getByText("页面示例", { exact: true })).toBeVisible();
 	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "基础表单", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/forms\/basic$/);
@@ -273,7 +276,9 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 	await signIn(page);
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "页面示例", exact: true }),
+	).toHaveCount(0);
 	await expect(
 		page.getByRole("menuitem", { name: "表单示例", exact: true }),
 	).toBeVisible();
@@ -290,11 +295,6 @@ test("表单示例在窄屏下保持完整可用", async ({ page }) => {
 	).toBeLessThanOrEqual(390);
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
-	await expect(
-		page.getByRole("menuitem", { name: "表单示例", exact: true }),
-	).toBeVisible();
-	await page.getByRole("menuitem", { name: "表单示例", exact: true }).click();
 	await expect(
 		page.getByRole("menuitem", { name: "分步表单", exact: true }),
 	).toBeVisible();
@@ -381,7 +381,10 @@ test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) 
 test("页面示例按官方 Ant Design Pro 页面结构提供搜索列表", async ({ page }) => {
 	await signIn(page);
 
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "页面示例", exact: true }),
+	).toHaveCount(0);
+	await expect(page.getByText("页面示例", { exact: true })).toBeVisible();
 	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "标准列表", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/lists\/basic$/);
@@ -428,7 +431,9 @@ test("搜索列表在窄屏下保持完整且无页面级横向溢出", async ({
 	await page.setViewportSize({ height: 844, width: 390 });
 	await signIn(page);
 	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
+	await expect(
+		page.getByRole("menuitem", { name: "页面示例", exact: true }),
+	).toHaveCount(0);
 	await page.getByRole("menuitem", { name: "列表示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "搜索列表", exact: true }).click();
 	await page.getByRole("menuitem", { name: "文章", exact: true }).click();
@@ -449,7 +454,6 @@ test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async 
 	await signIn(page);
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "文件管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/files$/);
 	await expect(page.getByText("Fake 文件列表", { exact: true })).toBeVisible();
@@ -480,7 +484,6 @@ test("Fake 文件管理支持搜索、上传和删除且窄屏不溢出", async 
 test("导入导出页面演示 Fake 校验、确认导入和异步导出", async ({ page }) => {
 	await signIn(page);
 
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "导入导出", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/import-export$/);
 	await expect(
@@ -520,7 +523,6 @@ test("导入导出页面在 390px 深色模式下不溢出", async ({ page }) =>
 	await signIn(page);
 
 	await page.getByRole("button", { name: "打开菜单" }).click();
-	await page.getByRole("menuitem", { name: "页面示例", exact: true }).click();
 	await page.getByRole("menuitem", { name: "导入导出", exact: true }).click();
 	await expect(page).toHaveURL(/\/examples\/import-export$/);
 	await expect(page.getByTestId("import-export-workspace")).toBeVisible();

@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	adminCollapsibleSidebarGroupKeys,
 	adminNavigationGroups,
 	adminRouteDefinitions,
 	getAdminRouteMetadata,
+	getAdminRouteOpenKeys,
 } from "./adminRoutes";
 
 describe("admin route template", () => {
@@ -47,6 +49,17 @@ describe("admin route template", () => {
 		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
 			expect.arrayContaining(["results", "exceptions"]),
 		);
+	});
+
+	it("renders page examples as an expanded first-level sidebar group", () => {
+		const examplesGroup = adminNavigationGroups.find(
+			(group) => group.key === "examples",
+		);
+		const formRoute = getAdminRouteMetadata("/examples/forms/basic");
+
+		expect(examplesGroup?.sidebarMode).toBe("group");
+		expect(adminCollapsibleSidebarGroupKeys).not.toContain("examples");
+		expect(getAdminRouteOpenKeys(formRoute)).toEqual(["example-forms"]);
 	});
 
 	it("maps unknown authenticated locations to the 404 page metadata", () => {
