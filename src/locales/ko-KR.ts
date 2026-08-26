@@ -969,8 +969,6 @@ export const koKRTranslation = {
 			configurePermissions: "권한 설정",
 			permissionDrawerTitle: "‘{{name}}’ 권한 설정",
 			save: "저장",
-			memberGuide: "사용자 역할 할당은 사용자 관리 페이지에서 처리합니다.",
-			memberGuideLink: "사용자 관리로 이동",
 			builtInDeleteReason: "기본 최고 관리자 역할은 삭제할 수 없습니다.",
 			cancel: "취소",
 			deleteMemberDescription:

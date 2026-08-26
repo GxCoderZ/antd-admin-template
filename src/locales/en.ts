@@ -986,8 +986,6 @@ export const enTranslation = {
 			configurePermissions: "Configure permissions",
 			permissionDrawerTitle: 'Configure permissions for "{{name}}"',
 			save: "Save",
-			memberGuide: "User role assignments are managed from the Users page.",
-			memberGuideLink: "Go to users",
 			builtInDeleteReason:
 				"The built-in super administrator role cannot be deleted.",
 			cancel: "Cancel",

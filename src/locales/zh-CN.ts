@@ -961,8 +961,6 @@ export const zhCNTranslation = {
 			configurePermissions: "权限配置",
 			permissionDrawerTitle: "配置“{{name}}”的权限",
 			save: "保存",
-			memberGuide: "用户角色分配已集中到用户管理页。",
-			memberGuideLink: "前往用户管理",
 			builtInDeleteReason: "内置超级管理员角色不能删除。",
 			cancel: "取消",
 			deleteMemberDescription: "该角色有 {{count}} 个成员，删除后将解除关联。",

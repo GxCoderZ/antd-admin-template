@@ -961,8 +961,6 @@ export const zhTWTranslation = {
 			configurePermissions: "權限設定",
 			permissionDrawerTitle: "設定「{{name}}」的權限",
 			save: "儲存",
-			memberGuide: "使用者角色指派已集中到使用者管理頁。",
-			memberGuideLink: "前往使用者管理",
 			builtInDeleteReason: "內建超級管理員角色不能刪除。",
 			cancel: "取消",
 			deleteMemberDescription: "該角色有 {{count}} 位成員，刪除後將解除關聯。",

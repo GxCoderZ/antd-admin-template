@@ -19,7 +19,6 @@ import {
 import { useMemo } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link as RouterLink } from "react-router";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
@@ -313,14 +312,6 @@ export function RoleTablePanel({
 				columnVisibility={roleColumnVisibility}
 				columns={columns}
 				dataSource={data}
-				description={
-					<Flex align="baseline" gap={token.marginXS} wrap>
-						<Text type="secondary">{t("adminShell.roles.memberGuide")}</Text>
-						<RouterLink to="/organization/users">
-							{t("adminShell.roles.memberGuideLink")}
-						</RouterLink>
-					</Flex>
-				}
 				emptyText={t("adminShell.roles.empty")}
 				error={undefined}
 				initialLoading={initialLoading}
