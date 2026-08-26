@@ -65,6 +65,7 @@ export const enTranslation = {
 			lightMode: "Switch to light mode",
 			settings: "Settings",
 			logout: "Sign out",
+			logoutError: "Sign out failed. Please try again.",
 		},
 		tableActions: {
 			actions: "Actions",

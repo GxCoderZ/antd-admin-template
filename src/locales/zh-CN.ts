@@ -65,6 +65,7 @@ export const zhCNTranslation = {
 			lightMode: "切换为浅色模式",
 			settings: "设置",
 			logout: "退出",
+			logoutError: "退出失败，请重试",
 		},
 		tableActions: {
 			actions: "操作",

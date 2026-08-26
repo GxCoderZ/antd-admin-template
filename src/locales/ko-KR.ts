@@ -65,6 +65,7 @@ export const koKRTranslation = {
 			lightMode: "라이트 모드로 전환",
 			settings: "설정",
 			logout: "로그아웃",
+			logoutError: "로그아웃하지 못했습니다. 다시 시도해 주세요.",
 		},
 		tableActions: {
 			actions: "작업",

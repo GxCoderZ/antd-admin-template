@@ -12,6 +12,7 @@ import {
 	Button,
 	Dropdown,
 	Grid,
+	message,
 	type MenuProps,
 	Space,
 	theme,
@@ -113,6 +114,7 @@ export function AdminShellHeader({
 	const { token } = theme.useToken();
 	const screens = Grid.useBreakpoint();
 	const hasPermission = usePermissionChecker();
+	const [messageApi, messageContextHolder] = message.useMessage();
 	const [preferencesOpen, setPreferencesOpen] = useState(false);
 	const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 	const hasSidebarBreakpoint = screens.sm === true;
@@ -219,12 +221,15 @@ export function AdminShellHeader({
 		}
 
 		if (key === "logout") {
-			void onLogout().catch(() => undefined);
+			void onLogout().catch(() => {
+				void messageApi.error(t("adminShell.header.logoutError"));
+			});
 		}
 	};
 
 	return (
 		<>
+			{messageContextHolder}
 			<Space
 				size={hasSidebarBreakpoint ? token.marginXS : 0}
 				style={{ flex: "0 0 auto" }}

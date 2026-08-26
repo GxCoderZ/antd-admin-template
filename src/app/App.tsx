@@ -377,17 +377,17 @@ export function App() {
 		}
 
 		let active = true;
+		const clearExpiredSessionQueries = () => {
+			if (active) {
+				clearQueriesPreservingPlatformSettings(queryClient);
+			}
+		};
 		void router
 			.navigate("/login", {
 				replace: true,
 				state: { sessionExpired: true },
 			})
-			.then(() => {
-				if (active) {
-					clearQueriesPreservingPlatformSettings(queryClient);
-				}
-			})
-			.catch(() => undefined);
+			.then(clearExpiredSessionQueries, clearExpiredSessionQueries);
 
 		return () => {
 			active = false;

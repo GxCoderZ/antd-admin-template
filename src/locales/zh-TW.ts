@@ -65,6 +65,7 @@ export const zhTWTranslation = {
 			lightMode: "切換為淺色模式",
 			settings: "設定",
 			logout: "登出",
+			logoutError: "登出失敗，請重試",
 		},
 		tableActions: {
 			actions: "操作",
