@@ -50,6 +50,8 @@ const collapsibleSidebarRootKeys: readonly string[] =
 const groupIconByKey: Record<AdminGroupIconKey, ReactNode> = {
 	examples: <AppstoreOutlined aria-hidden />,
 	exceptions: <WarningOutlined aria-hidden />,
+	formExamples: <ProfileOutlined aria-hidden />,
+	listExamples: <AppstoreOutlined aria-hidden />,
 	operations: <ProfileOutlined aria-hidden />,
 	results: <CheckCircleOutlined aria-hidden />,
 	system: <SettingOutlined aria-hidden />,

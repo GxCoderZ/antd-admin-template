@@ -51,15 +51,25 @@ describe("admin route template", () => {
 		);
 	});
 
-	it("renders page examples as an expanded first-level sidebar group", () => {
+	it("keeps Pro page categories as first-level navigation groups", () => {
 		const examplesGroup = adminNavigationGroups.find(
 			(group) => group.key === "examples",
 		);
 		const formRoute = getAdminRouteMetadata("/examples/forms/basic");
+		const searchRoute = getAdminRouteMetadata(
+			"/examples/lists/search/articles",
+		);
 
+		expect(adminNavigationGroups.map((group) => group.key)).toEqual(
+			expect.arrayContaining(["listExamples", "formExamples", "examples"]),
+		);
 		expect(examplesGroup?.sidebarMode).toBe("group");
 		expect(adminCollapsibleSidebarGroupKeys).not.toContain("examples");
-		expect(getAdminRouteOpenKeys(formRoute)).toEqual(["example-forms"]);
+		expect(getAdminRouteOpenKeys(formRoute)).toEqual(["formExamples"]);
+		expect(getAdminRouteOpenKeys(searchRoute)).toEqual([
+			"listExamples",
+			"example-search-lists",
+		]);
 	});
 
 	it("maps unknown authenticated locations to the 404 page metadata", () => {
