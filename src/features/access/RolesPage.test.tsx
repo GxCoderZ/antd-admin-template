@@ -69,7 +69,7 @@ function renderRolesPage() {
 	});
 	const user = userEvent.setup();
 
-	render(
+	const view = render(
 		<ConfigProvider>
 			<LocalePreferencesProvider
 				value={{
@@ -93,7 +93,7 @@ function renderRolesPage() {
 		</ConfigProvider>,
 	);
 
-	return user;
+	return { user, unmount: view.unmount };
 }
 
 async function openRoleActions(user: ReturnType<typeof userEvent.setup>) {
@@ -102,8 +102,23 @@ async function openRoleActions(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("RolesPage", () => {
+	it("restores the role query draft after the page remounts", async () => {
+		const { user, unmount } = renderRolesPage();
+
+		const queryInput = await screen.findByPlaceholderText("搜索角色名称或标识");
+		await user.type(queryInput, "operator");
+		expect(queryInput).toHaveValue("operator");
+
+		unmount();
+		renderRolesPage();
+
+		expect(
+			await screen.findByPlaceholderText("搜索角色名称或标识"),
+		).toHaveValue("operator");
+	});
+
 	it("saves routine role edits without typed-name confirmation", async () => {
-		const user = renderRolesPage();
+		const { user } = renderRolesPage();
 
 		await screen.findByText(role.displayName);
 		await user.click(screen.getByRole("button", { name: "编辑" }));
@@ -137,7 +152,7 @@ describe("RolesPage", () => {
 	});
 
 	it("updates role permissions from the permission drawer", async () => {
-		const user = renderRolesPage();
+		const { user } = renderRolesPage();
 
 		await openRoleActions(user);
 		await user.click(screen.getByRole("menuitem", { name: "权限配置" }));
@@ -183,7 +198,7 @@ describe("RolesPage", () => {
 	});
 
 	it("filters the permission tree and can disable parent-child linkage", async () => {
-		const user = renderRolesPage();
+		const { user } = renderRolesPage();
 
 		await openRoleActions(user);
 		await user.click(screen.getByRole("menuitem", { name: "权限配置" }));
@@ -208,7 +223,7 @@ describe("RolesPage", () => {
 	});
 
 	it("requires the exact role name before deleting a role", async () => {
-		const user = renderRolesPage();
+		const { user } = renderRolesPage();
 
 		await openRoleActions(user);
 		await user.click(screen.getByRole("menuitem", { name: "删除" }));
