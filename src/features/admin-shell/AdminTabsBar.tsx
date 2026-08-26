@@ -59,6 +59,11 @@ interface OpenTabsState {
 	tabKeys: string[];
 }
 
+interface OptimisticActiveTabState {
+	originKey: string;
+	tabKey: string;
+}
+
 interface TabNodeProps extends HTMLAttributes<HTMLDivElement> {
 	"data-node-key": string;
 }
@@ -168,6 +173,8 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 				? [dashboardPath]
 				: [dashboardPath, currentPage.key],
 	}));
+	const [optimisticActiveTab, setOptimisticActiveTab] =
+		useState<OptimisticActiveTabState | null>(null);
 	let openTabKeys = openTabsState.tabKeys;
 
 	if (openTabsState.routeKey !== currentPage.key) {
@@ -176,6 +183,11 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 			: [...openTabsState.tabKeys, currentPage.key];
 		setOpenTabsState({ routeKey: currentPage.key, tabKeys: openTabKeys });
 	}
+
+	const activeTabKey =
+		optimisticActiveTab?.originKey === currentPage.key
+			? optimisticActiveTab.tabKey
+			: currentPage.key;
 
 	const setOpenTabKeys = (nextTabKeys: SetStateAction<string[]>) => {
 		setOpenTabsState((currentState) => {
@@ -212,11 +224,15 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		setOpenTabKeys(nextTabKeys.length > 0 ? nextTabKeys : [dashboardPath]);
 
 		if (targetKey === currentPage.key) {
-			void navigate(
+			const nextActiveKey =
 				nextTabKeys[targetIndex - 1] ??
-					nextTabKeys[targetIndex] ??
-					dashboardPath,
-			);
+				nextTabKeys[targetIndex] ??
+				dashboardPath;
+			setOptimisticActiveTab({
+				originKey: currentPage.key,
+				tabKey: nextActiveKey,
+			});
+			void navigate(nextActiveKey);
 		}
 	};
 
@@ -245,6 +261,10 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		clearClosedTabStates(nextTabKeys);
 		setOpenTabKeys(nextTabKeys);
 		if (!nextTabKeys.includes(currentPage.key)) {
+			setOptimisticActiveTab({
+				originKey: currentPage.key,
+				tabKey: targetKey,
+			});
 			void navigate(targetKey);
 		}
 	};
@@ -261,6 +281,10 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		clearClosedTabStates(nextTabKeys);
 		setOpenTabKeys(nextTabKeys);
 		if (!nextTabKeys.includes(currentPage.key)) {
+			setOptimisticActiveTab({
+				originKey: currentPage.key,
+				tabKey: targetKey,
+			});
 			void navigate(targetKey);
 		}
 	};
@@ -273,6 +297,10 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		clearClosedTabStates(nextTabKeys);
 		setOpenTabKeys(nextTabKeys);
 		if (!nextTabKeys.includes(currentPage.key)) {
+			setOptimisticActiveTab({
+				originKey: currentPage.key,
+				tabKey: targetKey,
+			});
 			void navigate(targetKey);
 		}
 	};
@@ -281,8 +309,20 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		clearClosedTabStates([dashboardPath]);
 		setOpenTabKeys([dashboardPath]);
 		if (currentPage.key !== dashboardPath) {
+			setOptimisticActiveTab({
+				originKey: currentPage.key,
+				tabKey: dashboardPath,
+			});
 			void navigate(dashboardPath);
 		}
+	};
+
+	const activateTab = (nextPath: string) => {
+		setOptimisticActiveTab({
+			originKey: currentPage.key,
+			tabKey: nextPath,
+		});
+		void navigate(nextPath);
 	};
 
 	const createTabActionMenuItems = (
@@ -424,11 +464,11 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 
 	return (
 		<Tabs
-			activeKey={currentPage.key}
+			activeKey={activeTabKey}
 			aria-label={t("adminShell.tabs.label")}
 			hideAdd
 			items={openTabs}
-			onChange={(nextPath) => void navigate(nextPath)}
+			onChange={activateTab}
 			onEdit={(targetKey, action) => {
 				if (action === "remove" && typeof targetKey === "string") {
 					closeTab(targetKey);
