@@ -67,6 +67,33 @@ describe("Fake announcements", () => {
 		},
 	);
 
+	it("rejects invalid batch inputs without changing records", () => {
+		const list = findRoute("get", "/platform/announcements");
+		const before = structuredClone(
+			list({ query: { page_size: "100" } }) as AnnouncementListPayload,
+		);
+
+		expect(
+			findRoute("patch", "/platform/announcements/status")({
+				body: { ids: [], status: "published" },
+			}),
+		).toEqual({
+			code: 422,
+			data: null,
+			msg: "Invalid announcement batch input",
+		});
+		expect(
+			findRoute("delete", "/platform/announcements")({
+				body: { ids: ["announcement-1", "announcement-1"] },
+			}),
+		).toEqual({
+			code: 422,
+			data: null,
+			msg: "Invalid announcement batch input",
+		});
+		expect(list({ query: { page_size: "100" } })).toEqual(before);
+	});
+
 	it("supports pagination and representative status filters", () => {
 		const listAnnouncements = findRoute("get", "/platform/announcements");
 		const firstPage = listAnnouncements({
@@ -117,6 +144,47 @@ describe("Fake announcements", () => {
 		deleteAnnouncement({ params: { announcementId: created.data.id } });
 		const afterDelete = listAnnouncements({
 			query: { page: "1", page_size: "100", q: created.data.title },
+		}) as AnnouncementListPayload;
+		expect(afterDelete.data.items).toHaveLength(0);
+	});
+
+	it("persists batch status and delete operations in the preview session", () => {
+		const listAnnouncements = findRoute("get", "/platform/announcements");
+		const createAnnouncement = findRoute("post", "/platform/announcements");
+		const updateStatuses = findRoute("patch", "/platform/announcements/status");
+		const deleteAnnouncements = findRoute("delete", "/platform/announcements");
+		const created = ["一", "二"].map((suffix) => {
+			const response = createAnnouncement({
+				body: {
+					content: `批量公告内容 ${suffix}`,
+					status: "draft",
+					title: `批量公告 ${suffix}`,
+				},
+			}) as { data: PlatformAnnouncement };
+			return response.data;
+		});
+		const ids = created.map((announcement) => announcement.id);
+
+		expect(
+			updateStatuses({
+				body: { ids, status: "published" },
+			}),
+		).toEqual({ code: 0, data: { affected: 2 }, msg: "OK" });
+		const afterStatus = listAnnouncements({
+			query: { page: "1", page_size: "100", q: "批量公告" },
+		}) as AnnouncementListPayload;
+		expect(afterStatus.data.items.map((item) => item.status)).toEqual([
+			"published",
+			"published",
+		]);
+
+		expect(deleteAnnouncements({ body: { ids } })).toEqual({
+			code: 0,
+			data: { affected: 2 },
+			msg: "OK",
+		});
+		const afterDelete = listAnnouncements({
+			query: { page: "1", page_size: "100", q: "批量公告" },
 		}) as AnnouncementListPayload;
 		expect(afterDelete.data.items).toHaveLength(0);
 	});

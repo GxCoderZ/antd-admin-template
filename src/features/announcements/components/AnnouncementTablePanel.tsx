@@ -52,6 +52,7 @@ interface AnnouncementTablePanelProps {
 	onView: (announcement: PlatformAnnouncement) => void;
 	query: ManagementQuery<AnnouncementFilterValues>;
 	refreshing: boolean;
+	rowSelection?: TableProps<PlatformAnnouncement>["rowSelection"];
 	tableState: AnnouncementTableState;
 }
 
@@ -81,6 +82,7 @@ export function AnnouncementTablePanel({
 	onView,
 	query,
 	refreshing,
+	rowSelection,
 	tableState,
 }: AnnouncementTablePanelProps) {
 	const { t } = useTranslation();
@@ -216,6 +218,7 @@ export function AnnouncementTablePanel({
 			}
 			query={query}
 			refreshing={refreshing}
+			rowSelection={rowSelection}
 			testId="admin-announcements-table-card"
 			title={t("adminShell.announcements.tableTitle")}
 			total={data?.total ?? 0}

@@ -25,3 +25,16 @@ export interface CreatePlatformAnnouncementInput {
 }
 
 export type UpdatePlatformAnnouncementInput = CreatePlatformAnnouncementInput;
+
+export interface BatchUpdatePlatformAnnouncementStatusInput {
+	ids: string[];
+	status: PlatformAnnouncementStatus;
+}
+
+export interface BatchDeletePlatformAnnouncementsInput {
+	ids: string[];
+}
+
+export interface BatchPlatformAnnouncementsResult {
+	affected: number;
+}

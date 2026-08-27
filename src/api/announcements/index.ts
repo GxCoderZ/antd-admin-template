@@ -1,5 +1,8 @@
 import { request, type ApiPage } from "../client";
 import type {
+	BatchDeletePlatformAnnouncementsInput,
+	BatchPlatformAnnouncementsResult,
+	BatchUpdatePlatformAnnouncementStatusInput,
 	CreatePlatformAnnouncementInput,
 	ListPlatformAnnouncementsInput,
 	PlatformAnnouncement,
@@ -53,8 +56,29 @@ export function updatePlatformAnnouncement({
 	);
 }
 
+export function updatePlatformAnnouncementStatuses(
+	input: BatchUpdatePlatformAnnouncementStatusInput,
+) {
+	return request<BatchPlatformAnnouncementsResult>(
+		"/platform/announcements/status",
+		{
+			body: input,
+			method: "PATCH",
+		},
+	);
+}
+
 export function deletePlatformAnnouncement(announcementId: string) {
 	return request<void>(`/platform/announcements/${announcementId}`, {
+		method: "DELETE",
+	});
+}
+
+export function deletePlatformAnnouncements(
+	input: BatchDeletePlatformAnnouncementsInput,
+) {
+	return request<BatchPlatformAnnouncementsResult>("/platform/announcements", {
+		body: input,
 		method: "DELETE",
 	});
 }

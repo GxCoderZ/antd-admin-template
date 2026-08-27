@@ -51,7 +51,10 @@ const tables = [
 	{
 		path: "/system/announcements",
 		id: "admin-announcements-table-card",
-		defaults: ["公告标题", "发布状态", "更新时间", "操作"],
+		defaults: ["", "公告标题", "发布状态", "更新时间", "操作"],
+		minimumHeaders: ["", "公告标题", "操作"],
+		recommended: "发布状态",
+		required: ["公告标题", "操作"],
 	},
 	{
 		path: "/operations/audit-logs",
@@ -109,8 +112,8 @@ for (const table of tables) {
 		});
 		await settingsTrigger.click();
 		const settings = page.locator(".ant-popover:visible");
-		const required = [table.defaults[0]!, "操作"];
-		for (const label of required) {
+		const requiredLabels = table.required ?? [table.defaults[0]!, "操作"];
+		for (const label of requiredLabels) {
 			await expect(
 				settings.getByRole("checkbox", {
 					name: new RegExp(`^(holder )?${label}$`),
@@ -120,10 +123,10 @@ for (const table of tables) {
 		const selectAll = settings.getByRole("checkbox").first();
 		await selectAll.check();
 		await selectAll.uncheck();
-		await expect(headers).toHaveText(required);
+		await expect(headers).toHaveText(table.minimumHeaders ?? requiredLabels);
 		await settings.getByText("重置", { exact: true }).click();
 		await expect(headers).toHaveText(table.defaults);
-		const recommended = table.defaults[1]!;
+		const recommended = table.recommended ?? table.defaults[1]!;
 		await settings
 			.getByRole("checkbox", { name: new RegExp(`^(holder )?${recommended}$`) })
 			.click();

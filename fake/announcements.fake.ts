@@ -1,16 +1,28 @@
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
 import type {
+	BatchDeletePlatformAnnouncementsInput,
+	BatchUpdatePlatformAnnouncementStatusInput,
 	CreatePlatformAnnouncementInput,
 	PlatformAnnouncement,
 } from "../src/api/announcements";
 import { announcements } from "./store";
 import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
 
+let createdAnnouncementSequence = announcements.reduce((currentMax, announcement) => {
+	const nextValue = Number(announcement.id.replace(/^announcement-/, ""));
+	return Number.isFinite(nextValue) ? Math.max(currentMax, nextValue) : currentMax;
+}, announcements.length);
+
 function getAnnouncement(announcementId: string | undefined) {
 	return announcements.find(
 		(announcement) => announcement.id === announcementId,
 	);
+}
+
+function createAnnouncementId() {
+	createdAnnouncementSequence += 1;
+	return `announcement-${createdAnnouncementSequence}`;
 }
 
 function isValidInput(
@@ -30,6 +42,49 @@ function isValidInput(
 		"status" in input &&
 		(input.status === "draft" || input.status === "published")
 	);
+}
+
+function hasUniqueIds(ids: string[]) {
+	return new Set(ids).size === ids.length;
+}
+
+function isNonEmptyStringArray(value: unknown): value is string[] {
+	return (
+		Array.isArray(value) &&
+		value.length > 0 &&
+		value.every((id) => typeof id === "string" && id.trim().length > 0)
+	);
+}
+
+function isValidBatchStatusInput(
+	input: unknown,
+): input is BatchUpdatePlatformAnnouncementStatusInput {
+	return (
+		typeof input === "object" &&
+		input !== null &&
+		"ids" in input &&
+		isNonEmptyStringArray(input.ids) &&
+		hasUniqueIds(input.ids) &&
+		"status" in input &&
+		(input.status === "draft" || input.status === "published")
+	);
+}
+
+function isValidBatchDeleteInput(
+	input: unknown,
+): input is BatchDeletePlatformAnnouncementsInput {
+	return (
+		typeof input === "object" &&
+		input !== null &&
+		"ids" in input &&
+		isNonEmptyStringArray(input.ids) &&
+		hasUniqueIds(input.ids)
+	);
+}
+
+function getExistingAnnouncementIds(ids: string[]) {
+	const existingIds = new Set(announcements.map((announcement) => announcement.id));
+	return ids.filter((id) => existingIds.has(id));
 }
 
 export default defineFakeRoute([
@@ -90,13 +145,37 @@ export default defineFakeRoute([
 			const announcement: PlatformAnnouncement = {
 				content: input.content.trim(),
 				createdAt: timestamp,
-				id: `announcement-${Date.now()}`,
+				id: createAnnouncementId(),
 				status: input.status,
 				title: input.title.trim(),
 				updatedAt: timestamp,
 			};
 			announcements.unshift(announcement);
 			return resultSuccess(announcement);
+		},
+	},
+	{
+		method: "patch",
+		url: "/platform/announcements/status",
+		response: ({ body }) => {
+			const input = body;
+			if (!isValidBatchStatusInput(input)) {
+				return resultError("Invalid announcement batch input", 422);
+			}
+			const existingIds = getExistingAnnouncementIds(input.ids);
+			if (existingIds.length !== input.ids.length) {
+				return resultError("Announcement not found", 404);
+			}
+
+			const idSet = new Set(input.ids);
+			const timestamp = new Date().toISOString();
+			announcements.forEach((announcement) => {
+				if (idSet.has(announcement.id)) {
+					announcement.status = input.status;
+					announcement.updatedAt = timestamp;
+				}
+			});
+			return resultSuccess({ affected: input.ids.length });
 		},
 	},
 	{
@@ -118,6 +197,31 @@ export default defineFakeRoute([
 			announcement.title = input.title.trim();
 			announcement.updatedAt = new Date().toISOString();
 			return resultSuccess(announcement);
+		},
+	},
+	{
+		method: "delete",
+		url: "/platform/announcements",
+		response: ({ body }) => {
+			const input = body;
+			if (!isValidBatchDeleteInput(input)) {
+				return resultError("Invalid announcement batch input", 422);
+			}
+			const existingIds = getExistingAnnouncementIds(input.ids);
+			if (existingIds.length !== input.ids.length) {
+				return resultError("Announcement not found", 404);
+			}
+
+			const idSet = new Set(input.ids);
+			let affected = 0;
+			for (let index = announcements.length - 1; index >= 0; index -= 1) {
+				const announcement = announcements[index];
+				if (announcement && idSet.has(announcement.id)) {
+					announcements.splice(index, 1);
+					affected += 1;
+				}
+			}
+			return resultSuccess({ affected });
 		},
 	},
 	{

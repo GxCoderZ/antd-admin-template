@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createPlatformAnnouncement, listPlatformAnnouncements } from "./index";
+import {
+	createPlatformAnnouncement,
+	deletePlatformAnnouncements,
+	listPlatformAnnouncements,
+	updatePlatformAnnouncementStatuses,
+} from "./index";
 
 afterEach(() => {
 	vi.unstubAllGlobals();
@@ -63,6 +68,49 @@ describe("announcements API", () => {
 			expect.objectContaining({
 				body: JSON.stringify(input),
 				method: "POST",
+			}),
+		);
+	});
+
+	it("updates selected announcement statuses through the batch namespace", async () => {
+		const input = {
+			ids: ["announcement-1", "announcement-2"],
+			status: "published" as const,
+		};
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(successResponse({ affected: input.ids.length }));
+		vi.stubGlobal("fetch", fetchMock);
+
+		await expect(updatePlatformAnnouncementStatuses(input)).resolves.toEqual({
+			affected: 2,
+		});
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			"/api/platform/announcements/status",
+			expect.objectContaining({
+				body: JSON.stringify(input),
+				method: "PATCH",
+			}),
+		);
+	});
+
+	it("deletes selected announcements through the batch namespace", async () => {
+		const input = { ids: ["announcement-1", "announcement-2"] };
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(successResponse({ affected: input.ids.length }));
+		vi.stubGlobal("fetch", fetchMock);
+
+		await expect(deletePlatformAnnouncements(input)).resolves.toEqual({
+			affected: 2,
+		});
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			"/api/platform/announcements",
+			expect.objectContaining({
+				body: JSON.stringify(input),
+				method: "DELETE",
 			}),
 		);
 	});

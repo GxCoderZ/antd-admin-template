@@ -16,16 +16,20 @@ import { AnnouncementsPage } from "./AnnouncementsPage";
 const mocks = vi.hoisted(() => ({
 	createPlatformAnnouncement: vi.fn(),
 	deletePlatformAnnouncement: vi.fn(),
+	deletePlatformAnnouncements: vi.fn(),
 	listPlatformAnnouncements: vi.fn(),
 	updatePlatformAnnouncement: vi.fn(),
+	updatePlatformAnnouncementStatuses: vi.fn(),
 }));
 
 vi.mock("#src/api/announcements", () => ({
 	createPlatformAnnouncement: mocks.createPlatformAnnouncement,
 	deletePlatformAnnouncement: mocks.deletePlatformAnnouncement,
+	deletePlatformAnnouncements: mocks.deletePlatformAnnouncements,
 	listPlatformAnnouncements: mocks.listPlatformAnnouncements,
 	platformAnnouncementsQueryKey: ["platform-announcements"],
 	updatePlatformAnnouncement: mocks.updatePlatformAnnouncement,
+	updatePlatformAnnouncementStatuses: mocks.updatePlatformAnnouncementStatuses,
 }));
 
 const announcement = {
@@ -35,6 +39,14 @@ const announcement = {
 	status: "published" as const,
 	title: "系统维护通知",
 	updatedAt: "2026-08-20T01:00:00.000Z",
+};
+const draftAnnouncement = {
+	content: "新版本功能仍在准备中。",
+	createdAt: "2026-08-21T00:00:00.000Z",
+	id: "announcement-2",
+	status: "draft" as const,
+	title: "版本发布预告",
+	updatedAt: "2026-08-21T01:00:00.000Z",
 };
 
 beforeAll(async () => {
@@ -51,7 +63,13 @@ beforeEach(() => {
 	});
 	mocks.createPlatformAnnouncement.mockReset().mockResolvedValue(announcement);
 	mocks.deletePlatformAnnouncement.mockReset().mockResolvedValue(undefined);
+	mocks.deletePlatformAnnouncements
+		.mockReset()
+		.mockResolvedValue({ affected: 2 });
 	mocks.updatePlatformAnnouncement.mockReset().mockResolvedValue(announcement);
+	mocks.updatePlatformAnnouncementStatuses
+		.mockReset()
+		.mockResolvedValue({ affected: 2 });
 });
 
 function renderAnnouncementsPage(canManage = true) {
@@ -89,6 +107,13 @@ function renderAnnouncementsPage(canManage = true) {
 	);
 
 	return userEvent.setup();
+}
+
+async function selectVisibleAnnouncements(
+	user: ReturnType<typeof userEvent.setup>,
+) {
+	const selectAll = await screen.findByRole("checkbox", { name: "Select all" });
+	await user.click(selectAll.closest("label") ?? selectAll);
 }
 
 describe("AnnouncementsPage", () => {
@@ -206,7 +231,11 @@ describe("AnnouncementsPage", () => {
 		const user = renderAnnouncementsPage();
 
 		await screen.findByText("系统维护通知");
-		await user.click(screen.getByRole("button", { name: "编辑" }));
+		const editButton = screen.getAllByRole("button", { name: "编辑" }).at(0);
+		if (!editButton) {
+			throw new Error("Missing edit button");
+		}
+		await user.click(editButton);
 		const titleInput = await screen.findByPlaceholderText("请输入公告标题");
 		await user.clear(titleInput);
 		await user.type(titleInput, "系统维护通知（更新）");
@@ -228,7 +257,13 @@ describe("AnnouncementsPage", () => {
 		const user = renderAnnouncementsPage();
 
 		await screen.findByText("系统维护通知");
-		await user.click(screen.getByRole("button", { name: "删除" }));
+		const deleteButton = screen
+			.getAllByRole("button", { name: "删除" })
+			.at(0);
+		if (!deleteButton) {
+			throw new Error("Missing delete button");
+		}
+		await user.click(deleteButton);
 		await user.click(screen.getByRole("button", { name: "确认删除" }));
 
 		await waitFor(() => {
@@ -251,5 +286,58 @@ describe("AnnouncementsPage", () => {
 		expect(
 			screen.queryByRole("button", { name: "更多" }),
 		).not.toBeInTheDocument();
+	});
+
+	it("shows a single bottom batch toolbar and publishes selected announcements", async () => {
+		mocks.listPlatformAnnouncements.mockResolvedValue({
+			items: [announcement, draftAnnouncement],
+			page: 1,
+			pageSize: 10,
+			total: 2,
+		});
+		const user = renderAnnouncementsPage();
+
+		await selectVisibleAnnouncements(user);
+		expect(screen.getByTestId("admin-announcements-batch-toolbar")).toBeVisible();
+		expect(screen.getByText("已选择 2 项")).toBeVisible();
+		expect(screen.getByText("取消选择")).toBeVisible();
+		expect(screen.getAllByText(/已选择\s*2\s*项/)).toHaveLength(1);
+		await user.click(screen.getByRole("button", { name: "批量发布" }));
+
+		await waitFor(() => {
+			expect(
+				mocks.updatePlatformAnnouncementStatuses.mock.calls[0]?.[0],
+			).toEqual({
+				ids: [announcement.id, draftAnnouncement.id],
+				status: "published",
+			});
+		});
+		await waitFor(() =>
+			expect(
+				screen.queryByTestId("admin-announcements-batch-toolbar"),
+			).not.toBeInTheDocument(),
+		);
+	});
+
+	it("confirms dangerous batch deletion", async () => {
+		mocks.listPlatformAnnouncements.mockResolvedValue({
+			items: [announcement, draftAnnouncement],
+			page: 1,
+			pageSize: 10,
+			total: 2,
+		});
+		const user = renderAnnouncementsPage();
+
+		await selectVisibleAnnouncements(user);
+		await user.click(screen.getByRole("button", { name: "批量删除" }));
+		const dialog = await screen.findByRole("dialog");
+		expect(dialog).toHaveTextContent("确认批量删除");
+		await user.click(screen.getByRole("button", { name: "确认删除" }));
+
+		await waitFor(() => {
+			expect(mocks.deletePlatformAnnouncements.mock.calls[0]?.[0]).toEqual({
+				ids: [announcement.id, draftAnnouncement.id],
+			});
+		});
 	});
 });

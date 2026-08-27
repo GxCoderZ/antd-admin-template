@@ -57,6 +57,7 @@ export interface ManagementProTableProps<
 	pageSize: number;
 	primaryAction?: ReactNode;
 	refreshing: boolean;
+	rowSelection?: TableProps<Row>["rowSelection"];
 	searchForm?: NonNullable<ProTableProps<Row, SearchValues>["form"]> & {
 		"data-testid"?: string;
 	};
@@ -87,6 +88,7 @@ export function ManagementProTable<
 	pagination,
 	primaryAction,
 	refreshing,
+	rowSelection,
 	search,
 	searchForm,
 	searchFormRef,
@@ -205,6 +207,7 @@ export function ManagementProTable<
 					}}
 					pagination={tablePagination}
 					rowKey="id"
+					{...(rowSelection ? { rowSelection } : {})}
 					search={tableSearch}
 					size={tableSize}
 					tableAlertRender={false}
