@@ -16,6 +16,7 @@ export type AdminRouteIconKey =
 	| "positions"
 	| "dictionaries"
 	| "announcements"
+	| "logs"
 	| "auditLogs"
 	| "loginLogs"
 	| "exceptionForbidden"
@@ -43,6 +44,7 @@ export interface AdminRouteMetadata {
 
 export interface AdminNavigationNode {
 	children?: readonly AdminNavigationNode[];
+	iconKey?: AdminRouteIconKey;
 	key?: string;
 	routeKey?: string;
 	titleKey?: string;
@@ -324,6 +326,7 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/system/announcements" },
 			{ routeKey: "/system/settings" },
 			{
+				iconKey: "logs",
 				key: "system-logs",
 				titleKey: "adminShell.navigation.logs",
 				children: [

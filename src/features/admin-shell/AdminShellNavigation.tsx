@@ -185,6 +185,7 @@ export function AdminShellNavigation({
 
 			items.push({
 				key: node.key,
+				icon: node.iconKey ? <AdminRouteIcon iconKey={node.iconKey} /> : undefined,
 				label: t(node.titleKey),
 				children,
 			});

@@ -119,6 +119,7 @@ for (const width of [1440, 390]) {
 			name: "日志管理",
 			exact: true,
 		});
+		await expect(logGroup.getByLabel("file-search")).toBeVisible();
 		await expect(logGroup).toHaveAttribute("aria-expanded", "false");
 		await expect(
 			navigation.getByRole("menuitem", { name: "登录日志", exact: true }),

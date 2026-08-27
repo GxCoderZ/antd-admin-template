@@ -51,6 +51,29 @@ function renderNavigation(
 }
 
 describe("log navigation", () => {
+	it.each(["side", "mixed"] as const)(
+		"shows a decorative log group icon in %s navigation",
+		(mode) => {
+			renderNavigation(
+				"/operations/login-logs",
+				[platformPermissions.logsRead],
+				mode,
+			);
+			const group = screen.getByRole("menuitem", { name: "日志管理" });
+			const icon = within(group).getByRole("img", { hidden: true });
+			expect(icon).toBeVisible();
+			expect(icon).toHaveAttribute("aria-hidden", "true");
+		},
+	);
+
+	it("shows the same log group icon in the mobile navigation drawer", async () => {
+		vi.mocked(Grid.useBreakpoint).mockReturnValue({ sm: false, lg: false });
+		const { user } = renderNavigation("/operations/login-logs");
+		await user.click(screen.getByRole("button", { name: "打开菜单" }));
+		const group = await screen.findByRole("menuitem", { name: "日志管理" });
+		expect(within(group).getByRole("img", { hidden: true })).toBeVisible();
+	});
+
 	it("places about last at the root and shows only its own breadcrumb", () => {
 		renderNavigation("/system/about");
 		expect(

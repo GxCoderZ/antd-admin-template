@@ -62,6 +62,7 @@ describe("admin route template", () => {
 			{ routeKey: "/system/announcements" },
 			{ routeKey: "/system/settings" },
 			{
+				iconKey: "logs",
 				key: "system-logs",
 				titleKey: "adminShell.navigation.logs",
 				children: [
