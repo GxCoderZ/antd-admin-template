@@ -31,6 +31,7 @@ export const enTranslation = {
 			dictionaries: "Dictionaries",
 			announcements: "Announcements",
 			auditLogs: "Operation audit",
+			logs: "Log management",
 			loginLogs: "Login logs",
 			notificationCenter: "Notification center",
 			system: "System",

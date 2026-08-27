@@ -79,7 +79,7 @@ async function expectDetailFields(
 }
 
 for (const width of [1440, 390]) {
-	test(`日志在系统管理下平级展示并可连续访问（${width}px）`, async ({
+	test(`日志通过系统管理下的日志管理分组访问（${width}px）`, async ({
 		page,
 	}, testInfo) => {
 		await page.setViewportSize({ height: 900, width });
@@ -89,6 +89,11 @@ for (const width of [1440, 390]) {
 		if (mobile) {
 			await page.getByRole("button", { name: "打开菜单" }).click();
 		}
+		await expect(navigation.getByRole("menuitem")).toHaveText([
+			"仪表盘",
+			"系统管理",
+			"关于系统",
+		]);
 		await navigation
 			.getByRole("menuitem", { name: "系统管理", exact: true })
 			.click();
@@ -97,7 +102,7 @@ for (const width of [1440, 390]) {
 		).toHaveCount(0);
 		await expect(
 			navigation.getByRole("menuitem", {
-				name: /^(用户管理|角色管理|部门管理|岗位管理|字典管理|公告管理|登录日志|操作审计|系统设置|关于系统)$/,
+				name: /^(用户管理|角色管理|部门管理|岗位管理|字典管理|公告管理|日志管理|系统设置|关于系统)$/,
 			}),
 		).toHaveText([
 			"用户管理",
@@ -106,11 +111,23 @@ for (const width of [1440, 390]) {
 			"岗位管理",
 			"字典管理",
 			"公告管理",
-			"登录日志",
-			"操作审计",
 			"系统设置",
+			"日志管理",
 			"关于系统",
 		]);
+		const logGroup = navigation.getByRole("menuitem", {
+			name: "日志管理",
+			exact: true,
+		});
+		await expect(logGroup).toHaveAttribute("aria-expanded", "false");
+		await expect(
+			navigation.getByRole("menuitem", { name: "登录日志", exact: true }),
+		).toBeHidden();
+		await logGroup.click();
+		await expect(logGroup).toHaveAttribute("aria-expanded", "true");
+		await expect(
+			navigation.getByRole("menuitem", { name: "操作审计", exact: true }),
+		).toBeVisible();
 		await navigation
 			.getByRole("menuitem", { name: "登录日志", exact: true })
 			.click();
@@ -123,21 +140,17 @@ for (const width of [1440, 390]) {
 			await expect(navigation).toBeHidden();
 			await page.getByRole("button", { name: "打开菜单" }).click();
 		} else {
-			await expect(page.getByRole("banner")).toContainText("系统管理");
-			await expect(page.getByRole("banner")).toContainText("登录日志");
+			await expect(page.getByRole("banner").getByRole("navigation")).toHaveText(
+				"系统管理/日志管理/登录日志",
+			);
 		}
 		await expect(
 			navigation.getByRole("menuitem", { name: "系统管理", exact: true }),
 		).toHaveAttribute("aria-expanded", "true");
+		await expect(logGroup).toHaveAttribute("aria-expanded", "true");
 		await expect(
 			navigation.getByRole("menuitem", { name: "登录日志", exact: true }),
 		).toHaveClass(/ant-menu-item-selected/);
-		await expect(navigation).toBeInViewport({ ratio: 1 });
-		await page.screenshot({
-			animations: "disabled",
-			path: testInfo.outputPath(`system-log-navigation-${width}.png`),
-			fullPage: true,
-		});
 		await navigation
 			.getByRole("menuitem", { name: "操作审计", exact: true })
 			.click();
@@ -145,21 +158,82 @@ for (const width of [1440, 390]) {
 		await expect(page.getByTestId("audit-log-table-card")).toBeVisible();
 		if (mobile) {
 			await expect(navigation).toBeHidden();
+			await page.getByRole("button", { name: "打开菜单" }).click();
 		} else {
-			await expect(page.getByRole("banner")).toContainText("系统管理");
-			await expect(page.getByRole("banner")).toContainText("操作审计");
+			await expect(page.getByRole("banner").getByRole("navigation")).toHaveText(
+				"系统管理/日志管理/操作审计",
+			);
 		}
+		await logGroup.click();
+		await expect(
+			navigation.getByRole("menuitem", { name: "操作审计", exact: true }),
+		).toBeHidden();
+		if (mobile) {
+			await page.keyboard.press("Escape");
+			await expect(navigation).toBeHidden();
+		}
+		await page.getByRole("tab", { name: /登录日志/ }).click();
+		await expect(page).toHaveURL(/\/operations\/login-logs$/);
+		if (mobile) {
+			await page.getByRole("button", { name: "打开菜单" }).click();
+		}
+		await expect(logGroup).toHaveAttribute("aria-expanded", "true");
+		await expect(
+			navigation.getByRole("menuitem", { name: "登录日志", exact: true }),
+		).toHaveClass(/ant-menu-item-selected/);
+		await expect(loginTable.locator(".ant-spin-spinning")).toHaveCount(0);
+		await expect(navigation).toBeInViewport({ ratio: 1 });
+		await page.screenshot({
+			animations: "disabled",
+			path: testInfo.outputPath(`system-log-navigation-${width}.png`),
+			fullPage: true,
+		});
 		expect(
 			await page.evaluate(
 				() => document.documentElement.scrollWidth <= window.innerWidth,
 			),
 		).toBe(true);
+		await navigation
+			.getByRole("menuitem", { name: "关于系统", exact: true })
+			.click();
+		await expect(page).toHaveURL(/\/system\/about$/);
+		await expect(page.getByTestId("about-runtime-service")).toBeVisible();
+		if (mobile) {
+			await expect(navigation).toBeHidden();
+			await expect(page.getByTestId("admin-shell-mobile-title")).toHaveText(
+				"关于系统",
+			);
+		} else {
+			await expect(page.getByRole("banner").getByRole("navigation")).toHaveText(
+				"关于系统",
+			);
+		}
+		await page.screenshot({
+			animations: "disabled",
+			path: testInfo.outputPath(`about-root-navigation-${width}.png`),
+		});
+		if (mobile) {
+			await page.getByRole("button", { name: "打开菜单" }).click();
+		}
+		await navigation
+			.getByRole("menuitem", { name: "仪表盘", exact: true })
+			.click();
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await page.getByRole("button", { name: "搜索", exact: true }).click();
+		const search = page.getByRole("dialog");
+		await search.getByRole("textbox").fill("关于系统");
+		await search
+			.getByRole("menuitem", { name: "关于系统", exact: true })
+			.click();
+		await expect(page).toHaveURL(/\/system\/about$/);
+		await expect(search).toBeHidden();
 	});
 }
 
 test("操作审计和登录日志详情展示全部字段", async ({ page }) => {
 	await login(page);
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "日志管理", exact: true }).click();
 	await expectDetailFields(
 		page,
 		"操作审计",
@@ -178,6 +252,7 @@ test("操作审计在临界宽度保持稳定的响应式列", async ({ page }) 
 	await page.setViewportSize({ height: 760, width: 1286 });
 	await login(page);
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "日志管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "操作审计", exact: true }).click();
 
 	const tableCard = page.getByTestId("audit-log-table-card");

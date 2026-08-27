@@ -30,6 +30,7 @@ export const zhCNTranslation = {
 			positions: "岗位管理",
 			dictionaries: "字典管理",
 			announcements: "公告管理",
+			logs: "日志管理",
 			auditLogs: "操作审计",
 			loginLogs: "登录日志",
 			notificationCenter: "通知中心",

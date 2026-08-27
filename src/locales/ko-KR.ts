@@ -31,6 +31,7 @@ export const koKRTranslation = {
 			dictionaries: "사전 관리",
 			announcements: "공지 관리",
 			auditLogs: "작업 감사",
+			logs: "로그 관리",
 			loginLogs: "로그인 로그",
 			notificationCenter: "알림 센터",
 			system: "시스템 관리",

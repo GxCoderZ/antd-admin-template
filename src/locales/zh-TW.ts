@@ -30,6 +30,7 @@ export const zhTWTranslation = {
 			positions: "職位管理",
 			dictionaries: "字典管理",
 			announcements: "公告管理",
+			logs: "日誌管理",
 			auditLogs: "操作稽核",
 			loginLogs: "登入日誌",
 			notificationCenter: "通知中心",

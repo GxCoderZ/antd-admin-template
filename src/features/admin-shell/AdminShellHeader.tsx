@@ -16,6 +16,7 @@ import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+	aboutPath,
 	adminNavigationGroups,
 	adminRouteByPath,
 	adminRouteDefinitions,
@@ -47,6 +48,7 @@ function collectNavigationRouteKeys(nodes: readonly AdminNavigationNode[]) {
 
 const commandPaletteRouteKeys = new Set([
 	dashboardPath,
+	aboutPath,
 	...adminNavigationGroups.flatMap((group) =>
 		collectNavigationRouteKeys(group.nodes),
 	),

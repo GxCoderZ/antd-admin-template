@@ -48,7 +48,7 @@ describe("admin route template", () => {
 		).not.toEqual(expect.arrayContaining(["/exception/403"]));
 	});
 
-	it("places log pages directly before settings in the system menu", () => {
+	it("places the log group last in the system menu", () => {
 		const systemGroup = adminNavigationGroups.find(
 			(group) => group.key === "system",
 		);
@@ -60,11 +60,26 @@ describe("admin route template", () => {
 			{ routeKey: "/organization/positions" },
 			{ routeKey: "/system/dictionaries" },
 			{ routeKey: "/system/announcements" },
-			{ routeKey: "/operations/login-logs" },
-			{ routeKey: "/operations/audit-logs" },
 			{ routeKey: "/system/settings" },
-			{ routeKey: "/system/about" },
+			{
+				key: "system-logs",
+				titleKey: "adminShell.navigation.logs",
+				children: [
+					{ routeKey: "/operations/login-logs" },
+					{ routeKey: "/operations/audit-logs" },
+				],
+			},
 		]);
+	});
+
+	it("keeps the about page outside the system group without changing its URL", () => {
+		const route = getAdminRouteMetadata("/system/about");
+		expect(route).toMatchObject({
+			groupKey: "about",
+			key: "/system/about",
+			sectionKey: "adminShell.navigation.about",
+		});
+		expect(getAdminRouteOpenKeys(route)).toEqual([]);
 	});
 
 	it.each(["/operations/login-logs", "/operations/audit-logs"])(
@@ -78,7 +93,7 @@ describe("admin route template", () => {
 				requiredPermission: platformPermissions.logsRead,
 				sectionKey: "adminShell.navigation.system",
 			});
-			expect(getAdminRouteOpenKeys(route)).toEqual(["system"]);
+			expect(getAdminRouteOpenKeys(route)).toEqual(["system", "system-logs"]);
 		},
 	);
 
@@ -88,7 +103,10 @@ describe("admin route template", () => {
 		const forbiddenRoute = getAdminRouteMetadata("/exception/403");
 
 		expect(getAdminRouteOpenKeys(usersRoute)).toEqual(["system"]);
-		expect(getAdminRouteOpenKeys(auditRoute)).toEqual(["system"]);
+		expect(getAdminRouteOpenKeys(auditRoute)).toEqual([
+			"system",
+			"system-logs",
+		]);
 		expect(getAdminRouteOpenKeys(forbiddenRoute)).toEqual([]);
 		expect(getAdminRouteMetadata("/examples/forms/basic").key).toBe(
 			"/exception/404",

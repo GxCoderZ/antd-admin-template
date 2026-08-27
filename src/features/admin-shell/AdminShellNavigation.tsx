@@ -21,12 +21,14 @@ import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from "react-router";
 
 import {
+	aboutPath,
 	adminCollapsibleSidebarGroupKeys,
 	adminNavigationGroupByKey,
 	adminNavigationGroups,
 	adminRouteByPath,
 	dashboardPath,
 	getAdminRouteMetadata,
+	getAdminRouteNavigationParents,
 	getAdminRouteOpenKeys,
 	type AdminGroupIconKey,
 	type AdminNavigationNode,
@@ -171,12 +173,17 @@ export function AdminShellNavigation({
 				return;
 			}
 
+			const children = node.children
+				? createNavigationItems(node.children)
+				: [];
+			if (children.length === 0) {
+				return;
+			}
+
 			items.push({
 				key: node.key,
 				label: t(node.titleKey),
-				children: node.children
-					? createNavigationItems(node.children)
-					: undefined,
+				children,
 			});
 		});
 
@@ -187,6 +194,12 @@ export function AdminShellNavigation({
 		key: dashboardRoute.key,
 		icon: <AdminRouteIcon iconKey="dashboard" />,
 		label: t(dashboardRoute.titleKey),
+	};
+	const aboutRoute = getAdminRouteMetadata(aboutPath);
+	const aboutNavigationItem = {
+		key: aboutRoute.key,
+		icon: <AdminRouteIcon iconKey="about" />,
+		label: t(aboutRoute.titleKey),
 	};
 	const navigationItemsByGroup = new Map<
 		string,
@@ -208,6 +221,7 @@ export function AdminShellNavigation({
 			label: t(group.titleKey),
 			children: navigationItemsByGroup.get(group.key) ?? [],
 		})),
+		aboutNavigationItem,
 	];
 	const topLevelNavigationItems: NonNullable<MenuProps["items"]> = [
 		{ ...dashboardNavigationItem, key: "dashboard" },
@@ -216,12 +230,14 @@ export function AdminShellNavigation({
 			icon: groupIconByKey[group.iconKey],
 			label: t(group.titleKey),
 		})),
+		{ ...aboutNavigationItem, key: "about" },
 	];
 	const mixedSidebarItemsByGroup = new Map<
 		string,
 		NonNullable<MenuProps["items"]>
 	>([
 		["dashboard", [dashboardNavigationItem]],
+		["about", [aboutNavigationItem]],
 		...visibleNavigationGroups.map(
 			(group) =>
 				[group.key, navigationItemsByGroup.get(group.key) ?? []] as const,
@@ -239,11 +255,13 @@ export function AdminShellNavigation({
 		}
 	};
 	const openNavigationGroup = (groupKey: string) => {
+		const standaloneRoute = [dashboardRoute, aboutRoute].find(
+			(route) => route.groupKey === groupKey,
+		);
 		const nextPath =
-			groupKey === "dashboard"
-				? dashboardPath
-				: adminNavigationGroups.find((group) => group.key === groupKey)
-						?.defaultRouteKey;
+			standaloneRoute?.key ??
+			adminNavigationGroups.find((group) => group.key === groupKey)
+				?.defaultRouteKey;
 
 		if (nextPath) {
 			openRouteTab(nextPath);
@@ -300,9 +318,12 @@ export function AdminShellNavigation({
 			? currentPage.titleKey
 			: currentPage.sectionKey;
 	const breadcrumbItems = [
-		...(currentPage.groupKey === "dashboard"
+		...(currentPage.sectionKey === currentPage.titleKey
 			? []
 			: [{ title: t(currentPage.sectionKey) }]),
+		...getAdminRouteNavigationParents(currentPage).flatMap((node) =>
+			node.titleKey ? [{ title: t(node.titleKey) }] : [],
+		),
 		{ title: t(currentPage.titleKey) },
 	];
 	const renderSidebarLogo = (compact: boolean) => (

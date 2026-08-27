@@ -3,9 +3,10 @@ import type { ComponentType } from "react";
 import { platformPermissions, type PlatformPermission } from "./permissions";
 
 export const dashboardPath = "/dashboard";
+export const aboutPath = "/system/about";
 
 export type AdminRouteGroupKey =
-	"dashboard" | "exceptions" | "system" | "account";
+	"dashboard" | "exceptions" | "system" | "account" | "about";
 
 export type AdminRouteIconKey =
 	| "dashboard"
@@ -41,7 +42,6 @@ export interface AdminRouteMetadata {
 	iconKey?: AdminRouteIconKey;
 	key: string;
 	lazy: () => Promise<LazyAdminRouteModule>;
-	navigationParentKeys?: readonly string[];
 	requiredPermission?: PlatformPermission;
 	sectionKey: string;
 	titleKey: string;
@@ -57,7 +57,10 @@ export interface AdminNavigationNode {
 export interface AdminNavigationGroup {
 	defaultRouteKey: string;
 	iconKey: AdminGroupIconKey;
-	key: Exclude<AdminRouteGroupKey, "dashboard" | "account" | "exceptions">;
+	key: Exclude<
+		AdminRouteGroupKey,
+		"dashboard" | "account" | "exceptions" | "about"
+	>;
 	nodes: readonly AdminNavigationNode[];
 	titleKey: string;
 }
@@ -269,11 +272,11 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.settings",
 	},
 	{
-		groupKey: "system",
+		groupKey: "about",
 		iconKey: "about",
-		key: "/system/about",
+		key: aboutPath,
 		lazy: loadAboutSystemPage,
-		sectionKey: "adminShell.navigation.system",
+		sectionKey: "adminShell.navigation.about",
 		titleKey: "adminShell.navigation.about",
 	},
 	{
@@ -338,10 +341,15 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/organization/positions" },
 			{ routeKey: "/system/dictionaries" },
 			{ routeKey: "/system/announcements" },
-			{ routeKey: "/operations/login-logs" },
-			{ routeKey: "/operations/audit-logs" },
 			{ routeKey: "/system/settings" },
-			{ routeKey: "/system/about" },
+			{
+				key: "system-logs",
+				titleKey: "adminShell.navigation.logs",
+				children: [
+					{ routeKey: "/operations/login-logs" },
+					{ routeKey: "/operations/audit-logs" },
+				],
+			},
 		],
 		titleKey: "adminShell.navigation.system",
 	},
@@ -371,8 +379,6 @@ export const adminNavigationGroupByKey = new Map<
 export const adminCollapsibleSidebarGroupKeys = adminNavigationGroups.map(
 	(group) => group.key,
 );
-const adminCollapsibleRouteGroupKeys: readonly AdminRouteGroupKey[] =
-	adminCollapsibleSidebarGroupKeys;
 
 export function getAdminRouteMetadata(pathname: string) {
 	return (
@@ -380,12 +386,36 @@ export function getAdminRouteMetadata(pathname: string) {
 	);
 }
 
+export function getAdminRouteNavigationParents(route: AdminRouteMetadata) {
+	const group = adminNavigationGroupByKey.get(route.groupKey);
+	const findParents = (
+		nodes: readonly AdminNavigationNode[],
+	): AdminNavigationNode[] | undefined => {
+		for (const node of nodes) {
+			if (node.routeKey === route.key) {
+				return [];
+			}
+			if (node.children) {
+				const parents = findParents(node.children);
+				if (parents) {
+					return [node, ...parents];
+				}
+			}
+		}
+	};
+
+	return group ? (findParents(group.nodes) ?? []) : [];
+}
+
 export function getAdminRouteOpenKeys(route: AdminRouteMetadata) {
-	if (route.groupKey === "dashboard" || route.groupKey === "account") {
+	if (!adminNavigationGroupByKey.has(route.groupKey)) {
 		return [];
 	}
 
-	return adminCollapsibleRouteGroupKeys.includes(route.groupKey)
-		? [route.groupKey, ...(route.navigationParentKeys ?? [])]
-		: [...(route.navigationParentKeys ?? [])];
+	return [
+		route.groupKey,
+		...getAdminRouteNavigationParents(route).flatMap((node) =>
+			node.key ? [node.key] : [],
+		),
+	];
 }

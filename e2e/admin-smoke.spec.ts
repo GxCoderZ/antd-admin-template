@@ -462,6 +462,7 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 		page.getByRole("button", { name: "删除" }).first(),
 	).toBeVisible();
 
+	await page.getByRole("menuitem", { name: "日志管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "操作审计", exact: true }).click();
 	await expect(
 		page.getByRole("button", { name: /查看日志/ }).first(),
