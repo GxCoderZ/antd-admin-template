@@ -26,7 +26,7 @@ import {
 } from "antd";
 import type { DescriptionsProps } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
@@ -94,18 +94,6 @@ interface DictionariesPageProps {
 export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const workspaceRef = useRef<HTMLDivElement>(null);
-	const completeQueryPanelWidth =
-		token.screenMDMin + token.paddingLG * 2 + token.marginXXS;
-	const splitLayoutThreshold = completeQueryPanelWidth * 2 + token.marginLG;
-	const [splitLayout, setSplitLayout] = useState(() => {
-		const initialWidth =
-			typeof document === "undefined"
-				? splitLayoutThreshold
-				: document.body.clientWidth || splitLayoutThreshold;
-
-		return initialWidth >= splitLayoutThreshold;
-	});
 	const queryClient = useQueryClient();
 	const [messageApi, messageContext] = message.useMessage();
 	const formatPreferences = useLocalePreferences();
@@ -138,10 +126,10 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		routeKey: dictionariesRouteKey,
 		stateKey: "selected-type",
 	});
-	const [mobilePane, setMobilePane] = useRouteSessionState<"types" | "items">({
+	const [activePane, setActivePane] = useRouteSessionState<"types" | "items">({
 		initialState: "types",
 		routeKey: dictionariesRouteKey,
-		stateKey: "mobile-pane",
+		stateKey: "active-pane",
 	});
 	const [typeFormOpen, setTypeFormOpen] = useState(false);
 	const [itemFormOpen, setItemFormOpen] = useState(false);
@@ -165,27 +153,6 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		useQuerySubmission();
 	const { revision: itemRevision, submit: submitItemQuery } =
 		useQuerySubmission();
-	useEffect(() => {
-		const workspace = workspaceRef.current;
-
-		if (!workspace) {
-			return undefined;
-		}
-
-		const updateSplitLayout = (width: number) => {
-			if (width > token.margin + token.lineWidth) {
-				setSplitLayout(width >= splitLayoutThreshold);
-			}
-		};
-		const observer = new ResizeObserver(([entry]) => {
-			updateSplitLayout(entry?.contentRect.width ?? 0);
-		});
-
-		updateSplitLayout(workspace.getBoundingClientRect().width);
-		observer.observe(workspace);
-
-		return () => observer.disconnect();
-	}, [splitLayoutThreshold, token.lineWidth, token.margin]);
 	const typeQueryParams = useMemo<ListPlatformDictionaryTypesInput>(() => {
 		const q = typeFilters.q?.trim();
 		const params: ListPlatformDictionaryTypesInput = {
@@ -284,11 +251,9 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		(typeId: string) => {
 			setSelectedTypeId(typeId);
 			resetItemTablePage();
-			if (!splitLayout) {
-				setMobilePane("items");
-			}
+			setActivePane("items");
 		},
-		[resetItemTablePage, setMobilePane, setSelectedTypeId, splitLayout],
+		[resetItemTablePage, setActivePane, setSelectedTypeId],
 	);
 	const saveTypeMutation = useMutation({
 		mutationFn: (input: CreatePlatformDictionaryTypeInput) =>
@@ -687,164 +652,145 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			sort: nextSorting.sort,
 		});
 	};
-	const typePanelStyle = splitLayout
-		? { flex: `0 0 ${completeQueryPanelWidth}px`, minWidth: 0 }
-		: { minWidth: 0 };
-	const itemPanelStyle = splitLayout
-		? { flex: "1 1 0", minWidth: 0 }
-		: { minWidth: 0 };
 	const typePanel = (
-		<div style={typePanelStyle}>
-			<LogTablePanel<PlatformDictionaryType>
-				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
-					"dictionary-types",
-				)}
-				columnVisibility={typeColumnVisibility}
-				columns={typeColumns}
-				dataSource={typeQuery.data?.items ?? []}
-				emptyText={t("adminShell.dictionaries.typeEmpty")}
-				error={typeQuery.error}
-				errorFallback={t("adminShell.dictionaries.errors.fallback")}
-				errorTitle={t("adminShell.dictionaries.errors.load")}
-				initialLoading={typeQuery.isPending}
-				minimumWidth={token.controlHeight * 24}
-				onPageChange={(page, pageSize) =>
-					setTypeTableState((currentState) => ({
-						...currentState,
-						page,
-						pageSize,
-					}))
-				}
-				onReload={() => void typeQuery.refetch()}
-				onTableChange={handleTypeTableChange}
-				page={typeQuery.data?.page ?? typeTableState.page}
-				pageSize={typeQuery.data?.pageSize ?? typeTableState.pageSize}
-				primaryAction={
-					canManage ? (
-						<Button
-							icon={<PlusOutlined aria-hidden />}
-							onClick={() => {
-								saveTypeMutation.reset();
-								setEditingType(null);
-								setTypeFormOpen(true);
-							}}
-							type="primary"
-						>
-							{t("adminShell.dictionaries.createType")}
-						</Button>
-					) : undefined
-				}
-				queryPanel={
-					<TypeQueryPanel
-						initialFilters={defaultTypeFilters}
-						loading={typeQuery.isFetching && !typeQuery.isPending}
-						onApply={(filters) => {
-							setTypeFilters(filters);
-							resetTypeTablePage();
+		<LogTablePanel<PlatformDictionaryType>
+			columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+				"dictionary-types",
+			)}
+			columnVisibility={typeColumnVisibility}
+			columns={typeColumns}
+			dataSource={typeQuery.data?.items ?? []}
+			emptyText={t("adminShell.dictionaries.typeEmpty")}
+			error={typeQuery.error}
+			errorFallback={t("adminShell.dictionaries.errors.fallback")}
+			errorTitle={t("adminShell.dictionaries.errors.load")}
+			initialLoading={typeQuery.isPending}
+			minimumWidth={token.controlHeight * 24}
+			onPageChange={(page, pageSize) =>
+				setTypeTableState((currentState) => ({
+					...currentState,
+					page,
+					pageSize,
+				}))
+			}
+			onReload={() => void typeQuery.refetch()}
+			onTableChange={handleTypeTableChange}
+			page={typeQuery.data?.page ?? typeTableState.page}
+			pageSize={typeQuery.data?.pageSize ?? typeTableState.pageSize}
+			primaryAction={
+				canManage ? (
+					<Button
+						icon={<PlusOutlined aria-hidden />}
+						onClick={() => {
+							saveTypeMutation.reset();
+							setEditingType(null);
+							setTypeFormOpen(true);
 						}}
-						onReset={() => {
-							setTypeFilters(defaultTypeFilters);
-							resetTypeTablePage();
-						}}
-					/>
-				}
-				refreshing={typeQuery.isFetching && !typeQuery.isPending}
-				testId="admin-dictionaries-type-table"
-				title={t("adminShell.dictionaries.typeTableTitle")}
-				total={typeQuery.data?.total ?? 0}
-				workspaceTestId="admin-dictionaries-type-workspace"
-			/>
-		</div>
+						type="primary"
+					>
+						{t("adminShell.dictionaries.createType")}
+					</Button>
+				) : undefined
+			}
+			queryPanel={
+				<TypeQueryPanel
+					initialFilters={defaultTypeFilters}
+					loading={typeQuery.isFetching && !typeQuery.isPending}
+					onApply={(filters) => {
+						setTypeFilters(filters);
+						resetTypeTablePage();
+					}}
+					onReset={() => {
+						setTypeFilters(defaultTypeFilters);
+						resetTypeTablePage();
+					}}
+				/>
+			}
+			refreshing={typeQuery.isFetching && !typeQuery.isPending}
+			testId="admin-dictionaries-type-table"
+			title={t("adminShell.dictionaries.typeTableTitle")}
+			total={typeQuery.data?.total ?? 0}
+			workspaceTestId="admin-dictionaries-type-workspace"
+		/>
 	);
 	const itemPanel = (
-		<div style={itemPanelStyle}>
-			<LogTablePanel<PlatformDictionaryItem>
-				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
-					"dictionary-items",
-				)}
-				columnVisibility={itemColumnVisibility}
-				columns={itemColumns}
-				dataSource={itemQuery.data?.items ?? []}
-				description={
-					selectedType ? (
-						<Typography.Text type="secondary">
-							{t("adminShell.dictionaries.itemTableHint", {
-								name: selectedType.name,
-							})}
-						</Typography.Text>
-					) : (
-						<Typography.Text type="secondary">
-							{t("adminShell.dictionaries.noTypeSelected")}
-						</Typography.Text>
-					)
-				}
-				emptyText={t("adminShell.dictionaries.itemEmpty")}
-				error={itemQuery.error}
-				errorFallback={t("adminShell.dictionaries.errors.fallback")}
-				errorTitle={t("adminShell.dictionaries.errors.load")}
-				initialLoading={selectedType !== null && itemQuery.isPending}
-				minimumWidth={token.controlHeight * 30}
-				onPageChange={(page, pageSize) =>
-					setItemTableState((currentState) => ({
-						...currentState,
-						page,
-						pageSize,
-					}))
-				}
-				onReload={() => void itemQuery.refetch()}
-				onTableChange={handleItemTableChange}
-				page={itemQuery.data?.page ?? itemTableState.page}
-				pageSize={itemQuery.data?.pageSize ?? itemTableState.pageSize}
-				primaryAction={
-					canManage ? (
-						<Button
-							disabled={!selectedType}
-							icon={<PlusOutlined aria-hidden />}
-							onClick={() => {
-								saveItemMutation.reset();
-								setEditingItem(null);
-								setItemFormOpen(true);
-							}}
-							type="primary"
-						>
-							{t("adminShell.dictionaries.createItem")}
-						</Button>
-					) : undefined
-				}
-				queryPanel={
-					<ItemQueryPanel
-						initialFilters={defaultItemFilters}
-						loading={itemQuery.isFetching && !itemQuery.isPending}
-						onApply={(filters) => {
-							setItemFilters(filters);
-							resetItemTablePage();
+		<LogTablePanel<PlatformDictionaryItem>
+			columnSettingsStorageKey={getTableColumnSettingsStorageKey(
+				"dictionary-items",
+			)}
+			columnVisibility={itemColumnVisibility}
+			columns={itemColumns}
+			dataSource={itemQuery.data?.items ?? []}
+			description={
+				selectedType ? (
+					<Typography.Text type="secondary">
+						{t("adminShell.dictionaries.itemTableHint", {
+							name: selectedType.name,
+						})}
+					</Typography.Text>
+				) : (
+					<Typography.Text type="secondary">
+						{t("adminShell.dictionaries.noTypeSelected")}
+					</Typography.Text>
+				)
+			}
+			emptyText={t("adminShell.dictionaries.itemEmpty")}
+			error={itemQuery.error}
+			errorFallback={t("adminShell.dictionaries.errors.fallback")}
+			errorTitle={t("adminShell.dictionaries.errors.load")}
+			initialLoading={selectedType !== null && itemQuery.isPending}
+			minimumWidth={token.controlHeight * 30}
+			onPageChange={(page, pageSize) =>
+				setItemTableState((currentState) => ({
+					...currentState,
+					page,
+					pageSize,
+				}))
+			}
+			onReload={() => void itemQuery.refetch()}
+			onTableChange={handleItemTableChange}
+			page={itemQuery.data?.page ?? itemTableState.page}
+			pageSize={itemQuery.data?.pageSize ?? itemTableState.pageSize}
+			primaryAction={
+				canManage ? (
+					<Button
+						disabled={!selectedType}
+						icon={<PlusOutlined aria-hidden />}
+						onClick={() => {
+							saveItemMutation.reset();
+							setEditingItem(null);
+							setItemFormOpen(true);
 						}}
-						onReset={() => {
-							setItemFilters(defaultItemFilters);
-							resetItemTablePage();
-						}}
-					/>
-				}
-				refreshing={itemQuery.isFetching && !itemQuery.isPending}
-				testId="admin-dictionaries-item-table"
-				title={t("adminShell.dictionaries.itemTableTitle")}
-				total={itemQuery.data?.total ?? 0}
-				workspaceTestId="admin-dictionaries-item-workspace"
-			/>
-		</div>
+						type="primary"
+					>
+						{t("adminShell.dictionaries.createItem")}
+					</Button>
+				) : undefined
+			}
+			queryPanel={
+				<ItemQueryPanel
+					initialFilters={defaultItemFilters}
+					loading={itemQuery.isFetching && !itemQuery.isPending}
+					onApply={(filters) => {
+						setItemFilters(filters);
+						resetItemTablePage();
+					}}
+					onReset={() => {
+						setItemFilters(defaultItemFilters);
+						resetItemTablePage();
+					}}
+				/>
+			}
+			refreshing={itemQuery.isFetching && !itemQuery.isPending}
+			testId="admin-dictionaries-item-table"
+			title={t("adminShell.dictionaries.itemTableTitle")}
+			total={itemQuery.data?.total ?? 0}
+			workspaceTestId="admin-dictionaries-item-workspace"
+		/>
 	);
-	const dictionaryWorkspace = splitLayout ? (
-		<Flex
-			align="stretch"
-			data-testid="admin-dictionaries-master-detail"
-			gap={token.marginLG}
-		>
-			{typePanel}
-			{itemPanel}
-		</Flex>
-	) : (
+	const dictionaryWorkspace = (
 		<Tabs
-			activeKey={mobilePane}
+			activeKey={activePane}
 			data-testid="admin-dictionaries-master-detail"
 			destroyOnHidden={false}
 			items={[
@@ -861,7 +807,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			]}
 			onChange={(key) => {
 				if (key === "types" || key === "items") {
-					setMobilePane(key);
+					setActivePane(key);
 				}
 			}}
 		/>
@@ -870,7 +816,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	return (
 		<Flex gap={token.marginLG} vertical>
 			{messageContext}
-			<div ref={workspaceRef}>{dictionaryWorkspace}</div>
+			{dictionaryWorkspace}
 
 			<TypeFormDrawer
 				dictionaryType={editingType}

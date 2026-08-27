@@ -44,7 +44,7 @@ test("字典管理标准桌面端不把查询栏压到折叠布局", async ({ pa
 	).resolves.toBe(false);
 });
 
-test("字典管理宽屏端使用类型和字典项左右主从布局", async ({ page }) => {
+test("字典管理宽屏端仍使用标签布局", async ({ page }) => {
 	await page.setViewportSize({ height: 900, width: 2048 });
 	await signIn(page);
 	await navigateWithinAdmin(page, "/system/dictionaries");
@@ -52,23 +52,36 @@ test("字典管理宽屏端使用类型和字典项左右主从布局", async ({
 	const typeWorkspace = page.getByTestId("admin-dictionaries-type-workspace");
 	const itemWorkspace = page.getByTestId("admin-dictionaries-item-workspace");
 	await expect(typeWorkspace.getByRole("table")).toBeVisible();
-	await expect(itemWorkspace.getByRole("table")).toBeVisible();
+	await expect(itemWorkspace).not.toBeVisible();
 	await expect(
 		typeWorkspace.getByRole("combobox", { name: "状态" }),
 	).toBeVisible();
-	await expect(
-		itemWorkspace.getByRole("combobox", { name: "状态" }),
-	).toBeVisible();
+	await expect(page.getByRole("tab", { name: "字典类型" })).toHaveAttribute(
+		"aria-selected",
+		"true",
+	);
 
 	const typeBox = await typeWorkspace.boundingBox();
-	const itemBox = await itemWorkspace.boundingBox();
 
 	expect(typeBox).not.toBeNull();
+	expect(typeBox!.width).toBeGreaterThan(1600);
+
+	await typeWorkspace
+		.getByRole("row")
+		.filter({ hasText: "审批结果" })
+		.getByRole("button", { name: "管理字典项" })
+		.click();
+	await expect(page.getByRole("tab", { name: "字典项" })).toHaveAttribute(
+		"aria-selected",
+		"true",
+	);
+	await expect(itemWorkspace.getByRole("table")).toBeVisible();
+	await expect(typeWorkspace).not.toBeVisible();
+	await expect(itemWorkspace).toContainText("当前类型：审批结果");
+	const itemBox = await itemWorkspace.boundingBox();
+
 	expect(itemBox).not.toBeNull();
-	expect(itemBox!.x).toBeGreaterThan(typeBox!.x + typeBox!.width);
-	expect(Math.abs(itemBox!.y - typeBox!.y)).toBeLessThan(4);
-	expect(typeBox!.width).toBeGreaterThanOrEqual(760);
-	expect(itemBox!.width).toBeGreaterThanOrEqual(760);
+	expect(itemBox!.width).toBeGreaterThan(1600);
 	await expect(
 		page.evaluate(
 			() => document.documentElement.scrollWidth > window.innerWidth,
