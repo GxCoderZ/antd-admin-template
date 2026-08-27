@@ -1,3 +1,4 @@
+import { ProForm } from "@ant-design/pro-components";
 import {
 	CheckCircleOutlined,
 	DeleteOutlined,
@@ -8,7 +9,6 @@ import {
 import {
 	Alert,
 	Button,
-	Col,
 	Drawer,
 	Form,
 	Input,
@@ -32,10 +32,7 @@ import { useTranslation } from "react-i18next";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
-import {
-	useQueryFilterLayout,
-	useQuerySubmission,
-} from "../../app/queryFilterLayout";
+import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	TableActionButton,
@@ -127,10 +124,6 @@ export function DepartmentsPage() {
 	const [deletingDepartment, setDeletingDepartment] =
 		useState<PlatformDepartment | null>(null);
 	const querySubmission = useQuerySubmission();
-	const queryLayout = useQueryFilterLayout({
-		expanded: filtersExpanded,
-		fieldCount: 2,
-	});
 	const queryParams = useMemo(() => {
 		const name = filters.name?.trim();
 		return {
@@ -378,81 +371,69 @@ export function DepartmentsPage() {
 	);
 	const queryPanel = (
 		<LogQueryPanel<DepartmentFilterValues>
-			actionsTestId="admin-departments-query-actions"
-			canExpand={queryLayout.canExpand}
-			columnSpan={queryLayout.columnSpan}
-			containerRef={queryLayout.containerRef}
 			expanded={filtersExpanded}
 			form={filterForm}
-			formLayout={queryLayout.formLayout}
 			initialValues={defaultDepartmentFilterValues}
 			loading={departmentsQuery.isFetching && !departmentsQuery.isPending}
 			onFinish={applyFilters}
 			onReset={resetFilters}
-			onToggle={() => setFiltersExpanded((expanded) => !expanded)}
-			submitterOffset={queryLayout.submitterOffset}
+			onExpandedChange={setFiltersExpanded}
 			testId="admin-departments-query-form"
 		>
-			<Col span={queryLayout.columnSpan}>
-				<Form.Item
-					label={t("adminShell.departments.filters.name", {
-						defaultValue: "部门名称",
+			<ProForm.Item
+				key="name"
+				label={t("adminShell.departments.filters.name", {
+					defaultValue: "部门名称",
+				})}
+			>
+				<Input
+					allowClear
+					maxLength={80}
+					onChange={(event) =>
+						setDraftFilters((current) => ({
+							...current,
+							name: event.target.value,
+						}))
+					}
+					placeholder={t("adminShell.departments.placeholders.name", {
+						defaultValue: "搜索部门名称",
 					})}
-					style={{ marginBottom: 0 }}
-				>
-					<Input
-						allowClear
-						maxLength={80}
-						onChange={(event) =>
-							setDraftFilters((current) => ({
-								...current,
-								name: event.target.value,
-							}))
-						}
-						placeholder={t("adminShell.departments.placeholders.name", {
-							defaultValue: "搜索部门名称",
-						})}
-						value={draftFilters.name}
-					/>
-				</Form.Item>
-			</Col>
-			{filtersExpanded || queryLayout.collapsedFieldCount >= 2 ? (
-				<Col span={queryLayout.columnSpan}>
-					<Form.Item
-						label={t("adminShell.departments.filters.status", {
-							defaultValue: "状态",
-						})}
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							onChange={(status: DepartmentFilterValues["status"]) =>
-								setDraftFilters((current) => ({ ...current, status }))
-							}
-							options={[
-								{
-									label: t("adminShell.departments.allStatuses", {
-										defaultValue: "全部状态",
-									}),
-									value: "all",
-								},
-								{
-									label: t("adminShell.departments.statuses.active", {
-										defaultValue: "启用",
-									}),
-									value: "active",
-								},
-								{
-									label: t("adminShell.departments.statuses.disabled", {
-										defaultValue: "停用",
-									}),
-									value: "disabled",
-								},
-							]}
-							value={draftFilters.status}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
+					value={draftFilters.name}
+				/>
+			</ProForm.Item>
+			<ProForm.Item
+				key="status"
+				label={t("adminShell.departments.filters.status", {
+					defaultValue: "状态",
+				})}
+			>
+				<Select
+					onChange={(status: DepartmentFilterValues["status"]) =>
+						setDraftFilters((current) => ({ ...current, status }))
+					}
+					options={[
+						{
+							label: t("adminShell.departments.allStatuses", {
+								defaultValue: "全部状态",
+							}),
+							value: "all",
+						},
+						{
+							label: t("adminShell.departments.statuses.active", {
+								defaultValue: "启用",
+							}),
+							value: "active",
+						},
+						{
+							label: t("adminShell.departments.statuses.disabled", {
+								defaultValue: "停用",
+							}),
+							value: "disabled",
+						},
+					]}
+					value={draftFilters.status}
+				/>
+			</ProForm.Item>
 		</LogQueryPanel>
 	);
 

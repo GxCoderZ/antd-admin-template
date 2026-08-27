@@ -1,30 +1,23 @@
 import {
 	ColumnHeightOutlined,
-	DownOutlined,
 	ReloadOutlined,
 	SettingOutlined,
-	UpOutlined,
 } from "@ant-design/icons";
-import { ListToolBar } from "@ant-design/pro-components";
+import { ListToolBar, QueryFilter } from "@ant-design/pro-components";
 import { ApiProblemError } from "#src/api/client";
 import {
 	Alert,
 	Button,
 	Card,
 	Checkbox,
-	Col,
 	Descriptions,
 	Drawer,
 	Dropdown,
 	Flex,
-	Form,
 	Popover,
-	Row,
-	Space,
 	Table,
 	theme,
 	Tooltip,
-	Typography,
 } from "antd";
 import type {
 	DescriptionsProps,
@@ -35,7 +28,7 @@ import type {
 	TableColumnsType,
 	TableProps,
 } from "antd";
-import type { ReactNode, RefObject } from "react";
+import type { ReactNode } from "react";
 import { useMemo, useRef, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -45,13 +38,12 @@ import {
 	subscribeToPreferenceChanges,
 	writeUserTableDensityPreference,
 } from "../../app/preferenceStorage";
-import { QueryFilterSubmitter } from "../../app/QueryFilterSubmitter";
+import { managementQueryLayout } from "../../app/queryFilterLayout";
 import {
 	type ResponsiveTableColumnConfig,
 	useResponsiveTableColumns,
 } from "../../app/tableColumnVisibility";
 
-const { Link } = Typography;
 const pageSizeOptions = [10, 20, 50, 100];
 
 export const defaultLogPageSize = 10;
@@ -61,21 +53,15 @@ function getProblemDetail(error: unknown) {
 }
 
 interface LogQueryPanelProps<Values extends object> {
-	actionsTestId: string;
-	canExpand: boolean;
 	children: ReactNode;
-	columnSpan: number;
-	containerRef: RefObject<HTMLDivElement | null>;
 	expanded: boolean;
 	form: FormInstance<Values>;
-	formLayout: NonNullable<FormProps["layout"]>;
 	initialValues: NonNullable<FormProps<Values>["initialValues"]>;
 	loading: boolean;
+	onExpandedChange: (expanded: boolean) => void;
 	onFinish: (values: Values) => void;
 	onReset: () => void;
-	onToggle: () => void;
 	onValuesChange?: FormProps<Values>["onValuesChange"];
-	submitterOffset: number;
 	testId: string;
 }
 
@@ -118,127 +104,44 @@ interface LogDetailsDrawerProps {
 	title: string;
 }
 
-interface LogQueryActionsProps {
-	canExpand: boolean;
-	expanded: boolean;
-	loading: boolean;
-	onReset: () => void;
-	onToggle: () => void;
-}
-
-function LogQueryActions({
-	canExpand,
+export function LogQueryPanel<Values extends object>({
+	children,
 	expanded,
+	form,
+	initialValues,
 	loading,
+	onExpandedChange,
+	onFinish,
 	onReset,
-	onToggle,
-}: LogQueryActionsProps) {
+	onValuesChange,
+	testId,
+}: LogQueryPanelProps<Values>) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 
 	return (
-		<Space size={token.margin}>
-			<QueryFilterSubmitter
-				loading={loading}
-				onReset={onReset}
-				queryText={t("adminShell.logs.common.query")}
-				resetText={t("adminShell.logs.common.reset")}
-			/>
-			{canExpand ? (
-				<Link
-					aria-expanded={expanded}
-					href="#"
-					onClick={(event) => {
-						event.preventDefault();
-						onToggle();
-					}}
-				>
-					{t(`adminShell.logs.common.${expanded ? "collapse" : "expand"}`)}
-					{expanded ? (
-						<UpOutlined
-							aria-hidden
-							style={{ marginInlineStart: token.marginXXS }}
-						/>
-					) : (
-						<DownOutlined
-							aria-hidden
-							style={{ marginInlineStart: token.marginXXS }}
-						/>
-					)}
-				</Link>
-			) : null}
-		</Space>
-	);
-}
-
-export function LogQueryPanel<Values extends object>({
-	actionsTestId,
-	canExpand,
-	children,
-	columnSpan,
-	containerRef,
-	expanded,
-	form,
-	formLayout,
-	initialValues,
-	loading,
-	onFinish,
-	onReset,
-	onToggle,
-	onValuesChange,
-	submitterOffset,
-	testId,
-}: LogQueryPanelProps<Values>) {
-	const { token } = theme.useToken();
-
-	return (
-		<Card>
-			<div ref={containerRef}>
-				<Form<Values>
-					data-testid={testId}
-					form={form}
-					initialValues={initialValues}
-					{...(formLayout === "horizontal"
-						? {
-								labelCol: { flex: `0 0 ${token.controlHeightLG * 2}px` },
-								wrapperCol: {
-									style: {
-										maxWidth: `calc(100% - ${token.controlHeightLG * 2}px)`,
-									},
-								},
-							}
-						: {})}
-					layout={formLayout}
-					onFinish={onFinish}
-					onValuesChange={onValuesChange}
-				>
-					<Row gutter={token.marginLG} justify="start">
-						{children}
-						<Col
-							data-testid={actionsTestId}
-							offset={submitterOffset}
-							span={columnSpan}
-							style={{ textAlign: "end" }}
-						>
-							<Form.Item
-								colon={false}
-								label=" "
-								shouldUpdate={false}
-								style={{ marginBottom: 0, width: "100%" }}
-							>
-								<LogQueryActions
-									canExpand={canExpand}
-									expanded={expanded}
-									loading={loading}
-									onReset={onReset}
-									onToggle={onToggle}
-								/>
-							</Form.Item>
-						</Col>
-					</Row>
-				</Form>
-			</div>
-		</Card>
+		<QueryFilter<Values>
+			{...managementQueryLayout}
+			autoFocusFirstInput={false}
+			collapsed={!expanded}
+			data-testid={testId}
+			dateFormatter={false}
+			form={form}
+			initialValues={initialValues}
+			onCollapse={(collapsed) => onExpandedChange(!collapsed)}
+			onFinish={onFinish}
+			onReset={onReset}
+			onValuesChange={onValuesChange}
+			resetText={t("adminShell.logs.common.reset")}
+			searchText={t("adminShell.logs.common.query")}
+			style={{
+				background: token.colorBgContainer,
+				borderRadius: token.borderRadiusLG,
+			}}
+			submitter={{ submitButtonProps: { loading } }}
+		>
+			{children}
+		</QueryFilter>
 	);
 }
 
@@ -433,7 +336,7 @@ export function LogTablePanel<Row extends { id: string }>({
 	return (
 		<Flex
 			data-testid={workspaceTestId}
-			gap={token.marginLG}
+			gap={token.margin}
 			ref={workspaceRef}
 			vertical
 		>
@@ -465,7 +368,9 @@ export function LogTablePanel<Row extends { id: string }>({
 					</Flex>
 				) : null}
 				{error ? (
-					<div style={{ marginBlockStart: hasLeadingContent ? 0 : token.marginLG }}>
+					<div
+						style={{ marginBlockStart: hasLeadingContent ? 0 : token.marginLG }}
+					>
 						<Alert
 							action={
 								<Button onClick={onReload}>

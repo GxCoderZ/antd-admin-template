@@ -241,14 +241,6 @@ describe("DictionariesPage", () => {
 		expect(
 			screen.getByTestId("admin-dictionaries-type-query-form"),
 		).toBeVisible();
-		expect(
-			screen.getByTestId("admin-dictionaries-type-query-actions"),
-		).toBeVisible();
-		expect(
-			within(screen.getByTestId("admin-dictionaries-type-table")).getByText(
-				"新建字典类型",
-			),
-		).toBeVisible();
 		expect(screen.getByRole("tab", { name: "字典类型" })).toHaveAttribute(
 			"aria-selected",
 			"true",
@@ -257,7 +249,11 @@ describe("DictionariesPage", () => {
 			screen.queryByTestId("admin-dictionaries-item-query-form"),
 		).not.toBeInTheDocument();
 
-		fireEvent.click(screen.getByRole("button", { name: "管理项" }));
+		fireEvent.click(
+			within(screen.getByTestId("admin-dictionaries-type-table")).getByText(
+				"管理项",
+			),
+		);
 
 		expect(screen.getByRole("tab", { name: "字典项" })).toHaveAttribute(
 			"aria-selected",
@@ -267,13 +263,8 @@ describe("DictionariesPage", () => {
 			screen.getByTestId("admin-dictionaries-item-query-form"),
 		).toBeVisible();
 		expect(
-			screen.getByTestId("admin-dictionaries-item-query-actions"),
-		).toBeVisible();
-		expect(
-			within(screen.getByTestId("admin-dictionaries-item-table")).getByText(
-				"新建字典项",
-			),
-		).toBeVisible();
+			screen.queryByTestId("admin-dictionaries-type-query-form"),
+		).not.toBeInTheDocument();
 	});
 
 	it("submits dictionary type keyword filters through the API", async () => {
@@ -285,7 +276,7 @@ describe("DictionariesPage", () => {
 		});
 		fireEvent.click(
 			within(
-				screen.getByTestId("admin-dictionaries-type-query-actions"),
+				screen.getByTestId("admin-dictionaries-type-query-form"),
 			).getByRole("button", { name: /查\s*询/ }),
 		);
 

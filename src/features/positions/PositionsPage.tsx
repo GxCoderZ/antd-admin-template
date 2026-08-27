@@ -1,3 +1,4 @@
+import { ProForm } from "@ant-design/pro-components";
 import {
 	CheckCircleOutlined,
 	DeleteOutlined,
@@ -8,7 +9,6 @@ import {
 import {
 	Alert,
 	Button,
-	Col,
 	Drawer,
 	Form,
 	Input,
@@ -33,10 +33,7 @@ import { useTranslation } from "react-i18next";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
-import {
-	useQueryFilterLayout,
-	useQuerySubmission,
-} from "../../app/queryFilterLayout";
+import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
 import { resolveTableSort } from "../../app/tableSorting";
 import {
@@ -85,15 +82,16 @@ const defaultPositionTableState: PositionTableState = {
 	sort: "updated_at",
 };
 const formId = "position-form";
-const positionColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
-	{ key: "name", priority: "compact", required: true },
-	{ key: "code", priority: "regular" },
-	{ key: "departmentName", priority: "regular" },
-	{ key: "status", priority: "compact" },
-	{ key: "memberCount", priority: "spacious" },
-	{ key: "updatedAt", priority: "optional" },
-	{ key: "actions", priority: "compact", required: true },
-];
+const positionColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
+	[
+		{ key: "name", priority: "compact", required: true },
+		{ key: "code", priority: "regular" },
+		{ key: "departmentName", priority: "regular" },
+		{ key: "status", priority: "compact" },
+		{ key: "memberCount", priority: "spacious" },
+		{ key: "updatedAt", priority: "optional" },
+		{ key: "actions", priority: "compact", required: true },
+	];
 const tableSortToContractSort: Record<
 	string,
 	NonNullable<ListPlatformPositionsInput["sort"]>
@@ -152,22 +150,17 @@ export function PositionsPage() {
 		routeKey: positionsRouteKey,
 		stateKey: "query-expanded",
 	});
-	const [tableState, setTableState] =
-		useRouteSessionState<PositionTableState>({
-			initialState: defaultPositionTableState,
-			routeKey: positionsRouteKey,
-			stateKey: "table",
-		});
+	const [tableState, setTableState] = useRouteSessionState<PositionTableState>({
+		initialState: defaultPositionTableState,
+		routeKey: positionsRouteKey,
+		stateKey: "table",
+	});
 	const [creatingPosition, setCreatingPosition] = useState(false);
 	const [editingPosition, setEditingPosition] =
 		useState<PlatformPosition | null>(null);
 	const [deletingPosition, setDeletingPosition] =
 		useState<PlatformPosition | null>(null);
 	const querySubmission = useQuerySubmission();
-	const queryLayout = useQueryFilterLayout({
-		expanded: filtersExpanded,
-		fieldCount: 4,
-	});
 	const departmentsQuery = useQuery({
 		placeholderData: keepPreviousData,
 		queryFn: ({ signal }) => listPlatformDepartments({}, signal),
@@ -463,136 +456,116 @@ export function PositionsPage() {
 	);
 	const queryPanel = (
 		<LogQueryPanel<PositionFilterValues>
-			actionsTestId="admin-positions-query-actions"
-			canExpand={queryLayout.canExpand}
-			columnSpan={queryLayout.columnSpan}
-			containerRef={queryLayout.containerRef}
 			expanded={filtersExpanded}
 			form={filterForm}
-			formLayout={queryLayout.formLayout}
 			initialValues={defaultPositionFilterValues}
 			loading={positionsQuery.isFetching && !positionsQuery.isPending}
 			onFinish={applyFilters}
 			onReset={resetFilters}
-			onToggle={() => setFiltersExpanded((expanded) => !expanded)}
-			submitterOffset={queryLayout.submitterOffset}
+			onExpandedChange={setFiltersExpanded}
 			testId="admin-positions-query-form"
 		>
-			<Col span={queryLayout.columnSpan}>
-				<Form.Item
-					label={t("adminShell.positions.filters.name", {
-						defaultValue: "岗位名称",
+			<ProForm.Item
+				key="name"
+				label={t("adminShell.positions.filters.name", {
+					defaultValue: "岗位名称",
+				})}
+			>
+				<Input
+					allowClear
+					maxLength={80}
+					onChange={(event) =>
+						setDraftFilters((current) => ({
+							...current,
+							name: event.target.value,
+						}))
+					}
+					placeholder={t("adminShell.positions.placeholders.name", {
+						defaultValue: "搜索岗位名称",
 					})}
-					style={{ marginBottom: 0 }}
-				>
-					<Input
-						allowClear
-						maxLength={80}
-						onChange={(event) =>
-							setDraftFilters((current) => ({
-								...current,
-								name: event.target.value,
-							}))
-						}
-						placeholder={t("adminShell.positions.placeholders.name", {
-							defaultValue: "搜索岗位名称",
-						})}
-						value={draftFilters.name}
-					/>
-				</Form.Item>
-			</Col>
-			{filtersExpanded || queryLayout.collapsedFieldCount >= 2 ? (
-				<Col span={queryLayout.columnSpan}>
-					<Form.Item
-						label={t("adminShell.positions.filters.code", {
-							defaultValue: "岗位标识",
-						})}
-						style={{ marginBottom: 0 }}
-					>
-						<Input
-							allowClear
-							maxLength={64}
-							onChange={(event) =>
-								setDraftFilters((current) => ({
-									...current,
-									code: event.target.value,
-								}))
+					value={draftFilters.name}
+				/>
+			</ProForm.Item>
+			<ProForm.Item
+				key="code"
+				label={t("adminShell.positions.filters.code", {
+					defaultValue: "岗位标识",
+				})}
+			>
+				<Input
+					allowClear
+					maxLength={64}
+					onChange={(event) =>
+						setDraftFilters((current) => ({
+							...current,
+							code: event.target.value,
+						}))
+					}
+					placeholder={t("adminShell.positions.placeholders.codeFilter", {
+						defaultValue: "搜索岗位标识",
+					})}
+					value={draftFilters.code}
+				/>
+			</ProForm.Item>
+			<ProForm.Item
+				key="departmentId"
+				label={t("adminShell.positions.filters.department", {
+					defaultValue: "所属部门",
+				})}
+			>
+				<Select
+					allowClear
+					onChange={(departmentId?: string) =>
+						setDraftFilters((current) => {
+							const nextFilters = { ...current };
+							if (departmentId) {
+								nextFilters.departmentId = departmentId;
+							} else {
+								delete nextFilters.departmentId;
 							}
-							placeholder={t("adminShell.positions.placeholders.codeFilter", {
-								defaultValue: "搜索岗位标识",
-							})}
-							value={draftFilters.code}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
-			{filtersExpanded || queryLayout.collapsedFieldCount >= 3 ? (
-				<Col span={queryLayout.columnSpan}>
-					<Form.Item
-						label={t("adminShell.positions.filters.department", {
-							defaultValue: "所属部门",
-						})}
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							allowClear
-							onChange={(departmentId?: string) =>
-								setDraftFilters((current) => {
-									const nextFilters = { ...current };
-									if (departmentId) {
-										nextFilters.departmentId = departmentId;
-									} else {
-										delete nextFilters.departmentId;
-									}
-									return nextFilters;
-								})
-							}
-							options={departmentOptions}
-							placeholder={t("adminShell.positions.placeholders.department", {
-								defaultValue: "选择所属部门",
-							})}
-							value={draftFilters.departmentId}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
-			{filtersExpanded || queryLayout.collapsedFieldCount >= 4 ? (
-				<Col span={queryLayout.columnSpan}>
-					<Form.Item
-						label={t("adminShell.positions.filters.status", {
-							defaultValue: "状态",
-						})}
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							onChange={(status: PositionFilterValues["status"]) =>
-								setDraftFilters((current) => ({ ...current, status }))
-							}
-							options={[
-								{
-									label: t("adminShell.positions.allStatuses", {
-										defaultValue: "全部状态",
-									}),
-									value: "all",
-								},
-								{
-									label: t("adminShell.positions.statuses.active", {
-										defaultValue: "启用",
-									}),
-									value: "active",
-								},
-								{
-									label: t("adminShell.positions.statuses.disabled", {
-										defaultValue: "停用",
-									}),
-									value: "disabled",
-								},
-							]}
-							value={draftFilters.status}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
+							return nextFilters;
+						})
+					}
+					options={departmentOptions}
+					placeholder={t("adminShell.positions.placeholders.department", {
+						defaultValue: "选择所属部门",
+					})}
+					value={draftFilters.departmentId}
+				/>
+			</ProForm.Item>
+			<ProForm.Item
+				key="status"
+				label={t("adminShell.positions.filters.status", {
+					defaultValue: "状态",
+				})}
+			>
+				<Select
+					onChange={(status: PositionFilterValues["status"]) =>
+						setDraftFilters((current) => ({ ...current, status }))
+					}
+					options={[
+						{
+							label: t("adminShell.positions.allStatuses", {
+								defaultValue: "全部状态",
+							}),
+							value: "all",
+						},
+						{
+							label: t("adminShell.positions.statuses.active", {
+								defaultValue: "启用",
+							}),
+							value: "active",
+						},
+						{
+							label: t("adminShell.positions.statuses.disabled", {
+								defaultValue: "停用",
+							}),
+							value: "disabled",
+						},
+					]}
+					value={draftFilters.status}
+				/>
+			</ProForm.Item>
 		</LogQueryPanel>
 	);
 

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -109,7 +109,12 @@ describe("PositionsPage", () => {
 
 		await screen.findByText("运营专员");
 		expect(screen.getByTestId("admin-positions-query-form")).toBeVisible();
-		expect(screen.getByTestId("admin-positions-query-actions")).toBeVisible();
+		expect(
+			within(screen.getByTestId("admin-positions-query-form")).getByRole(
+				"button",
+				{ name: /查\s*询/ },
+			),
+		).toBeVisible();
 		for (const actionName of ["刷新", "表格密度", "列设置"]) {
 			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
 		}

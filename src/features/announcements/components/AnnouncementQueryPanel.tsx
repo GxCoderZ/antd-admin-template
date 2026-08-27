@@ -1,7 +1,7 @@
-import { Col, Form, Input, Select } from "antd";
+import { ProForm } from "@ant-design/pro-components";
+import { Form, Input, Select } from "antd";
 import { useTranslation } from "react-i18next";
 
-import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../../app/routeSessionState";
 import type { PlatformAnnouncementStatus } from "#src/api/announcements";
 import { LogQueryPanel } from "../../operations/LogTablePanel";
@@ -18,7 +18,6 @@ interface AnnouncementQueryPanelProps {
 	onReset: () => void;
 }
 
-const fieldCount = 2;
 const announcementsRouteKey = "/system/announcements";
 
 export function AnnouncementQueryPanel({
@@ -40,25 +39,11 @@ export function AnnouncementQueryPanel({
 		routeKey: announcementsRouteKey,
 		stateKey: "query-expanded",
 	});
-	const {
-		canExpand,
-		collapsedFieldCount,
-		columnSpan,
-		containerRef,
-		formLayout,
-		submitterOffset,
-	} = useQueryFilterLayout({ expanded, fieldCount });
-	const showStatusFilter = expanded || collapsedFieldCount >= 2;
 
 	return (
 		<LogQueryPanel<AnnouncementFilterValues>
-			actionsTestId="admin-announcements-query-actions"
-			canExpand={canExpand}
-			columnSpan={columnSpan}
-			containerRef={containerRef}
 			expanded={expanded}
 			form={form}
-			formLayout={formLayout}
 			initialValues={initialFilters}
 			loading={loading}
 			onFinish={() => onApply(draftFilters)}
@@ -66,64 +51,54 @@ export function AnnouncementQueryPanel({
 				setDraftFilters(initialFilters);
 				onReset();
 			}}
-			onToggle={() => setExpanded((currentExpanded) => !currentExpanded)}
-			submitterOffset={submitterOffset}
+			onExpandedChange={setExpanded}
 			testId="admin-announcements-query-form"
 		>
-			<Col span={columnSpan}>
-				<Form.Item
-					label={t("adminShell.announcements.filters.q")}
-					style={{ marginBottom: 0 }}
-				>
-					<Input
-						allowClear
-						maxLength={100}
-						onChange={(event) =>
-							setDraftFilters((currentFilters) => ({
-								...currentFilters,
-								q: event.target.value,
-							}))
-						}
-						placeholder={t("adminShell.announcements.placeholders.query")}
-						style={{ width: "100%" }}
-						value={draftFilters.q}
-					/>
-				</Form.Item>
-			</Col>
-			{showStatusFilter ? (
-				<Col span={columnSpan}>
-					<Form.Item
-						label={t("adminShell.announcements.filters.status")}
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							aria-label={t("adminShell.announcements.filters.status")}
-							onChange={(status: AnnouncementFilterValues["status"]) =>
-								setDraftFilters((currentFilters) => ({
-									...currentFilters,
-									status,
-								}))
-							}
-							options={[
-								{
-									label: t("adminShell.announcements.allStatuses"),
-									value: "all",
-								},
-								{
-									label: t("adminShell.announcements.statuses.draft"),
-									value: "draft",
-								},
-								{
-									label: t("adminShell.announcements.statuses.published"),
-									value: "published",
-								},
-							]}
-							style={{ width: "100%" }}
-							value={draftFilters.status}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
+			<ProForm.Item key="q" label={t("adminShell.announcements.filters.q")}>
+				<Input
+					allowClear
+					maxLength={100}
+					onChange={(event) =>
+						setDraftFilters((currentFilters) => ({
+							...currentFilters,
+							q: event.target.value,
+						}))
+					}
+					placeholder={t("adminShell.announcements.placeholders.query")}
+					style={{ width: "100%" }}
+					value={draftFilters.q}
+				/>
+			</ProForm.Item>
+			<ProForm.Item
+				key="status"
+				label={t("adminShell.announcements.filters.status")}
+			>
+				<Select
+					aria-label={t("adminShell.announcements.filters.status")}
+					onChange={(status: AnnouncementFilterValues["status"]) =>
+						setDraftFilters((currentFilters) => ({
+							...currentFilters,
+							status,
+						}))
+					}
+					options={[
+						{
+							label: t("adminShell.announcements.allStatuses"),
+							value: "all",
+						},
+						{
+							label: t("adminShell.announcements.statuses.draft"),
+							value: "draft",
+						},
+						{
+							label: t("adminShell.announcements.statuses.published"),
+							value: "published",
+						},
+					]}
+					style={{ width: "100%" }}
+					value={draftFilters.status}
+				/>
+			</ProForm.Item>
 		</LogQueryPanel>
 	);
 }

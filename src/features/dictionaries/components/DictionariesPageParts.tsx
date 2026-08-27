@@ -1,7 +1,7 @@
+import { ProForm } from "@ant-design/pro-components";
 import {
 	Alert,
 	Button,
-	Col,
 	Drawer,
 	Form,
 	Input,
@@ -13,7 +13,6 @@ import {
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useQueryFilterLayout } from "../../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../../app/routeSessionState";
 import type {
 	CreatePlatformDictionaryItemInput,
@@ -76,25 +75,11 @@ export function TypeQueryPanel({
 		routeKey: dictionariesRouteKey,
 		stateKey: "type-query-expanded",
 	});
-	const {
-		canExpand,
-		collapsedFieldCount,
-		columnSpan,
-		containerRef,
-		formLayout,
-		submitterOffset,
-	} = useQueryFilterLayout({ expanded, fieldCount: 2 });
-	const showStatusFilter = expanded || collapsedFieldCount >= 2;
 
 	return (
 		<LogQueryPanel<TypeFilterValues>
-			actionsTestId="admin-dictionaries-type-query-actions"
-			canExpand={canExpand}
-			columnSpan={columnSpan}
-			containerRef={containerRef}
 			expanded={expanded}
 			form={form}
-			formLayout={formLayout}
 			initialValues={initialFilters}
 			loading={loading}
 			onFinish={() => onApply(draftFilters)}
@@ -102,64 +87,54 @@ export function TypeQueryPanel({
 				setDraftFilters(initialFilters);
 				onReset();
 			}}
-			onToggle={() => setExpanded((currentExpanded) => !currentExpanded)}
-			submitterOffset={submitterOffset}
+			onExpandedChange={setExpanded}
 			testId="admin-dictionaries-type-query-form"
 		>
-			<Col span={columnSpan}>
-				<Form.Item
-					label={t("adminShell.dictionaries.filters.q")}
-					style={{ marginBottom: 0 }}
-				>
-					<Input
-						allowClear
-						maxLength={100}
-						onChange={(event) =>
-							setDraftFilters((currentFilters) => ({
-								...currentFilters,
-								q: event.target.value,
-							}))
-						}
-						placeholder={t("adminShell.dictionaries.placeholders.query")}
-						style={{ width: "100%" }}
-						value={draftFilters.q}
-					/>
-				</Form.Item>
-			</Col>
-			{showStatusFilter ? (
-				<Col span={columnSpan}>
-					<Form.Item
-						label={t("adminShell.dictionaries.filters.status")}
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							aria-label={t("adminShell.dictionaries.filters.status")}
-							onChange={(status: TypeFilterValues["status"]) =>
-								setDraftFilters((currentFilters) => ({
-									...currentFilters,
-									status,
-								}))
-							}
-							options={[
-								{
-									label: t("adminShell.dictionaries.allStatuses"),
-									value: "all",
-								},
-								{
-									label: t("adminShell.dictionaries.statuses.active"),
-									value: "active",
-								},
-								{
-									label: t("adminShell.dictionaries.statuses.disabled"),
-									value: "disabled",
-								},
-							]}
-							style={{ width: "100%" }}
-							value={draftFilters.status}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
+			<ProForm.Item key="q" label={t("adminShell.dictionaries.filters.q")}>
+				<Input
+					allowClear
+					maxLength={100}
+					onChange={(event) =>
+						setDraftFilters((currentFilters) => ({
+							...currentFilters,
+							q: event.target.value,
+						}))
+					}
+					placeholder={t("adminShell.dictionaries.placeholders.query")}
+					style={{ width: "100%" }}
+					value={draftFilters.q}
+				/>
+			</ProForm.Item>
+			<ProForm.Item
+				key="status"
+				label={t("adminShell.dictionaries.filters.status")}
+			>
+				<Select
+					aria-label={t("adminShell.dictionaries.filters.status")}
+					onChange={(status: TypeFilterValues["status"]) =>
+						setDraftFilters((currentFilters) => ({
+							...currentFilters,
+							status,
+						}))
+					}
+					options={[
+						{
+							label: t("adminShell.dictionaries.allStatuses"),
+							value: "all",
+						},
+						{
+							label: t("adminShell.dictionaries.statuses.active"),
+							value: "active",
+						},
+						{
+							label: t("adminShell.dictionaries.statuses.disabled"),
+							value: "disabled",
+						},
+					]}
+					style={{ width: "100%" }}
+					value={draftFilters.status}
+				/>
+			</ProForm.Item>
 		</LogQueryPanel>
 	);
 }
@@ -188,25 +163,11 @@ export function ItemQueryPanel({
 		routeKey: dictionariesRouteKey,
 		stateKey: "item-query-expanded",
 	});
-	const {
-		canExpand,
-		collapsedFieldCount,
-		columnSpan,
-		containerRef,
-		formLayout,
-		submitterOffset,
-	} = useQueryFilterLayout({ expanded, fieldCount: 2 });
-	const showStatusFilter = expanded || collapsedFieldCount >= 2;
 
 	return (
 		<LogQueryPanel<ItemFilterValues>
-			actionsTestId="admin-dictionaries-item-query-actions"
-			canExpand={canExpand}
-			columnSpan={columnSpan}
-			containerRef={containerRef}
 			expanded={expanded}
 			form={form}
-			formLayout={formLayout}
 			initialValues={initialFilters}
 			loading={loading}
 			onFinish={() => onApply(draftFilters)}
@@ -214,64 +175,54 @@ export function ItemQueryPanel({
 				setDraftFilters(initialFilters);
 				onReset();
 			}}
-			onToggle={() => setExpanded((currentExpanded) => !currentExpanded)}
-			submitterOffset={submitterOffset}
+			onExpandedChange={setExpanded}
 			testId="admin-dictionaries-item-query-form"
 		>
-			<Col span={columnSpan}>
-				<Form.Item
-					label={t("adminShell.dictionaries.filters.q")}
-					style={{ marginBottom: 0 }}
-				>
-					<Input
-						allowClear
-						maxLength={100}
-						onChange={(event) =>
-							setDraftFilters((currentFilters) => ({
-								...currentFilters,
-								q: event.target.value,
-							}))
-						}
-						placeholder={t("adminShell.dictionaries.placeholders.itemQuery")}
-						style={{ width: "100%" }}
-						value={draftFilters.q}
-					/>
-				</Form.Item>
-			</Col>
-			{showStatusFilter ? (
-				<Col span={columnSpan}>
-					<Form.Item
-						label={t("adminShell.dictionaries.filters.status")}
-						style={{ marginBottom: 0 }}
-					>
-						<Select
-							aria-label={t("adminShell.dictionaries.filters.status")}
-							onChange={(status: ItemFilterValues["status"]) =>
-								setDraftFilters((currentFilters) => ({
-									...currentFilters,
-									status,
-								}))
-							}
-							options={[
-								{
-									label: t("adminShell.dictionaries.allStatuses"),
-									value: "all",
-								},
-								{
-									label: t("adminShell.dictionaries.statuses.active"),
-									value: "active",
-								},
-								{
-									label: t("adminShell.dictionaries.statuses.disabled"),
-									value: "disabled",
-								},
-							]}
-							style={{ width: "100%" }}
-							value={draftFilters.status}
-						/>
-					</Form.Item>
-				</Col>
-			) : null}
+			<ProForm.Item key="q" label={t("adminShell.dictionaries.filters.q")}>
+				<Input
+					allowClear
+					maxLength={100}
+					onChange={(event) =>
+						setDraftFilters((currentFilters) => ({
+							...currentFilters,
+							q: event.target.value,
+						}))
+					}
+					placeholder={t("adminShell.dictionaries.placeholders.itemQuery")}
+					style={{ width: "100%" }}
+					value={draftFilters.q}
+				/>
+			</ProForm.Item>
+			<ProForm.Item
+				key="status"
+				label={t("adminShell.dictionaries.filters.status")}
+			>
+				<Select
+					aria-label={t("adminShell.dictionaries.filters.status")}
+					onChange={(status: ItemFilterValues["status"]) =>
+						setDraftFilters((currentFilters) => ({
+							...currentFilters,
+							status,
+						}))
+					}
+					options={[
+						{
+							label: t("adminShell.dictionaries.allStatuses"),
+							value: "all",
+						},
+						{
+							label: t("adminShell.dictionaries.statuses.active"),
+							value: "active",
+						},
+						{
+							label: t("adminShell.dictionaries.statuses.disabled"),
+							value: "disabled",
+						},
+					]}
+					style={{ width: "100%" }}
+					value={draftFilters.status}
+				/>
+			</ProForm.Item>
 		</LogQueryPanel>
 	);
 }

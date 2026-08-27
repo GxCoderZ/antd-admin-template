@@ -1,7 +1,7 @@
+import { ProForm } from "@ant-design/pro-components";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	Badge,
-	Col,
 	DatePicker,
 	Flex,
 	Form,
@@ -27,10 +27,7 @@ import {
 	TableActionMenu,
 } from "../../app/TableActionButton";
 import { useTableActions } from "../../app/tableActions";
-import {
-	useQueryFilterLayout,
-	useQuerySubmission,
-} from "../../app/queryFilterLayout";
+import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	defaultLogPageSize,
@@ -120,10 +117,10 @@ function serializeAuditFilterDraft(
 		...(values.action !== undefined ? { action: values.action } : {}),
 		...(rangeStart && rangeEnd
 			? {
-					dateRange: [
-						rangeStart.toISOString(),
-						rangeEnd.toISOString(),
-					] as [string, string],
+					dateRange: [rangeStart.toISOString(), rangeEnd.toISOString()] as [
+						string,
+						string,
+					],
 				}
 			: {}),
 		result: values.result,
@@ -152,12 +149,11 @@ export function AuditLogPage() {
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<AuditFilterFormValues>();
-	const [filterDraft, setFilterDraft] =
-		useRouteSessionState<AuditFilterDraft>({
-			initialState: defaultAuditFilterDraft,
-			routeKey: auditLogsRouteKey,
-			stateKey: "query-draft",
-		});
+	const [filterDraft, setFilterDraft] = useRouteSessionState<AuditFilterDraft>({
+		initialState: defaultAuditFilterDraft,
+		routeKey: auditLogsRouteKey,
+		stateKey: "query-draft",
+	});
 	const [filters, setFilters] = useRouteSessionState<AuditLogFilters>({
 		initialState: {},
 		routeKey: auditLogsRouteKey,
@@ -190,16 +186,6 @@ export function AuditLogPage() {
 		stateKey: "query-expanded",
 	});
 	const querySubmission = useQuerySubmission();
-	const {
-		canExpand: canExpandFilters,
-		collapsedFieldCount,
-		columnSpan,
-		containerRef: queryFilterContainerRef,
-		formLayout: queryFilterLayout,
-		submitterOffset,
-	} = useQueryFilterLayout({ expanded: filtersExpanded, fieldCount: 3 });
-	const showResultFilter = filtersExpanded || collapsedFieldCount >= 2;
-	const showDateRangeFilter = filtersExpanded || collapsedFieldCount >= 3;
 	const formatPreferences = useLocalePreferences();
 	const notRecorded = t("adminShell.deviceInfo.notRecorded");
 	const unknownDevice = t("adminShell.deviceInfo.unknownDevice");
@@ -513,82 +499,66 @@ export function AuditLogPage() {
 				pageSize={pageSize}
 				queryPanel={
 					<LogQueryPanel<AuditFilterFormValues>
-						actionsTestId="audit-log-query-actions"
-						canExpand={canExpandFilters}
-						columnSpan={columnSpan}
-						containerRef={queryFilterContainerRef}
 						expanded={filtersExpanded}
 						form={form}
-						formLayout={queryFilterLayout}
 						initialValues={deserializeAuditFilterDraft(filterDraft)}
 						loading={query.isFetching && !query.isPending}
 						onFinish={applyFilters}
 						onReset={resetFilters}
-						onToggle={() => setFiltersExpanded((expanded) => !expanded)}
+						onExpandedChange={setFiltersExpanded}
 						onValuesChange={(_, values) =>
 							setFilterDraft(serializeAuditFilterDraft(values))
 						}
-						submitterOffset={submitterOffset}
 						testId="audit-log-query-form"
 					>
-						<Col span={columnSpan}>
-							<Form.Item
-								label={t("adminShell.logs.audit.filters.action")}
-								name="action"
-								style={{ marginBottom: 0 }}
-							>
-								<Input
-									allowClear
-									maxLength={128}
-									placeholder={t("adminShell.logs.audit.placeholders.action")}
-								/>
-							</Form.Item>
-						</Col>
-						{showResultFilter ? (
-							<Col span={columnSpan}>
-								<Form.Item
-									label={t("adminShell.logs.audit.filters.result")}
-									name="result"
-									style={{ marginBottom: 0 }}
-								>
-									<Select
-										options={[
-											{
-												label: t("adminShell.logs.common.allResults"),
-												value: "all",
-											},
-											{
-												label: t("adminShell.logs.common.results.success"),
-												value: "success",
-											},
-											{
-												label: t("adminShell.logs.common.results.failure"),
-												value: "failure",
-											},
-										]}
-									/>
-								</Form.Item>
-							</Col>
-						) : null}
-						{showDateRangeFilter ? (
-							<Col span={columnSpan}>
-								<Form.Item
-									label={t("adminShell.logs.common.timeRange")}
-									name="dateRange"
-									style={{ marginBottom: 0 }}
-								>
-									<DatePicker.RangePicker
-										format="YYYY-MM-DD HH:mm"
-										placeholder={[
-											t("adminShell.logs.common.timeRangeStart"),
-											t("adminShell.logs.common.timeRangeEnd"),
-										]}
-										showTime
-										style={{ width: "100%" }}
-									/>
-								</Form.Item>
-							</Col>
-						) : null}
+						<ProForm.Item
+							key="action"
+							label={t("adminShell.logs.audit.filters.action")}
+							name="action"
+						>
+							<Input
+								allowClear
+								maxLength={128}
+								placeholder={t("adminShell.logs.audit.placeholders.action")}
+							/>
+						</ProForm.Item>
+						<ProForm.Item
+							key="result"
+							label={t("adminShell.logs.audit.filters.result")}
+							name="result"
+						>
+							<Select
+								options={[
+									{
+										label: t("adminShell.logs.common.allResults"),
+										value: "all",
+									},
+									{
+										label: t("adminShell.logs.common.results.success"),
+										value: "success",
+									},
+									{
+										label: t("adminShell.logs.common.results.failure"),
+										value: "failure",
+									},
+								]}
+							/>
+						</ProForm.Item>
+						<ProForm.Item
+							key="dateRange"
+							label={t("adminShell.logs.common.timeRange")}
+							name="dateRange"
+						>
+							<DatePicker.RangePicker
+								format="YYYY-MM-DD HH:mm"
+								placeholder={[
+									t("adminShell.logs.common.timeRangeStart"),
+									t("adminShell.logs.common.timeRangeEnd"),
+								]}
+								showTime
+								style={{ width: "100%" }}
+							/>
+						</ProForm.Item>
 					</LogQueryPanel>
 				}
 				refreshing={query.isFetching && !query.isPending}

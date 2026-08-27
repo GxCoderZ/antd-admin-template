@@ -143,7 +143,7 @@
 
 ### 管理表格
 
-- 必须复用 `LogQueryPanel`、`LogTablePanel`、`useQueryFilterLayout`、`QueryFilterSubmitter`、`resolveTableSort`；领域页面不得重写公共查询、响应式、排序和工具栏算法。
+- 必须复用 `LogQueryPanel`（基于 Pro `QueryFilter`）、`LogTablePanel`、`ManagementProTable`、`resolveTableSort`；查询布局统一使用 `managementQueryLayout`，由 Pro 负责栅格、标签宽度、展开收起和提交区布局；领域页面不得重写公共查询、响应式、排序和工具栏算法。
 - 查询栏按容器宽度自适应；窄屏默认保留一个主要条件，其余标准展开/收起；查询、重置保持统一顺序、间距和靠右布局。
 - 默认提供 10/20/50/100 分页、升/降/取消三档排序、刷新、密度、列设置、全屏。
 - 所有 Table 和 ProTable 默认使用 `middle` 密度；允许用户主动切换并持久化，不得在页面写死 `large` 或 `small`。

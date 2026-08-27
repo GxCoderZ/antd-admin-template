@@ -1,7 +1,7 @@
+import { ProForm } from "@ant-design/pro-components";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	Badge,
-	Col,
 	DatePicker,
 	Flex,
 	Form,
@@ -30,10 +30,7 @@ import {
 	TableActionMenu,
 } from "../../app/TableActionButton";
 import { useTableActions } from "../../app/tableActions";
-import {
-	useQueryFilterLayout,
-	useQuerySubmission,
-} from "../../app/queryFilterLayout";
+import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	defaultLogPageSize,
@@ -123,10 +120,10 @@ function serializeLoginFilterDraft(
 	return {
 		...(rangeStart && rangeEnd
 			? {
-					dateRange: [
-						rangeStart.toISOString(),
-						rangeEnd.toISOString(),
-					] as [string, string],
+					dateRange: [rangeStart.toISOString(), rangeEnd.toISOString()] as [
+						string,
+						string,
+					],
 				}
 			: {}),
 		result: values.result,
@@ -138,12 +135,11 @@ export function LoginLogPage() {
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
 	const [form] = Form.useForm<LoginFilterFormValues>();
-	const [filterDraft, setFilterDraft] =
-		useRouteSessionState<LoginFilterDraft>({
-			initialState: defaultLoginFilterDraft,
-			routeKey: loginLogsRouteKey,
-			stateKey: "query-draft",
-		});
+	const [filterDraft, setFilterDraft] = useRouteSessionState<LoginFilterDraft>({
+		initialState: defaultLoginFilterDraft,
+		routeKey: loginLogsRouteKey,
+		stateKey: "query-draft",
+	});
 	const [filters, setFilters] = useRouteSessionState<LoginLogFilters>({
 		initialState: {},
 		routeKey: loginLogsRouteKey,
@@ -176,15 +172,6 @@ export function LoginLogPage() {
 		stateKey: "query-expanded",
 	});
 	const querySubmission = useQuerySubmission();
-	const {
-		canExpand: canExpandFilters,
-		collapsedFieldCount,
-		columnSpan,
-		containerRef: queryFilterContainerRef,
-		formLayout: queryFilterLayout,
-		submitterOffset,
-	} = useQueryFilterLayout({ expanded: filtersExpanded, fieldCount: 2 });
-	const showDateRangeFilter = filtersExpanded || collapsedFieldCount >= 2;
 	const formatPreferences = useLocalePreferences();
 	const query = useQuery({
 		placeholderData: keepPreviousData,
@@ -484,71 +471,59 @@ export function LoginLogPage() {
 				pageSize={pageSize}
 				queryPanel={
 					<LogQueryPanel<LoginFilterFormValues>
-						actionsTestId="login-log-query-actions"
-						canExpand={canExpandFilters}
-						columnSpan={columnSpan}
-						containerRef={queryFilterContainerRef}
 						expanded={filtersExpanded}
 						form={form}
-						formLayout={queryFilterLayout}
 						initialValues={deserializeLoginFilterDraft(filterDraft)}
 						loading={query.isFetching && !query.isPending}
 						onFinish={applyFilters}
 						onReset={resetFilters}
-						onToggle={() => setFiltersExpanded((expanded) => !expanded)}
+						onExpandedChange={setFiltersExpanded}
 						onValuesChange={(_, values) =>
 							setFilterDraft(serializeLoginFilterDraft(values))
 						}
-						submitterOffset={submitterOffset}
 						testId="login-log-query-form"
 					>
-						<Col span={columnSpan}>
-							<Form.Item
-								label={t("adminShell.logs.login.filters.result")}
-								name="result"
-								style={{ marginBottom: 0 }}
-							>
-								<Select
-									options={[
-										{
-											label: t("adminShell.logs.common.allResults"),
-											value: "all",
-										},
-										{
-											label: t("adminShell.logs.common.results.success"),
-											value: "success",
-										},
-										{
-											label: t("adminShell.logs.common.results.invalid"),
-											value: "invalid",
-										},
-										{
-											label: t("adminShell.logs.common.results.limited"),
-											value: "limited",
-										},
-									]}
-								/>
-							</Form.Item>
-						</Col>
-						{showDateRangeFilter ? (
-							<Col span={columnSpan}>
-								<Form.Item
-									label={t("adminShell.logs.common.timeRange")}
-									name="dateRange"
-									style={{ marginBottom: 0 }}
-								>
-									<DatePicker.RangePicker
-										format="YYYY-MM-DD HH:mm"
-										placeholder={[
-											t("adminShell.logs.common.timeRangeStart"),
-											t("adminShell.logs.common.timeRangeEnd"),
-										]}
-										showTime
-										style={{ width: "100%" }}
-									/>
-								</Form.Item>
-							</Col>
-						) : null}
+						<ProForm.Item
+							key="result"
+							label={t("adminShell.logs.login.filters.result")}
+							name="result"
+						>
+							<Select
+								options={[
+									{
+										label: t("adminShell.logs.common.allResults"),
+										value: "all",
+									},
+									{
+										label: t("adminShell.logs.common.results.success"),
+										value: "success",
+									},
+									{
+										label: t("adminShell.logs.common.results.invalid"),
+										value: "invalid",
+									},
+									{
+										label: t("adminShell.logs.common.results.limited"),
+										value: "limited",
+									},
+								]}
+							/>
+						</ProForm.Item>
+						<ProForm.Item
+							key="dateRange"
+							label={t("adminShell.logs.common.timeRange")}
+							name="dateRange"
+						>
+							<DatePicker.RangePicker
+								format="YYYY-MM-DD HH:mm"
+								placeholder={[
+									t("adminShell.logs.common.timeRangeStart"),
+									t("adminShell.logs.common.timeRangeEnd"),
+								]}
+								showTime
+								style={{ width: "100%" }}
+							/>
+						</ProForm.Item>
 					</LogQueryPanel>
 				}
 				refreshing={query.isFetching && !query.isPending}

@@ -8,6 +8,8 @@ import type { ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
+import { managementQueryLayout } from "./queryFilterLayout";
+
 import {
 	defaultPreferences,
 	readUserTableDensityPreference,
@@ -107,7 +109,7 @@ export function ManagementProTable<
 		search === false
 			? false
 			: {
-					labelWidth: 120,
+					...managementQueryLayout,
 					...(search ?? {}),
 				};
 

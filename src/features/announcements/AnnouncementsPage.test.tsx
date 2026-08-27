@@ -109,7 +109,10 @@ describe("AnnouncementsPage", () => {
 		await screen.findByText("系统维护通知");
 		expect(screen.getByTestId("admin-announcements-query-form")).toBeVisible();
 		expect(
-			screen.getByTestId("admin-announcements-query-actions"),
+			within(screen.getByTestId("admin-announcements-query-form")).getByRole(
+				"button",
+				{ name: /查\s*询/ },
+			),
 		).toBeVisible();
 		for (const actionName of ["刷新", "表格密度", "列设置"]) {
 			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
