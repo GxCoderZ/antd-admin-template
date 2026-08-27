@@ -119,6 +119,47 @@ for (const width of [1440, 390]) {
 					await expect(surface).toHaveCSS("box-shadow", "none");
 				}
 
+				const toolbar = tableSurface.locator(".ant-pro-table-list-toolbar");
+				const toolbarLayout = await toolbar.evaluate((element) => {
+					const settings = Array.from(
+						element.querySelectorAll(
+							".ant-pro-table-list-toolbar-setting-item",
+						),
+					).map((item) => item.getBoundingClientRect());
+					const body = element.parentElement;
+					if (!body) throw new Error("Missing table body");
+					const style = getComputedStyle(body);
+					return {
+						padding: [
+							style.paddingTop,
+							style.paddingRight,
+							style.paddingBottom,
+							style.paddingLeft,
+						],
+						settingWidths: settings.map((item) => item.width),
+						settingGaps: settings.slice(1).map((item, index) => {
+							const previous = settings[index];
+							if (!previous) throw new Error("Missing previous table setting");
+							return item.x - previous.x;
+						}),
+					};
+				});
+				expect(toolbarLayout.padding).toEqual(["0px", "24px", "16px", "24px"]);
+				expect(toolbarLayout.settingWidths.length).toBeGreaterThanOrEqual(3);
+				expect(toolbarLayout.settingWidths).toEqual(
+					toolbarLayout.settingWidths.map(() => 16),
+				);
+				expect(toolbarLayout.settingGaps).toEqual(
+					toolbarLayout.settingGaps.map(() => 32),
+				);
+				if (width === 1440) {
+					await expect(toolbar).toHaveCSS("height", "64px");
+				}
+				const pagination = tableSurface.locator(".ant-pagination");
+				if (await pagination.count()) {
+					await expect(pagination).toHaveCSS("margin-bottom", "0px");
+				}
+
 				const borders = await cells.evaluateAll((elements) =>
 					elements.map((element) => {
 						const style = getComputedStyle(element);

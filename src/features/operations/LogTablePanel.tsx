@@ -3,12 +3,11 @@ import {
 	ReloadOutlined,
 	SettingOutlined,
 } from "@ant-design/icons";
-import { ListToolBar, QueryFilter } from "@ant-design/pro-components";
+import { ListToolBar, ProCard, QueryFilter } from "@ant-design/pro-components";
 import { ApiProblemError } from "#src/api/client";
 import {
 	Alert,
 	Button,
-	Card,
 	Checkbox,
 	Descriptions,
 	Drawer,
@@ -28,7 +27,7 @@ import type {
 	TableColumnsType,
 	TableProps,
 } from "antd";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -210,6 +209,15 @@ export function LogTablePanel<Row extends { id: string }>({
 					total,
 				};
 	const hasLeadingContent = Boolean(description || tableExtra);
+	// ListToolBar already spaces its icon slots; retain Button keyboard behavior.
+	const toolbarButtonStyle: CSSProperties = {
+		border: 0,
+		display: "flex",
+		fontSize: token.fontSizeLG,
+		height: token.controlHeight,
+		padding: 0,
+		width: token.fontSizeLG,
+	};
 
 	const densityItems: MenuProps["items"] = [
 		{ key: "large", label: t("adminShell.logs.common.densityOptions.large") },
@@ -269,6 +277,7 @@ export function LogTablePanel<Row extends { id: string }>({
 				icon={<ReloadOutlined aria-hidden />}
 				loading={refreshing}
 				onClick={onReload}
+				style={toolbarButtonStyle}
 				variant="link"
 			/>
 		</Tooltip>,
@@ -291,6 +300,7 @@ export function LogTablePanel<Row extends { id: string }>({
 					aria-label={t("adminShell.logs.common.density")}
 					color="default"
 					icon={<ColumnHeightOutlined aria-hidden />}
+					style={toolbarButtonStyle}
 					variant="link"
 				/>
 			</Tooltip>
@@ -307,6 +317,7 @@ export function LogTablePanel<Row extends { id: string }>({
 					aria-label={t("adminShell.logs.common.tableSettings")}
 					color="default"
 					icon={<SettingOutlined aria-hidden />}
+					style={toolbarButtonStyle}
 					variant="link"
 				/>
 			</Tooltip>
@@ -316,14 +327,10 @@ export function LogTablePanel<Row extends { id: string }>({
 	return (
 		<Flex data-testid={workspaceTestId} gap={token.margin} vertical>
 			{queryPanel}
-			<Card
+			<ProCard
 				data-testid={testId}
 				styles={{
-					root: { boxShadow: "none" },
-					body: {
-						paddingBlockEnd: token.padding,
-						paddingBlockStart: 0,
-					},
+					body: { paddingBlockStart: 0 },
 				}}
 				variant="borderless"
 			>
@@ -399,7 +406,7 @@ export function LogTablePanel<Row extends { id: string }>({
 						tableLayout="fixed"
 					/>
 				)}
-			</Card>
+			</ProCard>
 		</Flex>
 	);
 }
