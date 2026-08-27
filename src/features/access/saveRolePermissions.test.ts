@@ -9,7 +9,9 @@ import {
 const mocks = vi.hoisted(() => ({ change: vi.fn() }));
 vi.mock("#src/api/roles", () => ({ setPlatformRolePermission: mocks.change }));
 
-beforeEach(() => mocks.change.mockReset().mockResolvedValue(undefined));
+beforeEach(() => {
+	mocks.change.mockReset().mockResolvedValue(undefined);
+});
 
 describe("saveRolePermissions", () => {
 	it("submits only added and removed permissions", async () => {
@@ -64,7 +66,7 @@ describe("saveRolePermissions", () => {
 				permissions,
 				role: { id: "reviewer", permissions: [] },
 			}),
-		).rejects.toEqual(new RolePermissionSaveError(1, 1, cause));
+		).rejects.toMatchObject({ savedCount: 1, failedCount: 1, cause });
 		mocks.change.mockClear();
 		await saveRolePermissions({
 			permissions,
@@ -79,5 +81,24 @@ describe("saveRolePermissions", () => {
 				},
 			],
 		]);
+	});
+
+	it("reports all failures while preserving the underlying error", async () => {
+		const cause = new Error("Permission denied");
+		mocks.change.mockRejectedValue(cause);
+		const result = saveRolePermissions({
+			permissions: [
+				platformPermissions.usersRead,
+				platformPermissions.logsRead,
+			],
+			role: { id: "reviewer", permissions: [] },
+		});
+		await expect(result).rejects.toBeInstanceOf(RolePermissionSaveError);
+		await expect(result).rejects.toMatchObject({
+			savedCount: 0,
+			failedCount: 2,
+			cause,
+		});
+		expect(mocks.change).toHaveBeenCalledTimes(2);
 	});
 });

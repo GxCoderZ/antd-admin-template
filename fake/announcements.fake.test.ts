@@ -18,6 +18,55 @@ function findRoute(method: string, url: string) {
 }
 
 describe("Fake announcements", () => {
+	it.each([
+		null,
+		{},
+		{ title: " ", content: "Content", status: "draft" },
+		{ title: "Title", content: "", status: "draft" },
+		{ title: "Title", content: "Content", status: "invalid" },
+		{ title: "x".repeat(101), content: "Content", status: "draft" },
+		{ title: "Title", content: "x".repeat(2001), status: "draft" },
+	])(
+		"rejects invalid create and update inputs without changing records (%#)",
+		(body) => {
+			const list = findRoute("get", "/platform/announcements");
+			const before = structuredClone(
+				list({ query: { page_size: "100" } }) as AnnouncementListPayload,
+			);
+			const original = before.data.items[0]!;
+			const expected = {
+				code: 422,
+				data: null,
+				msg: "Invalid announcement input",
+			};
+			expect(findRoute("post", "/platform/announcements")({ body })).toEqual(
+				expected,
+			);
+			expect(
+				findRoute(
+					"patch",
+					"/platform/announcements/:announcementId",
+				)({ body, params: { announcementId: original.id } }),
+			).toEqual(expected);
+			expect(list({ query: { page_size: "100" } })).toEqual(before);
+		},
+	);
+
+	it.each(["patch", "delete"])(
+		"returns the error envelope when %s targets a missing record",
+		(method) => {
+			expect(
+				findRoute(
+					method,
+					"/platform/announcements/:announcementId",
+				)({
+					body: { title: "Missing", content: "Content", status: "draft" },
+					params: { announcementId: "missing-announcement" },
+				}),
+			).toEqual({ code: 404, data: null, msg: "Announcement not found" });
+		},
+	);
+
 	it("supports pagination and representative status filters", () => {
 		const listAnnouncements = findRoute("get", "/platform/announcements");
 		const firstPage = listAnnouncements({

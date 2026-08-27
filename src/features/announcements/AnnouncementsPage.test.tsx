@@ -92,6 +92,36 @@ function renderAnnouncementsPage(canManage = true) {
 }
 
 describe("AnnouncementsPage", () => {
+	it("keeps a failed save editable and retries the same draft", async () => {
+		mocks.createPlatformAnnouncement.mockRejectedValueOnce(
+			new Error("Save rejected"),
+		);
+		const user = renderAnnouncementsPage();
+		await user.click(await screen.findByRole("button", { name: "新建公告" }));
+		const drawer = await screen.findByRole("dialog");
+		const title = within(drawer).getByPlaceholderText("请输入公告标题");
+		const content = within(drawer).getByPlaceholderText("请输入公告内容");
+		await user.type(title, "Retry draft");
+		await user.type(content, "Retained content");
+		await user.click(within(drawer).getByRole("button", { name: /保\s*存/ }));
+		await within(drawer).findByRole("alert");
+		expect(title).toHaveValue("Retry draft");
+		expect(content).toHaveValue("Retained content");
+		expect(title).toBeEnabled();
+		await user.click(within(drawer).getByRole("button", { name: /保\s*存/ }));
+		await waitFor(() =>
+			expect(mocks.createPlatformAnnouncement).toHaveBeenCalledTimes(2),
+		);
+		expect(mocks.createPlatformAnnouncement).toHaveBeenLastCalledWith({
+			title: "Retry draft",
+			content: "Retained content",
+			status: "draft",
+		});
+		await waitFor(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+		);
+	});
+
 	it("keeps both actions visible when a row only has edit and delete", async () => {
 		renderAnnouncementsPage();
 

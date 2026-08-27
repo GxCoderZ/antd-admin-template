@@ -3,7 +3,6 @@ import { defineFakeRoute } from "vite-plugin-fake-server/client";
 import type {
 	CreatePlatformAnnouncementInput,
 	PlatformAnnouncement,
-	UpdatePlatformAnnouncementInput,
 } from "../src/api/announcements";
 import { announcements } from "./store";
 import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
@@ -15,13 +14,20 @@ function getAnnouncement(announcementId: string | undefined) {
 }
 
 function isValidInput(
-	input: Partial<CreatePlatformAnnouncementInput>,
+	input: unknown,
 ): input is CreatePlatformAnnouncementInput {
 	return (
+		typeof input === "object" &&
+		input !== null &&
+		"title" in input &&
 		typeof input.title === "string" &&
 		input.title.trim().length > 0 &&
+		input.title.length <= 100 &&
+		"content" in input &&
 		typeof input.content === "string" &&
 		input.content.trim().length > 0 &&
+		input.content.length <= 2_000 &&
+		"status" in input &&
 		(input.status === "draft" || input.status === "published")
 	);
 }
@@ -75,7 +81,7 @@ export default defineFakeRoute([
 		method: "post",
 		url: "/platform/announcements",
 		response: ({ body }) => {
-			const input = body as Partial<CreatePlatformAnnouncementInput>;
+			const input = body;
 			if (!isValidInput(input)) {
 				return resultError("Invalid announcement input", 422);
 			}
@@ -102,7 +108,7 @@ export default defineFakeRoute([
 				return resultError("Announcement not found", 404);
 			}
 
-			const input = body as Partial<UpdatePlatformAnnouncementInput>;
+			const input = body;
 			if (!isValidInput(input)) {
 				return resultError("Invalid announcement input", 422);
 			}
