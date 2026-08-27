@@ -36,7 +36,6 @@ interface AdminShellPageProps {
 	currentUserId: string;
 	currentUsername: string;
 	isColorBlindMode: boolean;
-	isDarkMode: boolean;
 	onChangeColorBlindMode: (enabled: boolean) => void;
 	onChangeThemeColor: (nextThemeColor: ThemeColor) => void;
 	onChangeThemeMode: (nextMode: ThemeMode, event?: ThemeChangeEvent) => void;
@@ -50,7 +49,6 @@ export function AdminShellPage({
 	currentUserId,
 	currentUsername,
 	isColorBlindMode,
-	isDarkMode,
 	onChangeColorBlindMode,
 	onChangeThemeColor,
 	onChangeThemeMode,
@@ -126,7 +124,6 @@ export function AdminShellPage({
 					currentUserId={currentUserId}
 					currentUsername={currentUsername}
 					isColorBlindMode={isColorBlindMode}
-					isDarkMode={isDarkMode}
 					isFooterVisible={isFooterVisible}
 					menuType={menuType}
 					navigationMode={navigationMode}

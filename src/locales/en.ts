@@ -37,11 +37,6 @@ export const enTranslation = {
 		},
 		header: {
 			search: "Search",
-			language: "Switch language",
-			more: "More actions",
-			darkMode: "Switch to dark mode",
-			lightMode: "Switch to light mode",
-			settings: "Settings",
 			logout: "Sign out",
 			logoutError: "Sign out failed. Please try again.",
 		},

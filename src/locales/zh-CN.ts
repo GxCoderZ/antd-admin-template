@@ -37,11 +37,6 @@ export const zhCNTranslation = {
 		},
 		header: {
 			search: "搜索",
-			language: "切换语言",
-			more: "更多操作",
-			darkMode: "切换为深色模式",
-			lightMode: "切换为浅色模式",
-			settings: "设置",
 			logout: "退出",
 			logoutError: "退出失败，请重试",
 		},

@@ -96,6 +96,7 @@ export function SettingsDrawer({
 			}
 			onClose={onClose}
 			open={open}
+			size={token.screenXS}
 			title={t("preferences.title")}
 		>
 			<Flex gap={token.marginLG} vertical>

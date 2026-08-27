@@ -1,12 +1,7 @@
 import {
-	BgColorsOutlined,
-	GlobalOutlined,
 	LogoutOutlined,
-	MoonOutlined,
-	MoreOutlined,
 	SearchOutlined,
 	SettingOutlined,
-	SunOutlined,
 } from "@ant-design/icons";
 import {
 	Dropdown,
@@ -36,11 +31,7 @@ import type {
 	ThemeMode,
 } from "../../app/preferenceStorage";
 import type { ThemeChangeEvent } from "../../app/themeMode";
-import {
-	isSupportedLanguageCode,
-	resolveSupportedLanguage,
-	supportedLanguages,
-} from "../../i18n";
+import { resolveSupportedLanguage } from "../../i18n";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { CommandPalette } from "./CommandPalette";
 import { HeaderIconButton } from "./HeaderIconButton";
@@ -66,7 +57,6 @@ interface AdminShellHeaderProps {
 	currentUserId: string;
 	currentUsername: string;
 	isColorBlindMode: boolean;
-	isDarkMode: boolean;
 	isFooterVisible: boolean;
 	menuType: MenuType;
 	navigationMode: NavigationMode;
@@ -90,7 +80,6 @@ export function AdminShellHeader({
 	currentUserId,
 	currentUsername,
 	isColorBlindMode,
-	isDarkMode,
 	isFooterVisible,
 	menuType,
 	navigationMode,
@@ -115,7 +104,7 @@ export function AdminShellHeader({
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [preferencesOpen, setPreferencesOpen] = useState(false);
 	const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-	const hasSidebarBreakpoint = screens.sm === true;
+	const showAccountName = screens.sm === true;
 	// Match ProLayout GlobalHeader/ActionsContent and rightContentStyle dimensions.
 	const iconActionStyle: CSSProperties = {
 		border: 0,
@@ -138,14 +127,6 @@ export function AdminShellHeader({
 		padding: 8,
 	};
 	const language = resolveSupportedLanguage(i18n.resolvedLanguage);
-	const themeIcon =
-		themeMode === "system" ? (
-			<BgColorsOutlined aria-hidden />
-		) : isDarkMode ? (
-			<SunOutlined aria-hidden />
-		) : (
-			<MoonOutlined aria-hidden />
-		);
 	const commandPaletteItems = adminRouteDefinitions
 		.filter(
 			(route) =>
@@ -164,29 +145,6 @@ export function AdminShellHeader({
 				i18n.getFixedT("en")(route.titleKey),
 			],
 		}));
-	const languageMenuItems: MenuProps["items"] = supportedLanguages.map(
-		({ code, labelKey }) => ({
-			key: code,
-			label: t(labelKey),
-		}),
-	);
-	const themeMenuItems: MenuProps["items"] = [
-		{
-			key: "system",
-			icon: <BgColorsOutlined aria-hidden />,
-			label: t("theme.system"),
-		},
-		{
-			key: "light",
-			icon: <SunOutlined aria-hidden />,
-			label: t("theme.light"),
-		},
-		{
-			key: "dark",
-			icon: <MoonOutlined aria-hidden />,
-			label: t("theme.dark"),
-		},
-	];
 	const accountRouteMenuItems: MenuProps["items"] = adminRouteDefinitions
 		.filter((route) => route.groupKey === "account")
 		.map((route) => ({
@@ -198,6 +156,11 @@ export function AdminShellHeader({
 		}));
 	const userMenuItems: MenuProps["items"] = [
 		...accountRouteMenuItems,
+		{
+			key: "preferences",
+			icon: <SettingOutlined aria-hidden />,
+			label: t("preferences.title"),
+		},
 		{ type: "divider" },
 		{
 			key: "logout",
@@ -205,38 +168,13 @@ export function AdminShellHeader({
 			label: t("adminShell.header.logout"),
 		},
 	];
-	const compactHeaderMenuItems: MenuProps["items"] = [
-		{
-			key: "search",
-			icon: <SearchOutlined aria-hidden />,
-			label: t("adminShell.header.search"),
-		},
-		{
-			key: "language",
-			icon: <GlobalOutlined aria-hidden />,
-			label: t("adminShell.header.language"),
-			children: languageMenuItems,
-		},
-		{
-			key: "theme",
-			icon: themeIcon,
-			label: t("theme.label"),
-			children: themeMenuItems,
-		},
-		{
-			key: "settings",
-			icon: <SettingOutlined aria-hidden />,
-			label: t("adminShell.header.settings"),
-		},
-	];
-	const changeThemeFromMenu = (key: string, event?: ThemeChangeEvent) => {
-		if (key === "light" || key === "dark" || key === "system") {
-			onChangeThemeMode(key, event);
-		}
-	};
 	const handleUserMenuClick: MenuProps["onClick"] = ({ key }) => {
 		if (adminRouteByPath.get(key)?.groupKey === "account") {
 			onNavigate(key);
+			return;
+		}
+		if (key === "preferences") {
+			setPreferencesOpen(true);
 			return;
 		}
 
@@ -251,82 +189,13 @@ export function AdminShellHeader({
 		<>
 			{messageContextHolder}
 			<Flex align="center" style={{ flex: "0 0 auto", height: "100%" }}>
-				{hasSidebarBreakpoint ? (
-					<>
-						<HeaderIconButton
-							aria-label={t("adminShell.header.search")}
-							icon={<SearchOutlined aria-hidden />}
-							onClick={() => setCommandPaletteOpen(true)}
-							style={iconActionStyle}
-							type="text"
-						/>
-						<Dropdown
-							menu={{
-								items: languageMenuItems,
-								onClick: ({ key }) => void i18n.changeLanguage(key),
-								selectedKeys: [language],
-							}}
-							trigger={["click"]}
-						>
-							<HeaderIconButton
-								aria-label={t("adminShell.header.language")}
-								icon={<GlobalOutlined aria-hidden />}
-								style={iconActionStyle}
-								type="text"
-							/>
-						</Dropdown>
-						<Dropdown
-							menu={{
-								items: themeMenuItems,
-								onClick: ({ domEvent, key }) =>
-									changeThemeFromMenu(String(key), domEvent),
-								selectedKeys: [themeMode],
-							}}
-							trigger={["click"]}
-						>
-							<HeaderIconButton
-								aria-label={t("theme.label")}
-								icon={themeIcon}
-								style={iconActionStyle}
-								type="text"
-							/>
-						</Dropdown>
-						<HeaderIconButton
-							aria-label={t("adminShell.header.settings")}
-							icon={<SettingOutlined aria-hidden />}
-							onClick={() => setPreferencesOpen(true)}
-							style={iconActionStyle}
-							type="text"
-						/>
-					</>
-				) : (
-					<Dropdown
-						menu={{
-							items: compactHeaderMenuItems,
-							onClick: ({ domEvent, key }) => {
-								if (key === "search") {
-									setCommandPaletteOpen(true);
-								}
-								if (isSupportedLanguageCode(key)) {
-									void i18n.changeLanguage(key);
-								}
-								changeThemeFromMenu(String(key), domEvent);
-								if (key === "settings") {
-									setPreferencesOpen(true);
-								}
-							},
-							selectedKeys: [language, themeMode],
-						}}
-						trigger={["click"]}
-					>
-						<HeaderIconButton
-							aria-label={t("adminShell.header.more")}
-							icon={<MoreOutlined aria-hidden />}
-							style={iconActionStyle}
-							type="text"
-						/>
-					</Dropdown>
-				)}
+				<HeaderIconButton
+					aria-label={t("adminShell.header.search")}
+					icon={<SearchOutlined aria-hidden />}
+					onClick={() => setCommandPaletteOpen(true)}
+					style={iconActionStyle}
+					type="text"
+				/>
 				<NotificationPopover
 					onNavigate={onNavigate}
 					triggerStyle={iconActionStyle}
@@ -354,7 +223,7 @@ export function AdminShellHeader({
 								size={28}
 								userId={currentUserId}
 							/>
-							{hasSidebarBreakpoint ? <span>{currentUsername}</span> : null}
+							{showAccountName ? <span>{currentUsername}</span> : null}
 						</Space>
 					</HeaderIconButton>
 				</Dropdown>

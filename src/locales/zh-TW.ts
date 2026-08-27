@@ -37,11 +37,6 @@ export const zhTWTranslation = {
 		},
 		header: {
 			search: "搜尋",
-			language: "切換語言",
-			more: "更多操作",
-			darkMode: "切換為深色模式",
-			lightMode: "切換為淺色模式",
-			settings: "設定",
 			logout: "登出",
 			logoutError: "登出失敗，請重試",
 		},

@@ -37,11 +37,6 @@ export const koKRTranslation = {
 		},
 		header: {
 			search: "검색",
-			language: "언어 변경",
-			more: "추가 작업",
-			darkMode: "다크 모드로 전환",
-			lightMode: "라이트 모드로 전환",
-			settings: "설정",
 			logout: "로그아웃",
 			logoutError: "로그아웃하지 못했습니다. 다시 시도해 주세요.",
 		},

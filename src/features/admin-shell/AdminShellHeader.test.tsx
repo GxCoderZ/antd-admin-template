@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigProvider } from "antd";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PermissionProvider } from "../../app/PermissionProvider";
 import { defaultPreferences } from "../../app/preferenceStorage";
@@ -20,14 +20,11 @@ vi.mock("./NotificationPopover", () => ({
 	NotificationPopover: () => null,
 }));
 
-vi.mock("./SettingsDrawer", () => ({
-	SettingsDrawer: () => null,
-}));
-
-beforeAll(async () => i18n.changeLanguage("zh-CN"));
+beforeEach(async () => i18n.changeLanguage("zh-CN"));
 
 function renderHeader(onLogout: () => Promise<void>) {
 	const onNavigate = vi.fn();
+	const onChangeThemeMode = vi.fn();
 	render(
 		<ConfigProvider>
 			<PermissionProvider permissions={[]}>
@@ -36,7 +33,6 @@ function renderHeader(onLogout: () => Promise<void>) {
 					currentUserId="user-1"
 					currentUsername="测试用户"
 					isColorBlindMode={false}
-					isDarkMode={false}
 					isFooterVisible
 					menuType="single"
 					navigationMode="side"
@@ -45,7 +41,7 @@ function renderHeader(onLogout: () => Promise<void>) {
 					onChangeMenuType={vi.fn()}
 					onChangeNavigationMode={vi.fn()}
 					onChangeThemeColor={vi.fn()}
-					onChangeThemeMode={vi.fn()}
+					onChangeThemeMode={onChangeThemeMode}
 					onChangeTimeZone={vi.fn()}
 					onLogout={onLogout}
 					onNavigate={onNavigate}
@@ -58,10 +54,45 @@ function renderHeader(onLogout: () => Promise<void>) {
 		</ConfigProvider>,
 	);
 
-	return { onNavigate, user: userEvent.setup() };
+	return { onChangeThemeMode, onNavigate, user: userEvent.setup() };
 }
 
 describe("AdminShellHeader", () => {
+	it("keeps search directly available without duplicate preference buttons", () => {
+		renderHeader(vi.fn().mockResolvedValue(undefined));
+
+		expect(screen.getByRole("button", { name: "搜索" })).toBeVisible();
+		for (const name of ["切换语言", "主题模式", "设置", "更多操作"]) {
+			expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+		}
+	});
+
+	it("opens preferences separately from account settings and keeps language and theme controls", async () => {
+		const { onChangeThemeMode, onNavigate, user } = renderHeader(
+			vi.fn().mockResolvedValue(undefined),
+		);
+		await user.click(screen.getByRole("button", { name: "测试用户" }));
+		expect(
+			screen.getByRole("menuitem", { name: "账号设置" }),
+		).toBeInTheDocument();
+		await user.click(await screen.findByRole("menuitem", { name: "偏好设置" }));
+
+		const drawer = await screen.findByRole("dialog", { name: "偏好设置" });
+		expect(onNavigate).not.toHaveBeenCalled();
+		await user.click(
+			within(drawer).getByText(i18n.t("theme.dark"), { exact: true }),
+		);
+		expect(onChangeThemeMode).toHaveBeenCalledWith("dark");
+		await user.click(
+			within(drawer).getByRole("combobox", { name: "界面语言" }),
+		);
+		await user.click(screen.getByText("English", { exact: true }));
+		expect(
+			await screen.findByRole("dialog", { name: "Preferences" }),
+		).toBeVisible();
+		expect(i18n.resolvedLanguage).toBe("en");
+	});
+
 	it("shows a localized error when logout fails", async () => {
 		const onLogout = vi.fn().mockRejectedValue(new Error("logout failed"));
 		const { user } = renderHeader(onLogout);
