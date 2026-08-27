@@ -16,14 +16,19 @@ Ant Design Pro, MIT license, commit
   copied four-column inline links and 13px row spacing; only route content and
   the project CSS variable prefix are substituted.
 - [Analysis overview](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/IntroduceRow.tsx):
-  four-column overview at the `xl` breakpoint and two columns below it.
-- [Ant Design Statistic card example](https://github.com/ant-design/ant-design/blob/6.6.1/components/statistic/demo/card.tsx):
-  one native borderless Card around each Statistic, using its title, value, and
-  prefix slots and default typography without a separate title layout.
+  four columns at `xl`, two at `sm` through `lg`, and one at `xs`.
+- [ChartCard](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/ChartCard/index.tsx)
+  and [styles](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/ChartCard/index.style.ts):
+  ported title bar, body meta/action/total, fixed content region and footer divider
+  into `ChartCard.tsx` and `ChartCard.module.css`. This replaces the earlier basic
+  Card + Statistic implementation, which was not the screenshot's component.
+- [Field](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/Field/index.tsx)
+  and [styles](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/Field/index.style.ts):
+  ported footer label/value and 8px spacing alongside ChartCard.
 
 `DashboardOverview`, `DashboardQuickEntries`, and `DashboardActivityPanels` adapt
 these layout patterns to the installed Ant Design version and theme tokens.
-Native Card, Statistic, Tabs, Button, Badge, and icon components are reused rather
+Native Card, Tabs, Button, Badge, and icon components are reused rather
 than copying framework internals or upstream application dependencies.
 
 ## Intentional Adaptations
@@ -36,7 +41,20 @@ than copying framework internals or upstream application dependencies.
   scoped to the dashboard to match the captured reference exactly.
 - Activity Card body padding is zero, as in upstream Workplace; rows own the
   upstream 16px vertical / 24px horizontal padding and 32px avatar placement.
-- Mobile metrics use two columns. Navigation keeps the upstream link grouping
+- ChartCard retains the source's title in both the native title bar and the body
+  meta row, as explicitly requested in the screenshot. Body padding is
+  `20px 24px 8px`, total typography is `30px/38px`, content height is 46px, and
+  the footer has 9px top padding and the theme's 1px separator.
+- Source styles are translated to existing CSS Modules and `--raa-*` tokens;
+  no styling or class-name dependency is added. Unused avatar, function-total
+  support and the unused `chartTopHasMargin` style are not imported. Custom
+  ChartCard props are consumed locally rather than forwarded as DOM attributes.
+- The four values and abnormal-login footer use the existing dashboard aggregate;
+  the other footers state the counting scope. No fabricated trends or extra API
+  fields are added. Number formatting follows the current application language.
+- Information tooltips retain hover and also support keyboard focus through the
+  public AntD trigger API; no custom open-state or timing logic is introduced.
+- Mobile metrics use the source's single-column layout. Navigation keeps the upstream link grouping
   above Ant Design's `sm` breakpoint and uses two columns below it so localized
   labels remain readable; its Card frame is unchanged.
 - Existing application fonts, language, timezone, theme, and permissions remain

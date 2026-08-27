@@ -1,5 +1,69 @@
 # Dashboard Design QA
 
+## ChartCard Pass
+
+- Scope: replace the four basic Card + Statistic metrics with Pro Analysis
+  ChartCard/Field. This is not a clone of the entire sales-analysis page.
+- Source visual: `C:/Users/ADMINI~1/AppData/Local/Temp/codex-clipboard-3c9d9462-bda2-4e3e-b26b-ad102ed7e322.png`,
+  426x265 pixels, containing an approximately 397x237 CSS-pixel card.
+- Source code: Pro commit `adfd44085738ca953573a13322c1ba84aca8b9e3`;
+  [source mapping and MIT notice](docs/design/dashboard-workplace.md).
+- Local route: `http://127.0.0.1:3003/dashboard`; Fake admin, Chinese light and
+  English dark, Chromium, device scale factor 1, 1000px viewport height.
+- Current screenshots: `.codex-audits/dashboard-chart-card/`, in the respective
+  `dashboard-workspace-工作台布局和管理入口（1440px）-chromium`, `（460px）` and
+  `（390px）` directories: `dashboard-1440-top.png`, `dashboard-390-top.png`,
+  and focused `dashboard-460-metric.png`.
+- The 460px viewport gives a 397px-wide card matching the reference card width.
+  The element capture excludes the reference's surrounding margin/shadow area.
+  No stretching or density scaling was applied. The reference, focused capture,
+  desktop, mobile and dark page captures were opened in the same comparison input.
+- Dark capture: `dashboard-workspace-工作台指标卡保留英文和深色主题（390px）-chromium/dashboard-en-dark-390.png`
+  under the same current screenshot directory.
+
+Findings and fixes:
+
+1. P1: the previous basic Statistic omitted the screenshot's title bar, dedicated
+   content region and footer divider. Replaced that path with the upstream
+   ChartCard/Field structure and paired styles. Final captures show the full frame.
+2. P2: keyboard focus did not reveal the information tooltip. A failing browser
+   test reproduced it; native AntD hover/focus triggers fix it without custom
+   state or timers. The final four browser cases pass.
+3. Initial geometry assertions missed native Card's -1px header bottom margin.
+   Confirmed the installed source and corrected the test expectations; no CSS
+   compensation was added to the application.
+
+Required fidelity surfaces:
+
+- Typography: 30px/38px totals, 14px/22px meta and footer, native 16px bold title.
+  Application/system fonts remain authoritative; glyph rasterization is not
+  claimed to match the reference's different host fonts.
+- Layout: 56px native title bar, `20px 24px 8px` body padding, 46px content region,
+  12px content bottom margin, 9px footer padding, 1px separator, 237px total height.
+  Desktop cards align; mobile cards form one column with 24px gaps.
+- Tokens: existing 8px radius and Pro light shadow retained. Text, backgrounds
+  and separators use theme tokens; English dark remains readable and unclipped.
+- Assets: native AntD InfoCircleOutlined; no photographic assets are needed.
+  Sales trend arrows are intentionally absent with the replaced sales content.
+- Content: four existing Fake totals, abnormal-login footer, and counting scopes.
+  No invented trends or API fields. New copy covers all four supported languages.
+
+Verification: eight dashboard behavior tests; four browser cases cover 1440px,
+460px, 390px and English dark, including typography, geometry, borders, overflow,
+tooltip focus, activity tabs and five navigation links. No page errors in the
+three Chinese cross-route cases. Shared shell edits are outside this pass.
+
+No actionable P0/P1/P2 finding remains in the ChartCard scope.
+
+Current repository checks: typecheck, all 268 unit tests, circular-dependency
+check, unused-code check, production build and the changed-files lint pass.
+Full repository lint is blocked by an unrelated concurrent change in
+`src/features/admin-shell/AdminShellHeader.test.tsx:98`
+(`@typescript-eslint/no-unsafe-assignment`). That file is not part of this
+ChartCard change. The visual pass is not a claim that all repository gates pass.
+
+## Previous Workplace Pass
+
 ## Target And State
 
 - Scope: port the official Pro Card frame and workplace presentation, replacing

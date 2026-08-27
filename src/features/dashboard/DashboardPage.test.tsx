@@ -152,6 +152,25 @@ function renderDashboard(
 }
 
 describe("dashboard workspace", () => {
+	it("shows metric summaries and footer values from the existing aggregate", async () => {
+		renderDashboard();
+		await screen.findByTestId("dashboard-stat-users");
+		for (const [key, summary, scope] of [
+			["users", "全部平台账号", "全部状态"],
+			["roles", "全部访问角色", "全部状态"],
+			["permissions", "已注册权限节点", "全部节点"],
+		] as const) {
+			const card = within(screen.getByTestId(`dashboard-stat-${key}`));
+			expect(card.getByText(summary)).toBeVisible();
+			expect(card.getByText("统计范围")).toBeVisible();
+			expect(card.getByText(scope)).toBeVisible();
+		}
+		const logins = within(screen.getByTestId("dashboard-stat-logins"));
+		expect(logins.getByText("成功登录次数")).toBeVisible();
+		expect(logins.getByText("今日异常")).toBeVisible();
+		expect(logins.getByText("2", { exact: true })).toBeVisible();
+	});
+
 	it("shows the four core metrics and five quick entries, with recent logins and operations", async () => {
 		renderDashboard();
 		expect(
@@ -270,6 +289,11 @@ describe("dashboard workspace", () => {
 		expect(screen.getByText("暂无已发布公告")).toBeVisible();
 		expect(screen.getByText("今日暂无登录异常")).toBeVisible();
 		expect(screen.getByText("暂无待发布公告")).toBeVisible();
+		expect(
+			within(screen.getByTestId("dashboard-stat-logins")).getAllByText("0", {
+				exact: true,
+			}),
+		).toHaveLength(2);
 		fireEvent.click(screen.getByRole("tab", { name: "最近操作" }));
 		expect(await screen.findByText("暂无操作记录")).toBeVisible();
 	});

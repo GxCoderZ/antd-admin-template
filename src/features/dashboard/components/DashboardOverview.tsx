@@ -1,9 +1,4 @@
-import {
-	SafetyCertificateOutlined,
-	TeamOutlined,
-	LoginOutlined,
-	UserOutlined,
-} from "@ant-design/icons";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import {
 	Badge,
 	Card,
@@ -11,7 +6,6 @@ import {
 	Empty,
 	Flex,
 	Row,
-	Statistic,
 	Tag,
 	theme,
 	Tooltip,
@@ -28,6 +22,7 @@ import {
 	platformPermissions,
 	usePermissionChecker,
 } from "../../../app/permissions";
+import { ChartCard, ChartCardField } from "./ChartCard";
 
 const { Text, Title } = Typography;
 
@@ -134,7 +129,7 @@ export function DashboardOverview({
 }) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const { timeZone } = useLocalePreferences();
+	const { language, timeZone } = useLocalePreferences();
 	const can = usePermissionChecker();
 	if (
 		!statistics ||
@@ -156,50 +151,70 @@ export function DashboardOverview({
 			key: "users",
 			label: t("adminShell.dashboard.userCount"),
 			value: statistics.userCount,
-			icon: <UserOutlined aria-hidden />,
+			summary: t("adminShell.dashboard.userSummary"),
+			footerLabel: t("adminShell.dashboard.metricScope"),
+			footerValue: t("adminShell.dashboard.allStatuses"),
 			permission: platformPermissions.usersRead,
 		},
 		{
 			key: "roles",
 			label: t("adminShell.dashboard.roleCount"),
 			value: statistics.roleCount,
-			icon: <TeamOutlined aria-hidden />,
+			summary: t("adminShell.dashboard.roleSummary"),
+			footerLabel: t("adminShell.dashboard.metricScope"),
+			footerValue: t("adminShell.dashboard.allStatuses"),
 			permission: platformPermissions.rolesManage,
 		},
 		{
 			key: "permissions",
 			label: t("adminShell.dashboard.permissionCount"),
 			value: statistics.permissionCount,
-			icon: <SafetyCertificateOutlined aria-hidden />,
+			summary: t("adminShell.dashboard.permissionSummary"),
+			footerLabel: t("adminShell.dashboard.metricScope"),
+			footerValue: t("adminShell.dashboard.allNodes"),
 			permission: platformPermissions.rolesManage,
 		},
 		{
 			key: "logins",
-			label: (
-				<Tooltip title={t("adminShell.dashboard.todayLoginHint", { timeZone })}>
-					{t("adminShell.dashboard.todayLoginCount")}
-				</Tooltip>
-			),
+			label: t("adminShell.dashboard.todayLoginCount"),
 			value: statistics.todayLoginCount,
-			icon: <LoginOutlined aria-hidden />,
+			summary: t("adminShell.dashboard.loginSummary"),
+			hint: t("adminShell.dashboard.todayLoginHint", { timeZone }),
+			footerLabel: t("adminShell.dashboard.todayAbnormalCount"),
+			footerValue: new Intl.NumberFormat(language).format(
+				statistics.todayAbnormalLoginCount,
+			),
 			permission: platformPermissions.logsRead,
 		},
 	].filter((metric) => can(metric.permission));
 	return (
 		<Row gutter={[token.marginLG, token.marginLG]}>
 			{metrics.map((metric) => (
-				<Col xs={12} xl={6} key={metric.key}>
-					<Card
+				<Col xs={24} sm={12} md={12} lg={12} xl={6} key={metric.key}>
+					<ChartCard
 						data-testid={`dashboard-stat-${metric.key}`}
 						variant="borderless"
+						title={metric.label}
+						action={
+							<Tooltip
+								title={metric.hint ?? metric.summary}
+								trigger={["hover", "focus"]}
+							>
+								<InfoCircleOutlined tabIndex={0} aria-label={metric.label} />
+							</Tooltip>
+						}
+						total={new Intl.NumberFormat(language).format(metric.value)}
+						footer={
+							<ChartCardField
+								label={metric.footerLabel}
+								value={metric.footerValue}
+							/>
+						}
+						contentHeight={46}
 						style={{ height: "100%" }}
 					>
-						<Statistic
-							title={metric.label}
-							value={metric.value}
-							prefix={metric.icon}
-						/>
-					</Card>
+						{metric.summary}
+					</ChartCard>
 				</Col>
 			))}
 		</Row>

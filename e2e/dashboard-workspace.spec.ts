@@ -9,7 +9,45 @@ async function signIn(page: Page) {
 	await expect(page.getByTestId("dashboard-stat-users")).toBeVisible();
 }
 
-for (const width of [1440, 390]) {
+test("工作台指标卡保留英文和深色主题（390px）", async ({ page }, testInfo) => {
+	await page.setViewportSize({ width: 390, height: 1000 });
+	await page.addInitScript(() => {
+		localStorage.setItem("react-antd-admin.preference.language", "en");
+		localStorage.setItem("react-antd-admin.preference.theme-mode", "dark");
+	});
+	await signIn(page);
+	const metrics = page.getByTestId(/^dashboard-stat-/);
+	await expect(metrics).toHaveCount(4);
+	await expect(metrics.first()).toContainText("All platform accounts");
+	for (const metric of await metrics.all()) {
+		await expect(metric).toHaveCSS("background-color", "rgb(20, 20, 20)");
+		await expect(metric.getByTestId("chart-card-total")).toHaveCSS(
+			"color",
+			"rgba(255, 255, 255, 0.85)",
+		);
+		for (const part of ["chart-card-content", "chart-card-footer"]) {
+			expect(
+				await metric
+					.getByTestId(part)
+					.evaluate(
+						(node) =>
+							node.scrollWidth <= node.clientWidth &&
+							node.scrollHeight <= node.clientHeight,
+					),
+			).toBe(true);
+		}
+	}
+	await page.screenshot({
+		path: testInfo.outputPath("dashboard-en-dark-390.png"),
+		animations: "disabled",
+	});
+	await metrics.first().screenshot({
+		path: testInfo.outputPath("dashboard-en-dark-390-metric.png"),
+		animations: "disabled",
+	});
+});
+
+for (const width of [1440, 460, 390]) {
 	test(`工作台布局和管理入口（${width}px）`, async ({ page }, testInfo) => {
 		const errors: string[] = [];
 		page.on("pageerror", (error) => errors.push(error.message));
@@ -22,10 +60,34 @@ for (const width of [1440, 390]) {
 		const metrics = page.getByTestId(/^dashboard-stat-/);
 		await expect(metrics).toHaveCount(4);
 		for (const metric of await metrics.all()) {
-			await expect(metric.getByText(/^\d[\d,]*$/)).toHaveCSS(
+			await expect(metric.getByTestId("chart-card-total")).toHaveCSS(
 				"font-size",
-				"24px",
+				"30px",
 			);
+			await expect(metric.getByTestId("chart-card-total")).toHaveCSS(
+				"line-height",
+				"38px",
+			);
+			await expect(metric.getByTestId("chart-card-content")).toHaveCSS(
+				"height",
+				"46px",
+			);
+			await expect(metric.getByTestId("chart-card-footer")).toHaveCSS(
+				"border-top-width",
+				"1px",
+			);
+			await expect(metric.getByTestId("chart-card-footer")).toHaveCSS(
+				"padding-top",
+				"9px",
+			);
+			const cardBox = (await metric.boundingBox())!;
+			const totalBox = (await metric
+				.getByTestId("chart-card-total")
+				.boundingBox())!;
+			expect(totalBox.x - cardBox.x).toBeCloseTo(24, 0);
+			// Native Card's 56px header includes a -1px bottom margin.
+			expect(totalBox.y - cardBox.y).toBeCloseTo(101, 0);
+			expect(cardBox.height).toBeCloseTo(237, 0);
 		}
 		await expect(entries.getByRole("link")).toHaveCount(5);
 		if (width === 390) {
@@ -37,7 +99,13 @@ for (const width of [1440, 390]) {
 			expect(third.y).toBeGreaterThan(first.y);
 		}
 		await expect(system).toContainText("预览正常");
-		for (const region of [system, entries, activity, announcements]) {
+		for (const region of [
+			system,
+			entries,
+			activity,
+			announcements,
+			...(await metrics.all()),
+		]) {
 			await expect(region).toHaveCSS("background-color", "rgb(255, 255, 255)");
 			await expect(region).toHaveCSS("border-top-left-radius", "8px");
 			await expect(region).toHaveCSS("border-bottom-right-radius", "8px");
@@ -55,10 +123,20 @@ for (const width of [1440, 390]) {
 				return { top, bottom, left, right };
 			}),
 		);
-		expect(boxes[0]!.top).toBeCloseTo(boxes[1]!.top, 0);
-		expect(boxes[1]!.left).toBeGreaterThanOrEqual(boxes[0]!.right);
-		if (width === 1440) expect(boxes[2]!.top).toBeCloseTo(boxes[0]!.top, 0);
-		else expect(boxes[2]!.top).toBeGreaterThanOrEqual(boxes[0]!.bottom);
+		if (width === 1440) {
+			for (const box of boxes.slice(1)) {
+				expect(box.top).toBeCloseTo(boxes[0]!.top, 0);
+				expect(box.bottom).toBeCloseTo(boxes[0]!.bottom, 0);
+			}
+			expect(boxes[1]!.left).toBeGreaterThanOrEqual(boxes[0]!.right);
+		} else {
+			for (let index = 1; index < boxes.length; index++) {
+				expect(boxes[index]!.top).toBeGreaterThanOrEqual(
+					boxes[index - 1]!.bottom,
+				);
+				expect(boxes[index]!.left).toBeCloseTo(boxes[0]!.left, 0);
+			}
+		}
 		expect(
 			(await system.boundingBox())!.y + (await system.boundingBox())!.height,
 		).toBeLessThanOrEqual(boxes[0]!.top);
@@ -101,6 +179,17 @@ for (const width of [1440, 390]) {
 			path: testInfo.outputPath(`dashboard-${width}-top.png`),
 			animations: "disabled",
 		});
+		await metrics.first().screenshot({
+			path: testInfo.outputPath(`dashboard-${width}-metric.png`),
+			animations: "disabled",
+		});
+		await page
+			.getByTestId("dashboard-stat-logins")
+			.getByRole("img", { name: "今日登录", exact: true })
+			.focus();
+		await expect(page.getByRole("tooltip")).toContainText(
+			"按 Asia/Shanghai 统计今日成功登录次数",
+		);
 		await activity.scrollIntoViewIfNeeded();
 		await page.getByRole("tab", { name: "最近操作", exact: true }).click();
 		await expect(activity.getByRole("listitem")).toHaveCount(5);
