@@ -344,11 +344,13 @@ export function LogTablePanel<Row extends { id: string }>({
 			<Card
 				data-testid={testId}
 				styles={{
+					root: { boxShadow: "none" },
 					body: {
 						paddingBlockEnd: token.padding,
 						paddingBlockStart: 0,
 					},
 				}}
+				variant="borderless"
 			>
 				<ListToolBar
 					actions={primaryAction ? [primaryAction] : []}
