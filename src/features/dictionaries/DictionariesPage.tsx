@@ -702,7 +702,13 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 					}}
 					onReset={() => {
 						setTypeFilters(defaultTypeFilters);
-						resetTypeTablePage();
+						setTypeTableState((current) => ({
+							...current,
+							order: undefined,
+							page: 1,
+							sort: undefined,
+						}));
+						submitTypeQuery();
 					}}
 				/>
 			}
@@ -768,7 +774,13 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 					}}
 					onReset={() => {
 						setItemFilters(defaultItemFilters);
-						resetItemTablePage();
+						setItemTableState((current) => ({
+							...current,
+							order: undefined,
+							page: 1,
+							sort: undefined,
+						}));
+						submitItemQuery();
 					}}
 				/>
 			}

@@ -61,16 +61,16 @@ export const defaultTypeFilters: TypeFilterValues = { status: "all" };
 export const defaultItemFilters: ItemFilterValues = { status: "all" };
 export const dictionariesRouteKey = "/system/dictionaries";
 export const defaultTypeTableState: TypeTableState = {
-	order: "asc",
+	order: undefined,
 	page: 1,
 	pageSize: 10,
-	sort: "code",
+	sort: undefined,
 };
 export const defaultItemTableState: ItemTableState = {
-	order: "asc",
+	order: undefined,
 	page: 1,
 	pageSize: 10,
-	sort: "sort",
+	sort: undefined,
 };
 export const colorOptions: PlatformDictionaryTagColor[] = [
 	"default",

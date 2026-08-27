@@ -46,10 +46,10 @@ interface RoleTableState {
 const defaultRoleFilterValues: RoleFilterValues = {};
 const rolesRouteKey = "/access/roles";
 const defaultRoleTableState: RoleTableState = {
-	order: "asc",
+	order: undefined,
 	page: 1,
 	pageSize: 20,
-	sort: "role_key",
+	sort: undefined,
 };
 const roleTableSortToContractSort: Record<
 	string,
@@ -158,7 +158,12 @@ export function RolesPage() {
 	const resetRoleFilters = () => {
 		setDraftFilters(defaultRoleFilterValues);
 		setFilters(defaultRoleFilterValues);
-		setTableState((current) => ({ ...current, page: 1 }));
+		setTableState((current) => ({
+			...current,
+			order: undefined,
+			page: 1,
+			sort: undefined,
+		}));
 		querySubmission.submit();
 	};
 	const handleTableChange: TableProps<PlatformRole>["onChange"] = (

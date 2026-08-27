@@ -37,10 +37,10 @@ const defaultAnnouncementFilterValues: AnnouncementFilterValues = {
 };
 const announcementsRouteKey = "/system/announcements";
 const defaultAnnouncementTableState: AnnouncementTableState = {
-	order: "desc",
+	order: undefined,
 	page: 1,
 	pageSize: 20,
-	sort: "updated_at",
+	sort: undefined,
 };
 
 export function AnnouncementsPage() {
@@ -157,7 +157,13 @@ export function AnnouncementsPage() {
 						}}
 						onReset={() => {
 							setFilters(defaultAnnouncementFilterValues);
-							resetTablePage();
+							setTableState((current) => ({
+								...current,
+								order: undefined,
+								page: 1,
+								sort: undefined,
+							}));
+							querySubmission.submit();
 						}}
 					/>
 				}

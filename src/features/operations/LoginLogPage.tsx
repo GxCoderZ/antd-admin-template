@@ -155,12 +155,12 @@ export function LoginLogPage() {
 		stateKey: "page-size",
 	});
 	const [sort, setSort] = useRouteSessionState<LoginLogSort | undefined>({
-		initialState: "created_at",
+		initialState: undefined,
 		routeKey: loginLogsRouteKey,
 		stateKey: "sort",
 	});
 	const [order, setOrder] = useRouteSessionState<SortOrder | undefined>({
-		initialState: "desc",
+		initialState: undefined,
 		routeKey: loginLogsRouteKey,
 		stateKey: "order",
 	});
@@ -424,6 +424,8 @@ export function LoginLogPage() {
 		setFilterDraft(defaultLoginFilterDraft);
 		setFilters({});
 		setPage(1);
+		setSort(undefined);
+		setOrder(undefined);
 		querySubmission.submit();
 	};
 

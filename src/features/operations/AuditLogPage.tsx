@@ -169,12 +169,12 @@ export function AuditLogPage() {
 		stateKey: "page-size",
 	});
 	const [sort, setSort] = useRouteSessionState<AuditLogSort | undefined>({
-		initialState: "created_at",
+		initialState: undefined,
 		routeKey: auditLogsRouteKey,
 		stateKey: "sort",
 	});
 	const [order, setOrder] = useRouteSessionState<SortOrder | undefined>({
-		initialState: "desc",
+		initialState: undefined,
 		routeKey: auditLogsRouteKey,
 		stateKey: "order",
 	});
@@ -452,6 +452,8 @@ export function AuditLogPage() {
 		setFilterDraft(defaultAuditFilterDraft);
 		setFilters({});
 		setPage(1);
+		setSort(undefined);
+		setOrder(undefined);
 		querySubmission.submit();
 	};
 

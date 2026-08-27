@@ -71,10 +71,10 @@ interface SaveUserRolesInput {
 
 const usersRouteKey = "/organization/users";
 const defaultUserTableState: UserTableState = {
-	order: "desc",
+	order: undefined,
 	page: 1,
 	pageSize: 20,
-	sort: "created_at",
+	sort: undefined,
 };
 
 export function UsersPage() {
@@ -312,7 +312,12 @@ export function UsersPage() {
 	const resetUserFilters = () => {
 		setUserDraftFilters(defaultUserFilterValues);
 		setUserFilters(defaultUserFilterValues);
-		setUserTableState((state) => ({ ...state, page: 1 }));
+		setUserTableState((state) => ({
+			...state,
+			order: undefined,
+			page: 1,
+			sort: undefined,
+		}));
 		userQuerySubmission.submit();
 	};
 

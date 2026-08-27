@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -45,6 +45,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
 	localStorage.clear();
+	sessionStorage.clear();
 	mocks.listPlatformAuditLogs.mockReset().mockResolvedValue({
 		items: [auditLog],
 		page: 1,
@@ -82,6 +83,40 @@ function renderAuditLogPage() {
 }
 
 describe("AuditLogPage", () => {
+	it("requests the initial audit list without an explicit sort", async () => {
+		renderAuditLogPage();
+
+		await screen.findByText("operator");
+		expect(mocks.listPlatformAuditLogs).toHaveBeenLastCalledWith(
+			{ page: 1, pageSize: 10 },
+			expect.any(AbortSignal),
+		);
+	});
+
+	it("clears manual sorting when audit filters are reset", async () => {
+		const user = renderAuditLogPage();
+
+		await screen.findByText("operator");
+		const actionHeader = screen.getByRole("columnheader", { name: "动作" });
+		await user.click(actionHeader);
+		await waitFor(() => {
+			expect(mocks.listPlatformAuditLogs).toHaveBeenLastCalledWith(
+				{ order: "asc", page: 1, pageSize: 10, sort: "action" },
+				expect.any(AbortSignal),
+			);
+		});
+
+		mocks.listPlatformAuditLogs.mockClear();
+		await user.click(screen.getByRole("button", { name: /重\s*置/ }));
+		await waitFor(() => {
+			expect(mocks.listPlatformAuditLogs).toHaveBeenLastCalledWith(
+				{ page: 1, pageSize: 10 },
+				expect.any(AbortSignal),
+			);
+		});
+		expect(actionHeader).not.toHaveAttribute("aria-sort");
+	});
+
 	it("shows every audit log field in the details drawer", async () => {
 		const user = renderAuditLogPage();
 
@@ -137,7 +172,11 @@ describe("AuditLogPage", () => {
 		]) {
 			expect(within(dialog).getByText(value, { exact: true })).toBeVisible();
 		}
-		expect(within(dialog).getByText('"active"', { exact: false })).toBeVisible();
-		expect(within(dialog).getByText('"disabled"', { exact: false })).toBeVisible();
+		expect(
+			within(dialog).getByText('"active"', { exact: false }),
+		).toBeVisible();
+		expect(
+			within(dialog).getByText('"disabled"', { exact: false }),
+		).toBeVisible();
 	});
 });

@@ -187,6 +187,40 @@ async function openUserColumnSettings(
 }
 
 describe("UsersPage", () => {
+	it("requests the initial user list without an explicit sort", async () => {
+		renderUsersPage();
+
+		await screen.findByText("admin");
+		expect(mocks.listPlatformUsers).toHaveBeenLastCalledWith(
+			{ page: 1, pageSize: 20 },
+			expect.any(AbortSignal),
+		);
+	});
+
+	it("clears manual sorting when user filters are reset", async () => {
+		const user = renderUsersPage();
+
+		await screen.findByText("admin");
+		const usernameHeader = screen.getByRole("columnheader", { name: "用户名" });
+		await user.click(usernameHeader);
+		await waitFor(() => {
+			expect(mocks.listPlatformUsers).toHaveBeenLastCalledWith(
+				{ order: "asc", page: 1, pageSize: 20, sort: "username" },
+				expect.any(AbortSignal),
+			);
+		});
+
+		mocks.listPlatformUsers.mockClear();
+		await user.click(screen.getByRole("button", { name: /重\s*置/ }));
+		await waitFor(() => {
+			expect(mocks.listPlatformUsers).toHaveBeenLastCalledWith(
+				{ page: 1, pageSize: 20 },
+				expect.any(AbortSignal),
+			);
+		});
+		expect(usernameHeader).not.toHaveAttribute("aria-sort");
+	});
+
 	it("keeps edit visible and moves secondary row actions into more", async () => {
 		const user = renderUsersPage();
 

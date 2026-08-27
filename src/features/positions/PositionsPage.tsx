@@ -77,10 +77,10 @@ interface PositionTableState {
 const defaultPositionFilterValues: PositionFilterValues = { status: "all" };
 const positionsRouteKey = "/organization/positions";
 const defaultPositionTableState: PositionTableState = {
-	order: "desc",
+	order: undefined,
 	page: 1,
 	pageSize: 20,
-	sort: "updated_at",
+	sort: undefined,
 };
 const formId = "position-form";
 const positionColumnVisibility: readonly TableColumnConfig<string>[] = [
@@ -278,7 +278,12 @@ export function PositionsPage() {
 	const resetFilters = () => {
 		setDraftFilters(defaultPositionFilterValues);
 		setFilters(defaultPositionFilterValues);
-		setTableState((current) => ({ ...current, page: 1 }));
+		setTableState((current) => ({
+			...current,
+			order: undefined,
+			page: 1,
+			sort: undefined,
+		}));
 		querySubmission.submit();
 	};
 	const handleTableChange: NonNullable<
