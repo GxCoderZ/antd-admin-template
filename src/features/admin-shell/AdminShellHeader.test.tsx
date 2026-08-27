@@ -27,6 +27,7 @@ vi.mock("./SettingsDrawer", () => ({
 beforeAll(async () => i18n.changeLanguage("zh-CN"));
 
 function renderHeader(onLogout: () => Promise<void>) {
+	const onNavigate = vi.fn();
 	render(
 		<ConfigProvider>
 			<PermissionProvider permissions={[]}>
@@ -47,7 +48,7 @@ function renderHeader(onLogout: () => Promise<void>) {
 					onChangeThemeMode={vi.fn()}
 					onChangeTimeZone={vi.fn()}
 					onLogout={onLogout}
-					onNavigate={vi.fn()}
+					onNavigate={onNavigate}
 					onResetPreferences={vi.fn().mockResolvedValue(undefined)}
 					themeColor={defaultPreferences.themeColor}
 					themeMode="light"
@@ -57,18 +58,27 @@ function renderHeader(onLogout: () => Promise<void>) {
 		</ConfigProvider>,
 	);
 
-	return userEvent.setup();
+	return { onNavigate, user: userEvent.setup() };
 }
 
 describe("AdminShellHeader", () => {
 	it("shows a localized error when logout fails", async () => {
 		const onLogout = vi.fn().mockRejectedValue(new Error("logout failed"));
-		const user = renderHeader(onLogout);
+		const { user } = renderHeader(onLogout);
 
 		await user.click(screen.getByRole("button", { name: "测试用户" }));
 		await user.click(await screen.findByRole("menuitem", { name: "退出" }));
 
 		expect(onLogout).toHaveBeenCalledOnce();
 		expect(await screen.findByText("退出失败，请重试")).toBeInTheDocument();
+	});
+
+	it("opens the account menu on hover and navigates to the profile", async () => {
+		const { onNavigate, user } = renderHeader(
+			vi.fn().mockResolvedValue(undefined),
+		);
+		await user.hover(screen.getByRole("button", { name: "测试用户" }));
+		await user.click(await screen.findByRole("menuitem", { name: "个人资料" }));
+		expect(onNavigate).toHaveBeenCalledWith("/account/profile");
 	});
 });

@@ -20,7 +20,7 @@ import {
 	theme,
 	Typography,
 } from "antd";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -39,9 +39,13 @@ const notificationCenterPath = "/account/notifications";
 
 interface NotificationPopoverProps {
 	onNavigate: (path: string) => void;
+	triggerStyle?: CSSProperties;
 }
 
-export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
+export function NotificationPopover({
+	onNavigate,
+	triggerStyle,
+}: NotificationPopoverProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const screens = Grid.useBreakpoint();
@@ -234,10 +238,12 @@ export function NotificationPopover({ onNavigate }: NotificationPopoverProps) {
 					offset={[-2, 4]}
 					overflowCount={99}
 					size="small"
+					style={{ display: "inline-flex" }}
 				>
 					<HeaderIconButton
 						aria-label={t("adminShell.notificationCenter.button")}
 						icon={<BellOutlined aria-hidden />}
+						style={triggerStyle}
 						type="text"
 					/>
 				</Badge>

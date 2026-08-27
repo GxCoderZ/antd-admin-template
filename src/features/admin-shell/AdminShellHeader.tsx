@@ -10,14 +10,14 @@ import {
 } from "@ant-design/icons";
 import {
 	Dropdown,
+	Flex,
 	Grid,
 	message,
 	type MenuProps,
 	Space,
 	theme,
-	Typography,
 } from "antd";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -46,8 +46,6 @@ import { CommandPalette } from "./CommandPalette";
 import { HeaderIconButton } from "./HeaderIconButton";
 import { NotificationPopover } from "./NotificationPopover";
 import { SettingsDrawer } from "./SettingsDrawer";
-
-const { Text } = Typography;
 
 function collectNavigationRouteKeys(nodes: readonly AdminNavigationNode[]) {
 	return nodes.flatMap((node): string[] => [
@@ -118,6 +116,27 @@ export function AdminShellHeader({
 	const [preferencesOpen, setPreferencesOpen] = useState(false);
 	const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 	const hasSidebarBreakpoint = screens.sm === true;
+	// Match ProLayout GlobalHeader/ActionsContent and rightContentStyle dimensions.
+	const iconActionStyle: CSSProperties = {
+		border: 0,
+		borderRadius: token.borderRadius,
+		color: token.colorTextTertiary,
+		flex: "0 0 auto",
+		fontSize: 16,
+		height: 28,
+		marginInline: 2,
+		padding: 6,
+		width: 28,
+	};
+	const accountActionStyle: CSSProperties = {
+		border: 0,
+		borderRadius: token.borderRadius,
+		color: token.colorTextTertiary,
+		flex: "0 0 auto",
+		height: 44,
+		marginInline: token.padding,
+		padding: 8,
+	};
 	const language = resolveSupportedLanguage(i18n.resolvedLanguage);
 	const themeIcon =
 		themeMode === "system" ? (
@@ -231,16 +250,14 @@ export function AdminShellHeader({
 	return (
 		<>
 			{messageContextHolder}
-			<Space
-				size={hasSidebarBreakpoint ? token.marginXS : 0}
-				style={{ flex: "0 0 auto" }}
-			>
+			<Flex align="center" style={{ flex: "0 0 auto", height: "100%" }}>
 				{hasSidebarBreakpoint ? (
 					<>
 						<HeaderIconButton
 							aria-label={t("adminShell.header.search")}
 							icon={<SearchOutlined aria-hidden />}
 							onClick={() => setCommandPaletteOpen(true)}
+							style={iconActionStyle}
 							type="text"
 						/>
 						<Dropdown
@@ -254,6 +271,7 @@ export function AdminShellHeader({
 							<HeaderIconButton
 								aria-label={t("adminShell.header.language")}
 								icon={<GlobalOutlined aria-hidden />}
+								style={iconActionStyle}
 								type="text"
 							/>
 						</Dropdown>
@@ -269,6 +287,7 @@ export function AdminShellHeader({
 							<HeaderIconButton
 								aria-label={t("theme.label")}
 								icon={themeIcon}
+								style={iconActionStyle}
 								type="text"
 							/>
 						</Dropdown>
@@ -276,6 +295,7 @@ export function AdminShellHeader({
 							aria-label={t("adminShell.header.settings")}
 							icon={<SettingOutlined aria-hidden />}
 							onClick={() => setPreferencesOpen(true)}
+							style={iconActionStyle}
 							type="text"
 						/>
 					</>
@@ -302,11 +322,15 @@ export function AdminShellHeader({
 						<HeaderIconButton
 							aria-label={t("adminShell.header.more")}
 							icon={<MoreOutlined aria-hidden />}
+							style={iconActionStyle}
 							type="text"
 						/>
 					</Dropdown>
 				)}
-				<NotificationPopover onNavigate={onNavigate} />
+				<NotificationPopover
+					onNavigate={onNavigate}
+					triggerStyle={iconActionStyle}
+				/>
 				<Dropdown
 					arrow
 					menu={{
@@ -315,22 +339,26 @@ export function AdminShellHeader({
 						selectedKeys: [],
 					}}
 					placement="bottomRight"
-					trigger={["click"]}
+					trigger={["hover", "click"]}
 				>
-					<HeaderIconButton aria-label={currentUsername} type="text">
+					<HeaderIconButton
+						aria-label={currentUsername}
+						style={accountActionStyle}
+						type="text"
+					>
 						<Space size={token.marginXS}>
 							<PlatformUserAvatar
 								displayName={currentUsername}
 								fallback="icon"
 								revision={currentUserAvatarRevision}
-								size="small"
+								size={28}
 								userId={currentUserId}
 							/>
-							{hasSidebarBreakpoint ? <Text>{currentUsername}</Text> : null}
+							{hasSidebarBreakpoint ? <span>{currentUsername}</span> : null}
 						</Space>
 					</HeaderIconButton>
 				</Dropdown>
-			</Space>
+			</Flex>
 
 			<SettingsDrawer
 				isColorBlindMode={isColorBlindMode}

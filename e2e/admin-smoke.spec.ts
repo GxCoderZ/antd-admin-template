@@ -576,6 +576,7 @@ test("公告管理支持通过 Fake API 新建并查询公告", async ({ page })
 	await drawer.getByRole("button", { name: /保\s*存/ }).click();
 	await expect(drawer).toBeHidden();
 
+	await page.getByPlaceholder("搜索公告标题").click();
 	await page.getByPlaceholder("搜索公告标题").fill("端到端公告演示");
 	await page.getByRole("button", { name: /查\s*询/ }).click();
 	await expect(page.getByText("端到端公告演示", { exact: true })).toBeVisible();
