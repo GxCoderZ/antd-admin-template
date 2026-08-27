@@ -1,9 +1,4 @@
-import {
-	BellOutlined,
-	CheckOutlined,
-	InboxOutlined,
-	NotificationOutlined,
-} from "@ant-design/icons";
+import { BellOutlined, CheckOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	Alert,
@@ -13,45 +8,49 @@ import {
 	Flex,
 	Grid,
 	message,
+	Modal,
 	Popover,
 	Skeleton,
-	Space,
-	Tag,
 	theme,
+	Tooltip,
 	Typography,
 } from "antd";
 import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+	clearPlatformNotifications,
 	listPlatformNotifications,
 	markAllPlatformNotificationsRead,
 	markPlatformNotificationRead,
 	platformNotificationsQueryKey,
-	type PlatformNotification,
 } from "#src/api/notifications";
+import { resolveSupportedLanguage } from "../../i18n";
+import { NotificationAvatar } from "../notifications/NotificationAvatar";
 import { HeaderIconButton } from "./HeaderIconButton";
+import styles from "./NotificationPopover.module.css";
 
 const { Text } = Typography;
-
 const previewPageSize = 6;
-const notificationCenterPath = "/account/notifications";
 
 interface NotificationPopoverProps {
 	onNavigate: (path: string) => void;
+	timeZone: string;
 	triggerStyle?: CSSProperties;
 }
 
 export function NotificationPopover({
 	onNavigate,
+	timeZone,
 	triggerStyle,
 }: NotificationPopoverProps) {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const { token } = theme.useToken();
 	const screens = Grid.useBreakpoint();
 	const queryClient = useQueryClient();
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [open, setOpen] = useState(false);
+	const [clearOpen, setClearOpen] = useState(false);
 	const query = useQuery({
 		queryFn: ({ signal }) =>
 			listPlatformNotifications({ page: 1, pageSize: previewPageSize }, signal),
@@ -60,53 +59,74 @@ export function NotificationPopover({
 			{ page: 1, pageSize: previewPageSize, scope: "header-preview" },
 		],
 	});
-	const refreshNotifications = () =>
+	const refresh = () =>
 		queryClient.invalidateQueries({ queryKey: platformNotificationsQueryKey });
+	const reportReadError = () => {
+		void messageApi.error(t("adminShell.notificationCenter.updateError"));
+	};
 	const readMutation = useMutation({
 		mutationFn: markPlatformNotificationRead,
-		onError: () => {
-			void messageApi.error(t("adminShell.notificationCenter.updateError"));
-		},
-		onSuccess: () => {
-			void messageApi.success(t("adminShell.notificationCenter.markReadSuccess"));
-			void refreshNotifications();
-		},
+		onError: reportReadError,
+		onSuccess: refresh,
 	});
 	const readAllMutation = useMutation({
 		mutationFn: markAllPlatformNotificationsRead,
+		onError: reportReadError,
+		onSuccess: refresh,
+	});
+	const clearMutation = useMutation({
+		mutationFn: clearPlatformNotifications,
 		onError: () => {
-			void messageApi.error(t("adminShell.notificationCenter.updateError"));
+			void messageApi.error(t("adminShell.notificationCenter.clearError"));
 		},
-		onSuccess: () => {
-			void messageApi.success(t("adminShell.notificationCenter.markAllReadSuccess"));
-			void refreshNotifications();
+		onSuccess: async () => {
+			await refresh();
+			setClearOpen(false);
+			void messageApi.success(t("adminShell.notificationCenter.clearSuccess"));
 		},
 	});
-	const kindColor: Record<PlatformNotification["kind"], string> = {
-		system: "blue",
-		task: "gold",
-		user: "purple",
-	};
-	const placement = screens.sm === true ? "bottomRight" : "bottom";
-	const popoverTitle = (
-		<Flex align="center" gap={token.marginXS} justify="space-between">
-			<Space size={token.marginXS}>
-				<NotificationOutlined aria-hidden />
-				<Text strong>{t("adminShell.notificationCenter.previewTitle")}</Text>
-			</Space>
-			<Badge count={query.data?.unreadCount ?? 0} overflowCount={99} />
-		</Flex>
-	);
-	const popoverContent = (
+	const busy =
+		readMutation.isPending ||
+		readAllMutation.isPending ||
+		clearMutation.isPending;
+	const hasUnread = query.isSuccess && query.data.unreadCount > 0;
+	const border = `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`;
+	const content = (
 		<Flex
 			data-testid="notification-popover"
-			style={{ width: "min(380px, calc(100vw - 48px))" }}
 			vertical
+			style={{ width: `min(384px, calc(100vw - ${token.margin * 2}px))` }}
 		>
-			<div style={{ maxHeight: 390, overflowY: "auto" }}>
+			<Flex
+				align="center"
+				justify="space-between"
+				style={{
+					padding: `${token.paddingXS}px ${token.padding}px`,
+					borderBottom: border,
+				}}
+			>
+				<Text>{t("adminShell.notificationCenter.previewTitle")}</Text>
+				<Tooltip title={t("adminShell.notificationCenter.markAllRead")}>
+					<Button
+						aria-label={t("adminShell.notificationCenter.markAllRead")}
+						disabled={!hasUnread || busy}
+						icon={<CheckOutlined />}
+						loading={readAllMutation.isPending}
+						onClick={() => readAllMutation.mutate()}
+						type="text"
+					/>
+				</Tooltip>
+			</Flex>
+			<div
+				data-testid="notification-popover-list"
+				style={{
+					height: "min(380px, calc(100dvh - 200px))",
+					overflowY: "auto",
+				}}
+			>
 				{query.isPending ? (
 					<div style={{ padding: token.padding }}>
-						<Skeleton active paragraph={{ rows: 4 }} title={false} />
+						<Skeleton active paragraph={{ rows: 6 }} title={false} />
 					</div>
 				) : query.isError ? (
 					<div style={{ padding: token.padding }}>
@@ -116,7 +136,7 @@ export function NotificationPopover({
 									{t("adminShell.notificationCenter.retry")}
 								</Button>
 							}
-							message={t("adminShell.notificationCenter.loadError")}
+							title={t("adminShell.notificationCenter.loadError")}
 							showIcon
 							type="error"
 						/>
@@ -125,91 +145,113 @@ export function NotificationPopover({
 					<Empty
 						description={t("adminShell.notificationCenter.empty")}
 						image={Empty.PRESENTED_IMAGE_SIMPLE}
-						style={{ margin: 0, padding: token.paddingLG }}
+						style={{ padding: token.paddingLG, margin: 0 }}
 					/>
 				) : (
-					<Flex data-testid="notification-popover-list" vertical>
-						{query.data.items.map((item) => (
+					query.data.items.map((item) => (
+						<Button
+							aria-label={
+								item.readAt
+									? item.title
+									: t("adminShell.notificationCenter.readAction", {
+											title: item.title,
+										})
+							}
+							aria-busy={
+								readMutation.isPending && readMutation.variables === item.id
+							}
+							block
+							key={item.id}
+							onClick={() => {
+								if (!item.readAt && !busy) readMutation.mutate(item.id);
+							}}
+							style={{
+								height: "auto",
+								border: 0,
+								borderBottom: border,
+								borderRadius: 0,
+								padding: token.padding,
+								whiteSpace: "normal",
+								textAlign: "start",
+							}}
+							styles={{ content: { width: "100%" } }}
+							type="text"
+						>
 							<Flex
-								align="flex-start"
-								gap={token.marginSM}
-								key={item.id}
-								style={{
-									borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
-									paddingBlock: token.paddingSM,
-									paddingInline: token.padding,
-								}}
+								align="center"
+								gap={token.margin + token.marginXXS}
+								style={{ width: "100%", minWidth: 0 }}
 							>
-								<Badge dot={!item.readAt} offset={[-2, 4]}>
+								<NotificationAvatar kind={item.kind} size={40} />
+								<Flex
+									gap={token.marginXS}
+									style={{ flex: 1, minWidth: 0 }}
+									vertical
+								>
+									<Flex
+										align="start"
+										gap={token.marginXS}
+										justify="space-between"
+									>
+										<Text
+											strong={!item.readAt}
+											style={{ overflowWrap: "anywhere" }}
+										>
+											{item.title}
+										</Text>
+										{!item.readAt ? (
+											<Badge
+												color={token.colorPrimary}
+												style={{ flexShrink: 0 }}
+											/>
+										) : null}
+									</Flex>
 									<span
-										aria-hidden
+										className={styles.summary}
 										style={{
-											alignItems: "center",
-											background: token.colorFillSecondary,
-											borderRadius: "50%",
+											fontSize: token.fontSizeSM,
 											color: token.colorTextSecondary,
-											display: "inline-flex",
-											height: token.controlHeightLG,
-											justifyContent: "center",
-											width: token.controlHeightLG,
 										}}
 									>
-										<InboxOutlined />
-									</span>
-								</Badge>
-								<Flex flex={1} gap={token.marginXXS} style={{ minWidth: 0 }} vertical>
-									<Space size={token.marginXS} wrap>
-										<Text strong={!item.readAt}>{item.title}</Text>
-										<Tag color={kindColor[item.kind]}>
-											{t(`adminShell.notificationCenter.kinds.${item.kind}`)}
-										</Tag>
-									</Space>
-									<Text ellipsis type="secondary">
 										{item.content}
-									</Text>
-									<Text type="secondary">
-										{new Date(item.createdAt).toLocaleString()}
+									</span>
+									<Text type="secondary" style={{ fontSize: token.fontSizeSM }}>
+										{new Intl.DateTimeFormat(
+											resolveSupportedLanguage(i18n.resolvedLanguage),
+											{ dateStyle: "medium", timeStyle: "short", timeZone },
+										).format(new Date(item.createdAt))}
 									</Text>
 								</Flex>
-								{item.readAt ? null : (
-									<Button
-										loading={
-											readMutation.isPending &&
-											readMutation.variables === item.id
-										}
-										onClick={() => readMutation.mutate(item.id)}
-										size="small"
-										type="link"
-									>
-										{t("adminShell.notificationCenter.markRead")}
-									</Button>
-								)}
 							</Flex>
-						))}
-					</Flex>
+						</Button>
+					))
 				)}
 			</div>
 			<Flex
 				align="center"
+				gap={token.marginXS}
 				justify="space-between"
 				style={{
-					borderTop: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
-					padding: token.paddingXS,
+					borderTop: border,
+					padding: `${token.paddingXS}px ${token.padding}px`,
 				}}
 			>
 				<Button
-					disabled={!query.data?.unreadCount}
-					icon={<CheckOutlined aria-hidden />}
-					loading={readAllMutation.isPending}
-					onClick={() => readAllMutation.mutate()}
+					danger
+					disabled={!query.isSuccess || query.data.total === 0 || busy}
+					loading={clearMutation.isPending}
+					onClick={() => {
+						setOpen(false);
+						setClearOpen(true);
+					}}
 					type="text"
 				>
-					{t("adminShell.notificationCenter.markAllRead")}
+					{t("adminShell.notificationCenter.clear")}
 				</Button>
 				<Button
 					onClick={() => {
 						setOpen(false);
-						onNavigate(notificationCenterPath);
+						onNavigate("/account/notifications");
 					}}
 					type="primary"
 				>
@@ -218,26 +260,37 @@ export function NotificationPopover({
 			</Flex>
 		</Flex>
 	);
-
 	return (
 		<>
 			{messageContextHolder}
+			<Modal
+				width={screens.sm === true ? token.screenXS : "100%"}
+				style={{ maxWidth: "100%" }}
+				open={clearOpen}
+				title={t("adminShell.notificationCenter.clearConfirmTitle")}
+				cancelText={t("adminShell.notificationCenter.cancel")}
+				okText={t("adminShell.notificationCenter.confirmClear")}
+				okButtonProps={{ danger: true }}
+				confirmLoading={clearMutation.isPending}
+				onCancel={() => setClearOpen(false)}
+				onOk={() => clearMutation.mutate()}
+			>
+				{t("adminShell.notificationCenter.clearConfirmContent")}
+			</Modal>
 			<Popover
 				arrow={false}
-				content={popoverContent}
+				content={content}
 				destroyOnHidden
 				onOpenChange={setOpen}
 				open={open}
-				placement={placement}
-				styles={{ content: { padding: 0 } }}
-				title={popoverTitle}
+				placement={screens.sm === true ? "bottomRight" : "bottom"}
+				styles={{ container: { padding: 0, overflow: "hidden" } }}
 				trigger="click"
 			>
 				<Badge
-					count={query.data?.unreadCount ?? 0}
+					color={token.colorPrimary}
+					dot={hasUnread}
 					offset={[-2, 4]}
-					overflowCount={99}
-					size="small"
 					style={{ display: "inline-flex" }}
 				>
 					<HeaderIconButton

@@ -1,0 +1,29 @@
+.row {
+	container-type: inline-size;
+}
+
+.content {
+	align-items: start;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.primary {
+	min-width: 0;
+}
+
+.metadata {
+	align-items: end;
+	min-width: 180px;
+}
+
+@container (max-width: 480px) {
+	.content {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.metadata {
+		align-items: start;
+		min-width: 0;
+	}
+}

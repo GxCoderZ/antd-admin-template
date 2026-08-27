@@ -10,6 +10,7 @@ export interface PlatformNotification {
 }
 
 export interface ListPlatformNotificationsInput {
+	keyword?: string;
 	page: number;
 	pageSize: number;
 	unread?: boolean;

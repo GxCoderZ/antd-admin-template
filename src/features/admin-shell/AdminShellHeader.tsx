@@ -200,6 +200,7 @@ export function AdminShellHeader({
 				/>
 				<NotificationPopover
 					onNavigate={onNavigate}
+					timeZone={timeZone}
 					triggerStyle={iconActionStyle}
 				/>
 				<Dropdown

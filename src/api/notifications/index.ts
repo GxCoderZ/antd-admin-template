@@ -25,6 +25,7 @@ export function listPlatformNotifications(
 ): Promise<PlatformNotificationPage> {
 	return request<NotificationPageResponse>("/account/notifications", {
 		query: {
+			keyword: input.keyword?.trim(),
 			page: input.page,
 			page_size: input.pageSize,
 			unread: input.unread,
@@ -49,5 +50,11 @@ export function markPlatformNotificationRead(notificationId: string) {
 export function markAllPlatformNotificationsRead() {
 	return request<{ updated: number }>("/account/notifications/read-all", {
 		method: "POST",
+	});
+}
+
+export function clearPlatformNotifications(): Promise<{ deleted: number }> {
+	return request<{ deleted: number }>("/account/notifications", {
+		method: "DELETE",
 	});
 }

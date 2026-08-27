@@ -1,186 +1,215 @@
 import { CheckOutlined } from "@ant-design/icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	Alert,
+	keepPreviousData,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import {
 	Badge,
 	Button,
 	Card,
-	Empty,
 	Flex,
-	Listy,
+	Input,
+	message,
 	Pagination,
 	Segmented,
-	Skeleton,
-	Space,
-	Tag,
 	theme,
 	Typography,
 } from "antd";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useLocalePreferences } from "../../app/localePreferences";
+import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	listPlatformNotifications,
 	markAllPlatformNotificationsRead,
 	markPlatformNotificationRead,
 	platformNotificationsQueryKey,
-	type PlatformNotification,
 } from "#src/api/notifications";
+import { NotificationListPanel } from "./NotificationListPanel";
 
-const { Paragraph, Text, Title } = Typography;
+const { Search } = Input;
+const { Title } = Typography;
+const notificationCenterRouteKey = "/account/notifications";
+
+type NotificationScope = "all" | "unread";
 
 export function NotificationCenterPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const formatPreferences = useLocalePreferences();
 	const queryClient = useQueryClient();
-	const [unreadOnly, setUnreadOnly] = useState(false);
-	const [page, setPage] = useState(1);
-	const pageSize = 10;
+	const [messageApi, messageContextHolder] = message.useMessage();
+	const [keywordDraft, setKeywordDraft] = useRouteSessionState({
+		initialState: "",
+		routeKey: notificationCenterRouteKey,
+		stateKey: "keyword-draft",
+	});
+	const [keyword, setKeyword] = useRouteSessionState({
+		initialState: "",
+		routeKey: notificationCenterRouteKey,
+		stateKey: "keyword",
+	});
+	const [scope, setScope] = useRouteSessionState<NotificationScope>({
+		initialState: "all",
+		routeKey: notificationCenterRouteKey,
+		stateKey: "scope",
+	});
+	const [page, setPage] = useRouteSessionState({
+		initialState: 1,
+		routeKey: notificationCenterRouteKey,
+		stateKey: "page",
+	});
+	const [pageSize, setPageSize] = useRouteSessionState({
+		initialState: 10,
+		routeKey: notificationCenterRouteKey,
+		stateKey: "page-size",
+	});
+	const unread = scope === "unread";
 	const query = useQuery({
+		placeholderData: keepPreviousData,
 		queryFn: ({ signal }) =>
-			listPlatformNotifications(
-				{ page, pageSize, ...(unreadOnly ? { unread: true } : {}) },
-				signal,
-			),
+			listPlatformNotifications({ keyword, page, pageSize, unread }, signal),
 		queryKey: [
 			...platformNotificationsQueryKey,
-			{ page, pageSize, unreadOnly },
+			{ keyword, page, pageSize, unread },
 		],
 	});
-	const refresh = () =>
+	const notificationPage = query.data;
+	const unreadCount = notificationPage ? notificationPage.unreadCount : 0;
+	const refreshNotifications = () =>
 		queryClient.invalidateQueries({ queryKey: platformNotificationsQueryKey });
+	const reportReadError = () => {
+		void messageApi.error(t("adminShell.notificationCenter.updateError"));
+	};
 	const readMutation = useMutation({
 		mutationFn: markPlatformNotificationRead,
-		onSuccess: refresh,
+		onError: reportReadError,
+		onSuccess: async () => {
+			if (
+				unread &&
+				notificationPage &&
+				notificationPage.items.length === 1 &&
+				page > 1
+			) {
+				setPage(page - 1);
+			}
+			await refreshNotifications();
+		},
 	});
 	const readAllMutation = useMutation({
 		mutationFn: markAllPlatformNotificationsRead,
-		onSuccess: refresh,
+		onError: reportReadError,
+		onSuccess: async () => {
+			if (unread) setPage(1);
+			await refreshNotifications();
+		},
 	});
+	const busy = readMutation.isPending || readAllMutation.isPending;
 
-	const kindColor: Record<PlatformNotification["kind"], string> = {
-		system: "blue",
-		task: "gold",
-		user: "purple",
-	};
+	function applyKeyword(nextKeyword: string) {
+		setKeyword(nextKeyword.trim());
+		setPage(1);
+	}
+
+	function changeScope(nextScope: NotificationScope) {
+		setScope(nextScope);
+		setPage(1);
+	}
 
 	return (
-		<Flex gap={token.marginLG} vertical>
-			<div>
-				<Flex align="center" gap={token.marginSM} wrap>
-					<Title level={2} style={{ margin: 0 }}>
-						{t("adminShell.notificationCenter.title")}
-					</Title>
-					<Badge count={query.data?.unreadCount ?? 0} overflowCount={99} />
-				</Flex>
-				<Paragraph
-					type="secondary"
-					style={{ marginBottom: 0, marginTop: token.marginXS }}
-				>
-					{t("adminShell.notificationCenter.description")}
-				</Paragraph>
-			</div>
+		<>
+			{messageContextHolder}
 			<Card
-				extra={
-					<Button
-						disabled={!query.data?.unreadCount}
-						icon={<CheckOutlined />}
-						loading={readAllMutation.isPending}
-						onClick={() => readAllMutation.mutate()}
-					>
-						{t("adminShell.notificationCenter.markAllRead")}
-					</Button>
-				}
 				title={
-					<Segmented
-						onChange={(value) => {
-							setUnreadOnly(value === "unread");
-							setPage(1);
-						}}
-						options={[
-							{ label: t("adminShell.notificationCenter.all"), value: "all" },
-							{
-								label: t("adminShell.notificationCenter.unread"),
-								value: "unread",
-							},
-						]}
-						value={unreadOnly ? "unread" : "all"}
-					/>
-				}
-			>
-				{query.isPending ? (
-					<div data-testid="notification-center-loading">
-						<Skeleton active paragraph={{ rows: 6 }} />
-					</div>
-				) : query.isError ? (
-					<Alert
-						action={
-							<Button onClick={() => void query.refetch()}>
-								{t("adminShell.notificationCenter.retry")}
+					<Flex align="center" gap={token.margin} justify="space-between" wrap>
+						<Flex align="center" gap={token.marginSM} wrap>
+							<Title level={5} style={{ margin: 0 }}>
+								{t("adminShell.notificationCenter.title")}
+							</Title>
+							<Badge count={unreadCount} overflowCount={99} />
+							<Button
+								disabled={busy || unreadCount === 0}
+								icon={<CheckOutlined aria-hidden />}
+								loading={readAllMutation.isPending}
+								onClick={() => readAllMutation.mutate()}
+							>
+								{t("adminShell.notificationCenter.markAllRead")}
 							</Button>
-						}
-						description={t("adminShell.notificationCenter.errorFallback")}
-						title={t("adminShell.notificationCenter.loadError")}
-						showIcon
-						type="error"
-					/>
-				) : query.data.items.length === 0 ? (
-					<Empty description={t("adminShell.notificationCenter.empty")} />
-				) : (
-					<>
-						<Listy
-							itemRender={(item) => (
-								<Flex
-									align="flex-start"
-									data-testid={`notification-center-item-${item.id}`}
-									gap={token.margin}
-									justify="space-between"
-									wrap
-								>
-									<Flex gap={token.marginXXS} style={{ minWidth: 0 }} vertical>
-										<Space wrap>
-											<Badge status={item.readAt ? "default" : "processing"} />
-											<Text strong={!item.readAt}>{item.title}</Text>
-											<Tag color={kindColor[item.kind]}>
-												{t(`adminShell.notificationCenter.kinds.${item.kind}`)}
-											</Tag>
-										</Space>
-										<Space orientation="vertical" size={token.marginXXS}>
-											<Text>{item.content}</Text>
-											<Text type="secondary">
-												{new Date(item.createdAt).toLocaleString()}
-											</Text>
-										</Space>
-									</Flex>
-									{!item.readAt ? (
-										<Button
-											loading={
-												readMutation.isPending &&
-												readMutation.variables === item.id
-											}
-											onClick={() => readMutation.mutate(item.id)}
-											type="link"
-										>
-											{t("adminShell.notificationCenter.markRead")}
-										</Button>
-									) : null}
-								</Flex>
-							)}
-							items={query.data.items}
-							rowKey="id"
-						/>
-						<Flex justify="end" style={{ marginTop: token.margin }}>
-							<Pagination
-								current={query.data.page}
-								onChange={setPage}
-								pageSize={query.data.pageSize}
-								showSizeChanger={false}
-								total={query.data.total}
+						</Flex>
+						<Flex
+							align="center"
+							gap={token.marginSM}
+							style={{ minWidth: 0, maxWidth: "100%" }}
+							wrap
+						>
+							<Segmented<NotificationScope>
+								disabled={busy}
+								onChange={changeScope}
+								options={[
+									{
+										label: t("adminShell.notificationCenter.all"),
+										value: "all",
+									},
+									{
+										label: t("adminShell.notificationCenter.unread"),
+										value: "unread",
+									},
+								]}
+								value={scope}
+							/>
+							<Search
+								aria-label={t(
+									"adminShell.notificationCenter.searchPlaceholder",
+								)}
+								allowClear
+								disabled={busy}
+								onChange={(event) => setKeywordDraft(event.target.value)}
+								onSearch={applyKeyword}
+								placeholder={t(
+									"adminShell.notificationCenter.searchPlaceholder",
+								)}
+								style={{ width: 272, maxWidth: "100%" }}
+								value={keywordDraft}
 							/>
 						</Flex>
-					</>
-				)}
+					</Flex>
+				}
+				styles={{
+					header: { paddingBlock: token.padding },
+					body: { padding: `0 ${token.paddingLG}px ${token.padding}px` },
+				}}
+			>
+				<NotificationListPanel
+					formatPreferences={formatPreferences}
+					isError={query.isError}
+					isFetching={query.isFetching && !query.isPending}
+					onRead={(notificationId) => {
+						if (!busy && !query.isPlaceholderData)
+							readMutation.mutate(notificationId);
+					}}
+					onRetry={() => void query.refetch()}
+					page={notificationPage}
+					readDisabled={busy || query.isPlaceholderData}
+					readingId={
+						readMutation.isPending ? readMutation.variables : undefined
+					}
+				/>
+				<Flex justify="end" style={{ marginTop: token.margin }}>
+					<Pagination
+						current={notificationPage ? notificationPage.page : page}
+						disabled={busy}
+						onChange={(nextPage, nextPageSize) => {
+							setPage(nextPage);
+							setPageSize(nextPageSize);
+						}}
+						pageSize={notificationPage ? notificationPage.pageSize : pageSize}
+						showSizeChanger
+						total={notificationPage ? notificationPage.total : 0}
+					/>
+				</Flex>
 			</Card>
-		</Flex>
+		</>
 	);
 }
