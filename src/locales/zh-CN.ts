@@ -40,6 +40,7 @@ export const zhCNTranslation = {
 			openMobile: "打开菜单",
 		},
 		header: {
+			languageError: "语言切换失败，请重试",
 			search: "搜索",
 			logout: "退出",
 			logoutError: "退出失败，请重试",
@@ -61,6 +62,8 @@ export const zhCNTranslation = {
 			more: "更多",
 		},
 		commandPalette: {
+			noRecent: "暂无最近访问",
+			removeRecent: "移除最近访问：{{name}}",
 			empty: "无匹配",
 			placeholder: "搜索菜单",
 			title: "导航搜索",

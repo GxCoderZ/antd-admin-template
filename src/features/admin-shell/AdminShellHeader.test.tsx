@@ -22,7 +22,7 @@ vi.mock("./NotificationPopover", () => ({
 
 beforeEach(async () => i18n.changeLanguage("zh-CN"));
 
-function renderHeader(onLogout: () => Promise<void>) {
+function renderHeader(onLogout: () => Promise<void>, isDarkMode = false) {
 	const onNavigate = vi.fn();
 	const onChangeThemeMode = vi.fn();
 	render(
@@ -33,6 +33,7 @@ function renderHeader(onLogout: () => Promise<void>) {
 					currentUserId="user-1"
 					currentUsername="测试用户"
 					isColorBlindMode={false}
+					isDarkMode={isDarkMode}
 					isFooterVisible
 					menuType="single"
 					navigationMode="side"
@@ -58,14 +59,46 @@ function renderHeader(onLogout: () => Promise<void>) {
 }
 
 describe("AdminShellHeader", () => {
-	it("keeps search directly available without duplicate preference buttons", () => {
+	it("keeps search, language and theme directly available", () => {
 		renderHeader(vi.fn().mockResolvedValue(undefined));
 
 		expect(screen.getByRole("button", { name: "搜索" })).toBeVisible();
-		for (const name of ["切换语言", "主题模式", "设置", "更多操作"]) {
+		expect(screen.getByRole("button", { name: "语言" })).toBeVisible();
+		expect(
+			screen.getByRole("button", { name: "切换为深色模式" }),
+		).toBeVisible();
+		for (const name of ["设置", "更多操作"]) {
 			expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
 		}
 	});
+
+	it("changes language from the toolbar without opening preferences", async () => {
+		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
+		await user.click(screen.getByRole("button", { name: "语言" }));
+		await user.click(await screen.findByRole("menuitem", { name: "English" }));
+		expect(await screen.findByRole("button", { name: "Search" })).toBeVisible();
+		expect(i18n.resolvedLanguage).toBe("en");
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
+
+	it.each([false, true])(
+		"toggles the resolved theme directly (dark: %s)",
+		async (isDarkMode) => {
+			const { user, onChangeThemeMode } = renderHeader(
+				vi.fn().mockResolvedValue(undefined),
+				isDarkMode,
+			);
+			await user.click(
+				screen.getByRole("button", {
+					name: isDarkMode ? "切换为浅色模式" : "切换为深色模式",
+				}),
+			);
+			expect(onChangeThemeMode).toHaveBeenCalledWith(
+				isDarkMode ? "light" : "dark",
+				expect.any(Object),
+			);
+		},
+	);
 
 	it("opens preferences separately from account settings and keeps language and theme controls", async () => {
 		const { onChangeThemeMode, onNavigate, user } = renderHeader(

@@ -9,6 +9,7 @@ export const preferenceStorageKeys = {
 	language: `${APP_PREFERENCE_PREFIX}language`,
 	menuType: `${APP_PREFERENCE_PREFIX}menu-type`,
 	navigationMode: `${APP_PREFERENCE_PREFIX}navigation-mode`,
+	navigationSearchHistory: `${APP_PREFERENCE_PREFIX}navigation-search-history.`,
 	themeColor: `${APP_PREFERENCE_PREFIX}theme-color`,
 	themeMode: `${APP_PREFERENCE_PREFIX}theme-mode`,
 	timeZone: `${APP_PREFERENCE_PREFIX}time-zone`,
@@ -196,6 +197,40 @@ export function readLanguagePreference() {
 
 export function writeLanguagePreference(value: SupportedLanguageCode) {
 	writeValue(preferenceStorageKeys.language, value);
+}
+
+export function readNavigationSearchHistory(accountId: string): string[] {
+	try {
+		const value = globalThis.localStorage.getItem(
+			`${preferenceStorageKeys.navigationSearchHistory}${encodeURIComponent(accountId)}`,
+		);
+		if (!value) return [];
+		const parsed: unknown = JSON.parse(value);
+		if (!Array.isArray(parsed)) return [];
+		return [
+			...new Set(
+				parsed.filter(
+					(path): path is string =>
+						typeof path === "string" &&
+						path.startsWith("/") &&
+						!path.startsWith("//"),
+				),
+			),
+		].slice(0, 10);
+	} catch {
+		ignorePreferenceStorageError();
+		return [];
+	}
+}
+
+export function writeNavigationSearchHistory(
+	accountId: string,
+	paths: readonly string[],
+) {
+	writeValue(
+		`${preferenceStorageKeys.navigationSearchHistory}${encodeURIComponent(accountId)}`,
+		JSON.stringify([...new Set(paths)].slice(0, 10)),
+	);
 }
 
 export function readColorBlindModePreference() {

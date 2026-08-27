@@ -1,0 +1,23 @@
+.titleLabel {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.resultTitle {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.resultPath {
+	min-width: 0;
+	margin-inline-start: auto;
+	opacity: 0.65;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 12px;
+}

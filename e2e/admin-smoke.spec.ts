@@ -549,7 +549,8 @@ test("用户管理角色抽屉在 390px 窄屏下不溢出", async ({ page }) =>
 		.locator(".ant-drawer-content-wrapper");
 	await expect(drawer).toBeVisible();
 	const drawerBounds = await drawer.boundingBox();
-	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
+	// Chromium's animated transform can introduce subpixel rounding.
+	expect(drawerBounds?.width).toBeLessThanOrEqual(390.01);
 	await expect(page.getByRole("combobox", { name: "角色选择" })).toBeVisible();
 	expect(
 		await page.evaluate(() => document.documentElement.scrollWidth),

@@ -40,6 +40,7 @@ export const enTranslation = {
 			openMobile: "Open menu",
 		},
 		header: {
+			languageError: "Could not change language. Please try again.",
 			search: "Search",
 			logout: "Sign out",
 			logoutError: "Sign out failed. Please try again.",
@@ -61,6 +62,8 @@ export const enTranslation = {
 			more: "More",
 		},
 		commandPalette: {
+			noRecent: "No recent destinations",
+			removeRecent: "Remove recent destination: {{name}}",
 			empty: "No matches",
 			placeholder: "Search navigation",
 			title: "Navigation search",

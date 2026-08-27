@@ -40,6 +40,7 @@ export const koKRTranslation = {
 			openMobile: "메뉴 열기",
 		},
 		header: {
+			languageError: "언어를 변경하지 못했습니다. 다시 시도해 주세요.",
 			search: "검색",
 			logout: "로그아웃",
 			logoutError: "로그아웃하지 못했습니다. 다시 시도해 주세요.",
@@ -61,6 +62,8 @@ export const koKRTranslation = {
 			more: "더보기",
 		},
 		commandPalette: {
+			noRecent: "최근 방문 기록이 없습니다",
+			removeRecent: "최근 방문 삭제: {{name}}",
 			empty: "일치하는 항목 없음",
 			placeholder: "메뉴 검색",
 			title: "메뉴 검색",

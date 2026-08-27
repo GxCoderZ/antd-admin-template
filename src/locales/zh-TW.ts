@@ -40,6 +40,7 @@ export const zhTWTranslation = {
 			openMobile: "開啟選單",
 		},
 		header: {
+			languageError: "語言切換失敗，請重試",
 			search: "搜尋",
 			logout: "登出",
 			logoutError: "登出失敗，請重試",
@@ -61,6 +62,8 @@ export const zhTWTranslation = {
 			more: "更多",
 		},
 		commandPalette: {
+			noRecent: "暫無最近瀏覽",
+			removeRecent: "移除最近瀏覽：{{name}}",
 			empty: "沒有相符項目",
 			placeholder: "搜尋選單",
 			title: "導覽搜尋",

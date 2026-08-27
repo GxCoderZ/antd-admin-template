@@ -14,8 +14,8 @@ for (const width of [1440, 768, 390]) {
 		await signIn(page);
 
 		const header = page.getByRole("banner");
-		const names = ["搜索", "通知"];
-		for (const name of ["切换语言", "主题模式", "设置", "更多操作"]) {
+		const names = ["语言", "切换为深色模式", "通知"];
+		for (const name of ["设置", "更多操作"]) {
 			await expect(
 				header.getByRole("button", { name, exact: true }),
 			).toHaveCount(0);
@@ -27,6 +27,15 @@ for (const width of [1440, 768, 390]) {
 			await expect(button).toHaveCSS("font-size", "16px");
 			await expect(button).toHaveCSS("padding", "6px");
 		}
+		const searchTrigger = header.getByRole("button", {
+			name: "搜索",
+			exact: true,
+		});
+		await expect(searchTrigger).toBeVisible();
+		await expect(searchTrigger).toHaveCSS(
+			"height",
+			width >= 768 ? "32px" : "28px",
+		);
 		// Measure relative spacing in one frame while the shell is mounting.
 		const centers = await header.getByRole("button").evaluateAll(
 			(buttons, names) =>

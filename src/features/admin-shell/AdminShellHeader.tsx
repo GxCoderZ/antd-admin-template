@@ -1,7 +1,10 @@
 import {
 	LogoutOutlined,
+	GlobalOutlined,
+	MoonOutlined,
 	SearchOutlined,
 	SettingOutlined,
+	SunOutlined,
 } from "@ant-design/icons";
 import {
 	Dropdown,
@@ -11,6 +14,7 @@ import {
 	type MenuProps,
 	Space,
 	theme,
+	Tooltip,
 } from "antd";
 import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,7 +36,11 @@ import type {
 	ThemeMode,
 } from "../../app/preferenceStorage";
 import type { ThemeChangeEvent } from "../../app/themeMode";
-import { resolveSupportedLanguage } from "../../i18n";
+import {
+	isSupportedLanguageCode,
+	resolveSupportedLanguage,
+	supportedLanguages,
+} from "../../i18n";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { CommandPalette } from "./CommandPalette";
 import { HeaderIconButton } from "./HeaderIconButton";
@@ -59,6 +67,7 @@ interface AdminShellHeaderProps {
 	currentUserId: string;
 	currentUsername: string;
 	isColorBlindMode: boolean;
+	isDarkMode: boolean;
 	isFooterVisible: boolean;
 	menuType: MenuType;
 	navigationMode: NavigationMode;
@@ -82,6 +91,7 @@ export function AdminShellHeader({
 	currentUserId,
 	currentUsername,
 	isColorBlindMode,
+	isDarkMode,
 	isFooterVisible,
 	menuType,
 	navigationMode,
@@ -106,6 +116,8 @@ export function AdminShellHeader({
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [preferencesOpen, setPreferencesOpen] = useState(false);
 	const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+	const [changingLanguage, setChangingLanguage] = useState(false);
+	const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
 	const showAccountName = screens.sm === true;
 	// Match ProLayout GlobalHeader/ActionsContent and rightContentStyle dimensions.
 	const iconActionStyle: CSSProperties = {
@@ -129,6 +141,18 @@ export function AdminShellHeader({
 		padding: 8,
 	};
 	const language = resolveSupportedLanguage(i18n.resolvedLanguage);
+	const themeActionLabel = t(isDarkMode ? "theme.lightMode" : "theme.darkMode");
+	const changeLanguage: MenuProps["onClick"] = ({ key }) => {
+		setLanguageMenuOpen(false);
+		if (!isSupportedLanguageCode(key) || key === language) return;
+		setChangingLanguage(true);
+		void i18n
+			.changeLanguage(key)
+			.catch(() => {
+				void messageApi.error(t("adminShell.header.languageError"));
+			})
+			.finally(() => setChangingLanguage(false));
+	};
 	const commandPaletteItems = adminRouteDefinitions
 		.filter(
 			(route) =>
@@ -191,13 +215,73 @@ export function AdminShellHeader({
 		<>
 			{messageContextHolder}
 			<Flex align="center" style={{ flex: "0 0 auto", height: "100%" }}>
-				<HeaderIconButton
-					aria-label={t("adminShell.header.search")}
-					icon={<SearchOutlined aria-hidden />}
-					onClick={() => setCommandPaletteOpen(true)}
-					style={iconActionStyle}
-					type="text"
-				/>
+				<Tooltip title={t("adminShell.header.search")}>
+					<HeaderIconButton
+						aria-label={t("adminShell.header.search")}
+						icon={<SearchOutlined aria-hidden />}
+						onClick={() => setCommandPaletteOpen(true)}
+						style={
+							screens.md
+								? {
+										...iconActionStyle,
+										background: token.colorBgLayout,
+										borderRadius: token.controlHeight,
+										fontSize: token.fontSizeSM,
+										height: token.controlHeight,
+										paddingInline: token.paddingSM,
+										width: "auto",
+										minWidth: token.controlHeight * 2.5,
+										marginInlineEnd: token.marginXS,
+									}
+								: iconActionStyle
+						}
+						type="text"
+					>
+						{screens.md ? t("adminShell.header.search") : null}
+					</HeaderIconButton>
+				</Tooltip>
+				<Dropdown
+					open={languageMenuOpen}
+					onOpenChange={setLanguageMenuOpen}
+					menu={{
+						items: supportedLanguages.map(({ code, labelKey }) => ({
+							key: code,
+							label: t(labelKey),
+						})),
+						onClick: changeLanguage,
+						selectable: true,
+						selectedKeys: [language],
+					}}
+					trigger={["click"]}
+					placement="bottomRight"
+				>
+					<Tooltip title={languageMenuOpen ? null : t("language.label")}>
+						<HeaderIconButton
+							aria-label={t("language.label")}
+							icon={<GlobalOutlined aria-hidden />}
+							loading={changingLanguage}
+							style={iconActionStyle}
+							type="text"
+						/>
+					</Tooltip>
+				</Dropdown>
+				<Tooltip title={themeActionLabel}>
+					<HeaderIconButton
+						aria-label={themeActionLabel}
+						icon={
+							isDarkMode ? (
+								<SunOutlined aria-hidden />
+							) : (
+								<MoonOutlined aria-hidden />
+							)
+						}
+						onClick={(event) =>
+							onChangeThemeMode(isDarkMode ? "light" : "dark", event)
+						}
+						style={iconActionStyle}
+						type="text"
+					/>
+				</Tooltip>
 				<NotificationPopover
 					onNavigate={onNavigate}
 					timeZone={timeZone}
@@ -257,6 +341,8 @@ export function AdminShellHeader({
 			/>
 
 			<CommandPalette
+				key={currentUserId}
+				historyScope={currentUserId}
 				items={commandPaletteItems}
 				onNavigate={onNavigate}
 				onOpenChange={setCommandPaletteOpen}
