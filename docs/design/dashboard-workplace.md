@@ -17,6 +17,9 @@ Ant Design Pro, MIT license, commit
   the project CSS variable prefix are substituted.
 - [Analysis overview](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/IntroduceRow.tsx):
   four-column overview at the `xl` breakpoint and two columns below it.
+- [Ant Design Statistic card example](https://github.com/ant-design/ant-design/blob/6.6.1/components/statistic/demo/card.tsx):
+  one native borderless Card around each Statistic, using its title, value, and
+  prefix slots and default typography without a separate title layout.
 
 `DashboardOverview`, `DashboardQuickEntries`, and `DashboardActivityPanels` adapt
 these layout patterns to the installed Ant Design version and theme tokens.

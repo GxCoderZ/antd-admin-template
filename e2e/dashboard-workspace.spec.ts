@@ -21,6 +21,12 @@ for (const width of [1440, 390]) {
 		const announcements = page.getByRole("region", { name: "最新公告" });
 		const metrics = page.getByTestId(/^dashboard-stat-/);
 		await expect(metrics).toHaveCount(4);
+		for (const metric of await metrics.all()) {
+			await expect(metric.getByText(/^\d[\d,]*$/)).toHaveCSS(
+				"font-size",
+				"24px",
+			);
+		}
 		await expect(entries.getByRole("link")).toHaveCount(5);
 		if (width === 390) {
 			const links = entries.getByRole("link");

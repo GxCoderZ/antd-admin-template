@@ -195,18 +195,9 @@ export function DashboardOverview({
 						style={{ height: "100%" }}
 					>
 						<Statistic
-							title={
-								<Flex
-									align="start"
-									justify="space-between"
-									gap={token.marginXS}
-								>
-									<span>{metric.label}</span>
-									{metric.icon}
-								</Flex>
-							}
+							title={metric.label}
 							value={metric.value}
-							styles={{ content: { fontSize: token.fontSizeHeading2 } }}
+							prefix={metric.icon}
 						/>
 					</Card>
 				</Col>
