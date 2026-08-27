@@ -22,6 +22,7 @@ import {
 	setPlatformUserRole,
 } from "#src/api/roles";
 import { getPlatformSession, platformSessionQueryKey } from "#src/api/auth";
+import { platformDepartmentsQueryKey } from "#src/api/departments";
 import {
 	listPlatformPositions,
 	platformPositionsQueryKey,
@@ -199,6 +200,11 @@ export function UsersPage() {
 	);
 	const refreshUsers = () =>
 		queryClient.invalidateQueries({ queryKey: platformUsersQueryKey });
+	const refreshMembership = () =>
+		Promise.all([
+			refreshUsers(),
+			queryClient.invalidateQueries({ queryKey: platformDepartmentsQueryKey }),
+		]);
 	const refreshUserDetail = (userId: string) =>
 		queryClient.invalidateQueries({
 			queryKey: platformUserDetailQueryKey(userId),
@@ -206,7 +212,7 @@ export function UsersPage() {
 	const updateUserMutation = useMutation({
 		mutationFn: updatePlatformUser,
 		onSuccess: async () => {
-			await refreshUsers();
+			await refreshMembership();
 			setEditingUser(null);
 		},
 	});
@@ -240,7 +246,7 @@ export function UsersPage() {
 		},
 		onSuccess: async () => {
 			setDeletingUser(null);
-			await refreshUsers();
+			await refreshMembership();
 		},
 	});
 	const roleMutation = useMutation({

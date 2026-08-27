@@ -928,6 +928,7 @@ export const enTranslation = {
 			},
 			errors: {
 				conflict: "User already exists",
+				departmentLoad: "Unable to load departments",
 				fallback: "The request failed. Try again later.",
 				forbidden: "You do not have permission to manage users",
 				invalid: "Check the input and try again",
@@ -980,13 +981,6 @@ export const enTranslation = {
 					conflict: "The user role operation conflicts with existing data",
 					invalid: "The user role request is invalid",
 				},
-			},
-			departments: {
-				finance: "Finance",
-				hr: "Human Resources",
-				operations: "Operations",
-				platform: "Platform",
-				risk: "Risk Control",
 			},
 			authSources: {
 				ldap: "Corporate directory",

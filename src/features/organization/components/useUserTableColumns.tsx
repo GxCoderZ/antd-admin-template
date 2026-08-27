@@ -118,10 +118,10 @@ export function useUserTableColumns({
 				width: token.controlHeight * userColumnWidthMultipliers.displayName,
 			},
 			{
-				dataIndex: "department",
+				dataIndex: "departmentName",
 				key: "department",
 				search: false,
-				render: (_, row) => t(`adminShell.users.departments.${row.department}`),
+				render: (_, row) => row.departmentName ?? "-",
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("department"),

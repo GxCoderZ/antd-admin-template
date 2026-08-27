@@ -6,7 +6,7 @@ import type {
 	PlatformDepartmentStatus,
 	UpdatePlatformDepartmentInput,
 } from "../src/api/departments";
-import { departments, positions } from "./store";
+import { departments, positions, users } from "./store";
 import { resultError, resultSuccess, routeParam } from "./utils";
 
 function getDepartment(departmentId: string | undefined) {
@@ -37,15 +37,22 @@ function countDepartmentPositions(departmentId: string) {
 		.length;
 }
 
-function withDerivedCounts(department: PlatformDepartment): PlatformDepartment {
+function countDepartmentMembers(departmentId: string) {
+	return users.filter((user) => user.departmentId === departmentId).length;
+}
+
+function withDerivedCounts(
+	department: (typeof departments)[number],
+): PlatformDepartment {
 	return {
 		...department,
 		children: [],
+		memberCount: countDepartmentMembers(department.id),
 		positionCount: countDepartmentPositions(department.id),
 	};
 }
 
-function buildDepartmentTree(items: PlatformDepartment[]) {
+function buildDepartmentTree(items: typeof departments) {
 	const byId = new Map(
 		items.map((department) => [department.id, withDerivedCounts(department)]),
 	);
@@ -108,15 +115,12 @@ export default defineFakeRoute([
 			}
 
 			const timestamp = new Date().toISOString();
-			const department: PlatformDepartment = {
-				children: [],
+			const department: (typeof departments)[number] = {
 				code: input.code.trim(),
 				createdAt: timestamp,
 				id: `dept-${Date.now()}`,
-				memberCount: 0,
 				name: input.name.trim(),
 				parentId: input.parentId ?? null,
-				positionCount: 0,
 				status: input.status,
 				updatedAt: timestamp,
 			};
@@ -185,7 +189,11 @@ export default defineFakeRoute([
 				(candidate) => candidate.parentId === department.id,
 			);
 			const positionCount = countDepartmentPositions(department.id);
-			if (hasChildren || positionCount > 0 || department.memberCount > 0) {
+			if (
+				hasChildren ||
+				positionCount > 0 ||
+				countDepartmentMembers(department.id) > 0
+			) {
 				return resultError(
 					"Department has children, positions or members and cannot be deleted",
 					409,

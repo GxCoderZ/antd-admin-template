@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { PlatformUser, UpdatePlatformUserInput } from "#src/api/users";
+import { UserDepartmentSelect } from "./UserDepartmentSelect";
 import {
 	getProblemFallback,
 	getUserMutationErrorTitleKey,
@@ -70,7 +71,7 @@ export function UserEditDrawer({
 		}
 
 		form.setFieldsValue({
-			department: user.department,
+			departmentId: user.departmentId,
 			displayName: user.displayName,
 			email: user.email,
 			jobTitle: user.jobTitle,
@@ -185,18 +186,9 @@ export function UserEditDrawer({
 					</Form.Item>
 					<Form.Item
 						label={t("adminShell.users.columns.department")}
-						name="department"
-						rules={[{ required: true }]}
+						name="departmentId"
 					>
-						<Select
-							aria-label={t("adminShell.users.columns.department")}
-							options={["platform", "operations", "finance", "hr", "risk"].map(
-								(department) => ({
-									label: t(`adminShell.users.departments.${department}`),
-									value: department,
-								}),
-							)}
-						/>
+						<UserDepartmentSelect />
 					</Form.Item>
 					<Form.Item
 						label={t("adminShell.users.columns.jobTitle")}

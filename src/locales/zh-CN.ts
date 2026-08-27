@@ -904,6 +904,7 @@ export const zhCNTranslation = {
 			},
 			errors: {
 				conflict: "用户已存在",
+				departmentLoad: "部门列表加载失败",
 				fallback: "请求失败，请稍后重试。",
 				forbidden: "没有操作用户的权限",
 				invalid: "请检查输入内容",
@@ -954,13 +955,6 @@ export const zhCNTranslation = {
 					conflict: "用户角色操作发生冲突",
 					invalid: "用户角色请求参数无效",
 				},
-			},
-			departments: {
-				finance: "财务部",
-				hr: "人力资源部",
-				operations: "运营部",
-				platform: "平台部",
-				risk: "风控部",
 			},
 			authSources: {
 				ldap: "企业目录",

@@ -917,6 +917,7 @@ export const koKRTranslation = {
 			},
 			errors: {
 				conflict: "이미 존재하는 사용자입니다",
+				departmentLoad: "부서 목록을 불러올 수 없습니다",
 				fallback: "요청에 실패했습니다. 잠시 후 다시 시도하세요.",
 				forbidden: "사용자를 관리할 권한이 없습니다",
 				invalid: "입력 내용을 확인하세요",
@@ -969,13 +970,6 @@ export const koKRTranslation = {
 					conflict: "사용자 역할 작업이 기존 데이터와 충돌합니다",
 					invalid: "사용자 역할 요청이 올바르지 않습니다",
 				},
-			},
-			departments: {
-				finance: "재무부",
-				hr: "인사부",
-				operations: "운영부",
-				platform: "플랫폼부",
-				risk: "리스크 관리부",
 			},
 			authSources: {
 				ldap: "기업 디렉터리",

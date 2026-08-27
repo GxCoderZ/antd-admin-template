@@ -30,6 +30,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../app/formatting";
+import { platformUsersQueryKey } from "#src/api/users";
+import { platformPositionsQueryKey } from "#src/api/positions";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
@@ -155,7 +157,11 @@ export function DepartmentsPage() {
 		[departmentsQuery.data],
 	);
 	const refreshDepartments = () =>
-		queryClient.invalidateQueries({ queryKey: platformDepartmentsQueryKey });
+		Promise.all([
+			queryClient.invalidateQueries({ queryKey: platformDepartmentsQueryKey }),
+			queryClient.invalidateQueries({ queryKey: platformUsersQueryKey }),
+			queryClient.invalidateQueries({ queryKey: platformPositionsQueryKey }),
+		]);
 	const saveMutation = useMutation({
 		mutationFn: (input: CreatePlatformDepartmentInput) =>
 			editingDepartment

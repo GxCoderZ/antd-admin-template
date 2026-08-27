@@ -51,6 +51,20 @@ vi.mock("#src/api/positions", () => ({
 	platformPositionsQueryKey: ["platform-positions"],
 }));
 
+vi.mock("#src/api/departments", () => ({
+	listPlatformDepartments: vi
+		.fn()
+		.mockResolvedValue([
+			{
+				id: "dept-platform",
+				name: "平台研发部",
+				status: "active",
+				children: [],
+			},
+		]),
+	platformDepartmentsQueryKey: ["platform-departments"],
+}));
+
 vi.mock("#src/api/users", () => ({
 	createPlatformUser: vi.fn(),
 	deletePlatformUser: mocks.deletePlatformUser,
@@ -72,7 +86,8 @@ vi.mock("../../app/PlatformUserAvatar", () => ({
 const adminUser = {
 	authSource: "local" as const,
 	createdAt: "2026-08-01T00:00:00.000Z",
-	department: "platform" as const,
+	departmentId: "dept-platform",
+	departmentName: "平台研发部",
 	displayName: "Platform Admin",
 	email: "admin@example.com",
 	id: "user-admin",

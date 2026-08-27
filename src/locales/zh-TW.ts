@@ -906,6 +906,7 @@ export const zhTWTranslation = {
 			},
 			errors: {
 				conflict: "使用者已存在",
+				departmentLoad: "部門列表載入失敗",
 				fallback: "請求失敗，請稍後再試。",
 				forbidden: "沒有操作使用者的權限",
 				invalid: "請檢查輸入內容",
@@ -957,13 +958,6 @@ export const zhTWTranslation = {
 					conflict: "使用者角色操作發生衝突",
 					invalid: "使用者角色請求參數無效",
 				},
-			},
-			departments: {
-				finance: "財務部",
-				hr: "人力資源部",
-				operations: "營運部",
-				platform: "平台部",
-				risk: "風險控制部",
 			},
 			authSources: {
 				ldap: "企業目錄",

@@ -5,12 +5,38 @@ import type {
 	PlatformUserDetail,
 	UpdatePlatformUserInput,
 } from "../src/api/users";
-import { roles, session, userAvatarDataUrls, users } from "./store";
+import {
+	departments,
+	roles,
+	session,
+	userAvatarDataUrls,
+	users,
+} from "./store";
 import { readFakeBody } from "./route-helpers";
 import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
 
 function getUser(userId: string | undefined) {
 	return users.find((user) => user.id === userId);
+}
+
+function withDepartment(user: (typeof users)[number]): PlatformUserDetail {
+	if (user.departmentId === null) return { ...user, departmentName: null };
+	const department = departments.find((item) => item.id === user.departmentId);
+	if (!department)
+		throw new Error(`Missing department for Fake user ${user.id}`);
+	return { ...user, departmentName: department.name };
+}
+
+function validateDepartment(
+	departmentId: string | null,
+	currentId?: string | null,
+) {
+	if (departmentId === null) return;
+	const department = departments.find((item) => item.id === departmentId);
+	if (!department) return resultError("Department not found", 404);
+	if (department.status === "disabled" && departmentId !== currentId) {
+		return resultError("Cannot assign a disabled department", 422);
+	}
 }
 
 export default defineFakeRoute([
@@ -31,7 +57,7 @@ export default defineFakeRoute([
 					case "auth_source":
 						return user.authSource;
 					case "department":
-						return user.department;
+						return user.departmentName ?? "";
 					case "display_name":
 						return user.displayName;
 					case "email":
@@ -50,16 +76,18 @@ export default defineFakeRoute([
 						return user.createdAt;
 				}
 			};
-			const filtered = users.filter(
-				(user) =>
-					(!keyword ||
-						user.username.toLowerCase().includes(keyword) ||
-						user.displayName.toLowerCase().includes(keyword) ||
-						user.email.toLowerCase().includes(keyword) ||
-						user.phone.toLowerCase().includes(keyword) ||
-						user.jobTitle.toLowerCase().includes(keyword)) &&
-					(!status || user.status === status),
-			);
+			const filtered = users
+				.map(withDepartment)
+				.filter(
+					(user) =>
+						(!keyword ||
+							user.username.toLowerCase().includes(keyword) ||
+							user.displayName.toLowerCase().includes(keyword) ||
+							user.email.toLowerCase().includes(keyword) ||
+							user.phone.toLowerCase().includes(keyword) ||
+							user.jobTitle.toLowerCase().includes(keyword)) &&
+						(!status || user.status === status),
+				);
 			const sorted = [...filtered].sort((left, right) => {
 				return (
 					sortValue(left).localeCompare(sortValue(right)) *
@@ -80,13 +108,16 @@ export default defineFakeRoute([
 		method: "post",
 		response: ({ body }) => {
 			const input = readFakeBody<CreatePlatformUserInput>(body);
+			const departmentId = input.departmentId ?? null;
+			const departmentError = validateDepartment(departmentId);
+			if (departmentError) return departmentError;
 			if (users.some((user) => user.username === input.username)) {
 				return resultError("Username already exists", 409);
 			}
 			const timestamp = new Date().toISOString();
-			const user: PlatformUserDetail = {
+			const user: (typeof users)[number] = {
 				authSource: "local",
-				department: "platform",
+				departmentId,
 				id: `user-${Date.now()}`,
 				username: input.username,
 				email: input.email,
@@ -104,7 +135,7 @@ export default defineFakeRoute([
 				roles: [],
 			};
 			users.unshift(user);
-			return resultSuccess(user);
+			return resultSuccess(withDepartment(user));
 		},
 	},
 	{
@@ -112,7 +143,9 @@ export default defineFakeRoute([
 		method: "get",
 		response: ({ params }) => {
 			const user = getUser(routeParam(params.userId));
-			return user ? resultSuccess(user) : resultError("User not found", 404);
+			return user
+				? resultSuccess(withDepartment(user))
+				: resultError("User not found", 404);
 		},
 	},
 	{
@@ -122,7 +155,12 @@ export default defineFakeRoute([
 			const user = getUser(routeParam(params.userId));
 			if (!user) return resultError("User not found", 404);
 			const input = readFakeBody<UpdatePlatformUserInput>(body);
-			user.department = input.department;
+			const departmentError = validateDepartment(
+				input.departmentId,
+				user.departmentId,
+			);
+			if (departmentError) return departmentError;
+			user.departmentId = input.departmentId;
 			user.displayName = input.displayName;
 			user.email = input.email;
 			user.jobTitle = input.jobTitle;
@@ -130,7 +168,7 @@ export default defineFakeRoute([
 			user.status = input.status;
 			user.updatedAt = new Date().toISOString();
 			user.version = (user.version ?? 0) + 1;
-			return resultSuccess(user);
+			return resultSuccess(withDepartment(user));
 		},
 	},
 	{

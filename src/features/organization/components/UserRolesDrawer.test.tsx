@@ -11,7 +11,8 @@ import { UserRolesDrawer } from "./UserRolesDrawer";
 const currentUser: PlatformUser = {
 	authSource: "local",
 	createdAt: "2026-08-01T00:00:00.000Z",
-	department: "platform",
+	departmentId: "dept-platform",
+	departmentName: "平台研发部",
 	displayName: "Platform Admin",
 	email: "admin@example.com",
 	id: "user-admin",
@@ -69,9 +70,7 @@ const roles = [
 		updatedAt: "2026-08-23T00:00:00.000Z",
 		version: 1,
 	},
-] satisfies Array<
-	PlatformRole & { description: string; disabled?: boolean }
->;
+] satisfies Array<PlatformRole & { description: string; disabled?: boolean }>;
 
 function renderDrawer(props?: Partial<Parameters<typeof UserRolesDrawer>[0]>) {
 	const user = userEvent.setup();

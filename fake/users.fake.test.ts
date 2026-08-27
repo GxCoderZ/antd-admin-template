@@ -79,7 +79,7 @@ describe("Fake users", () => {
 
 		expect(firstUser).toBeDefined();
 		expect(typeof firstUser?.authSource).toBe("string");
-		expect(typeof firstUser?.department).toBe("string");
+		expect(typeof firstUser?.departmentId).toBe("string");
 		expect(typeof firstUser?.jobTitle).toBe("string");
 		expect(typeof firstUser?.lastLoginAt).toBe("string");
 		expect(typeof firstUser?.lastLoginIp).toBe("string");
@@ -141,7 +141,7 @@ describe("Fake users", () => {
 		}) as UserMutationPayload;
 		const updated = updateUser?.({
 			body: {
-				department: "operations",
+				departmentId: "dept-operations",
 				displayName: "Updated User",
 				email: "updated@example.com",
 				expectedVersion: created.data!.version,
@@ -155,7 +155,7 @@ describe("Fake users", () => {
 		expect(updated.code).toBe(0);
 		expect(updated.data).toEqual(
 			expect.objectContaining({
-				department: "operations",
+				departmentId: "dept-operations",
 				displayName: "Updated User",
 				email: "updated@example.com",
 				jobTitle: "Operations Lead",

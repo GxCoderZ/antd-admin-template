@@ -2,16 +2,11 @@ import type { PlatformUserRole } from "../types";
 
 type PlatformUserStatus = "active" | "disabled" | "locked";
 type PlatformUserAuthSource = "ldap" | "local" | "sso";
-type PlatformUserDepartment =
-	| "finance"
-	| "hr"
-	| "operations"
-	| "platform"
-	| "risk";
 
 export interface PlatformUser {
 	authSource: PlatformUserAuthSource;
-	department: PlatformUserDepartment;
+	departmentId: string | null;
+	departmentName: string | null;
 	id: string;
 	username: string;
 	email: string;
@@ -51,6 +46,7 @@ export interface ListPlatformUsersInput {
 }
 
 export interface CreatePlatformUserInput {
+	departmentId?: string | null;
 	displayName: string;
 	email: string;
 	password: string;
@@ -58,7 +54,7 @@ export interface CreatePlatformUserInput {
 }
 
 export interface UpdatePlatformUserInput {
-	department: PlatformUserDepartment;
+	departmentId: string | null;
 	displayName: string;
 	email: string;
 	expectedVersion?: number;

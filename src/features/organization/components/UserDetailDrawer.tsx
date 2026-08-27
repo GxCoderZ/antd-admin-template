@@ -60,7 +60,7 @@ export function UserDetailDrawer({
 					label: t("adminShell.users.columns.phone"),
 				},
 				{
-					children: t(`adminShell.users.departments.${user.department}`),
+					children: user.departmentName ?? "-",
 					label: t("adminShell.users.columns.department"),
 				},
 				{

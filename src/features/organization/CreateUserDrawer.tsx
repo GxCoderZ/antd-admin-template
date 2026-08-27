@@ -2,6 +2,8 @@ import { ApiProblemError } from "#src/api/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert, Button, Drawer, Flex, Form, Input, theme } from "antd";
 import { useTranslation } from "react-i18next";
+import { platformDepartmentsQueryKey } from "#src/api/departments";
+import { UserDepartmentSelect } from "./components/UserDepartmentSelect";
 
 import {
 	createPlatformUser,
@@ -48,7 +50,12 @@ export function CreateUserDrawer({
 	const createUserMutation = useMutation({
 		mutationFn: createPlatformUser,
 		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: platformUsersQueryKey });
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: platformUsersQueryKey }),
+				queryClient.invalidateQueries({
+					queryKey: platformDepartmentsQueryKey,
+				}),
+			]);
 		},
 	});
 
@@ -196,6 +203,12 @@ export function CreateUserDrawer({
 								"adminShell.users.createForm.placeholders.password",
 							)}
 						/>
+					</Form.Item>
+					<Form.Item
+						label={t("adminShell.users.columns.department")}
+						name="departmentId"
+					>
+						<UserDepartmentSelect />
 					</Form.Item>
 				</Form>
 			</Flex>

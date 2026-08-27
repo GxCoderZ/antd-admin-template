@@ -1,4 +1,5 @@
 import { ConfigProvider } from "antd";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, describe, expect, it, vi } from "vitest";
@@ -6,10 +7,19 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { i18n } from "../../../i18n";
 import { UserEditDrawer } from "./UserEditDrawer";
 
+vi.mock("#src/api/departments", () => ({
+	platformDepartmentsQueryKey: ["platform-departments"],
+	listPlatformDepartments: vi.fn().mockResolvedValue([
+		{ id: "dept-platform", name: "平台研发部", status: "active", children: [] },
+		{ id: "dept-new", name: "新建部门", status: "active", children: [] },
+	]),
+}));
+
 const userRecord = {
 	authSource: "local" as const,
 	createdAt: "2026-08-01T00:00:00.000Z",
-	department: "platform" as const,
+	departmentId: "dept-platform",
+	departmentName: "平台研发部",
 	displayName: "Platform Admin",
 	email: "admin@example.com",
 	id: "user-admin",
@@ -36,22 +46,28 @@ describe("UserEditDrawer", () => {
 		const user = userEvent.setup();
 
 		render(
-			<ConfigProvider>
-				<UserEditDrawer
-					error={null}
-					loading={false}
-					onCancel={vi.fn()}
-					onReloadConflict={vi.fn()}
-					onSubmit={onSubmit}
-					positionOptions={[
-						{ label: "项目负责人", value: "项目负责人" },
-						{ label: "运营经理", value: "运营经理" },
-					]}
-					positionsLoading={false}
-					requestedStatus={undefined}
-					user={userRecord}
-				/>
-			</ConfigProvider>,
+			<QueryClientProvider
+				client={
+					new QueryClient({ defaultOptions: { queries: { retry: false } } })
+				}
+			>
+				<ConfigProvider>
+					<UserEditDrawer
+						error={null}
+						loading={false}
+						onCancel={vi.fn()}
+						onReloadConflict={vi.fn()}
+						onSubmit={onSubmit}
+						positionOptions={[
+							{ label: "项目负责人", value: "项目负责人" },
+							{ label: "运营经理", value: "运营经理" },
+						]}
+						positionsLoading={false}
+						requestedStatus={undefined}
+						user={userRecord}
+					/>
+				</ConfigProvider>
+			</QueryClientProvider>,
 		);
 
 		const dialog = await screen.findByRole("dialog", {
@@ -80,11 +96,11 @@ describe("UserEditDrawer", () => {
 		await screen.findByRole("option", { name: "项目负责人" });
 		await user.click(screen.getAllByText("项目负责人").at(-1)!);
 		await user.click(within(dialog).getByRole("combobox", { name: "部门" }));
-		await user.click(screen.getAllByText("运营部").at(-1)!);
+		await user.click(await screen.findByText("新建部门"));
 		await user.click(within(dialog).getByRole("button", { name: /保\s*存/ }));
 
 		expect(onSubmit).toHaveBeenCalledWith({
-			department: "operations",
+			departmentId: "dept-new",
 			displayName: "平台管理员",
 			email: "platform@example.com",
 			jobTitle: "项目负责人",
