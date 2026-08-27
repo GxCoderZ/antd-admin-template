@@ -632,6 +632,10 @@ export const enTranslation = {
 			togglePermission: "Toggle {{permission}} for {{role}}",
 			permissions: {
 				root: "Platform permissions",
+				saved: "Permissions saved",
+				saveFailed: "Permissions not fully saved",
+				saveFailedDescription:
+					"Saved {{saved}} changes; {{failed}} failed. Unsaved selections are kept. Please retry.",
 				notConfigured: "Not configured",
 				expandAll: "Expand all",
 				collapseAll: "Collapse all",

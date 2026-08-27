@@ -19,7 +19,6 @@ import {
 	deletePlatformRole,
 	listPlatformRolePage,
 	platformRolesQueryKey,
-	setPlatformRolePermission,
 	type CreatePlatformRoleInput,
 	type ListPlatformRolesInput,
 	type PlatformRole,
@@ -38,6 +37,10 @@ import {
 	type RoleFilterValues,
 } from "./components/RoleTablePanel";
 import { isRoleProblemStatus } from "./roleProblems";
+import {
+	RolePermissionSaveError,
+	saveRolePermissions,
+} from "./saveRolePermissions";
 
 interface RoleTableState {
 	order: ListPlatformRolesInput["order"];
@@ -144,12 +147,14 @@ export function RolesPage() {
 		},
 	});
 	const permissionMutation = useMutation({
-		mutationFn: setPlatformRolePermission,
-		onSuccess: refreshRolesAndAuthorization,
+		mutationFn: saveRolePermissions,
+		onSettled: refreshRolesAndAuthorization,
 	});
 	const renameConflict = isRoleProblemStatus(renameMutation.error, 409);
 	const permissionForbidden = isRoleProblemStatus(
-		permissionMutation.error,
+		permissionMutation.error instanceof RolePermissionSaveError
+			? permissionMutation.error.cause
+			: permissionMutation.error,
 		403,
 	);
 
@@ -256,12 +261,11 @@ export function RolesPage() {
 				forbidden={permissionForbidden}
 				key={permissionRole?.id ?? "closed"}
 				loading={permissionMutation.isPending}
-				onChange={(permission, granted) => {
+				onSave={(permissions) => {
 					if (permissionRole) {
 						permissionMutation.mutate({
-							granted,
-							permission,
-							roleId: permissionRole.id,
+							permissions,
+							role: permissionRole,
 						});
 					}
 				}}
@@ -272,6 +276,7 @@ export function RolesPage() {
 				onDismissError={() => permissionMutation.reset()}
 				open={permissionRoleId !== null}
 				role={permissionRole}
+				saved={permissionMutation.isSuccess}
 			/>
 			<RoleTablePanel
 				data={rolesQuery.data?.items ?? []}

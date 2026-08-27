@@ -619,6 +619,10 @@ export const zhTWTranslation = {
 			togglePermission: "為{{role}}切換權限{{permission}}",
 			permissions: {
 				root: "平台權限",
+				saved: "權限已儲存",
+				saveFailed: "權限儲存未完成",
+				saveFailedDescription:
+					"已儲存 {{saved}} 項，失敗 {{failed}} 項。未儲存的選擇已保留，請重試。",
 				notConfigured: "未設定",
 				expandAll: "展開所有",
 				collapseAll: "收合全部",

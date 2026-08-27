@@ -624,6 +624,10 @@ export const koKRTranslation = {
 			togglePermission: "{{role}}의 {{permission}} 권한 전환",
 			permissions: {
 				root: "플랫폼 권한",
+				saved: "권한이 저장되었습니다",
+				saveFailed: "권한 저장이 완료되지 않았습니다",
+				saveFailedDescription:
+					"{{saved}}개 저장, {{failed}}개 실패. 저장되지 않은 선택 사항은 유지됩니다. 다시 시도하세요.",
 				notConfigured: "설정되지 않음",
 				expandAll: "모두 펼치기",
 				collapseAll: "모두 접기",

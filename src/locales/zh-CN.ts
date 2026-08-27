@@ -619,6 +619,10 @@ export const zhCNTranslation = {
 			togglePermission: "为{{role}}切换权限{{permission}}",
 			permissions: {
 				root: "平台权限",
+				saved: "权限已保存",
+				saveFailed: "权限保存未完成",
+				saveFailedDescription:
+					"已保存 {{saved}} 项，失败 {{failed}} 项。未保存的选择已保留，请重试。",
 				notConfigured: "未配置",
 				expandAll: "展开所有",
 				collapseAll: "收起全部",

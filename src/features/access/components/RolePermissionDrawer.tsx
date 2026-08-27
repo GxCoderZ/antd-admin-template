@@ -25,6 +25,7 @@ import {
 	permissionValueSet,
 } from "../rolePermissions";
 import { getRoleErrorTitleKey, getRoleProblemDetail } from "../roleProblems";
+import { RolePermissionSaveError } from "../saveRolePermissions";
 
 const { Text } = Typography;
 
@@ -32,22 +33,24 @@ interface RolePermissionDrawerProps {
 	error: unknown;
 	forbidden: boolean;
 	loading: boolean;
-	onChange: (permission: PlatformPermission, granted: boolean) => void;
+	onSave: (permissions: PlatformPermission[]) => void;
 	onClose: () => void;
 	onDismissError: () => void;
 	open: boolean;
 	role: PlatformRole | null;
+	saved: boolean;
 }
 
 export function RolePermissionDrawer({
 	error,
 	forbidden,
 	loading,
-	onChange,
+	onSave,
 	onClose,
 	onDismissError,
 	open,
 	role,
+	saved,
 }: RolePermissionDrawerProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
@@ -67,6 +70,12 @@ export function RolePermissionDrawer({
 	});
 	const allGranted = selectedCount === allPermissionValues.length;
 	const someGranted = selectedCount > 0 && !allGranted;
+	const hasDraftChanges =
+		role !== null &&
+		(role.permissions.length !== draftPermissions.length ||
+			draftPermissions.some(
+				(permission) => !role.permissions.includes(permission),
+			));
 
 	const { treeData, visiblePermissionValueSet } = useMemo(() => {
 		const visiblePermissionValues: PlatformPermission[] = [];
@@ -143,32 +152,30 @@ export function RolePermissionDrawer({
 		if (!role) {
 			return;
 		}
-		const nextSet = new Set<string>(draftPermissions);
-		const currentSet = new Set<string>(role.permissions);
-
-		for (const permission of draftPermissions) {
-			if (!currentSet.has(permission)) {
-				onChange(permission, true);
-			}
-		}
-		for (const permission of role.permissions) {
-			if (!nextSet.has(permission)) {
-				onChange(permission, false);
-			}
-		}
+		onSave(draftPermissions);
 	};
 
 	return (
 		<Drawer
+			closable={!loading}
 			destroyOnHidden
 			footer={
 				<Flex gap={token.marginXS} justify="end">
-					<Button onClick={onClose}>{t("adminShell.roles.cancel")}</Button>
-					<Button loading={loading} onClick={saveSelection} type="primary">
+					<Button disabled={loading} onClick={onClose}>
+						{t("adminShell.roles.cancel")}
+					</Button>
+					<Button
+						disabled={loading || !hasDraftChanges}
+						loading={loading}
+						onClick={saveSelection}
+						type="primary"
+					>
 						{t("adminShell.roles.save")}
 					</Button>
 				</Flex>
 			}
+			keyboard={!loading}
+			mask={{ closable: !loading }}
 			onClose={onClose}
 			open={open}
 			size="min(560px, 100vw)"
@@ -183,23 +190,52 @@ export function RolePermissionDrawer({
 		>
 			{role ? (
 				<Flex gap={token.marginSM} vertical>
+					{saved && !hasDraftChanges ? (
+						<Alert
+							showIcon
+							title={t("adminShell.roles.permissions.saved")}
+							type="success"
+						/>
+					) : null}
 					{error ? (
 						<Alert
 							closable
 							description={
-								getRoleProblemDetail(error) ??
-								t(
-									forbidden
-										? "adminShell.roles.errors.permissionForbiddenDescription"
-										: "adminShell.roles.errors.fallback",
+								error instanceof RolePermissionSaveError ? (
+									<Flex gap={token.marginXS} vertical>
+										<span>
+											{t("adminShell.roles.permissions.saveFailedDescription", {
+												saved: error.savedCount,
+												failed: error.failedCount,
+											})}
+										</span>
+										{forbidden ? (
+											<span>
+												{t(
+													"adminShell.roles.errors.permissionForbiddenDescription",
+												)}
+											</span>
+										) : (
+											getRoleProblemDetail(error.cause)
+										)}
+									</Flex>
+								) : (
+									(getRoleProblemDetail(error) ??
+									t(
+										forbidden
+											? "adminShell.roles.errors.permissionForbiddenDescription"
+											: "adminShell.roles.errors.fallback",
+									))
 								)
 							}
 							onClose={onDismissError}
 							showIcon
 							title={t(
-								forbidden
-									? "adminShell.roles.errors.permissionForbidden"
-									: getRoleErrorTitleKey(error),
+								error instanceof RolePermissionSaveError
+									? "adminShell.roles.permissions.saveFailed"
+									: forbidden
+										? "adminShell.roles.errors.permissionForbidden"
+										: getRoleErrorTitleKey(error),
 							)}
 							type="error"
 						/>

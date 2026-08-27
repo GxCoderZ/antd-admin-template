@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -213,22 +213,16 @@ describe("RolesPage", () => {
 		await waitFor(() => {
 			expect(mocks.setPlatformRolePermission).toHaveBeenCalledTimes(9);
 		});
-		expect(mocks.setPlatformRolePermission).toHaveBeenCalledWith(
-			{
-				granted: true,
-				permission: platformPermissions.rolesManage,
-				roleId: role.id,
-			},
-			expect.any(Object),
-		);
-		expect(mocks.setPlatformRolePermission).not.toHaveBeenCalledWith(
-			{
-				granted: true,
-				permission: platformPermissions.announcementsRead,
-				roleId: role.id,
-			},
-			expect.any(Object),
-		);
+		expect(mocks.setPlatformRolePermission).toHaveBeenCalledWith({
+			granted: true,
+			permission: platformPermissions.rolesManage,
+			roleId: role.id,
+		});
+		expect(mocks.setPlatformRolePermission).not.toHaveBeenCalledWith({
+			granted: true,
+			permission: platformPermissions.announcementsRead,
+			roleId: role.id,
+		});
 	});
 
 	it("filters the permission tree and can disable parent-child linkage", async () => {
@@ -254,6 +248,50 @@ describe("RolesPage", () => {
 			within(drawer).getByRole("checkbox", { name: /公告管理页面/ }),
 		);
 		expect(within(drawer).getByText("已选 0/10 项")).toBeInTheDocument();
+	});
+
+	it("waits for every permission change and reports an earlier failed request", async () => {
+		let resolveFirstRequest: () => void;
+		let rejectFirstRequest: (reason: Error) => void;
+		const firstRequest = new Promise<void>((resolve, reject) => {
+			resolveFirstRequest = resolve;
+			rejectFirstRequest = reject;
+		});
+		mocks.setPlatformRolePermission
+			.mockImplementationOnce(() => firstRequest)
+			.mockResolvedValue(undefined);
+		const { user } = renderRolesPage();
+		await openRoleActions(user);
+		await user.click(screen.getByRole("menuitem", { name: "权限配置" }));
+		const drawer = await screen.findByRole("dialog");
+		await user.click(within(drawer).getByRole("button", { name: "全选" }));
+		const saveButton = within(drawer).getByRole("button", { name: /保\s*存/ });
+		await user.click(saveButton);
+
+		try {
+			await waitFor(() =>
+				expect(mocks.setPlatformRolePermission).toHaveBeenCalledTimes(9),
+			);
+			expect(saveButton).toHaveClass(/ant-btn-loading/);
+			expect(mocks.listPlatformRolePage).toHaveBeenCalledTimes(1);
+			await act(async () => {
+				rejectFirstRequest(new Error("Permission failed"));
+				await Promise.allSettled([firstRequest]);
+			});
+			await waitFor(() =>
+				expect(saveButton).not.toHaveClass(/ant-btn-loading/),
+			);
+			expect(within(drawer).getByRole("alert")).toHaveTextContent(
+				"已保存 8 项，失败 1 项。未保存的选择已保留，请重试。",
+			);
+			expect(within(drawer).getByText("已选 10/10 项")).toBeInTheDocument();
+			expect(mocks.listPlatformRolePage).toHaveBeenCalledTimes(2);
+		} finally {
+			await act(async () => {
+				resolveFirstRequest();
+				await Promise.allSettled([firstRequest]);
+			});
+		}
 	});
 
 	it("requires the exact role name before deleting a role", async () => {
