@@ -90,6 +90,7 @@ export function CreateUserDrawer({
 	return (
 		<Drawer
 			destroyOnHidden
+			size="min(560px, 100vw)"
 			footer={
 				<Flex gap={token.marginXS} justify="flex-end">
 					<Button

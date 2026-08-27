@@ -12,6 +12,7 @@ import {
 	Alert,
 	Button,
 	Drawer,
+	Flex,
 	Form,
 	Input,
 	message,
@@ -606,8 +607,9 @@ export function PositionsPage() {
 			/>
 			<Drawer
 				destroyOnHidden
-				extra={
-					<Space>
+				size="min(560px, 100vw)"
+				footer={
+					<Flex gap={token.marginXS} justify="flex-end">
 						<Button
 							disabled={saveMutation.isPending}
 							onClick={discard.requestClose}
@@ -622,7 +624,7 @@ export function PositionsPage() {
 						>
 							{t("adminShell.positions.save", { defaultValue: "保存" })}
 						</Button>
-					</Space>
+					</Flex>
 				}
 				onClose={discard.requestClose}
 				closable={!saveMutation.isPending}
@@ -654,6 +656,7 @@ export function PositionsPage() {
 					disabled={saveMutation.isPending}
 					form={editorForm}
 					id={formId}
+					name="positionEditor"
 					layout="vertical"
 					onFinish={(values) => saveMutation.mutate(values)}
 				>

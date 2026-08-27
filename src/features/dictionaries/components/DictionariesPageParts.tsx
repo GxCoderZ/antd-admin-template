@@ -2,12 +2,13 @@ import {
 	Alert,
 	Button,
 	Drawer,
+	Flex,
 	Form,
 	Input,
 	InputNumber,
 	Select,
-	Space,
 	Tag,
+	theme,
 } from "antd";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -64,6 +65,7 @@ export function TypeFormDrawer({
 }) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<TypeFormValues>();
+	const { token } = theme.useToken();
 	const initialValues = useMemo<TypeFormValues>(
 		() =>
 			dictionaryType
@@ -93,8 +95,9 @@ export function TypeFormDrawer({
 	return (
 		<Drawer
 			destroyOnHidden
-			extra={
-				<Space>
+			size="min(560px, 100vw)"
+			footer={
+				<Flex gap={token.marginXS} justify="flex-end">
 					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.dictionaries.cancel")}
 					</Button>
@@ -106,7 +109,7 @@ export function TypeFormDrawer({
 					>
 						{t("adminShell.dictionaries.save")}
 					</Button>
-				</Space>
+				</Flex>
 			}
 			onClose={discard.requestClose}
 			closable={!loading}
@@ -124,7 +127,7 @@ export function TypeFormDrawer({
 				<Alert
 					description={t("adminShell.dictionaries.errors.fallback")}
 					showIcon
-					style={{ marginBottom: 16 }}
+					style={{ marginBottom: token.margin }}
 					title={t("adminShell.dictionaries.errors.save")}
 					type="error"
 				/>
@@ -228,6 +231,7 @@ export function ItemFormDrawer({
 }) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<ItemFormValues>();
+	const { token } = theme.useToken();
 	const initialValues = useMemo<ItemFormValues>(
 		() =>
 			dictionaryItem
@@ -266,8 +270,9 @@ export function ItemFormDrawer({
 	return (
 		<Drawer
 			destroyOnHidden
-			extra={
-				<Space>
+			size="min(560px, 100vw)"
+			footer={
+				<Flex gap={token.marginXS} justify="flex-end">
 					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.dictionaries.cancel")}
 					</Button>
@@ -279,7 +284,7 @@ export function ItemFormDrawer({
 					>
 						{t("adminShell.dictionaries.save")}
 					</Button>
-				</Space>
+				</Flex>
 			}
 			onClose={discard.requestClose}
 			closable={!loading}
@@ -297,7 +302,7 @@ export function ItemFormDrawer({
 				<Alert
 					description={t("adminShell.dictionaries.errors.fallback")}
 					showIcon
-					style={{ marginBottom: 16 }}
+					style={{ marginBottom: token.margin }}
 					title={t("adminShell.dictionaries.errors.save")}
 					type="error"
 				/>

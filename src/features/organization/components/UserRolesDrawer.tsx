@@ -136,6 +136,7 @@ export function UserRolesDrawer({
 	return (
 		<Drawer
 			destroyOnHidden
+			size="min(560px, 100vw)"
 			extra={
 				<Text type="secondary">
 					{t(
@@ -147,13 +148,21 @@ export function UserRolesDrawer({
 			}
 			footer={
 				canManageRoles ? (
-					<Flex align="center" justify="space-between" wrap="wrap">
+					<Flex
+						align="center"
+						gap={token.marginXS}
+						justify="space-between"
+						wrap="wrap"
+					>
 						<Text type={hasDraftChanges ? "warning" : "secondary"}>
 							{hasDraftChanges
 								? t("adminShell.users.roles.unsaved")
 								: t("adminShell.users.roles.noUnsaved")}
 						</Text>
 						<Flex gap={token.marginXS}>
+							<Button disabled={saving} onClick={discard.requestClose}>
+								{t("adminShell.users.editForm.cancel")}
+							</Button>
 							<Button
 								disabled={saving}
 								onClick={() => setDraftRoleIdsOverride(null)}

@@ -11,6 +11,7 @@ import {
 	Alert,
 	Button,
 	Drawer,
+	Flex,
 	Form,
 	Input,
 	message,
@@ -498,8 +499,9 @@ export function DepartmentsPage() {
 			/>
 			<Drawer
 				destroyOnHidden
-				extra={
-					<Space>
+				size="min(560px, 100vw)"
+				footer={
+					<Flex gap={token.marginXS} justify="flex-end">
 						<Button
 							disabled={saveMutation.isPending}
 							onClick={discard.requestClose}
@@ -514,7 +516,7 @@ export function DepartmentsPage() {
 						>
 							{t("adminShell.departments.save", { defaultValue: "保存" })}
 						</Button>
-					</Space>
+					</Flex>
 				}
 				onClose={discard.requestClose}
 				closable={!saveMutation.isPending}
@@ -546,6 +548,7 @@ export function DepartmentsPage() {
 					disabled={saveMutation.isPending}
 					form={editorForm}
 					id={formId}
+					name="departmentEditor"
 					layout="vertical"
 					onFinish={(values) =>
 						saveMutation.mutate({

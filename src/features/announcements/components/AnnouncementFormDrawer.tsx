@@ -1,4 +1,4 @@
-import { Alert, Button, Drawer, Form, Input, Select, Space } from "antd";
+import { Alert, Button, Drawer, Flex, Form, Input, Select, theme } from "antd";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -31,6 +31,7 @@ export function AnnouncementFormDrawer({
 	open,
 }: AnnouncementFormDrawerProps) {
 	const { t } = useTranslation();
+	const { token } = theme.useToken();
 	const [form] = Form.useForm<CreatePlatformAnnouncementInput>();
 	const initialValues = useMemo<CreatePlatformAnnouncementInput>(
 		() =>
@@ -60,8 +61,9 @@ export function AnnouncementFormDrawer({
 	return (
 		<Drawer
 			destroyOnHidden
-			extra={
-				<Space>
+			size="min(560px, 100vw)"
+			footer={
+				<Flex gap={token.marginXS} justify="flex-end">
 					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.announcements.cancel")}
 					</Button>
@@ -73,7 +75,7 @@ export function AnnouncementFormDrawer({
 					>
 						{t("adminShell.announcements.save")}
 					</Button>
-				</Space>
+				</Flex>
 			}
 			onClose={discard.requestClose}
 			closable={!loading}
@@ -91,7 +93,7 @@ export function AnnouncementFormDrawer({
 				<Alert
 					description={t("adminShell.announcements.errors.fallback")}
 					showIcon
-					style={{ marginBottom: 16 }}
+					style={{ marginBottom: token.margin }}
 					title={t("adminShell.announcements.errors.save")}
 					type="error"
 				/>
