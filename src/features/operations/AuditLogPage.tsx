@@ -1,17 +1,17 @@
-import { ProForm } from "@ant-design/pro-components";
+import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
+import { useRef } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	Badge,
 	DatePicker,
 	Flex,
-	Form,
 	Input,
 	Select,
 	Space,
 	theme,
 	Typography,
 } from "antd";
-import type { TableColumnsType, TableProps } from "antd";
+import type { TableProps } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,7 +35,6 @@ import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	defaultLogPageSize,
 	LogDetailsDrawer,
-	LogQueryPanel,
 	LogTablePanel,
 } from "./LogTablePanel";
 import {
@@ -150,7 +149,7 @@ export function AuditLogPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
-	const [form] = Form.useForm<AuditFilterFormValues>();
+	const form = useRef<ProFormInstance<AuditFilterFormValues>>(undefined);
 	const [filterDraft, setFilterDraft] = useRouteSessionState<AuditFilterDraft>({
 		initialState: defaultAuditFilterDraft,
 		routeKey: auditLogsRouteKey,
@@ -231,7 +230,7 @@ export function AuditLogPage() {
 	});
 	const sortOrder = (column: AuditLogSort) =>
 		sort === column && order ? (order === "asc" ? "ascend" : "descend") : null;
-	const columns: TableColumnsType<PlatformAuditLog> = [
+	const columns: ProColumns<PlatformAuditLog>[] = [
 		{
 			dataIndex: "actorUsername",
 			key: "actorUsername",
@@ -241,7 +240,7 @@ export function AuditLogPage() {
 		{
 			dataIndex: "action",
 			key: "action",
-			render: (value: string) => <Text code>{value}</Text>,
+			renderText: (value: string) => <Text code>{value}</Text>,
 			sortDirections: ["ascend", "descend"],
 			sorter: true,
 			sortOrder: sortOrder("action"),
@@ -257,7 +256,7 @@ export function AuditLogPage() {
 		{
 			dataIndex: "result",
 			key: "result",
-			render: (value: PlatformAuditLog["result"]) => (
+			renderText: (value: PlatformAuditLog["result"]) => (
 				<Badge
 					status={value === "success" ? "success" : "error"}
 					text={t(`adminShell.logs.common.results.${value}`)}
@@ -278,7 +277,7 @@ export function AuditLogPage() {
 		{
 			dataIndex: "createdAt",
 			key: "created_at",
-			render: (value: string) => formatDateTime(value, formatPreferences),
+			renderText: (value: string) => formatDateTime(value, formatPreferences),
 			sortDirections: ["ascend", "descend"],
 			sorter: true,
 			sortOrder: sortOrder("created_at"),
@@ -318,63 +317,63 @@ export function AuditLogPage() {
 		{
 			dataIndex: "id",
 			key: "id",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.recordId"),
 			width: token.controlHeight * 4,
 		},
 		{
 			dataIndex: "actorId",
 			key: "actorId",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.audit.columns.actorId"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "module",
 			key: "module",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.audit.columns.module"),
 			width: token.controlHeight * 3,
 		},
 		{
 			dataIndex: "targetType",
 			key: "targetType",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.audit.columns.targetType"),
 			width: token.controlHeight * 4,
 		},
 		{
 			dataIndex: "targetId",
 			key: "targetId",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.audit.columns.targetId"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "requestId",
 			key: "requestId",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.requestId"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "requestMethod",
 			key: "requestMethod",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.audit.columns.requestMethod"),
 			width: token.controlHeight * 3,
 		},
 		{
 			dataIndex: "requestPath",
 			key: "requestPath",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.audit.columns.requestPath"),
 			width: token.controlHeight * 7,
 		},
 		{
 			dataIndex: "userAgent",
 			key: "device",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				formatDeviceInfo(value, unknownDevice),
 			title: t("adminShell.deviceInfo.device"),
 			width: token.controlHeight * 7,
@@ -382,7 +381,7 @@ export function AuditLogPage() {
 		{
 			dataIndex: "userAgent",
 			key: "browser",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				getDeviceDetails(value).browser ?? notRecorded,
 			title: t("adminShell.logs.common.browser"),
 			width: token.controlHeight * 4,
@@ -390,7 +389,7 @@ export function AuditLogPage() {
 		{
 			dataIndex: "userAgent",
 			key: "operatingSystem",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				getDeviceDetails(value).operatingSystem ?? notRecorded,
 			title: t("adminShell.logs.common.operatingSystem"),
 			width: token.controlHeight * 4,
@@ -398,21 +397,21 @@ export function AuditLogPage() {
 		{
 			dataIndex: "durationMs",
 			key: "durationMs",
-			render: (value: number) => `${value} ms`,
+			renderText: (value: number) => `${value} ms`,
 			title: t("adminShell.logs.common.duration"),
 			width: token.controlHeight * 3,
 		},
 		{
 			dataIndex: "failureReason",
 			key: "failureReason",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.failureReason"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "before",
 			key: "before",
-			render: (value: Record<string, unknown> | undefined) =>
+			renderText: (value: Record<string, unknown> | undefined) =>
 				renderCodeValue(formatChange(value)),
 			title: t("adminShell.logs.audit.columns.before"),
 			width: token.controlHeight * 6,
@@ -420,7 +419,7 @@ export function AuditLogPage() {
 		{
 			dataIndex: "after",
 			key: "after",
-			render: (value: Record<string, unknown> | undefined) =>
+			renderText: (value: Record<string, unknown> | undefined) =>
 				renderCodeValue(formatChange(value)),
 			title: t("adminShell.logs.audit.columns.after"),
 			width: token.controlHeight * 6,
@@ -428,7 +427,7 @@ export function AuditLogPage() {
 		{
 			dataIndex: "userAgent",
 			key: "userAgent",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.userAgent"),
 			width: token.controlHeight * 10,
 		},
@@ -452,8 +451,12 @@ export function AuditLogPage() {
 	};
 
 	const resetFilters = () => {
-		form.resetFields();
-		form.setFieldsValue({ action: "", dateRange: null, result: "all" });
+		form.current?.resetFields();
+		form.current?.setFieldsValue({
+			action: "",
+			dateRange: null,
+			result: "all",
+		});
 		setFilterDraft(defaultAuditFilterDraft);
 		setFilters({});
 		setPage(1);
@@ -484,7 +487,7 @@ export function AuditLogPage() {
 	return (
 		<Flex gap={token.marginLG} vertical>
 			{messageContextHolder}
-			<LogTablePanel<PlatformAuditLog>
+			<LogTablePanel<PlatformAuditLog, AuditFilterFormValues>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 					"audit-logs",
 				)}
@@ -494,7 +497,6 @@ export function AuditLogPage() {
 				emptyText={t("adminShell.logs.audit.empty")}
 				error={query.error}
 				initialLoading={query.isPending}
-				minimumWidth={token.controlHeight * 29}
 				onPageChange={(nextPage, nextPageSize) => {
 					setPage(nextPageSize === pageSize ? nextPage : 1);
 					setPageSize(nextPageSize);
@@ -503,70 +505,68 @@ export function AuditLogPage() {
 				onTableChange={handleTableChange}
 				page={page}
 				pageSize={pageSize}
-				queryPanel={
-					<LogQueryPanel<AuditFilterFormValues>
-						expanded={filtersExpanded}
-						form={form}
-						initialValues={deserializeAuditFilterDraft(filterDraft)}
-						loading={query.isFetching && !query.isPending}
-						onFinish={applyFilters}
-						onReset={resetFilters}
-						onExpandedChange={setFiltersExpanded}
-						onValuesChange={(_, values) =>
-							setFilterDraft(serializeAuditFilterDraft(values))
-						}
-						testId="audit-log-query-form"
-					>
-						<ProForm.Item
-							key="action"
-							label={t("adminShell.logs.audit.filters.action")}
-							name="action"
-						>
-							<Input
-								allowClear
-								maxLength={128}
-								placeholder={t("adminShell.logs.audit.placeholders.action")}
-							/>
-						</ProForm.Item>
-						<ProForm.Item
-							key="result"
-							label={t("adminShell.logs.audit.filters.result")}
-							name="result"
-						>
-							<Select
-								options={[
-									{
-										label: t("adminShell.logs.common.allResults"),
-										value: "all",
-									},
-									{
-										label: t("adminShell.logs.common.results.success"),
-										value: "success",
-									},
-									{
-										label: t("adminShell.logs.common.results.failure"),
-										value: "failure",
-									},
-								]}
-							/>
-						</ProForm.Item>
-						<ProForm.Item
-							key="dateRange"
-							label={t("adminShell.logs.common.timeRange")}
-							name="dateRange"
-						>
-							<DatePicker.RangePicker
-								format="YYYY-MM-DD HH:mm"
-								placeholder={[
-									t("adminShell.logs.common.timeRangeStart"),
-									t("adminShell.logs.common.timeRangeEnd"),
-								]}
-								showTime
-								style={{ width: "100%" }}
-							/>
-						</ProForm.Item>
-					</LogQueryPanel>
-				}
+				query={{
+					expanded: filtersExpanded,
+					formRef: form,
+					initialValues: deserializeAuditFilterDraft(filterDraft),
+					loading: query.isFetching && !query.isPending,
+					onFinish: applyFilters,
+					onReset: resetFilters,
+					onExpandedChange: setFiltersExpanded,
+					onValuesChange: (values) =>
+						setFilterDraft(serializeAuditFilterDraft(values)),
+					testId: "audit-log-query-form",
+					columns: [
+						{
+							dataIndex: "action",
+							title: t("adminShell.logs.audit.filters.action"),
+							formItemRender: () => (
+								<Input
+									allowClear
+									maxLength={128}
+									placeholder={t("adminShell.logs.audit.placeholders.action")}
+								/>
+							),
+						},
+						{
+							dataIndex: "result",
+							title: t("adminShell.logs.audit.filters.result"),
+							formItemRender: () => (
+								<Select
+									options={[
+										{
+											label: t("adminShell.logs.common.allResults"),
+											value: "all",
+										},
+										{
+											label: t("adminShell.logs.common.results.success"),
+											value: "success",
+										},
+										{
+											label: t("adminShell.logs.common.results.failure"),
+											value: "failure",
+										},
+									]}
+								/>
+							),
+						},
+						{
+							dataIndex: "dateRange",
+							title: t("adminShell.logs.common.timeRange"),
+							formItemRender: () => (
+								<DatePicker.RangePicker
+									format="YYYY-MM-DD HH:mm"
+									placeholder={[
+										t("adminShell.logs.common.timeRangeStart"),
+										t("adminShell.logs.common.timeRangeEnd"),
+									]}
+									showTime
+									style={{ width: "100%" }}
+								/>
+							),
+						},
+					],
+				}}
 				refreshing={query.isFetching && !query.isPending}
 				testId="audit-log-table-card"
 				title={t("adminShell.logs.audit.tableTitle")}

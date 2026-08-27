@@ -1,16 +1,16 @@
-import { ProForm } from "@ant-design/pro-components";
+import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
+import { useRef } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
 	Badge,
 	DatePicker,
 	Flex,
-	Form,
 	Select,
 	Space,
 	theme,
 	Typography,
 } from "antd";
-import type { TableColumnsType, TableProps } from "antd";
+import type { TableProps } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,7 +38,6 @@ import { useRouteSessionState } from "../../app/routeSessionState";
 import {
 	defaultLogPageSize,
 	LogDetailsDrawer,
-	LogQueryPanel,
 	LogTablePanel,
 } from "./LogTablePanel";
 import {
@@ -136,7 +135,7 @@ export function LoginLogPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const { copyTableValue, messageContextHolder } = useTableActions();
-	const [form] = Form.useForm<LoginFilterFormValues>();
+	const form = useRef<ProFormInstance<LoginFilterFormValues>>(undefined);
 	const [filterDraft, setFilterDraft] = useRouteSessionState<LoginFilterDraft>({
 		initialState: defaultLoginFilterDraft,
 		routeKey: loginLogsRouteKey,
@@ -215,7 +214,7 @@ export function LoginLogPage() {
 			</Text>
 		);
 	};
-	const columns: TableColumnsType<PlatformLoginLog> = [
+	const columns: ProColumns<PlatformLoginLog>[] = [
 		{
 			dataIndex: "identifier",
 			key: "identifier",
@@ -228,7 +227,7 @@ export function LoginLogPage() {
 		{
 			dataIndex: "result",
 			key: "result",
-			render: (value: PlatformLoginLog["result"]) => (
+			renderText: (value: PlatformLoginLog["result"]) => (
 				<Badge
 					status={loginResultStatus[value]}
 					text={t(`adminShell.logs.common.results.${value}`)}
@@ -243,7 +242,7 @@ export function LoginLogPage() {
 		{
 			dataIndex: "userAgent",
 			key: "userAgent",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				formatDeviceInfo(value, unknownDevice),
 			title: t("adminShell.deviceInfo.device"),
 			width: token.controlHeight * 7,
@@ -257,7 +256,7 @@ export function LoginLogPage() {
 		{
 			dataIndex: "acceptLanguage",
 			key: "acceptLanguage",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				getPrimaryLanguage(value) ?? missingDeviceValue,
 			title: t("adminShell.deviceInfo.language"),
 			width: token.controlHeight * 3,
@@ -265,7 +264,7 @@ export function LoginLogPage() {
 		{
 			dataIndex: "timeZone",
 			key: "timeZone",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				value?.trim() || missingDeviceValue,
 			title: t("adminShell.deviceInfo.timeZone"),
 			width: token.controlHeight * 5,
@@ -273,7 +272,7 @@ export function LoginLogPage() {
 		{
 			dataIndex: "createdAt",
 			key: "created_at",
-			render: (value: string) => formatDateTime(value, formatPreferences),
+			renderText: (value: string) => formatDateTime(value, formatPreferences),
 			sortDirections: ["ascend", "descend"],
 			sorter: true,
 			sortOrder: sortOrder("created_at"),
@@ -313,28 +312,28 @@ export function LoginLogPage() {
 		{
 			dataIndex: "id",
 			key: "id",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.recordId"),
 			width: token.controlHeight * 4,
 		},
 		{
 			dataIndex: "userId",
 			key: "userId",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.login.columns.userId"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "requestId",
 			key: "requestId",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.requestId"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "authMethod",
 			key: "authMethod",
-			render: (value: PlatformLoginLog["authMethod"]) =>
+			renderText: (value: PlatformLoginLog["authMethod"]) =>
 				t(`adminShell.logs.login.authMethods.${value}`),
 			title: t("adminShell.logs.login.columns.authMethod"),
 			width: token.controlHeight * 4,
@@ -342,7 +341,7 @@ export function LoginLogPage() {
 		{
 			dataIndex: "mfaUsed",
 			key: "mfaUsed",
-			render: (value: boolean) =>
+			renderText: (value: boolean) =>
 				t(`adminShell.logs.common.${value ? "yes" : "no"}`),
 			title: t("adminShell.logs.login.columns.mfaUsed"),
 			width: token.controlHeight * 4,
@@ -350,14 +349,14 @@ export function LoginLogPage() {
 		{
 			dataIndex: "location",
 			key: "location",
-			render: (value: string | undefined) => value ?? missingDeviceValue,
+			renderText: (value: string | undefined) => value ?? missingDeviceValue,
 			title: t("adminShell.logs.login.columns.location"),
 			width: token.controlHeight * 4,
 		},
 		{
 			dataIndex: "userAgent",
 			key: "browser",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				getDeviceDetails(value).browser ?? missingDeviceValue,
 			title: t("adminShell.logs.common.browser"),
 			width: token.controlHeight * 4,
@@ -365,7 +364,7 @@ export function LoginLogPage() {
 		{
 			dataIndex: "userAgent",
 			key: "operatingSystem",
-			render: (value: string | undefined) =>
+			renderText: (value: string | undefined) =>
 				getDeviceDetails(value).operatingSystem ?? missingDeviceValue,
 			title: t("adminShell.logs.common.operatingSystem"),
 			width: token.controlHeight * 4,
@@ -373,35 +372,35 @@ export function LoginLogPage() {
 		{
 			dataIndex: "durationMs",
 			key: "durationMs",
-			render: (value: number) => `${value} ms`,
+			renderText: (value: number) => `${value} ms`,
 			title: t("adminShell.logs.common.duration"),
 			width: token.controlHeight * 3,
 		},
 		{
 			dataIndex: "failureReason",
 			key: "failureReason",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.failureReason"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "sessionId",
 			key: "sessionId",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.login.columns.sessionId"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "acceptLanguage",
 			key: "rawAcceptLanguage",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.acceptLanguage"),
 			width: token.controlHeight * 5,
 		},
 		{
 			dataIndex: "userAgent",
 			key: "rawUserAgent",
-			render: renderCodeValue,
+			renderText: renderCodeValue,
 			title: t("adminShell.logs.common.userAgent"),
 			width: token.controlHeight * 10,
 		},
@@ -424,8 +423,8 @@ export function LoginLogPage() {
 	};
 
 	const resetFilters = () => {
-		form.resetFields();
-		form.setFieldsValue({ dateRange: null, result: "all" });
+		form.current?.resetFields();
+		form.current?.setFieldsValue({ dateRange: null, result: "all" });
 		setFilterDraft(defaultLoginFilterDraft);
 		setFilters({});
 		setPage(1);
@@ -456,7 +455,7 @@ export function LoginLogPage() {
 	return (
 		<Flex gap={token.marginLG} vertical>
 			{messageContextHolder}
-			<LogTablePanel<PlatformLoginLog>
+			<LogTablePanel<PlatformLoginLog, LoginFilterFormValues>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 					"login-logs",
 				)}
@@ -466,7 +465,6 @@ export function LoginLogPage() {
 				emptyText={t("adminShell.logs.login.empty")}
 				error={query.error}
 				initialLoading={query.isPending}
-				minimumWidth={token.controlHeight * 34}
 				onPageChange={(nextPage, nextPageSize) => {
 					setPage(nextPageSize === pageSize ? nextPage : 1);
 					setPageSize(nextPageSize);
@@ -475,63 +473,61 @@ export function LoginLogPage() {
 				onTableChange={handleTableChange}
 				page={page}
 				pageSize={pageSize}
-				queryPanel={
-					<LogQueryPanel<LoginFilterFormValues>
-						expanded={filtersExpanded}
-						form={form}
-						initialValues={deserializeLoginFilterDraft(filterDraft)}
-						loading={query.isFetching && !query.isPending}
-						onFinish={applyFilters}
-						onReset={resetFilters}
-						onExpandedChange={setFiltersExpanded}
-						onValuesChange={(_, values) =>
-							setFilterDraft(serializeLoginFilterDraft(values))
-						}
-						testId="login-log-query-form"
-					>
-						<ProForm.Item
-							key="result"
-							label={t("adminShell.logs.login.filters.result")}
-							name="result"
-						>
-							<Select
-								options={[
-									{
-										label: t("adminShell.logs.common.allResults"),
-										value: "all",
-									},
-									{
-										label: t("adminShell.logs.common.results.success"),
-										value: "success",
-									},
-									{
-										label: t("adminShell.logs.common.results.invalid"),
-										value: "invalid",
-									},
-									{
-										label: t("adminShell.logs.common.results.limited"),
-										value: "limited",
-									},
-								]}
-							/>
-						</ProForm.Item>
-						<ProForm.Item
-							key="dateRange"
-							label={t("adminShell.logs.common.timeRange")}
-							name="dateRange"
-						>
-							<DatePicker.RangePicker
-								format="YYYY-MM-DD HH:mm"
-								placeholder={[
-									t("adminShell.logs.common.timeRangeStart"),
-									t("adminShell.logs.common.timeRangeEnd"),
-								]}
-								showTime
-								style={{ width: "100%" }}
-							/>
-						</ProForm.Item>
-					</LogQueryPanel>
-				}
+				query={{
+					expanded: filtersExpanded,
+					formRef: form,
+					initialValues: deserializeLoginFilterDraft(filterDraft),
+					loading: query.isFetching && !query.isPending,
+					onFinish: applyFilters,
+					onReset: resetFilters,
+					onExpandedChange: setFiltersExpanded,
+					onValuesChange: (values) =>
+						setFilterDraft(serializeLoginFilterDraft(values)),
+					testId: "login-log-query-form",
+					columns: [
+						{
+							dataIndex: "result",
+							title: t("adminShell.logs.login.filters.result"),
+							formItemRender: () => (
+								<Select
+									options={[
+										{
+											label: t("adminShell.logs.common.allResults"),
+											value: "all",
+										},
+										{
+											label: t("adminShell.logs.common.results.success"),
+											value: "success",
+										},
+										{
+											label: t("adminShell.logs.common.results.invalid"),
+											value: "invalid",
+										},
+										{
+											label: t("adminShell.logs.common.results.limited"),
+											value: "limited",
+										},
+									]}
+								/>
+							),
+						},
+						{
+							dataIndex: "dateRange",
+							title: t("adminShell.logs.common.timeRange"),
+							formItemRender: () => (
+								<DatePicker.RangePicker
+									format="YYYY-MM-DD HH:mm"
+									placeholder={[
+										t("adminShell.logs.common.timeRangeStart"),
+										t("adminShell.logs.common.timeRangeEnd"),
+									]}
+									showTime
+									style={{ width: "100%" }}
+								/>
+							),
+						},
+					],
+				}}
 				refreshing={query.isFetching && !query.isPending}
 				testId="login-log-table-card"
 				title={t("adminShell.logs.login.tableTitle")}

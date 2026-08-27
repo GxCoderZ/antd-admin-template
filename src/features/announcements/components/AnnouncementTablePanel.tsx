@@ -1,7 +1,7 @@
+import type { ProColumns } from "@ant-design/pro-components";
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Space, Tag, theme } from "antd";
 import type { TableProps } from "antd";
-import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,7 +16,12 @@ import type {
 	PlatformAnnouncement,
 	PlatformAnnouncementStatus,
 } from "#src/api/announcements";
-import { LogTablePanel } from "../../operations/LogTablePanel";
+import {
+	type ManagementQuery,
+	LogTablePanel,
+} from "../../operations/LogTablePanel";
+
+import type { AnnouncementFilterValues } from "./useAnnouncementQuery";
 
 type AnnouncementSort = NonNullable<ListPlatformAnnouncementsInput["sort"]>;
 
@@ -45,7 +50,7 @@ interface AnnouncementTablePanelProps {
 	onEdit: (announcement: PlatformAnnouncement) => void;
 	onReload: () => void;
 	onView: (announcement: PlatformAnnouncement) => void;
-	queryPanel: ReactNode;
+	query: ManagementQuery<AnnouncementFilterValues>;
 	refreshing: boolean;
 	tableState: AnnouncementTableState;
 }
@@ -74,29 +79,25 @@ export function AnnouncementTablePanel({
 	onEdit,
 	onReload,
 	onView,
-	queryPanel,
+	query,
 	refreshing,
 	tableState,
 }: AnnouncementTablePanelProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const formatPreferences = useLocalePreferences();
-	const columns = useMemo<
-		NonNullable<TableProps<PlatformAnnouncement>["columns"]>
-	>(() => {
+	const columns = useMemo<ProColumns<PlatformAnnouncement>[]>(() => {
 		const sortOrder = (column: AnnouncementSort) =>
 			tableState.sort === column && tableState.order
 				? tableState.order === "asc"
 					? "ascend"
 					: "descend"
 				: null;
-		const dataColumns: NonNullable<
-			TableProps<PlatformAnnouncement>["columns"]
-		> = [
+		const dataColumns: ProColumns<PlatformAnnouncement>[] = [
 			{
 				dataIndex: "title",
 				key: "title",
-				render: (title: string, announcement) => (
+				renderText: (title: string, announcement) => (
 					<TableActionButton onClick={() => onView(announcement)}>
 						{title}
 					</TableActionButton>
@@ -110,7 +111,7 @@ export function AnnouncementTablePanel({
 			{
 				dataIndex: "status",
 				key: "status",
-				render: (status: PlatformAnnouncementStatus) => (
+				renderText: (status: PlatformAnnouncementStatus) => (
 					<Tag color={status === "published" ? "success" : "default"}>
 						{t(`adminShell.announcements.statuses.${status}`)}
 					</Tag>
@@ -124,7 +125,7 @@ export function AnnouncementTablePanel({
 			{
 				dataIndex: "updatedAt",
 				key: "updatedAt",
-				render: (value: string) => formatDateTime(value, formatPreferences),
+				renderText: (value: string) => formatDateTime(value, formatPreferences),
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
 				sortOrder: sortOrder("updated_at"),
@@ -183,7 +184,7 @@ export function AnnouncementTablePanel({
 	};
 
 	return (
-		<LogTablePanel<PlatformAnnouncement>
+		<LogTablePanel<PlatformAnnouncement, AnnouncementFilterValues>
 			columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 				"announcements",
 			)}
@@ -195,7 +196,6 @@ export function AnnouncementTablePanel({
 			errorFallback={t("adminShell.announcements.errors.fallback")}
 			errorTitle={t("adminShell.announcements.errors.load")}
 			initialLoading={initialLoading}
-			minimumWidth={token.controlHeight * 20}
 			onPageChange={(page, pageSize) =>
 				onChange({ ...tableState, page, pageSize })
 			}
@@ -214,7 +214,7 @@ export function AnnouncementTablePanel({
 					</Button>
 				) : undefined
 			}
-			queryPanel={queryPanel}
+			query={query}
 			refreshing={refreshing}
 			testId="admin-announcements-table-card"
 			title={t("adminShell.announcements.tableTitle")}

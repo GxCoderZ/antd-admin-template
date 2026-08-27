@@ -1,13 +1,14 @@
+import type { ProColumns } from "@ant-design/pro-components";
+import zhCN from "antd/locale/zh_CN";
 import { ConfigProvider } from "antd";
-import type { TableColumnsType, TableProps } from "antd";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
-import type { TableColumnConfig } from "../../app/tableColumnVisibility";
-import { i18n } from "../../i18n";
-import { LogTablePanel } from "./LogTablePanel";
+import { getTableColumnSettingsStorageKey } from "./preferenceStorage";
+import type { TableColumnConfig } from "./tableColumnVisibility";
+import { i18n } from "../i18n";
+import { ManagementProTable } from "./ManagementProTable";
 
 interface TestRow {
 	id: string;
@@ -16,7 +17,7 @@ interface TestRow {
 	username: string;
 }
 
-const columns: TableColumnsType<TestRow> = [
+const columns: ProColumns<TestRow>[] = [
 	{
 		dataIndex: "username",
 		key: "username",
@@ -64,28 +65,26 @@ beforeEach(() => {
 	});
 });
 
-function renderLogTablePanel() {
+function renderManagementProTable() {
 	render(
-		<ConfigProvider>
-			<LogTablePanel<TestRow>
+		<ConfigProvider locale={zhCN}>
+			<ManagementProTable<TestRow, Record<string, never>>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey("test-logs")}
 				columnVisibility={columnVisibility}
 				columns={columns}
 				dataSource={rows}
 				emptyText="暂无数据"
-				error={undefined}
 				initialLoading={false}
 				onPageChange={vi.fn()}
 				onReload={vi.fn()}
-				onTableChange={vi.fn() as NonNullable<TableProps<TestRow>["onChange"]>}
+				onTableChange={vi.fn()}
 				page={1}
 				pageSize={10}
-				queryPanel={<div />}
+				search={false}
 				refreshing={false}
 				testId="test-log-table-card"
 				title="测试日志"
 				total={1}
-				workspaceTestId="test-log-table-workspace"
 			/>
 		</ConfigProvider>,
 	);
@@ -93,27 +92,55 @@ function renderLogTablePanel() {
 	return userEvent.setup();
 }
 
-describe("LogTablePanel", () => {
+describe("ManagementProTable", () => {
+	it("migrates previous column choices once without replacing newer ProTable choices", () => {
+		const key = getTableColumnSettingsStorageKey("test-logs");
+		localStorage.setItem(
+			key,
+			JSON.stringify({
+				columnOrder: ["username", "ip", "result", "actions"],
+				visibleColumnKeys: ["username", "ip", "actions"],
+			}),
+		);
+		renderManagementProTable();
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(["账号", "IP 地址", "操作"]);
+		expect(localStorage.getItem(key)).toBeNull();
+		cleanup();
+		localStorage.setItem(
+			key,
+			JSON.stringify({ columnOrder: [], visibleColumnKeys: [] }),
+		);
+		renderManagementProTable();
+		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
+	});
 	it("defaults to recommended columns and persists optional choices", async () => {
-		const user = renderLogTablePanel();
+		const user = renderManagementProTable();
 
 		expect(screen.getByRole("columnheader", { name: "账号" })).toBeVisible();
 		expect(screen.getByRole("columnheader", { name: "结果" })).toBeVisible();
 		expect(screen.getByRole("columnheader", { name: "操作" })).toBeVisible();
 		expect(
-			screen.queryByRole("columnheader", { name: "IP 地址" }),
+			screen.queryByRole("columnheader", { name: /^(holder )?IP 地址$/ }),
 		).not.toBeInTheDocument();
 
-		await user.click(screen.getByRole("button", { name: "列设置" }));
+		await user.click(screen.getByRole("img", { name: "setting" }));
 		expect(
-			screen.queryByRole("checkbox", { name: "账号" }),
+			screen.queryByRole("checkbox", { name: /^(holder )?账号$/ }),
 		).not.toBeInTheDocument();
 		expect(
-			screen.queryByRole("checkbox", { name: "操作" }),
+			screen.queryByRole("checkbox", { name: /^(holder )?操作$/ }),
 		).not.toBeInTheDocument();
-		expect(screen.getByRole("checkbox", { name: "IP 地址" })).not.toBeChecked();
-		await user.click(screen.getByRole("checkbox", { name: "IP 地址" }));
-		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
+		expect(
+			screen.getByRole("checkbox", { name: /^(holder )?IP 地址$/ }),
+		).not.toBeChecked();
+		await user.click(
+			screen.getByRole("checkbox", { name: /^(holder )?IP 地址$/ }),
+		);
+		expect(
+			screen.getByRole("columnheader", { name: /^(holder )?IP 地址$/ }),
+		).toBeVisible();
 		expect(
 			screen
 				.getAllByRole("columnheader")
@@ -121,23 +148,25 @@ describe("LogTablePanel", () => {
 		).toEqual(["账号", "结果", "IP 地址", "操作"]);
 
 		cleanup();
-		const restoredUser = renderLogTablePanel();
+		const restoredUser = renderManagementProTable();
 
-		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
-		await restoredUser.click(screen.getByRole("button", { name: "列设置" }));
+		expect(
+			screen.getByRole("columnheader", { name: /^(holder )?IP 地址$/ }),
+		).toBeVisible();
+		await restoredUser.click(screen.getByRole("img", { name: "setting" }));
 		await restoredUser.click(
-			await screen.findByRole("checkbox", { name: "列显示" }),
+			await screen.findByRole("checkbox", { name: "列展示" }),
 		);
-		expect(screen.getByRole("checkbox", { name: "列显示" })).not.toBeChecked();
+		expect(screen.getByRole("checkbox", { name: "列展示" })).not.toBeChecked();
 		expect(
 			screen.getAllByRole("columnheader").map((header) => header.textContent),
 		).toEqual(["账号", "操作"]);
-		await restoredUser.click(screen.getByRole("button", { name: "重置" }));
+		await restoredUser.click(screen.getByText("重置", { exact: true }));
 		expect(
 			screen.getAllByRole("columnheader").map((header) => header.textContent),
 		).toEqual(["账号", "结果", "操作"]);
 		cleanup();
-		renderLogTablePanel();
+		renderManagementProTable();
 		expect(
 			screen.getAllByRole("columnheader").map((header) => header.textContent),
 		).toEqual(["账号", "结果", "操作"]);

@@ -1,4 +1,5 @@
-import { ProForm } from "@ant-design/pro-components";
+import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
+import { useRef } from "react";
 import {
 	CheckCircleOutlined,
 	DeleteOutlined,
@@ -17,7 +18,6 @@ import {
 	Select,
 	Space,
 	Tag,
-	type TableColumnsType,
 	type TableProps,
 	theme,
 } from "antd";
@@ -60,7 +60,10 @@ import {
 	type PlatformPositionStatus,
 	updatePlatformPosition,
 } from "#src/api/positions";
-import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
+import {
+	type ManagementQuery,
+	LogTablePanel,
+} from "../operations/LogTablePanel";
 import { PositionDetailDrawer } from "./PositionDetailDrawer";
 
 interface PositionFilterValues {
@@ -135,7 +138,7 @@ export function PositionsPage() {
 	const formatPreferences = useLocalePreferences();
 	const queryClient = useQueryClient();
 	const [messageApi, messageContextHolder] = message.useMessage();
-	const [filterForm] = Form.useForm<PositionFilterValues>();
+	const filterForm = useRef<ProFormInstance<PositionFilterValues>>(undefined);
 	const [editorForm] = Form.useForm<CreatePlatformPositionInput>();
 	const [draftFilters, setDraftFilters] =
 		useRouteSessionState<PositionFilterValues>({
@@ -274,12 +277,14 @@ export function PositionsPage() {
 		);
 	}, [departmentOptions, editingPosition, editorForm, editorOpen]);
 
-	const applyFilters = () => {
-		setFilters(draftFilters);
+	const applyFilters = (values: PositionFilterValues) => {
+		setFilters(values);
 		setTableState((current) => ({ ...current, page: 1 }));
 		querySubmission.submit();
 	};
 	const resetFilters = () => {
+		filterForm.current?.setFieldsValue({ name: "", code: "", status: "all" });
+		filterForm.current?.setFields([{ name: "departmentId", value: undefined }]);
 		setDraftFilters(defaultPositionFilterValues);
 		setFilters(defaultPositionFilterValues);
 		setTableState((current) => ({
@@ -320,7 +325,7 @@ export function PositionsPage() {
 				: null,
 		[tableState.order, tableState.sort],
 	);
-	const columns = useMemo<TableColumnsType<PlatformPosition>>(
+	const columns = useMemo<ProColumns<PlatformPosition>[]>(
 		() => [
 			{
 				dataIndex: "name",
@@ -363,7 +368,7 @@ export function PositionsPage() {
 			{
 				dataIndex: "status",
 				key: "status",
-				render: (status: PlatformPositionStatus) => (
+				renderText: (status: PlatformPositionStatus) => (
 					<Tag color={status === "active" ? "success" : "default"}>
 						{t(`adminShell.positions.statuses.${status}`, {
 							defaultValue: status === "active" ? "启用" : "停用",
@@ -392,7 +397,7 @@ export function PositionsPage() {
 			{
 				dataIndex: "updatedAt",
 				key: "updatedAt",
-				render: (value: string) => formatDateTime(value, formatPreferences),
+				renderText: (value: string) => formatDateTime(value, formatPreferences),
 				sortDirections: ["ascend", "descend"],
 				sortOrder: sortOrder("updated_at"),
 				sorter: true,
@@ -471,120 +476,71 @@ export function PositionsPage() {
 			token.controlHeight,
 		],
 	);
-	const queryPanel = (
-		<LogQueryPanel<PositionFilterValues>
-			expanded={filtersExpanded}
-			form={filterForm}
-			initialValues={defaultPositionFilterValues}
-			loading={positionsQuery.isFetching && !positionsQuery.isPending}
-			onFinish={applyFilters}
-			onReset={resetFilters}
-			onExpandedChange={setFiltersExpanded}
-			testId="admin-positions-query-form"
-		>
-			<ProForm.Item
-				key="name"
-				label={t("adminShell.positions.filters.name", {
-					defaultValue: "岗位名称",
-				})}
-			>
-				<Input
-					allowClear
-					maxLength={80}
-					onChange={(event) =>
-						setDraftFilters((current) => ({
-							...current,
-							name: event.target.value,
-						}))
-					}
-					placeholder={t("adminShell.positions.placeholders.name", {
-						defaultValue: "搜索岗位名称",
-					})}
-					value={draftFilters.name}
-				/>
-			</ProForm.Item>
-			<ProForm.Item
-				key="code"
-				label={t("adminShell.positions.filters.code", {
-					defaultValue: "岗位标识",
-				})}
-			>
-				<Input
-					allowClear
-					maxLength={64}
-					onChange={(event) =>
-						setDraftFilters((current) => ({
-							...current,
-							code: event.target.value,
-						}))
-					}
-					placeholder={t("adminShell.positions.placeholders.codeFilter", {
-						defaultValue: "搜索岗位标识",
-					})}
-					value={draftFilters.code}
-				/>
-			</ProForm.Item>
-			<ProForm.Item
-				key="departmentId"
-				label={t("adminShell.positions.filters.department", {
-					defaultValue: "所属部门",
-				})}
-			>
-				<Select
-					allowClear
-					onChange={(departmentId?: string) =>
-						setDraftFilters((current) => {
-							const nextFilters = { ...current };
-							if (departmentId) {
-								nextFilters.departmentId = departmentId;
-							} else {
-								delete nextFilters.departmentId;
-							}
-							return nextFilters;
-						})
-					}
-					options={departmentOptions}
-					placeholder={t("adminShell.positions.placeholders.department", {
-						defaultValue: "选择所属部门",
-					})}
-					value={draftFilters.departmentId}
-				/>
-			</ProForm.Item>
-			<ProForm.Item
-				key="status"
-				label={t("adminShell.positions.filters.status", {
-					defaultValue: "状态",
-				})}
-			>
-				<Select
-					onChange={(status: PositionFilterValues["status"]) =>
-						setDraftFilters((current) => ({ ...current, status }))
-					}
-					options={[
-						{
-							label: t("adminShell.positions.allStatuses", {
-								defaultValue: "全部状态",
-							}),
-							value: "all",
-						},
-						{
-							label: t("adminShell.positions.statuses.active", {
-								defaultValue: "启用",
-							}),
-							value: "active",
-						},
-						{
-							label: t("adminShell.positions.statuses.disabled", {
-								defaultValue: "停用",
-							}),
-							value: "disabled",
-						},
-					]}
-					value={draftFilters.status}
-				/>
-			</ProForm.Item>
-		</LogQueryPanel>
-	);
+	const tableQuery: ManagementQuery<PositionFilterValues> = {
+		expanded: filtersExpanded,
+		formRef: filterForm,
+		initialValues: draftFilters,
+		loading: positionsQuery.isFetching && !positionsQuery.isPending,
+		onFinish: applyFilters,
+		onReset: resetFilters,
+		onExpandedChange: setFiltersExpanded,
+		onValuesChange: (values) => setDraftFilters(values),
+		testId: "admin-positions-query-form",
+		columns: [
+			{
+				dataIndex: "name",
+				title: t("adminShell.positions.filters.name"),
+				formItemRender: () => (
+					<Input
+						allowClear
+						maxLength={80}
+						placeholder={t("adminShell.positions.placeholders.name")}
+					/>
+				),
+			},
+			{
+				dataIndex: "code",
+				title: t("adminShell.positions.filters.code"),
+				formItemRender: () => (
+					<Input
+						allowClear
+						maxLength={64}
+						placeholder={t("adminShell.positions.placeholders.codeFilter")}
+					/>
+				),
+			},
+			{
+				dataIndex: "departmentId",
+				title: t("adminShell.positions.filters.department"),
+				formItemRender: () => (
+					<Select
+						allowClear
+						options={departmentOptions}
+						placeholder={t("adminShell.positions.placeholders.department")}
+					/>
+				),
+			},
+			{
+				dataIndex: "status",
+				title: t("adminShell.positions.filters.status"),
+				formItemRender: () => (
+					<Select
+						options={[
+							{ label: t("adminShell.positions.allStatuses"), value: "all" },
+							{
+								label: t("adminShell.positions.statuses.active"),
+								value: "active",
+							},
+							{
+								label: t("adminShell.positions.statuses.disabled"),
+								value: "disabled",
+							},
+						]}
+					/>
+				),
+			},
+		],
+	};
 
 	return (
 		<>
@@ -595,7 +551,7 @@ export function PositionsPage() {
 				)}
 				onClose={() => setViewingPositionId(null)}
 			/>
-			<LogTablePanel<PlatformPosition>
+			<LogTablePanel<PlatformPosition, PositionFilterValues>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey("positions")}
 				columnVisibility={positionColumnVisibility}
 				columns={columns}
@@ -605,7 +561,6 @@ export function PositionsPage() {
 				})}
 				error={positionsQuery.error}
 				initialLoading={positionsQuery.isPending}
-				minimumWidth={token.controlHeight * 36}
 				onPageChange={(page, pageSize) =>
 					setTableState((current) => ({ ...current, page, pageSize }))
 				}
@@ -628,7 +583,7 @@ export function PositionsPage() {
 						})}
 					</Button>
 				}
-				queryPanel={queryPanel}
+				query={tableQuery}
 				refreshing={positionsQuery.isFetching && !positionsQuery.isPending}
 				testId="admin-positions-table-card"
 				title={t("adminShell.positions.tableTitle", {

@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const queryPages = [
+	{ path: "/organization/users", fields: 2, formId: "admin-users-query-form" },
+	{ path: "/access/roles", fields: 1, formId: "admin-roles-query-form" },
 	{
 		path: "/organization/departments",
 		fields: 2,
@@ -78,6 +80,7 @@ test("管理查询栏窄屏使用官方展开布局且内容不溢出", async ({
 						labels.filter((label) => label.textContent?.trim()).length,
 				);
 		await expect.poll(visibleLabels).toBe(1);
+		if (fields === 1) continue;
 		await form.getByText("展开", { exact: true }).click();
 		await expect.poll(visibleLabels).toBe(fields);
 		await expect(

@@ -497,11 +497,6 @@ export const koKRTranslation = {
 			common: {
 				query: "조회",
 				reset: "초기화",
-				expand: "펼치기",
-				collapse: "접기",
-				reload: "새로고침",
-				density: "표 밀도",
-				tableSettings: "열 설정",
 				retry: "다시 불러오기",
 				loadError: "로그 데이터를 불러오지 못했습니다",
 				errorFallback: "요청에 실패했습니다. 잠시 후 다시 시도하세요.",
@@ -527,14 +522,7 @@ export const koKRTranslation = {
 				userAgent: "User-Agent",
 				yes: "예",
 				no: "아니요",
-				columnDisplay: "열 표시",
-				resetColumns: "초기화",
 				paginationTotal: "전체 {{total}}개 중 {{start}}-{{end}}개",
-				densityOptions: {
-					large: "넓게",
-					middle: "보통",
-					small: "좁게",
-				},
 			},
 			audit: {
 				tableTitle: "감사 로그",

@@ -11,7 +11,7 @@ import {
 	type TableProps,
 } from "antd";
 import type { ReactNode } from "react";
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import { managementQueryLayout } from "./queryFilterLayout";
@@ -19,6 +19,7 @@ import type { TableColumnConfig } from "./tableColumnVisibility";
 
 import {
 	defaultPreferences,
+	migrateTableColumnSettingsPreference,
 	readUserTableDensityPreference,
 	subscribeToPreferenceChanges,
 	type UserTableDensity,
@@ -36,10 +37,6 @@ function isUserTableDensity(value: unknown): value is UserTableDensity {
 	return tableDensities.some((density) => density === value);
 }
 
-function getProTableColumnSettingsStorageKey(storageKey: string) {
-	return `${storageKey}:pro-table`;
-}
-
 export interface ManagementProTableProps<
 	Row extends { id: string },
 	SearchValues extends object,
@@ -48,8 +45,9 @@ export interface ManagementProTableProps<
 	columnVisibility: readonly TableColumnConfig[];
 	columns: ProColumns<Row>[];
 	dataSource: Row[];
-	emptyText: string;
+	emptyText: ReactNode;
 	initialLoading: boolean;
+	pagination?: false;
 	onPageChange?: (page: number, pageSize: number) => void;
 	onReload: () => void;
 	onReset?: () => void;
@@ -59,7 +57,10 @@ export interface ManagementProTableProps<
 	pageSize: number;
 	primaryAction?: ReactNode;
 	refreshing: boolean;
-	searchForm?: ProTableProps<Row, SearchValues>["form"];
+	searchForm?: NonNullable<ProTableProps<Row, SearchValues>["form"]> & {
+		"data-testid"?: string;
+	};
+	searchFormRef?: ProTableProps<Row, SearchValues>["formRef"];
 	search?: ProTableProps<Row, SearchValues>["search"];
 	testId: string;
 	title: string;
@@ -83,16 +84,24 @@ export function ManagementProTable<
 	onTableChange,
 	page,
 	pageSize,
+	pagination,
 	primaryAction,
 	refreshing,
 	search,
 	searchForm,
+	searchFormRef,
 	testId,
 	title,
 	total,
 }: ManagementProTableProps<Row, SearchValues>) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const [columnPersistenceKey] = useState(() =>
+		migrateTableColumnSettingsPreference(
+			columnSettingsStorageKey,
+			columnVisibility,
+		),
+	);
 	const defaultColumnsState = useMemo<Record<string, ColumnsState>>(
 		() =>
 			Object.fromEntries(
@@ -113,6 +122,7 @@ export function ManagementProTable<
 				const config = columnVisibility.find((item) => item.key === column.key);
 				return {
 					...column,
+					...(column.hideInTable ? { name: column.dataIndex } : {}),
 					disable: config?.visibility === "required",
 					hideInSetting:
 						column.hideInTable || config?.visibility === "required",
@@ -126,21 +136,24 @@ export function ManagementProTable<
 		readUserTableDensityPreference,
 		() => defaultPreferences.userTableDensity,
 	);
-	const tablePagination: false | TablePaginationConfig = {
-		current: page,
-		...(onPageChange ? { onChange: onPageChange } : {}),
-		pageSize,
-		pageSizeOptions,
-		placement: ["bottomEnd"],
-		showSizeChanger: true,
-		showTotal: (nextTotal: number, range: [number, number]) =>
-			t("adminShell.logs.common.paginationTotal", {
-				end: range[1],
-				start: range[0],
-				total: nextTotal,
-			}),
-		total,
-	};
+	const tablePagination: false | TablePaginationConfig =
+		pagination === false
+			? false
+			: {
+					current: page,
+					...(onPageChange ? { onChange: onPageChange } : {}),
+					pageSize,
+					pageSizeOptions,
+					placement: ["bottomEnd"],
+					showSizeChanger: true,
+					showTotal: (nextTotal: number, range: [number, number]) =>
+						t("adminShell.logs.common.paginationTotal", {
+							end: range[1],
+							start: range[0],
+							total: nextTotal,
+						}),
+					total,
+				};
 	const tableSearch: ProTableProps<Row, SearchValues>["search"] =
 		search === false
 			? false
@@ -161,14 +174,13 @@ export function ManagementProTable<
 			}}
 		>
 			<div data-testid={testId}>
+				{/* ant-design/ant-design-pro: src/pages/table-list/index.tsx. Keep the surrounding ProTable layout native. */}
 				<ProTable<Row, SearchValues>
 					cardBordered={false}
 					columns={configuredColumns}
 					columnsState={{
 						defaultValue: defaultColumnsState,
-						persistenceKey: getProTableColumnSettingsStorageKey(
-							columnSettingsStorageKey,
-						),
+						persistenceKey: columnPersistenceKey,
 						persistenceType: "localStorage",
 					}}
 					dataSource={dataSource}
@@ -186,7 +198,6 @@ export function ManagementProTable<
 					{...(onSubmit ? { onSubmit } : {})}
 					options={{
 						density: true,
-						fullScreen: true,
 						reload: onReload,
 						setting: {
 							draggable: true,
@@ -202,6 +213,7 @@ export function ManagementProTable<
 					locale={{ emptyText }}
 					scroll={{ x: "max-content" }}
 					{...(searchForm ? { form: searchForm } : {})}
+					{...(searchFormRef ? { formRef: searchFormRef } : {})}
 				/>
 			</div>
 		</ConfigProvider>

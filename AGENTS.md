@@ -143,9 +143,9 @@
 
 ### 管理表格
 
-- 必须复用 `LogQueryPanel`（基于 Pro `QueryFilter`）、`LogTablePanel`、`ManagementProTable`、`resolveTableSort`；查询布局统一使用 `managementQueryLayout`，由 Pro 负责栅格、标签宽度、展开收起和提交区布局；领域页面不得重写公共查询、响应式、排序和工具栏算法。
+- 管理表格统一由 `ManagementProTable` 渲染原生 ProTable；`LogTablePanel` 只适配领域查询配置和错误态，不另建查询或表格外层。查询布局统一使用 `managementQueryLayout`，由 Pro 负责栅格、标签宽度、展开收起、工具栏和分页；排序复用 `resolveTableSort`，领域页面不得重写公共布局及工具栏算法。
 - 查询栏按容器宽度自适应；窄屏默认保留一个主要条件，其余标准展开/收起；查询、重置保持统一顺序、间距和靠右布局。
-- 默认提供 10/20/50/100 分页、升/降/取消三档排序、刷新、密度、列设置、全屏。
+- 默认提供 10/20/50/100 分页、升/降/取消三档排序、刷新、密度、列设置。工具栏遵循 ProTable 默认配置，不增加表格全屏；全屏只保留壳层标签栏入口。
 - 所有 Table 和 ProTable 默认使用 `middle` 密度；允许用户主动切换并持久化，不得在页面写死 `large` 或 `small`。
 - 1440px 是完整工作基线；1920px 只增强空间。窄屏保留身份、状态、主操作等核心列，必要时横向滚动，禁止为塞满单屏压缩到不可读。
 - `useRouteSessionState` 保存查询草稿、已应用条件、展开、分页、排序；切换/刷新恢复，重置清空，关闭标签删除；必须测试恢复、重置和关闭清理。

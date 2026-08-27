@@ -340,6 +340,7 @@ export function RoleTablePanel({
 				onReload={onReload}
 				onReset={onResetFilters}
 				searchForm={{
+					"data-testid": "admin-roles-query-form",
 					onValuesChange: (_, values: RoleFilterValues) => {
 						const q = values.q?.trim();
 						onDraftFiltersChange(q ? { q } : {});

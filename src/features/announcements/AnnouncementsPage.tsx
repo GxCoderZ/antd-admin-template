@@ -25,9 +25,9 @@ import {
 import { AnnouncementFormDrawer } from "./components/AnnouncementFormDrawer";
 import { AnnouncementDetailDrawer } from "./components/AnnouncementDetailDrawer";
 import {
-	AnnouncementQueryPanel,
+	useAnnouncementQuery,
 	type AnnouncementFilterValues,
-} from "./components/AnnouncementQueryPanel";
+} from "./components/useAnnouncementQuery";
 import {
 	AnnouncementTablePanel,
 	type AnnouncementTableState,
@@ -125,6 +125,25 @@ export function AnnouncementsPage() {
 		querySubmission.submit();
 	};
 
+	const tableQuery = useAnnouncementQuery({
+		initialFilters: defaultAnnouncementFilterValues,
+		loading: query.isFetching && !query.isPending,
+		onApply: (nextFilters) => {
+			setFilters(nextFilters);
+			resetTablePage();
+		},
+		onReset: () => {
+			setFilters(defaultAnnouncementFilterValues);
+			setTableState((current) => ({
+				...current,
+				order: undefined,
+				page: 1,
+				sort: undefined,
+			}));
+			querySubmission.submit();
+		},
+	});
+
 	return (
 		<>
 			<AnnouncementTablePanel
@@ -149,26 +168,7 @@ export function AnnouncementsPage() {
 				}}
 				onReload={() => void query.refetch()}
 				onView={setViewingAnnouncement}
-				queryPanel={
-					<AnnouncementQueryPanel
-						initialFilters={defaultAnnouncementFilterValues}
-						loading={query.isFetching && !query.isPending}
-						onApply={(nextFilters) => {
-							setFilters(nextFilters);
-							resetTablePage();
-						}}
-						onReset={() => {
-							setFilters(defaultAnnouncementFilterValues);
-							setTableState((current) => ({
-								...current,
-								order: undefined,
-								page: 1,
-								sort: undefined,
-							}));
-							querySubmission.submit();
-						}}
-					/>
-				}
+				query={tableQuery}
 				refreshing={query.isFetching && !query.isPending}
 				tableState={tableState}
 			/>

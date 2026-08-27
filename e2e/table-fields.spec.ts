@@ -4,7 +4,6 @@ const tables = [
 	{
 		path: "/organization/users",
 		id: "admin-users-table-card",
-		pro: true,
 		defaults: [
 			"用户名",
 			"显示名称",
@@ -18,7 +17,6 @@ const tables = [
 	{
 		path: "/access/roles",
 		id: "admin-roles-table-card",
-		pro: true,
 		defaults: [
 			"角色名称",
 			"角色标识",
@@ -31,45 +29,38 @@ const tables = [
 	{
 		path: "/organization/departments",
 		id: "admin-departments-table-card",
-		pro: false,
 		defaults: ["部门名称", "部门标识", "状态", "成员数", "岗位数", "操作"],
 	},
 	{
 		path: "/organization/positions",
 		id: "admin-positions-table-card",
-		pro: false,
 		defaults: ["岗位名称", "岗位标识", "所属部门", "状态", "成员数", "操作"],
 	},
 	{
 		path: "/system/dictionaries",
 		id: "admin-dictionaries-type-table",
-		pro: false,
 		tab: "字典类型",
 		defaults: ["类型名称", "类型标识", "状态", "字典项数", "操作"],
 	},
 	{
 		path: "/system/dictionaries",
 		id: "admin-dictionaries-item-table",
-		pro: false,
 		tab: "字典项",
 		defaults: ["显示标签", "字典值", "排序", "状态", "操作"],
 	},
 	{
 		path: "/system/announcements",
 		id: "admin-announcements-table-card",
-		pro: false,
 		defaults: ["公告标题", "发布状态", "更新时间", "操作"],
 	},
 	{
 		path: "/operations/audit-logs",
 		id: "audit-log-table-card",
-		pro: false,
 		defaults: ["操作人", "动作", "目标", "结果", "IP 地址", "发生时间", "操作"],
 	},
 	{
 		path: "/operations/login-logs",
 		id: "login-log-table-card",
-		pro: false,
 		defaults: ["登录标识", "结果", "设备", "IP 地址", "登录时间", "操作"],
 	},
 ];
@@ -112,9 +103,10 @@ for (const table of tables) {
 		const panel = page.getByTestId(table.id);
 		const headers = panel.getByRole("columnheader");
 		await expect(headers).toHaveText(table.defaults);
-		const settingsTrigger = table.pro
-			? panel.getByRole("img", { name: "setting", exact: true })
-			: panel.getByRole("button", { name: "列设置", exact: true });
+		const settingsTrigger = panel.getByRole("img", {
+			name: "setting",
+			exact: true,
+		});
 		await settingsTrigger.click();
 		const settings = page.locator(".ant-popover:visible");
 		const required = [table.defaults[0]!, "操作"];
@@ -148,13 +140,10 @@ for (const table of tables) {
 			)
 			.toBe(true);
 		await settingsTrigger.click();
-		if (table.pro) {
-			await settings.getByRole("tree").hover();
-			await page.mouse.wheel(0, 600);
-		}
-		const lastChoice = table.pro
-			? settings.getByRole("checkbox", { name: /更新时间$/ })
-			: settings.getByRole("checkbox").last();
+		const tree = settings.getByRole("tree");
+		await tree.hover();
+		await page.mouse.wheel(0, 900);
+		const lastChoice = tree.getByRole("checkbox").last();
 		await expect(settings).toBeVisible();
 		expect(
 			await settings.evaluate(

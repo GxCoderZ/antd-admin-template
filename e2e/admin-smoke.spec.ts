@@ -335,6 +335,8 @@ test("用户管理查询栏在窄屏下保持核心筛选可见", async ({ page 
 	await expect(page).toHaveURL(/\/organization\/users$/);
 
 	const statusFilter = page.getByRole("combobox", { name: "账号状态" });
+	await expect(statusFilter).toBeHidden();
+	await page.getByText("展开", { exact: true }).click();
 	await expect(statusFilter).toBeVisible();
 	await navigateWithinAdmin(page, "/access/roles");
 	await navigateWithinAdmin(page, "/organization/users");
@@ -389,7 +391,7 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 	const toolbarSettings = roleTableCard.locator(
 		".ant-pro-table-list-toolbar-setting-item",
 	);
-	await expect(toolbarSettings).toHaveCount(4);
+	await expect(toolbarSettings).toHaveCount(3);
 	for (const [index, tooltip] of ["刷新", "密度", "列设置"].entries()) {
 		await toolbarSettings.nth(index).hover();
 		await expect(page.getByRole("tooltip", { name: tooltip })).toBeVisible();
@@ -562,11 +564,13 @@ test("公告管理支持通过 Fake API 新建并查询公告", async ({ page })
 	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/system\/announcements$/);
 	await expect(page.getByRole("table")).toContainText("系统维护通知");
-	for (const actionName of ["刷新", "表格密度", "列设置"]) {
-		await expect(page.getByRole("button", { name: actionName })).toBeVisible();
+	for (const actionName of ["reload", "column-height", "setting"]) {
+		await expect(
+			page.getByRole("img", { name: actionName, exact: true }),
+		).toBeVisible();
 	}
-	await page.getByRole("button", { name: "列设置" }).click();
-	await expect(page.getByText("列显示", { exact: true })).toBeVisible();
+	await page.getByRole("img", { name: "setting", exact: true }).click();
+	await expect(page.getByText("列展示", { exact: true })).toBeVisible();
 	await page.keyboard.press("Escape");
 
 	await page.getByRole("button", { name: "新建公告" }).click();

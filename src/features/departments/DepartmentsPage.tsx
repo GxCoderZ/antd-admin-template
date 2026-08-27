@@ -1,4 +1,5 @@
-import { ProForm } from "@ant-design/pro-components";
+import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
+import { useRef } from "react";
 import {
 	CheckCircleOutlined,
 	DeleteOutlined,
@@ -17,7 +18,6 @@ import {
 	Select,
 	Space,
 	Tag,
-	type TableColumnsType,
 	theme,
 } from "antd";
 import {
@@ -49,7 +49,10 @@ import {
 	type PlatformDepartmentStatus,
 	updatePlatformDepartment,
 } from "#src/api/departments";
-import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
+import {
+	type ManagementQuery,
+	LogTablePanel,
+} from "../operations/LogTablePanel";
 import { DepartmentDetailDrawer } from "./DepartmentDetailDrawer";
 
 interface DepartmentFilterValues {
@@ -98,7 +101,7 @@ export function DepartmentsPage() {
 	const formatPreferences = useLocalePreferences();
 	const queryClient = useQueryClient();
 	const [messageApi, messageContextHolder] = message.useMessage();
-	const [filterForm] = Form.useForm<DepartmentFilterValues>();
+	const filterForm = useRef<ProFormInstance<DepartmentFilterValues>>(undefined);
 	const [editorForm] = Form.useForm<CreatePlatformDepartmentInput>();
 	const [draftFilters, setDraftFilters] =
 		useRouteSessionState<DepartmentFilterValues>({
@@ -222,16 +225,17 @@ export function DepartmentsPage() {
 		);
 	}, [editingDepartment, editorForm, editorOpen, parentDepartment]);
 
-	const applyFilters = () => {
-		setFilters(draftFilters);
+	const applyFilters = (values: DepartmentFilterValues) => {
+		setFilters(values);
 		querySubmission.submit();
 	};
 	const resetFilters = () => {
+		filterForm.current?.setFieldsValue({ name: "", status: "all" });
 		setDraftFilters(defaultDepartmentFilterValues);
 		setFilters(defaultDepartmentFilterValues);
 		querySubmission.submit();
 	};
-	const columns = useMemo<TableColumnsType<PlatformDepartment>>(
+	const columns = useMemo<ProColumns<PlatformDepartment>[]>(
 		() => [
 			{
 				dataIndex: "name",
@@ -259,7 +263,7 @@ export function DepartmentsPage() {
 			{
 				dataIndex: "status",
 				key: "status",
-				render: (status: PlatformDepartmentStatus) => (
+				renderText: (status: PlatformDepartmentStatus) => (
 					<Tag color={status === "active" ? "success" : "default"}>
 						{t(`adminShell.departments.statuses.${status}`, {
 							defaultValue: status === "active" ? "启用" : "停用",
@@ -290,7 +294,7 @@ export function DepartmentsPage() {
 			{
 				dataIndex: "updatedAt",
 				key: "updatedAt",
-				render: (value: string) => formatDateTime(value, formatPreferences),
+				renderText: (value: string) => formatDateTime(value, formatPreferences),
 				title: t("adminShell.departments.columns.updatedAt", {
 					defaultValue: "更新时间",
 				}),
@@ -379,73 +383,49 @@ export function DepartmentsPage() {
 			token.controlHeight,
 		],
 	);
-	const queryPanel = (
-		<LogQueryPanel<DepartmentFilterValues>
-			expanded={filtersExpanded}
-			form={filterForm}
-			initialValues={defaultDepartmentFilterValues}
-			loading={departmentsQuery.isFetching && !departmentsQuery.isPending}
-			onFinish={applyFilters}
-			onReset={resetFilters}
-			onExpandedChange={setFiltersExpanded}
-			testId="admin-departments-query-form"
-		>
-			<ProForm.Item
-				key="name"
-				label={t("adminShell.departments.filters.name", {
-					defaultValue: "部门名称",
-				})}
-			>
-				<Input
-					allowClear
-					maxLength={80}
-					onChange={(event) =>
-						setDraftFilters((current) => ({
-							...current,
-							name: event.target.value,
-						}))
-					}
-					placeholder={t("adminShell.departments.placeholders.name", {
-						defaultValue: "搜索部门名称",
-					})}
-					value={draftFilters.name}
-				/>
-			</ProForm.Item>
-			<ProForm.Item
-				key="status"
-				label={t("adminShell.departments.filters.status", {
-					defaultValue: "状态",
-				})}
-			>
-				<Select
-					onChange={(status: DepartmentFilterValues["status"]) =>
-						setDraftFilters((current) => ({ ...current, status }))
-					}
-					options={[
-						{
-							label: t("adminShell.departments.allStatuses", {
-								defaultValue: "全部状态",
-							}),
-							value: "all",
-						},
-						{
-							label: t("adminShell.departments.statuses.active", {
-								defaultValue: "启用",
-							}),
-							value: "active",
-						},
-						{
-							label: t("adminShell.departments.statuses.disabled", {
-								defaultValue: "停用",
-							}),
-							value: "disabled",
-						},
-					]}
-					value={draftFilters.status}
-				/>
-			</ProForm.Item>
-		</LogQueryPanel>
-	);
+	const tableQuery: ManagementQuery<DepartmentFilterValues> = {
+		expanded: filtersExpanded,
+		formRef: filterForm,
+		initialValues: draftFilters,
+		loading: departmentsQuery.isFetching && !departmentsQuery.isPending,
+		onFinish: applyFilters,
+		onReset: resetFilters,
+		onExpandedChange: setFiltersExpanded,
+		onValuesChange: (values) => setDraftFilters(values),
+		testId: "admin-departments-query-form",
+		columns: [
+			{
+				dataIndex: "name",
+				title: t("adminShell.departments.filters.name"),
+				formItemRender: () => (
+					<Input
+						allowClear
+						maxLength={80}
+						placeholder={t("adminShell.departments.placeholders.name")}
+					/>
+				),
+			},
+			{
+				dataIndex: "status",
+				title: t("adminShell.departments.filters.status"),
+				formItemRender: () => (
+					<Select
+						options={[
+							{ label: t("adminShell.departments.allStatuses"), value: "all" },
+							{
+								label: t("adminShell.departments.statuses.active"),
+								value: "active",
+							},
+							{
+								label: t("adminShell.departments.statuses.disabled"),
+								value: "disabled",
+							},
+						]}
+					/>
+				),
+			},
+		],
+	};
 
 	return (
 		<>
@@ -456,7 +436,7 @@ export function DepartmentsPage() {
 				)}
 				onClose={() => setViewingDepartmentId(null)}
 			/>
-			<LogTablePanel<PlatformDepartment>
+			<LogTablePanel<PlatformDepartment, DepartmentFilterValues>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 					"departments",
 				)}
@@ -468,7 +448,6 @@ export function DepartmentsPage() {
 				})}
 				error={departmentsQuery.error}
 				initialLoading={departmentsQuery.isPending}
-				minimumWidth={token.controlHeight * 34}
 				onReload={() => void departmentsQuery.refetch()}
 				page={1}
 				pageSize={100}
@@ -489,7 +468,7 @@ export function DepartmentsPage() {
 						})}
 					</Button>
 				}
-				queryPanel={queryPanel}
+				query={tableQuery}
 				refreshing={departmentsQuery.isFetching && !departmentsQuery.isPending}
 				testId="admin-departments-table-card"
 				title={t("adminShell.departments.tableTitle", {

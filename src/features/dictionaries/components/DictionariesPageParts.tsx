@@ -1,4 +1,3 @@
-import { ProForm } from "@ant-design/pro-components";
 import {
 	Alert,
 	Button,
@@ -13,7 +12,6 @@ import {
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useRouteSessionState } from "../../../app/routeSessionState";
 import type {
 	CreatePlatformDictionaryItemInput,
 	CreatePlatformDictionaryTypeInput,
@@ -21,13 +19,7 @@ import type {
 	PlatformDictionaryTagColor,
 	PlatformDictionaryType,
 } from "#src/api/dictionaries";
-import { LogQueryPanel } from "../../operations/LogTablePanel";
-import {
-	colorOptions,
-	dictionariesRouteKey,
-	type ItemFilterValues,
-	type TypeFilterValues,
-} from "./DictionariesPageModel";
+import { colorOptions } from "./DictionariesPageModel";
 
 type TypeFormValues = Omit<CreatePlatformDictionaryTypeInput, "description"> & {
 	description?: string;
@@ -49,182 +41,6 @@ export function DictionaryColorTag({
 }) {
 	const tagProps = color === "default" ? {} : { color };
 	return <Tag {...tagProps}>{children}</Tag>;
-}
-
-export function TypeQueryPanel({
-	initialFilters,
-	loading,
-	onApply,
-	onReset,
-}: {
-	initialFilters: TypeFilterValues;
-	loading: boolean;
-	onApply: (filters: TypeFilterValues) => void;
-	onReset: () => void;
-}) {
-	const { t } = useTranslation();
-	const [form] = Form.useForm<TypeFilterValues>();
-	const [draftFilters, setDraftFilters] =
-		useRouteSessionState<TypeFilterValues>({
-			initialState: initialFilters,
-			routeKey: dictionariesRouteKey,
-			stateKey: "type-query-draft",
-		});
-	const [expanded, setExpanded] = useRouteSessionState({
-		initialState: false,
-		routeKey: dictionariesRouteKey,
-		stateKey: "type-query-expanded",
-	});
-
-	return (
-		<LogQueryPanel<TypeFilterValues>
-			expanded={expanded}
-			form={form}
-			initialValues={initialFilters}
-			loading={loading}
-			onFinish={() => onApply(draftFilters)}
-			onReset={() => {
-				setDraftFilters(initialFilters);
-				onReset();
-			}}
-			onExpandedChange={setExpanded}
-			testId="admin-dictionaries-type-query-form"
-		>
-			<ProForm.Item key="q" label={t("adminShell.dictionaries.filters.q")}>
-				<Input
-					allowClear
-					maxLength={100}
-					onChange={(event) =>
-						setDraftFilters((currentFilters) => ({
-							...currentFilters,
-							q: event.target.value,
-						}))
-					}
-					placeholder={t("adminShell.dictionaries.placeholders.query")}
-					style={{ width: "100%" }}
-					value={draftFilters.q}
-				/>
-			</ProForm.Item>
-			<ProForm.Item
-				key="status"
-				label={t("adminShell.dictionaries.filters.status")}
-			>
-				<Select
-					aria-label={t("adminShell.dictionaries.filters.status")}
-					onChange={(status: TypeFilterValues["status"]) =>
-						setDraftFilters((currentFilters) => ({
-							...currentFilters,
-							status,
-						}))
-					}
-					options={[
-						{
-							label: t("adminShell.dictionaries.allStatuses"),
-							value: "all",
-						},
-						{
-							label: t("adminShell.dictionaries.statuses.active"),
-							value: "active",
-						},
-						{
-							label: t("adminShell.dictionaries.statuses.disabled"),
-							value: "disabled",
-						},
-					]}
-					style={{ width: "100%" }}
-					value={draftFilters.status}
-				/>
-			</ProForm.Item>
-		</LogQueryPanel>
-	);
-}
-
-export function ItemQueryPanel({
-	initialFilters,
-	loading,
-	onApply,
-	onReset,
-}: {
-	initialFilters: ItemFilterValues;
-	loading: boolean;
-	onApply: (filters: ItemFilterValues) => void;
-	onReset: () => void;
-}) {
-	const { t } = useTranslation();
-	const [form] = Form.useForm<ItemFilterValues>();
-	const [draftFilters, setDraftFilters] =
-		useRouteSessionState<ItemFilterValues>({
-			initialState: initialFilters,
-			routeKey: dictionariesRouteKey,
-			stateKey: "item-query-draft",
-		});
-	const [expanded, setExpanded] = useRouteSessionState({
-		initialState: false,
-		routeKey: dictionariesRouteKey,
-		stateKey: "item-query-expanded",
-	});
-
-	return (
-		<LogQueryPanel<ItemFilterValues>
-			expanded={expanded}
-			form={form}
-			initialValues={initialFilters}
-			loading={loading}
-			onFinish={() => onApply(draftFilters)}
-			onReset={() => {
-				setDraftFilters(initialFilters);
-				onReset();
-			}}
-			onExpandedChange={setExpanded}
-			testId="admin-dictionaries-item-query-form"
-		>
-			<ProForm.Item key="q" label={t("adminShell.dictionaries.filters.q")}>
-				<Input
-					allowClear
-					maxLength={100}
-					onChange={(event) =>
-						setDraftFilters((currentFilters) => ({
-							...currentFilters,
-							q: event.target.value,
-						}))
-					}
-					placeholder={t("adminShell.dictionaries.placeholders.itemQuery")}
-					style={{ width: "100%" }}
-					value={draftFilters.q}
-				/>
-			</ProForm.Item>
-			<ProForm.Item
-				key="status"
-				label={t("adminShell.dictionaries.filters.status")}
-			>
-				<Select
-					aria-label={t("adminShell.dictionaries.filters.status")}
-					onChange={(status: ItemFilterValues["status"]) =>
-						setDraftFilters((currentFilters) => ({
-							...currentFilters,
-							status,
-						}))
-					}
-					options={[
-						{
-							label: t("adminShell.dictionaries.allStatuses"),
-							value: "all",
-						},
-						{
-							label: t("adminShell.dictionaries.statuses.active"),
-							value: "active",
-						},
-						{
-							label: t("adminShell.dictionaries.statuses.disabled"),
-							value: "disabled",
-						},
-					]}
-					style={{ width: "100%" }}
-					value={draftFilters.status}
-				/>
-			</ProForm.Item>
-		</LogQueryPanel>
-	);
 }
 
 export function TypeFormDrawer({

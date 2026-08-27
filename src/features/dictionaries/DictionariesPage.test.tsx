@@ -268,16 +268,15 @@ describe("DictionariesPage", () => {
 	});
 
 	it("submits dictionary type keyword filters through the API", async () => {
-		renderDictionariesPage();
+		const user = renderDictionariesPage();
 
 		await screen.findByText("用户状态");
-		fireEvent.change(screen.getByPlaceholderText("搜索名称或编码"), {
-			target: { value: "user" },
-		});
-		fireEvent.click(
+		await user.type(screen.getByPlaceholderText("搜索名称或编码"), "user");
+		// Avoid jsdom's expensive accessibility scan of the Pro form; click its visible action.
+		await user.click(
 			within(
 				screen.getByTestId("admin-dictionaries-type-query-form"),
-			).getByRole("button", { name: /查\s*询/ }),
+			).getByText(/查\s*询/),
 		);
 
 		await waitFor(() => {

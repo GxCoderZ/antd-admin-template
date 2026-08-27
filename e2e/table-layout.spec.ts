@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 const managementPages: {
 	path: string;
 	tableId: string;
-	queryId?: string;
+
 	tab?: string;
 }[] = [
 	{ path: "/organization/users", tableId: "admin-users-table-card" },
@@ -11,39 +11,34 @@ const managementPages: {
 	{
 		path: "/organization/departments",
 		tableId: "admin-departments-table-card",
-		queryId: "admin-departments-query-form",
 	},
 	{
 		path: "/organization/positions",
 		tableId: "admin-positions-table-card",
-		queryId: "admin-positions-query-form",
 	},
 	{
 		path: "/system/dictionaries",
 		tableId: "admin-dictionaries-type-table",
-		queryId: "admin-dictionaries-type-query-form",
+
 		tab: "字典类型",
 	},
 	{
 		path: "/system/dictionaries",
 		tableId: "admin-dictionaries-item-table",
-		queryId: "admin-dictionaries-item-query-form",
+
 		tab: "字典项",
 	},
 	{
 		path: "/system/announcements",
 		tableId: "admin-announcements-table-card",
-		queryId: "admin-announcements-query-form",
 	},
 	{
 		path: "/operations/audit-logs",
 		tableId: "audit-log-table-card",
-		queryId: "audit-log-query-form",
 	},
 	{
 		path: "/operations/login-logs",
 		tableId: "login-log-table-card",
-		queryId: "login-log-query-form",
 	},
 ];
 
@@ -85,7 +80,7 @@ test("ProTable 管理表格使用官方内容间距", async ({ page }) => {
 for (const width of [1440, 390]) {
 	test(`管理搜索栏和表格栏统一无外框并保留行分隔线（${width}px）`, async ({
 		page,
-	}) => {
+	}, testInfo) => {
 		await page.setViewportSize({ height: 900, width });
 		await page.goto("/login");
 		await page.locator('input[autocomplete="username"]').fill("admin");
@@ -93,7 +88,7 @@ for (const width of [1440, 390]) {
 		await page.locator('button[type="submit"]').click();
 		await expect(page).toHaveURL(/\/dashboard$/);
 
-		for (const { path, tableId, queryId, tab } of managementPages) {
+		for (const { path, tableId, tab } of managementPages) {
 			await test.step(`${path}${tab ? ` / ${tab}` : ""}`, async () => {
 				await navigateWithinAdmin(page, path);
 				if (tab) {
@@ -102,14 +97,14 @@ for (const width of [1440, 390]) {
 				const tablePanel = page.getByTestId(tableId);
 				const cells = tablePanel.getByRole("cell");
 				await expect(cells.first()).toBeVisible();
-				const querySurface = queryId
-					? page.getByTestId(queryId)
-					: tablePanel.locator(".ant-pro-table-search");
-				const tableSurface = queryId
-					? tablePanel
-					: tablePanel
-							.locator(".ant-pro-card")
-							.filter({ has: page.getByRole("table") });
+				await expect(tablePanel.locator(".ant-table-placeholder")).toHaveCount(
+					0,
+				);
+				await expect(tablePanel.locator(".ant-spin-spinning")).toHaveCount(0);
+				const querySurface = tablePanel.locator(".ant-pro-table-search");
+				const tableSurface = tablePanel
+					.locator(".ant-pro-card")
+					.filter({ has: page.getByRole("table") });
 
 				for (const surface of [querySurface, tableSurface]) {
 					await expect(surface).toBeVisible();
@@ -145,7 +140,10 @@ for (const width of [1440, 390]) {
 					};
 				});
 				expect(toolbarLayout.padding).toEqual(["0px", "24px", "16px", "24px"]);
-				expect(toolbarLayout.settingWidths.length).toBeGreaterThanOrEqual(3);
+				expect(toolbarLayout.settingWidths).toHaveLength(3);
+				await expect(
+					tableSurface.getByRole("img", { name: "fullscreen", exact: true }),
+				).toHaveCount(0);
 				expect(toolbarLayout.settingWidths).toEqual(
 					toolbarLayout.settingWidths.map(() => 16),
 				);
@@ -173,6 +171,11 @@ for (const width of [1440, 390]) {
 				for (const border of borders) {
 					expect(border).toEqual(["0px", "1px", "0px"]);
 				}
+				await page.screenshot({
+					path: testInfo.outputPath(`${tableId}-${width}.png`),
+					animations: "disabled",
+					fullPage: true,
+				});
 			});
 		}
 	});

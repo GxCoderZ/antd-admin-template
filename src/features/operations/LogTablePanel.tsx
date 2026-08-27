@@ -1,368 +1,106 @@
-import {
-	ColumnHeightOutlined,
-	ReloadOutlined,
-	SettingOutlined,
-} from "@ant-design/icons";
-import { ListToolBar, ProCard, QueryFilter } from "@ant-design/pro-components";
+import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
 import { ApiProblemError } from "#src/api/client";
-import {
-	Alert,
-	Button,
-	Checkbox,
-	Descriptions,
-	Drawer,
-	Dropdown,
-	Flex,
-	Popover,
-	Table,
-	theme,
-	Tooltip,
-} from "antd";
-import type {
-	DescriptionsProps,
-	FormInstance,
-	FormProps,
-	MenuProps,
-	TablePaginationConfig,
-	TableColumnsType,
-	TableProps,
-} from "antd";
-import type { CSSProperties, ReactNode } from "react";
-import { useSyncExternalStore } from "react";
+import { Alert, Button, Descriptions, Drawer } from "antd";
+import type { DescriptionsProps } from "antd";
+import type { ReactNode, RefObject } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-	defaultPreferences,
-	readUserTableDensityPreference,
-	subscribeToPreferenceChanges,
-	writeUserTableDensityPreference,
-} from "../../app/preferenceStorage";
-import { managementQueryLayout } from "../../app/queryFilterLayout";
-import {
-	type TableColumnConfig,
-	useTableColumns,
-} from "../../app/tableColumnVisibility";
-
-const pageSizeOptions = [10, 20, 50, 100];
+	ManagementProTable,
+	type ManagementProTableProps,
+} from "../../app/ManagementProTable";
 
 export const defaultLogPageSize = 10;
 
-function getProblemDetail(error: unknown) {
-	return error instanceof ApiProblemError ? error.problem?.detail : undefined;
-}
-
-interface LogQueryPanelProps<Values extends object> {
-	children: ReactNode;
+export interface ManagementQuery<Values extends object> {
+	columns: {
+		dataIndex: Extract<keyof Values, string>;
+		title: ReactNode;
+		formItemRender: () => ReactNode;
+	}[];
 	expanded: boolean;
-	form: FormInstance<Values>;
-	initialValues: NonNullable<FormProps<Values>["initialValues"]>;
+	formRef: RefObject<ProFormInstance<Values> | undefined>;
+	initialValues: Values;
 	loading: boolean;
 	onExpandedChange: (expanded: boolean) => void;
 	onFinish: (values: Values) => void;
 	onReset: () => void;
-	onValuesChange?: FormProps<Values>["onValuesChange"];
+	onValuesChange?: (values: Values) => void;
 	testId: string;
 }
 
-interface LogTablePanelProps<Row extends { id: string }> {
-	columnSettingsStorageKey: string;
-	columnVisibility: readonly TableColumnConfig[];
-	columns: TableColumnsType<Row>;
-	dataSource: Row[];
-	description?: ReactNode;
-	emptyText: string;
+interface LogTablePanelProps<
+	Row extends { id: string },
+	Values extends object,
+> extends ManagementProTableProps<Row, Values> {
 	error: unknown;
 	errorFallback?: string;
 	errorTitle?: string;
-	initialLoading: boolean;
-	minimumWidth?: number;
-	onPageChange?: (page: number, pageSize: number) => void;
-	onReload: () => void;
-	onTableChange?: TableProps<Row>["onChange"];
-	page: number;
-	pageSize: number;
-	pagination?: false;
-	primaryAction?: ReactNode;
-	queryPanel: ReactNode;
-	refreshing: boolean;
-	rowSelection?: TableProps<Row>["rowSelection"];
-	rowClassName?: TableProps<Row>["rowClassName"];
-	tableComponents?: TableProps<Row>["components"];
-	tableExtra?: ReactNode;
-	tableWrapper?: (table: ReactNode) => ReactNode;
-	testId: string;
-	title: string;
-	total: number;
+	query: ManagementQuery<Values>;
 	workspaceTestId: string;
 }
 
-interface LogDetailsDrawerProps {
-	items: DescriptionsProps["items"] | undefined;
-	onClose: () => void;
-	open: boolean;
-	title: string;
-}
-
-export function LogQueryPanel<Values extends object>({
-	children,
-	expanded,
-	form,
-	initialValues,
-	loading,
-	onExpandedChange,
-	onFinish,
-	onReset,
-	onValuesChange,
-	testId,
-}: LogQueryPanelProps<Values>) {
-	const { t } = useTranslation();
-	const { token } = theme.useToken();
-
-	return (
-		<QueryFilter<Values>
-			{...managementQueryLayout}
-			autoFocusFirstInput={false}
-			collapsed={!expanded}
-			data-testid={testId}
-			dateFormatter={false}
-			form={form}
-			initialValues={initialValues}
-			onCollapse={(collapsed) => onExpandedChange(!collapsed)}
-			onFinish={onFinish}
-			onReset={onReset}
-			onValuesChange={onValuesChange}
-			resetText={t("adminShell.logs.common.reset")}
-			searchText={t("adminShell.logs.common.query")}
-			style={{
-				background: token.colorBgContainer,
-				borderRadius: token.borderRadiusLG,
-			}}
-			submitter={{ submitButtonProps: { loading } }}
-		>
-			{children}
-		</QueryFilter>
-	);
-}
-
-export function LogTablePanel<Row extends { id: string }>({
-	columnSettingsStorageKey,
-	columnVisibility,
-	columns,
-	dataSource,
-	description,
-	emptyText,
+// Domain pages own their queries; ProTable owns the complete search/table layout.
+export function LogTablePanel<
+	Row extends { id: string },
+	Values extends object,
+>({
 	error,
 	errorFallback,
 	errorTitle,
-	initialLoading,
-	minimumWidth,
-	onPageChange,
-	onReload,
-	onTableChange,
-	page,
-	pageSize,
-	pagination,
-	primaryAction,
-	queryPanel,
-	refreshing,
-	rowClassName,
-	rowSelection,
-	tableComponents,
-	tableExtra,
-	tableWrapper,
-	testId,
-	title,
-	total,
+	query,
 	workspaceTestId,
-}: LogTablePanelProps<Row>) {
+	...table
+}: LogTablePanelProps<Row, Values>) {
 	const { t } = useTranslation();
-	const { token } = theme.useToken();
-	const tableColumns = useTableColumns<Row>({
-		columns,
-		configs: columnVisibility,
-		storageKey: columnSettingsStorageKey,
-	});
-	const tableSize = useSyncExternalStore(
-		subscribeToPreferenceChanges,
-		readUserTableDensityPreference,
-		() => defaultPreferences.userTableDensity,
-	);
-	const tableScrollX =
-		tableColumns.minimumWidth || minimumWidth || "max-content";
-	const tablePagination: false | TablePaginationConfig =
-		pagination === false
-			? false
-			: {
-					current: page,
-					...(onPageChange ? { onChange: onPageChange } : {}),
-					pageSize,
-					pageSizeOptions,
-					placement: ["bottomEnd"],
-					showSizeChanger: true,
-					showTotal: (nextTotal: number, range: [number, number]) =>
-						t("adminShell.logs.common.paginationTotal", {
-							end: range[1],
-							start: range[0],
-							total: nextTotal,
-						}),
-					style: { marginBottom: 0 },
-					total,
-				};
-	const hasLeadingContent = Boolean(description || tableExtra);
-	// ListToolBar already spaces its icon slots; retain Button keyboard behavior.
-	const toolbarButtonStyle: CSSProperties = {
-		border: 0,
-		display: "flex",
-		fontSize: token.fontSizeLG,
-		height: token.controlHeight,
-		padding: 0,
-		width: token.fontSizeLG,
-	};
-
-	const densityItems: MenuProps["items"] = [
-		{ key: "large", label: t("adminShell.logs.common.densityOptions.large") },
-		{ key: "middle", label: t("adminShell.logs.common.densityOptions.middle") },
-		{ key: "small", label: t("adminShell.logs.common.densityOptions.small") },
+	// ProForm consumes initialValues once; subsequent draft changes belong to the form.
+	const [initialValues] = useState(() => query.initialValues);
+	const columns: ProColumns<Row>[] = [
+		...query.columns.map((column) => ({
+			...column,
+			key: `query:${column.dataIndex}`,
+			hideInTable: true,
+		})),
+		...table.columns.map((column) => ({ ...column, search: false as const })),
 	];
-	const columnSettings = (
-		<Flex
-			gap={token.marginXS}
-			style={{ minWidth: token.controlHeight * 6 }}
-			vertical
-		>
-			<Flex align="center" justify="space-between">
-				<Checkbox
-					checked={tableColumns.isAllColumnsVisible}
-					indeterminate={tableColumns.isSomeColumnsVisible}
-					onChange={(event) => {
-						tableColumns.setVisibleColumnKeys(
-							event.target.checked ? tableColumns.configurableColumnKeys : [],
-						);
-					}}
-				>
-					{t("adminShell.logs.common.columnDisplay")}
-				</Checkbox>
-				<Button
-					onClick={tableColumns.resetColumnSettings}
-					size="small"
-					type="link"
-				>
-					{t("adminShell.logs.common.resetColumns")}
-				</Button>
-			</Flex>
-			<Checkbox.Group
-				onChange={(keys) => tableColumns.setVisibleColumnKeys(keys.map(String))}
-				style={{ maxHeight: token.controlHeight * 8, overflowY: "auto" }}
-				value={tableColumns.visibleColumnKeys}
-			>
-				<Flex gap={token.marginXS} vertical>
-					{columns
-						.filter((column) =>
-							tableColumns.configurableColumnKeys.includes(String(column.key)),
-						)
-						.map((column) => (
-							<Checkbox key={String(column.key)} value={String(column.key)}>
-								{column.title as ReactNode}
-							</Checkbox>
-						))}
-				</Flex>
-			</Checkbox.Group>
-		</Flex>
-	);
-	const toolbarSettings = [
-		<Tooltip key="reload" title={t("adminShell.logs.common.reload")}>
-			<Button
-				aria-label={t("adminShell.logs.common.reload")}
-				color="default"
-				icon={<ReloadOutlined aria-hidden />}
-				loading={refreshing}
-				onClick={onReload}
-				style={toolbarButtonStyle}
-				variant="link"
-			/>
-		</Tooltip>,
-		<Dropdown
-			key="density"
-			menu={{
-				items: densityItems,
-				onClick: ({ key }) => {
-					if (key === "large" || key === "middle" || key === "small") {
-						writeUserTableDensityPreference(key);
-					}
-				},
-				selectedKeys: [tableSize ?? "middle"],
-			}}
-			placement="bottomRight"
-			trigger={["click"]}
-		>
-			<Tooltip title={t("adminShell.logs.common.density")}>
-				<Button
-					aria-label={t("adminShell.logs.common.density")}
-					color="default"
-					icon={<ColumnHeightOutlined aria-hidden />}
-					style={toolbarButtonStyle}
-					variant="link"
-				/>
-			</Tooltip>
-		</Dropdown>,
-		<Popover
-			key="columns"
-			arrow={false}
-			content={columnSettings}
-			placement="bottomRight"
-			trigger="click"
-		>
-			<Tooltip title={t("adminShell.logs.common.tableSettings")}>
-				<Button
-					aria-label={t("adminShell.logs.common.tableSettings")}
-					color="default"
-					icon={<SettingOutlined aria-hidden />}
-					style={toolbarButtonStyle}
-					variant="link"
-				/>
-			</Tooltip>
-		</Popover>,
-	];
+	const detail =
+		error instanceof ApiProblemError ? error.problem?.detail : undefined;
 
 	return (
-		<Flex data-testid={workspaceTestId} gap={token.margin} vertical>
-			{queryPanel}
-			<ProCard
-				data-testid={testId}
-				styles={{
-					body: { paddingBlockStart: 0 },
+		<div data-testid={workspaceTestId}>
+			<ManagementProTable<Row, Values>
+				{...table}
+				columns={columns}
+				dataSource={error ? [] : table.dataSource}
+				onReset={query.onReset}
+				onSubmit={query.onFinish}
+				searchFormRef={query.formRef}
+				search={{
+					collapsed: !query.expanded,
+					onCollapse: (collapsed) => query.onExpandedChange(!collapsed),
+					resetText: t("adminShell.logs.common.reset"),
+					searchText: t("adminShell.logs.common.query"),
 				}}
-				variant="borderless"
-			>
-				<ListToolBar
-					actions={primaryAction ? [primaryAction] : []}
-					settings={toolbarSettings}
-					title={title}
-				/>
-				{hasLeadingContent ? (
-					<Flex
-						gap={token.margin}
-						style={{
-							marginBlockEnd: token.margin,
-						}}
-						vertical
-					>
-						{description}
-						{tableExtra}
-					</Flex>
-				) : null}
-				{error ? (
-					<div
-						style={{ marginBlockStart: hasLeadingContent ? 0 : token.marginLG }}
-					>
+				searchForm={{
+					initialValues,
+					onValuesChange: () => {
+						if (query.formRef.current)
+							query.onValuesChange?.(query.formRef.current.getFieldsValue());
+					},
+					submitter: { submitButtonProps: { loading: query.loading } },
+					"data-testid": query.testId,
+				}}
+				emptyText={
+					error ? (
 						<Alert
 							action={
-								<Button onClick={onReload}>
+								<Button onClick={table.onReload}>
 									{t("adminShell.logs.common.retry")}
 								</Button>
 							}
 							description={
-								getProblemDetail(error) ??
+								detail ??
 								errorFallback ??
 								t("adminShell.logs.common.errorFallback")
 							}
@@ -370,44 +108,12 @@ export function LogTablePanel<Row extends { id: string }>({
 							showIcon
 							type="error"
 						/>
-					</div>
-				) : tableWrapper ? (
-					tableWrapper(
-						<Table<Row>
-							columns={tableColumns.visibleColumns}
-							dataSource={dataSource}
-							loading={initialLoading || refreshing}
-							locale={{ emptyText }}
-							pagination={tablePagination}
-							rowKey="id"
-							{...(onTableChange ? { onChange: onTableChange } : {})}
-							{...(rowClassName ? { rowClassName } : {})}
-							{...(rowSelection ? { rowSelection } : {})}
-							{...(tableComponents ? { components: tableComponents } : {})}
-							scroll={{ x: tableScrollX }}
-							size={tableSize}
-							tableLayout="fixed"
-						/>,
+					) : (
+						table.emptyText
 					)
-				) : (
-					<Table<Row>
-						columns={tableColumns.visibleColumns}
-						dataSource={dataSource}
-						loading={initialLoading || refreshing}
-						locale={{ emptyText }}
-						pagination={tablePagination}
-						rowKey="id"
-						{...(onTableChange ? { onChange: onTableChange } : {})}
-						{...(rowClassName ? { rowClassName } : {})}
-						{...(rowSelection ? { rowSelection } : {})}
-						{...(tableComponents ? { components: tableComponents } : {})}
-						scroll={{ x: tableScrollX }}
-						size={tableSize}
-						tableLayout="fixed"
-					/>
-				)}
-			</ProCard>
-		</Flex>
+				}
+			/>
+		</div>
 	);
 }
 
@@ -416,7 +122,12 @@ export function LogDetailsDrawer({
 	onClose,
 	open,
 	title,
-}: LogDetailsDrawerProps) {
+}: {
+	items: DescriptionsProps["items"] | undefined;
+	onClose: () => void;
+	open: boolean;
+	title: string;
+}) {
 	return (
 		<Drawer destroyOnHidden onClose={onClose} open={open} title={title}>
 			{items ? (

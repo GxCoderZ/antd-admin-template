@@ -493,11 +493,6 @@ export const zhCNTranslation = {
 			common: {
 				query: "查询",
 				reset: "重置",
-				expand: "展开",
-				collapse: "收起",
-				reload: "刷新",
-				density: "表格密度",
-				tableSettings: "列设置",
 				retry: "重新加载",
 				loadError: "日志数据加载失败",
 				errorFallback: "请求失败，请稍后重试。",
@@ -523,14 +518,7 @@ export const zhCNTranslation = {
 				userAgent: "User-Agent",
 				yes: "是",
 				no: "否",
-				columnDisplay: "列显示",
-				resetColumns: "重置",
 				paginationTotal: "第 {{start}}-{{end}} 条/总共 {{total}} 条",
-				densityOptions: {
-					large: "宽松",
-					middle: "中等",
-					small: "紧凑",
-				},
 			},
 			audit: {
 				tableTitle: "审计日志",

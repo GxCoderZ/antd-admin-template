@@ -1,3 +1,4 @@
+import type { ProColumns } from "@ant-design/pro-components";
 import {
 	CheckCircleOutlined,
 	DeleteOutlined,
@@ -21,7 +22,7 @@ import {
 	message,
 	theme,
 } from "antd";
-import type { TableColumnsType, TableProps } from "antd";
+import type { TableProps } from "antd";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -67,10 +68,9 @@ import {
 import {
 	DictionaryColorTag,
 	ItemFormDrawer,
-	ItemQueryPanel,
 	TypeFormDrawer,
-	TypeQueryPanel,
 } from "./components/DictionariesPageParts";
+import { useItemQuery, useTypeQuery } from "./components/useDictionaryQueries";
 import {
 	defaultItemFilters,
 	defaultItemTableState,
@@ -350,18 +350,18 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		),
 		[t],
 	);
-	const typeColumns = useMemo<TableColumnsType<PlatformDictionaryType>>(() => {
+	const typeColumns = useMemo<ProColumns<PlatformDictionaryType>[]>(() => {
 		const sortOrder = (column: TypeSort) =>
 			typeTableState.sort === column && typeTableState.order
 				? typeTableState.order === "asc"
 					? "ascend"
 					: "descend"
 				: null;
-		const columns: TableColumnsType<PlatformDictionaryType> = [
+		const columns: ProColumns<PlatformDictionaryType>[] = [
 			{
 				dataIndex: "name",
 				key: "name",
-				render: (name: string, dictionaryType) => (
+				renderText: (name: string, dictionaryType) => (
 					<TableActionButton onClick={() => setViewingType(dictionaryType)}>
 						{name}
 					</TableActionButton>
@@ -382,7 +382,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			{
 				dataIndex: "status",
 				key: "status",
-				render: statusTag,
+				renderText: statusTag,
 				sorter: true,
 				sortOrder: sortOrder("status"),
 				title: t("adminShell.dictionaries.columns.status"),
@@ -399,7 +399,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			{
 				dataIndex: "updatedAt",
 				key: "updatedAt",
-				render: (value: string) => formatDateTime(value, formatPreferences),
+				renderText: (value: string) => formatDateTime(value, formatPreferences),
 				sorter: true,
 				sortOrder: sortOrder("updated_at"),
 				title: t("adminShell.dictionaries.columns.updatedAt"),
@@ -484,18 +484,18 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		typeTableState.order,
 		typeTableState.sort,
 	]);
-	const itemColumns = useMemo<TableColumnsType<PlatformDictionaryItem>>(() => {
+	const itemColumns = useMemo<ProColumns<PlatformDictionaryItem>[]>(() => {
 		const sortOrder = (column: ItemSort) =>
 			itemTableState.sort === column && itemTableState.order
 				? itemTableState.order === "asc"
 					? "ascend"
 					: "descend"
 				: null;
-		const columns: TableColumnsType<PlatformDictionaryItem> = [
+		const columns: ProColumns<PlatformDictionaryItem>[] = [
 			{
 				dataIndex: "label",
 				key: "label",
-				render: (label: string, dictionaryItem) => (
+				renderText: (label: string, dictionaryItem) => (
 					<TableActionButton onClick={() => setViewingItem(dictionaryItem)}>
 						{label}
 					</TableActionButton>
@@ -516,7 +516,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			{
 				dataIndex: "color",
 				key: "color",
-				render: (color: PlatformDictionaryTagColor, dictionaryItem) => (
+				renderText: (color: PlatformDictionaryTagColor, dictionaryItem) => (
 					<DictionaryColorTag color={color}>
 						{dictionaryItem.label}
 					</DictionaryColorTag>
@@ -535,7 +535,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			{
 				dataIndex: "status",
 				key: "status",
-				render: statusTag,
+				renderText: statusTag,
 				sorter: true,
 				sortOrder: sortOrder("status"),
 				title: t("adminShell.dictionaries.columns.status"),
@@ -544,7 +544,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			{
 				dataIndex: "updatedAt",
 				key: "updatedAt",
-				render: (value: string) => formatDateTime(value, formatPreferences),
+				renderText: (value: string) => formatDateTime(value, formatPreferences),
 				sorter: true,
 				sortOrder: sortOrder("updated_at"),
 				title: t("adminShell.dictionaries.columns.updatedAt"),
@@ -657,8 +657,46 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			sort: nextSorting.sort,
 		});
 	};
+	const typeTableQuery = useTypeQuery({
+		initialFilters: defaultTypeFilters,
+		loading: typeQuery.isFetching && !typeQuery.isPending,
+		onApply: (filters) => {
+			setTypeFilters(filters);
+			resetTypeTablePage();
+		},
+		onReset: () => {
+			setTypeFilters(defaultTypeFilters);
+			setTypeTableState((current) => ({
+				...current,
+				order: undefined,
+				page: 1,
+				sort: undefined,
+			}));
+			submitTypeQuery();
+		},
+	});
+
+	const itemTableQuery = useItemQuery({
+		initialFilters: defaultItemFilters,
+		loading: itemQuery.isFetching && !itemQuery.isPending,
+		onApply: (filters) => {
+			setItemFilters(filters);
+			resetItemTablePage();
+		},
+		onReset: () => {
+			setItemFilters(defaultItemFilters);
+			setItemTableState((current) => ({
+				...current,
+				order: undefined,
+				page: 1,
+				sort: undefined,
+			}));
+			submitItemQuery();
+		},
+	});
+
 	const typePanel = (
-		<LogTablePanel<PlatformDictionaryType>
+		<LogTablePanel<PlatformDictionaryType, TypeFilterValues>
 			columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 				"dictionary-types",
 			)}
@@ -670,7 +708,6 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			errorFallback={t("adminShell.dictionaries.errors.fallback")}
 			errorTitle={t("adminShell.dictionaries.errors.load")}
 			initialLoading={typeQuery.isPending}
-			minimumWidth={token.controlHeight * 24}
 			onPageChange={(page, pageSize) =>
 				setTypeTableState((currentState) => ({
 					...currentState,
@@ -697,26 +734,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 					</Button>
 				) : undefined
 			}
-			queryPanel={
-				<TypeQueryPanel
-					initialFilters={defaultTypeFilters}
-					loading={typeQuery.isFetching && !typeQuery.isPending}
-					onApply={(filters) => {
-						setTypeFilters(filters);
-						resetTypeTablePage();
-					}}
-					onReset={() => {
-						setTypeFilters(defaultTypeFilters);
-						setTypeTableState((current) => ({
-							...current,
-							order: undefined,
-							page: 1,
-							sort: undefined,
-						}));
-						submitTypeQuery();
-					}}
-				/>
-			}
+			query={typeTableQuery}
 			refreshing={typeQuery.isFetching && !typeQuery.isPending}
 			testId="admin-dictionaries-type-table"
 			title={t("adminShell.dictionaries.typeTableTitle")}
@@ -725,7 +743,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		/>
 	);
 	const itemPanel = (
-		<LogTablePanel<PlatformDictionaryItem>
+		<LogTablePanel<PlatformDictionaryItem, ItemFilterValues>
 			columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 				"dictionary-items",
 			)}
@@ -741,7 +759,6 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			errorFallback={t("adminShell.dictionaries.errors.fallback")}
 			errorTitle={t("adminShell.dictionaries.errors.load")}
 			initialLoading={selectedType !== null && itemQuery.isPending}
-			minimumWidth={token.controlHeight * 30}
 			onPageChange={(page, pageSize) =>
 				setItemTableState((currentState) => ({
 					...currentState,
@@ -769,26 +786,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 					</Button>
 				) : undefined
 			}
-			queryPanel={
-				<ItemQueryPanel
-					initialFilters={defaultItemFilters}
-					loading={itemQuery.isFetching && !itemQuery.isPending}
-					onApply={(filters) => {
-						setItemFilters(filters);
-						resetItemTablePage();
-					}}
-					onReset={() => {
-						setItemFilters(defaultItemFilters);
-						setItemTableState((current) => ({
-							...current,
-							order: undefined,
-							page: 1,
-							sort: undefined,
-						}));
-						submitItemQuery();
-					}}
-				/>
-			}
+			query={itemTableQuery}
 			refreshing={itemQuery.isFetching && !itemQuery.isPending}
 			testId="admin-dictionaries-item-table"
 			title={

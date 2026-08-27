@@ -1,11 +1,19 @@
-import { ProForm } from "@ant-design/pro-components";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { ConfigProvider, Form, Input, Select } from "antd";
+import type { ProFormInstance } from "@ant-design/pro-components";
+import { useRef } from "react";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
+import { ConfigProvider, Input, Select } from "antd";
+import zhCN from "antd/locale/zh_CN";
 import { useState } from "react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { i18n, i18nReady } from "../../i18n";
-import { LogQueryPanel } from "./LogTablePanel";
+import { LogTablePanel } from "./LogTablePanel";
 
 interface QueryValues {
 	q: string;
@@ -21,27 +29,51 @@ function QueryPanel({
 	onFinish: (values: QueryValues) => void;
 	onReset: () => void;
 }) {
-	const [form] = Form.useForm<QueryValues>();
+	const form = useRef<ProFormInstance<QueryValues>>(undefined);
 	const [expanded, setExpanded] = useState(false);
 	return (
-		<ConfigProvider>
-			<LogQueryPanel<QueryValues>
-				expanded={expanded}
-				form={form}
-				initialValues={{ q: "initial", status: "all" }}
-				loading={loading}
-				onExpandedChange={setExpanded}
-				onFinish={onFinish}
-				onReset={onReset}
-				testId="query-form"
-			>
-				<ProForm.Item key="q" label="Keyword" name="q">
-					<Input />
-				</ProForm.Item>
-				<ProForm.Item key="status" label="Status" name="status">
-					<Select options={[{ label: "All", value: "all" }]} />
-				</ProForm.Item>
-			</LogQueryPanel>
+		<ConfigProvider locale={zhCN}>
+			<LogTablePanel<{ id: string }, QueryValues>
+				columnSettingsStorageKey="test-query-columns"
+				columnVisibility={[]}
+				columns={[]}
+				dataSource={[]}
+				emptyText="No data"
+				error={undefined}
+				initialLoading={false}
+				onReload={() => {}}
+				page={1}
+				pageSize={10}
+				refreshing={loading}
+				testId="test-table"
+				title="Query"
+				total={0}
+				workspaceTestId="test-workspace"
+				query={{
+					expanded,
+					formRef: form,
+					initialValues: { q: "initial", status: "all" },
+					loading,
+					onExpandedChange: setExpanded,
+					onFinish,
+					onReset,
+					testId: "query-form",
+					columns: [
+						{
+							dataIndex: "q",
+							title: "Keyword",
+							formItemRender: () => <Input />,
+						},
+						{
+							dataIndex: "status",
+							title: "Status",
+							formItemRender: () => (
+								<Select options={[{ label: "All", value: "all" }]} />
+							),
+						},
+					],
+				}}
+			/>
 		</ConfigProvider>
 	);
 }
@@ -51,13 +83,15 @@ beforeAll(async () => {
 	await i18n.changeLanguage("zh-CN");
 });
 
-describe("LogQueryPanel", () => {
+describe("ManagementQuery", () => {
 	it("uses the Pro reset and query actions without changing submitted values", async () => {
 		const onFinish = vi.fn();
 		const onReset = vi.fn();
 		render(<QueryPanel onFinish={onFinish} onReset={onReset} />);
 
-		const actions = screen.getAllByRole("button");
+		const actions = within(screen.getByTestId("query-form")).getAllByRole(
+			"button",
+		);
 		expect(
 			actions.map((button) => button.textContent?.replace(/\s/g, "")),
 		).toEqual(["重置", "查询"]);

@@ -166,8 +166,10 @@ test("字典标签切换后恢复各自查询草稿与列设置", async ({ page 
 		typeWorkspace.getByRole("button", { name: "管理字典项" }).first(),
 	).toBeVisible();
 	await typeWorkspace.getByRole("textbox").fill("类型草稿");
-	await typeWorkspace.getByRole("button", { name: "列设置" }).click();
-	await page.getByRole("checkbox", { name: "类型标识" }).uncheck();
+	await typeWorkspace
+		.getByRole("img", { name: "setting", exact: true })
+		.click();
+	await page.getByRole("checkbox", { name: /^(holder )?类型标识$/ }).uncheck();
 	await page.getByRole("tab", { name: "字典项", exact: true }).click();
 	await itemWorkspace.getByRole("textbox").fill("项目草稿");
 	await expect(

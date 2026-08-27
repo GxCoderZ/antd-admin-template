@@ -493,11 +493,6 @@ export const zhTWTranslation = {
 			common: {
 				query: "查詢",
 				reset: "重設",
-				expand: "展開",
-				collapse: "收起",
-				reload: "重新載入",
-				density: "表格密度",
-				tableSettings: "欄位設定",
 				retry: "重新載入",
 				loadError: "日誌資料載入失敗",
 				errorFallback: "請求失敗，請稍後再試。",
@@ -523,14 +518,7 @@ export const zhTWTranslation = {
 				userAgent: "User-Agent",
 				yes: "是",
 				no: "否",
-				columnDisplay: "欄位顯示",
-				resetColumns: "重設",
 				paginationTotal: "第 {{start}}-{{end}} 筆/共 {{total}} 筆",
-				densityOptions: {
-					large: "寬鬆",
-					middle: "中等",
-					small: "緊湊",
-				},
 			},
 			audit: {
 				tableTitle: "稽核日誌",

@@ -1,3 +1,5 @@
+import type { TableColumnConfig } from "./tableColumnVisibility";
+
 const APP_PREFERENCE_PREFIX = "react-antd-admin.preference.";
 
 export const preferenceStorageKeys = {
@@ -304,78 +306,54 @@ export function writeUserTableDensityPreference(value: UserTableDensity) {
 	writeValue(preferenceStorageKeys.userTableDensity, value);
 }
 
-interface TableColumnSettingsPreference<Key extends string> {
-	columnOrder: Key[];
-	visibleColumnKeys: Key[];
-}
-
-function readStringArray(value: unknown): string[] {
-	return Array.isArray(value)
-		? value.filter((item): item is string => typeof item === "string")
-		: [];
-}
-
-function filterKnownValues<Key extends string>(
-	values: readonly string[],
-	allowedValues: readonly Key[],
-) {
-	return allowedValues.filter((allowedValue) => values.includes(allowedValue));
-}
-
 export function getTableColumnSettingsStorageKey(tableId: string) {
 	return `${preferenceStorageKeys.tableColumnSettings}${tableId}`;
 }
 
-export function readTableColumnSettingsPreference<Key extends string>(
-	key: string,
-	allowedValues: readonly Key[],
-): TableColumnSettingsPreference<Key> | undefined {
-	try {
-		const rawValue = globalThis.localStorage.getItem(key);
-		if (!rawValue) {
-			return undefined;
-		}
-
-		const parsedValue: unknown = JSON.parse(rawValue);
-		if (!parsedValue || typeof parsedValue !== "object") {
-			return undefined;
-		}
-
-		const value = parsedValue as Record<string, unknown>;
-		const columnOrder = filterKnownValues(
-			readStringArray(value.columnOrder),
-			allowedValues,
-		);
-		const visibleColumnKeys = filterKnownValues(
-			readStringArray(value.visibleColumnKeys),
-			allowedValues,
-		);
-
-		return {
-			columnOrder: [
-				...columnOrder,
-				...allowedValues.filter((value) => !columnOrder.includes(value)),
-			],
-			visibleColumnKeys,
-		};
-	} catch {
-		ignorePreferenceStorageError();
-		return undefined;
-	}
-}
-
-export function writeTableColumnSettingsPreference<Key extends string>(
-	key: string,
-	value: TableColumnSettingsPreference<Key>,
+// One-way migration: ProTable owns all subsequent reads, writes and resets.
+export function migrateTableColumnSettingsPreference(
+	storageKey: string,
+	columns: readonly TableColumnConfig[],
 ) {
-	writeValue(key, JSON.stringify(value));
-}
-
-export function clearTableColumnSettingsPreference(key: string) {
+	const key = `${storageKey}:pro-table`;
 	try {
-		globalThis.localStorage.removeItem(key);
-		preferenceChangeListeners.forEach((listener) => listener());
+		const legacy = globalThis.localStorage.getItem(storageKey);
+		if (!legacy) return key;
+		if (!globalThis.localStorage.getItem(key)) {
+			const parsed: unknown = JSON.parse(legacy);
+			if (
+				parsed &&
+				typeof parsed === "object" &&
+				"columnOrder" in parsed &&
+				Array.isArray(parsed.columnOrder) &&
+				"visibleColumnKeys" in parsed &&
+				Array.isArray(parsed.visibleColumnKeys)
+			) {
+				const knownKeys = columns.map((column) => column.key);
+				const order = parsed.columnOrder.filter(
+					(value): value is string =>
+						typeof value === "string" && knownKeys.includes(value),
+				);
+				const orderedKeys = [...new Set([...order, ...knownKeys])];
+				const visibleKeys = parsed.visibleColumnKeys;
+				const settings = Object.fromEntries(
+					columns.map((column) => [
+						column.key,
+						{
+							show:
+								column.visibility === "required" ||
+								visibleKeys.includes(column.key),
+							order: orderedKeys.indexOf(column.key),
+							...(column.key === "actions" ? { fixed: "right" } : {}),
+						},
+					]),
+				);
+				globalThis.localStorage.setItem(key, JSON.stringify(settings));
+			}
+		}
+		globalThis.localStorage.removeItem(storageKey);
 	} catch {
 		ignorePreferenceStorageError();
 	}
+	return key;
 }

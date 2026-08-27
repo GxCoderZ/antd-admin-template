@@ -140,10 +140,10 @@ describe("PositionsPage", () => {
 				{ name: /查\s*询/ },
 			),
 		).toBeVisible();
-		for (const actionName of ["刷新", "表格密度", "列设置"]) {
-			expect(screen.getByRole("button", { name: actionName })).toBeVisible();
+		for (const actionName of ["reload", "column-height", "setting"]) {
+			expect(screen.getByRole("img", { name: actionName })).toBeVisible();
 		}
-		expect(screen.getByRole("combobox", { name: "Page Size" })).toBeVisible();
+		expect(screen.getByRole("combobox", { name: "页码" })).toBeVisible();
 	});
 
 	it("submits name filters through the positions API", async () => {

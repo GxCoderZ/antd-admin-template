@@ -504,11 +504,6 @@ export const enTranslation = {
 			common: {
 				query: "Query",
 				reset: "Reset",
-				expand: "Expand",
-				collapse: "Collapse",
-				reload: "Reload",
-				density: "Table density",
-				tableSettings: "Column settings",
 				retry: "Reload",
 				loadError: "Log data failed to load",
 				errorFallback: "The request failed. Try again later.",
@@ -534,14 +529,7 @@ export const enTranslation = {
 				userAgent: "User-Agent",
 				yes: "Yes",
 				no: "No",
-				columnDisplay: "Column display",
-				resetColumns: "Reset",
 				paginationTotal: "{{start}}-{{end}} of {{total}} items",
-				densityOptions: {
-					large: "Comfortable",
-					middle: "Default",
-					small: "Compact",
-				},
 			},
 			audit: {
 				tableTitle: "Audit logs",

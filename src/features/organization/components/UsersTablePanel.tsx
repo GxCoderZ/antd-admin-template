@@ -10,6 +10,7 @@ import {
 	type ManagementProTableColumn,
 } from "../../../app/ManagementProTable";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
+import { useRouteSessionState } from "../../../app/routeSessionState";
 import type { TableColumnConfig } from "../../../app/tableColumnVisibility";
 import type { PlatformUser } from "#src/api/users";
 import { getProblemFallback } from "../userProblems";
@@ -98,6 +99,11 @@ export function UsersTablePanel({
 }: UsersTablePanelProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
+		initialState: false,
+		routeKey: "/organization/users",
+		stateKey: "query-expanded",
+	});
 	const tableColumns = useUserTableColumns({
 		canManageUsers,
 		currentUserId,
@@ -182,10 +188,11 @@ export function UsersTablePanel({
 					onReload={onReload}
 					onReset={onResetFilters}
 					search={{
-						collapseRender: false,
-						defaultCollapsed: false,
+						collapsed: !filtersExpanded,
+						onCollapse: (collapsed) => setFiltersExpanded(!collapsed),
 					}}
 					searchForm={{
+						"data-testid": "admin-users-query-form",
 						onValuesChange: (_, values: Partial<UserFilterValues>) => {
 							const q = values.q?.trim();
 							onDraftFiltersChange({
