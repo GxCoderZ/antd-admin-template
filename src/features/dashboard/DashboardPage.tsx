@@ -1,222 +1,128 @@
-import {
-	AuditOutlined,
-	CheckCircleOutlined,
-	CloseCircleOutlined,
-	TeamOutlined,
-	UserOutlined,
-} from "@ant-design/icons";
-import { ApiProblemError } from "#src/api/client";
-import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Button,
-	Card,
-	Col,
-	Empty,
-	Flex,
-	Result,
-	Row,
-	Statistic,
-	theme,
-	Typography,
-} from "antd";
-import type { ReactNode } from "react";
+import { ReloadOutlined } from "@ant-design/icons";
+import { useQuery } from "@tanstack/react-query";
+import { Button, ConfigProvider, Flex, Result, Skeleton, theme } from "antd";
 import { useTranslation } from "react-i18next";
 
-import { platformPermissions, usePermission } from "../../app/permissions";
 import {
 	dashboardStatisticsQueryKey,
-	completeDashboardTodo,
 	getDashboardStatistics,
 } from "#src/api/dashboard";
 import {
-	platformAccountQueryKey,
-	type PlatformAccount,
-} from "#src/api/account";
-import { platformSessionQueryKey, type PlatformSession } from "#src/api/auth";
-import { DashboardAssetPanels } from "./components/DashboardAssetPanels";
-
-interface DashboardMetric {
-	icon: ReactNode;
-	key: string;
-	title: string;
-	value: number;
-}
-
-const { Title } = Typography;
-
-function getProblemDetail(error: unknown) {
-	return error instanceof ApiProblemError ? error.problem?.detail : undefined;
-}
+	getPlatformSettings,
+	platformSettingsQueryKey,
+} from "#src/api/settings";
+import { getSystemInfo, systemInfoQueryKey } from "#src/api/system";
+import { useLocalePreferences } from "../../app/localePreferences";
+import {
+	platformPermissions,
+	usePermissionChecker,
+} from "../../app/permissions";
+import {
+	DashboardOverview,
+	DashboardSystemStatus,
+} from "./components/DashboardOverview";
+import { DashboardQuickEntries } from "./components/DashboardQuickEntries";
+import { DashboardActivityPanels } from "./components/DashboardActivityPanels";
 
 export function DashboardPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const queryClient = useQueryClient();
-	const canReadUsers = usePermission(platformPermissions.usersRead);
-	const canReadRoles = usePermission(platformPermissions.rolesManage);
-	const canReadLogs = usePermission(platformPermissions.logsRead);
-	const accountQuery = useQuery<PlatformAccount>({
-		queryFn: skipToken,
-		queryKey: platformAccountQueryKey,
-	});
-	const sessionQuery = useQuery<PlatformSession>({
-		queryFn: skipToken,
-		queryKey: platformSessionQueryKey,
-	});
-	const hasVisibleStatistics = canReadUsers || canReadRoles || canReadLogs;
-	const currentUserName =
-		accountQuery.data?.displayName.trim() ||
-		sessionQuery.data?.user.username ||
-		accountQuery.data?.username;
+	const { timeZone } = useLocalePreferences();
+	const can = usePermissionChecker();
+	const hasStatistics = [
+		platformPermissions.usersRead,
+		platformPermissions.rolesManage,
+		platformPermissions.logsRead,
+		platformPermissions.announcementsRead,
+	].some(can);
 	const statisticsQuery = useQuery({
-		enabled: hasVisibleStatistics,
-		queryFn: ({ signal }) => getDashboardStatistics(signal),
-		queryKey: dashboardStatisticsQueryKey,
+		enabled: hasStatistics,
+		queryFn: ({ signal }) => getDashboardStatistics(timeZone, signal),
+		queryKey: [...dashboardStatisticsQueryKey, timeZone],
+		// Returning from a management page must reflect its in-memory mutations.
+		staleTime: 0,
 	});
-	const completeTodoMutation = useMutation({
-		mutationFn: completeDashboardTodo,
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: dashboardStatisticsQueryKey }),
+	const settingsQuery = useQuery({
+		queryFn: ({ signal }) => getPlatformSettings(signal),
+		queryKey: platformSettingsQueryKey,
 	});
-	const greeting = currentUserName ? (
-		<Title level={4} style={{ margin: 0 }}>
-			{t("adminShell.analysis.greeting", { name: currentUserName })}
-		</Title>
-	) : null;
+	const systemQuery = useQuery({
+		queryFn: ({ signal }) => getSystemInfo(signal),
+		queryKey: [systemInfoQueryKey],
+	});
 
-	if (!hasVisibleStatistics) {
+	if (
+		settingsQuery.isError ||
+		systemQuery.isError ||
+		(hasStatistics && statisticsQuery.isError)
+	) {
 		return (
-			<Flex gap={token.marginLG} vertical>
-				{greeting}
-				<Card>
-					<Empty description={t("adminShell.analysis.noPermissionData")} />
-				</Card>
-			</Flex>
+			<Result
+				status="error"
+				title={t("adminShell.dashboard.loadError")}
+				extra={
+					<Button
+						type="primary"
+						icon={<ReloadOutlined aria-hidden />}
+						onClick={() => {
+							if (settingsQuery.isError) void settingsQuery.refetch();
+							if (systemQuery.isError) void systemQuery.refetch();
+							if (hasStatistics && statisticsQuery.isError)
+								void statisticsQuery.refetch();
+						}}
+					>
+						{t("adminShell.dashboard.retry")}
+					</Button>
+				}
+			/>
 		);
 	}
 
-	if (statisticsQuery.isError) {
+	if (
+		settingsQuery.isPending ||
+		systemQuery.isPending ||
+		(hasStatistics && statisticsQuery.isPending)
+	) {
 		return (
-			<Flex gap={token.marginLG} vertical>
-				{greeting}
-				<Card>
-					<Result
-						extra={
-							<Button
-								onClick={() => void statisticsQuery.refetch()}
-								type="primary"
-							>
-								{t("adminShell.analysis.retry")}
-							</Button>
-						}
-						status="error"
-						subTitle={getProblemDetail(statisticsQuery.error)}
-						title={t("adminShell.analysis.loadError")}
-					/>
-				</Card>
+			<Flex
+				vertical
+				gap={token.marginLG}
+				data-testid="dashboard-skeleton"
+				aria-busy="true"
+			>
+				<Skeleton active paragraph={{ rows: 3 }} />
+				<Skeleton active paragraph={{ rows: 5 }} />
 			</Flex>
 		);
 	}
-
-	const statistics = statisticsQuery.data;
-	const metrics: DashboardMetric[] = [
-		...(canReadUsers && statistics?.userCount !== undefined
-			? [
-					{
-						icon: <UserOutlined aria-hidden />,
-						key: "users",
-						title: t("adminShell.analysis.userCount"),
-						value: statistics.userCount,
-					},
-				]
-			: []),
-		...(canReadRoles && statistics?.roleCount !== undefined
-			? [
-					{
-						icon: <TeamOutlined aria-hidden />,
-						key: "roles",
-						title: t("adminShell.analysis.roleCount"),
-						value: statistics.roleCount,
-					},
-				]
-			: []),
-		...(canReadLogs && statistics?.loginSuccessCount !== undefined
-			? [
-					{
-						icon: <CheckCircleOutlined aria-hidden />,
-						key: "login-success",
-						title: t("adminShell.analysis.loginSuccessCount", {
-							days: statistics.periodDays,
-						}),
-						value: statistics.loginSuccessCount,
-					},
-				]
-			: []),
-		...(canReadLogs && statistics?.loginFailureCount !== undefined
-			? [
-					{
-						icon: <CloseCircleOutlined aria-hidden />,
-						key: "login-failure",
-						title: t("adminShell.analysis.loginFailureCount", {
-							days: statistics.periodDays,
-						}),
-						value: statistics.loginFailureCount,
-					},
-				]
-			: []),
-		...(canReadLogs && statistics?.auditOperationCount !== undefined
-			? [
-					{
-						icon: <AuditOutlined aria-hidden />,
-						key: "audit-operations",
-						title: t("adminShell.analysis.auditOperationCount", {
-							days: statistics.periodDays,
-						}),
-						value: statistics.auditOperationCount,
-					},
-				]
-			: []),
-	];
-	const loadingCardCount =
-		Number(canReadUsers) + Number(canReadRoles) + Number(canReadLogs) * 3;
 
 	return (
-		<Flex gap={token.marginLG} vertical>
-			{greeting}
-			<Row gutter={[token.marginLG, token.marginLG]}>
-				{statisticsQuery.isPending
-					? Array.from({ length: loadingCardCount }, (_, index) => (
-							<Col
-								data-testid="dashboard-statistic-skeleton"
-								key={index}
-								lg={8}
-								sm={12}
-								xs={24}
-							>
-								<Card loading style={{ height: "100%" }} />
-							</Col>
-						))
-					: metrics.map((metric) => (
-							<Col key={metric.key} lg={8} sm={12} xs={24}>
-								<Card
-									data-testid={`dashboard-stat-${metric.key}`}
-									style={{ height: "100%" }}
-								>
-									<Statistic
-										prefix={metric.icon}
-										title={metric.title}
-										value={metric.value}
-									/>
-								</Card>
-							</Col>
-						))}
-			</Row>
-			<DashboardAssetPanels
-				completingTodoId={completeTodoMutation.isPending ? completeTodoMutation.variables : undefined}
-				loading={statisticsQuery.isPending}
-				onCompleteTodo={(todo) => completeTodoMutation.mutate(todo.id)}
-				statistics={statistics}
-			/>
-		</Flex>
+		<ConfigProvider
+			theme={{
+				components: {
+					Card: {
+						// Match Pro's Card defaults without changing the application theme.
+						borderRadiusLG: 8,
+						boxShadowTertiary:
+							"0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02)",
+					},
+				},
+			}}
+		>
+			<Flex vertical gap={token.marginLG}>
+				<DashboardSystemStatus
+					settings={settingsQuery.data}
+					system={systemQuery.data}
+				/>
+				<DashboardOverview
+					statistics={hasStatistics ? statisticsQuery.data : undefined}
+				/>
+				<DashboardQuickEntries />
+				<DashboardActivityPanels
+					statistics={hasStatistics ? statisticsQuery.data : undefined}
+					settings={settingsQuery.data}
+				/>
+			</Flex>
+		</ConfigProvider>
 	);
 }

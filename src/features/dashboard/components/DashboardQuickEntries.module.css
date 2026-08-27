@@ -1,0 +1,24 @@
+/* Ported from Pro Workplace's EditableLinkGroup; see docs/design/dashboard-workplace.md. */
+.linkGroup {
+	font-size: 0;
+}
+
+.linkGroup > a {
+	display: inline-block;
+	width: 25%;
+	margin-bottom: 13px;
+	color: var(--raa-color-text);
+	font-size: var(--raa-font-size);
+	vertical-align: top;
+	overflow-wrap: anywhere;
+}
+
+.linkGroup > a:hover {
+	color: var(--raa-color-primary);
+}
+
+@media (width < 576px) {
+	.linkGroup > a {
+		width: 50%;
+	}
+}

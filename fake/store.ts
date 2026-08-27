@@ -1,6 +1,5 @@
 import type { PlatformSession } from "../src/api/auth";
 import type { PlatformAnnouncement } from "../src/api/announcements";
-import type { DashboardTodo } from "../src/api/dashboard";
 import type { PlatformDepartment } from "../src/api/departments";
 import type {
 	PlatformDictionaryItem,
@@ -625,30 +624,6 @@ export const notifications: PlatformNotification[] = Array.from(
 		title: `${notificationTitles[index % notificationTitles.length]} ${index + 1}`,
 	}),
 );
-
-export const dashboardTodos: DashboardTodo[] = [
-	{
-		dueAt: iso(-1_440),
-		id: "dashboard-todo-permissions",
-		priority: "high",
-		status: "pending",
-		title: "复核本周权限变更",
-	},
-	{
-		dueAt: iso(-2_880),
-		id: "dashboard-todo-announcements",
-		priority: "medium",
-		status: "pending",
-		title: "确认下周公告排期",
-	},
-	{
-		dueAt: iso(180),
-		id: "dashboard-todo-audit",
-		priority: "low",
-		status: "completed",
-		title: "查看登录异常记录",
-	},
-];
 
 export const session: PlatformSession = {
 	permissions: [...allPermissions],

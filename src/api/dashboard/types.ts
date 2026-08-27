@@ -1,18 +1,7 @@
-interface DashboardLoginTrendPoint {
-	date: string;
-	failure: number;
-	success: number;
-}
+import type { PlatformAnnouncement } from "../announcements";
+import type { PlatformLoginLog } from "../operations";
 
-export interface DashboardTodo {
-	dueAt: string;
-	id: string;
-	priority: "high" | "low" | "medium";
-	status: "completed" | "pending";
-	title: string;
-}
-
-export interface DashboardRecentActivity {
+interface DashboardRecentActivity {
 	action: string;
 	actor: string;
 	createdAt: string;
@@ -22,13 +11,19 @@ export interface DashboardRecentActivity {
 }
 
 export interface DashboardStatistics {
-	auditOperationCount: number;
-	loginFailureCount: number;
-	loginSuccessCount: number;
-	loginTrend: DashboardLoginTrendPoint[];
-	periodDays: number;
+	draftAnnouncementCount: number;
+	latestAnnouncements: Pick<
+		PlatformAnnouncement,
+		"id" | "title" | "updatedAt"
+	>[];
+	permissionCount: number;
 	recentActivities: DashboardRecentActivity[];
+	recentLogins: Pick<
+		PlatformLoginLog,
+		"id" | "identifier" | "result" | "createdAt"
+	>[];
 	roleCount: number;
-	todos: DashboardTodo[];
+	todayAbnormalLoginCount: number;
+	todayLoginCount: number;
 	userCount: number;
 }
