@@ -46,6 +46,27 @@ function OptionalSortHarness() {
 	);
 }
 
+function VersionedSortHarness({ version }: Readonly<{ version: number }>) {
+	const [sort, setSort] = useRouteSessionState<string | undefined>({
+		initialState: undefined,
+		routeKey: "/access/roles",
+		stateKey: "sort",
+		version,
+	});
+
+	return (
+		<>
+			<output aria-label="sort">{sort ?? "none"}</output>
+			<button type="button" onClick={() => setSort("role_key")}>
+				Sort
+			</button>
+			<button type="button" onClick={() => setSort(undefined)}>
+				Clear
+			</button>
+		</>
+	);
+}
+
 describe("route session state", () => {
 	beforeEach(() => {
 		sessionStorage.clear();
@@ -98,5 +119,48 @@ describe("route session state", () => {
 		render(<OptionalSortHarness />);
 
 		expect(screen.getByRole("button", { name: "none" })).toBeVisible();
+	});
+
+	it("invalidates only state whose declared version changed", async () => {
+		const user = userEvent.setup();
+		const firstRender = render(
+			<>
+				<VersionedSortHarness version={1} />
+				<QueryDraftHarness routeKey="/access/roles" />
+			</>,
+		);
+		await user.click(screen.getByRole("button", { name: "Sort" }));
+		await user.type(screen.getByRole("textbox", { name: "查询词" }), "audit");
+		firstRender.unmount();
+		render(
+			<>
+				<VersionedSortHarness version={2} />
+				<QueryDraftHarness routeKey="/access/roles" />
+			</>,
+		);
+
+		expect(screen.getByRole("status", { name: "sort" })).toHaveTextContent(
+			"none",
+		);
+		expect(screen.getByRole("textbox", { name: "查询词" })).toHaveValue(
+			"audit",
+		);
+	});
+
+	it("persists selected and cleared sorting using its current version", async () => {
+		const user = userEvent.setup();
+		const firstRender = render(<VersionedSortHarness version={2} />);
+		await user.click(screen.getByRole("button", { name: "Sort" }));
+		firstRender.unmount();
+		const secondRender = render(<VersionedSortHarness version={2} />);
+		expect(screen.getByRole("status", { name: "sort" })).toHaveTextContent(
+			"role_key",
+		);
+		await user.click(screen.getByRole("button", { name: "Clear" }));
+		secondRender.unmount();
+		render(<VersionedSortHarness version={2} />);
+		expect(screen.getByRole("status", { name: "sort" })).toHaveTextContent(
+			"none",
+		);
 	});
 });

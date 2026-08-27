@@ -12,6 +12,7 @@ interface RouteSessionStateOptions<State> {
 	initialState: State;
 	routeKey: string;
 	stateKey: string;
+	version?: number;
 }
 
 interface StoredRouteSessionState<State> {
@@ -32,7 +33,11 @@ function ignoreRouteSessionStorageError() {
 	// Route state is optional; storage failures must not block page interaction.
 }
 
-function readRouteSessionState<State>(key: string, fallback: State): State {
+function readRouteSessionState<State>(
+	key: string,
+	fallback: State,
+	version: number,
+): State {
 	try {
 		const rawValue = globalThis.sessionStorage.getItem(key);
 		if (!rawValue) {
@@ -45,8 +50,7 @@ function readRouteSessionState<State>(key: string, fallback: State): State {
 		}
 
 		const storedValue = parsedValue as Partial<StoredRouteSessionState<State>>;
-		return storedValue.version === ROUTE_SESSION_VERSION &&
-			storedValue.hasState === true
+		return storedValue.version === version && storedValue.hasState === true
 			? (storedValue.state as State)
 			: fallback;
 	} catch {
@@ -55,12 +59,16 @@ function readRouteSessionState<State>(key: string, fallback: State): State {
 	}
 }
 
-function writeRouteSessionState<State>(key: string, state: State) {
+function writeRouteSessionState<State>(
+	key: string,
+	state: State,
+	version: number,
+) {
 	try {
 		const storedValue: StoredRouteSessionState<State> = {
 			hasState: true,
 			state,
-			version: ROUTE_SESSION_VERSION,
+			version,
 		};
 		globalThis.sessionStorage.setItem(key, JSON.stringify(storedValue));
 	} catch {
@@ -90,10 +98,11 @@ export function useRouteSessionState<State>({
 	initialState,
 	routeKey,
 	stateKey,
+	version = ROUTE_SESSION_VERSION,
 }: RouteSessionStateOptions<State>): [State, Dispatch<SetStateAction<State>>] {
 	const storageKey = getRouteSessionStorageKey(routeKey, stateKey);
 	const [state, setState] = useState<State>(() =>
-		readRouteSessionState(storageKey, initialState),
+		readRouteSessionState(storageKey, initialState, version),
 	);
 	const updateState: Dispatch<SetStateAction<State>> = useCallback(
 		(nextState) => {
@@ -102,11 +111,11 @@ export function useRouteSessionState<State>({
 					typeof nextState === "function"
 						? (nextState as (current: State) => State)(currentState)
 						: nextState;
-				writeRouteSessionState(storageKey, resolvedState);
+				writeRouteSessionState(storageKey, resolvedState, version);
 				return resolvedState;
 			});
 		},
-		[storageKey],
+		[storageKey, version],
 	);
 
 	return [state, updateState];

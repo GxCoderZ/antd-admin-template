@@ -30,7 +30,10 @@ import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
-import { resolveTableSort } from "../../app/tableSorting";
+import {
+	resolveTableSort,
+	tableSortStateVersion,
+} from "../../app/tableSorting";
 import {
 	TableActionButton,
 	TableActionMenu,
@@ -112,12 +115,14 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			initialState: defaultTypeTableState,
 			routeKey: dictionariesRouteKey,
 			stateKey: "type-table",
+			version: tableSortStateVersion,
 		});
 	const [itemTableState, setItemTableState] =
 		useRouteSessionState<ItemTableState>({
 			initialState: defaultItemTableState,
 			routeKey: dictionariesRouteKey,
 			stateKey: "item-table",
+			version: tableSortStateVersion,
 		});
 	const [selectedTypeId, setSelectedTypeId] = useRouteSessionState<
 		string | null

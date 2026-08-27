@@ -2,6 +2,9 @@ type ApiSortOrder = "asc" | "desc";
 
 type TableSortOrder = "ascend" | "descend" | null | undefined;
 
+// Version 1 also persisted automatic defaults, indistinguishable from user sorting.
+export const tableSortStateVersion = 2;
+
 interface ResolvedTableSort<TSort extends string> {
 	order: ApiSortOrder | undefined;
 	sort: TSort | undefined;

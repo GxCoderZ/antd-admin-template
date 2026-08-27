@@ -7,7 +7,10 @@ import {
 import { Form, type TableProps } from "antd";
 import { useMemo, useState } from "react";
 
-import { resolveTableSort } from "../../app/tableSorting";
+import {
+	resolveTableSort,
+	tableSortStateVersion,
+} from "../../app/tableSorting";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
 import { platformSessionQueryKey } from "#src/api/auth";
@@ -84,6 +87,7 @@ export function RolesPage() {
 		initialState: defaultRoleTableState,
 		routeKey: rolesRouteKey,
 		stateKey: "table",
+		version: tableSortStateVersion,
 	});
 	const querySubmission = useQuerySubmission();
 	const queryParams = useMemo<ListPlatformRolesInput>(() => {

@@ -23,7 +23,10 @@ import {
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
-import { resolveTableSort } from "../../app/tableSorting";
+import {
+	resolveTableSort,
+	tableSortStateVersion,
+} from "../../app/tableSorting";
 import type { TableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	TableActionButton,
@@ -158,11 +161,13 @@ export function LoginLogPage() {
 		initialState: undefined,
 		routeKey: loginLogsRouteKey,
 		stateKey: "sort",
+		version: tableSortStateVersion,
 	});
 	const [order, setOrder] = useRouteSessionState<SortOrder | undefined>({
 		initialState: undefined,
 		routeKey: loginLogsRouteKey,
 		stateKey: "order",
+		version: tableSortStateVersion,
 	});
 	const [selectedLog, setSelectedLog] = useState<PlatformLoginLog | null>(null);
 	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({

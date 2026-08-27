@@ -12,7 +12,10 @@ import { DangerConfirmationModal } from "../../app/DangerConfirmation";
 import { platformPermissions, usePermission } from "../../app/permissions";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
-import { resolveTableSort } from "../../app/tableSorting";
+import {
+	resolveTableSort,
+	tableSortStateVersion,
+} from "../../app/tableSorting";
 import {
 	listPlatformRoles,
 	platformRolesQueryKey,
@@ -119,6 +122,7 @@ export function UsersPage() {
 			initialState: defaultUserTableState,
 			routeKey: usersRouteKey,
 			stateKey: "table",
+			version: tableSortStateVersion,
 		});
 	const userQuerySubmission = useQuerySubmission();
 	const userQueryParams = useMemo<ListPlatformUsersInput>(() => {

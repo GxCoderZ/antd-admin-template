@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { platformPermissions, usePermission } from "../../app/permissions";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
+import { tableSortStateVersion } from "../../app/tableSorting";
 import {
 	createPlatformAnnouncement,
 	deletePlatformAnnouncement,
@@ -57,6 +58,7 @@ export function AnnouncementsPage() {
 			initialState: defaultAnnouncementTableState,
 			routeKey: announcementsRouteKey,
 			stateKey: "table",
+			version: tableSortStateVersion,
 		});
 	const [formOpen, setFormOpen] = useState(false);
 	const [editingAnnouncement, setEditingAnnouncement] =

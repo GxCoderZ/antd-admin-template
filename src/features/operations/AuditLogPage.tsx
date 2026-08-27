@@ -20,7 +20,10 @@ import { formatDeviceInfo, getDeviceDetails } from "../../app/deviceInfo";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
-import { resolveTableSort } from "../../app/tableSorting";
+import {
+	resolveTableSort,
+	tableSortStateVersion,
+} from "../../app/tableSorting";
 import type { TableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	TableActionButton,
@@ -172,11 +175,13 @@ export function AuditLogPage() {
 		initialState: undefined,
 		routeKey: auditLogsRouteKey,
 		stateKey: "sort",
+		version: tableSortStateVersion,
 	});
 	const [order, setOrder] = useRouteSessionState<SortOrder | undefined>({
 		initialState: undefined,
 		routeKey: auditLogsRouteKey,
 		stateKey: "order",
+		version: tableSortStateVersion,
 	});
 	const [selectedLog, setSelectedLog] = useState<PlatformAuditLog | null>(null);
 	const [filtersExpanded, setFiltersExpanded] = useRouteSessionState({
