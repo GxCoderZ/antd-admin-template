@@ -62,11 +62,12 @@ async function expectDetailFields(
 	tableTestId: string,
 	expectedLabels: string[],
 ) {
-	await page
-		.getByRole("menuitem", { name: menuItemName, exact: true })
-		.click();
+	await page.getByRole("menuitem", { name: menuItemName, exact: true }).click();
 	await expect(page.getByTestId(tableTestId)).toBeVisible();
-	await page.getByRole("button", { name: /查看日志/ }).first().click();
+	await page
+		.getByRole("button", { name: /查看日志/ })
+		.first()
+		.click();
 
 	const drawer = page.locator(".ant-drawer");
 	await expect(drawer).toBeVisible();
@@ -77,11 +78,88 @@ async function expectDetailFields(
 	await drawer.locator(".ant-drawer-close").click();
 }
 
+for (const width of [1440, 390]) {
+	test(`日志在系统管理下平级展示并可连续访问（${width}px）`, async ({
+		page,
+	}, testInfo) => {
+		await page.setViewportSize({ height: 900, width });
+		await login(page);
+		const mobile = width === 390;
+		const navigation = page.getByRole(mobile ? "dialog" : "complementary");
+		if (mobile) {
+			await page.getByRole("button", { name: "打开菜单" }).click();
+		}
+		await navigation
+			.getByRole("menuitem", { name: "系统管理", exact: true })
+			.click();
+		await expect(
+			navigation.getByRole("menuitem", { name: "审计日志", exact: true }),
+		).toHaveCount(0);
+		await expect(
+			navigation.getByRole("menuitem", {
+				name: /^(用户管理|角色管理|部门管理|岗位管理|字典管理|公告管理|登录日志|操作审计|系统设置|关于系统)$/,
+			}),
+		).toHaveText([
+			"用户管理",
+			"角色管理",
+			"部门管理",
+			"岗位管理",
+			"字典管理",
+			"公告管理",
+			"登录日志",
+			"操作审计",
+			"系统设置",
+			"关于系统",
+		]);
+		await navigation
+			.getByRole("menuitem", { name: "登录日志", exact: true })
+			.click();
+		await expect(page).toHaveURL(/\/operations\/login-logs$/);
+		const loginTable = page.getByTestId("login-log-table-card");
+		await expect(loginTable.getByRole("row").nth(1)).toBeVisible();
+		await expect(loginTable.locator(".ant-table-placeholder")).toHaveCount(0);
+		await expect(loginTable.locator(".ant-spin-spinning")).toHaveCount(0);
+		if (mobile) {
+			await expect(navigation).toBeHidden();
+			await page.getByRole("button", { name: "打开菜单" }).click();
+		} else {
+			await expect(page.getByRole("banner")).toContainText("系统管理");
+			await expect(page.getByRole("banner")).toContainText("登录日志");
+		}
+		await expect(
+			navigation.getByRole("menuitem", { name: "系统管理", exact: true }),
+		).toHaveAttribute("aria-expanded", "true");
+		await expect(
+			navigation.getByRole("menuitem", { name: "登录日志", exact: true }),
+		).toHaveClass(/ant-menu-item-selected/);
+		await expect(navigation).toBeInViewport({ ratio: 1 });
+		await page.screenshot({
+			animations: "disabled",
+			path: testInfo.outputPath(`system-log-navigation-${width}.png`),
+			fullPage: true,
+		});
+		await navigation
+			.getByRole("menuitem", { name: "操作审计", exact: true })
+			.click();
+		await expect(page).toHaveURL(/\/operations\/audit-logs$/);
+		await expect(page.getByTestId("audit-log-table-card")).toBeVisible();
+		if (mobile) {
+			await expect(navigation).toBeHidden();
+		} else {
+			await expect(page.getByRole("banner")).toContainText("系统管理");
+			await expect(page.getByRole("banner")).toContainText("操作审计");
+		}
+		expect(
+			await page.evaluate(
+				() => document.documentElement.scrollWidth <= window.innerWidth,
+			),
+		).toBe(true);
+	});
+}
+
 test("操作审计和登录日志详情展示全部字段", async ({ page }) => {
 	await login(page);
-	await page
-		.getByRole("menuitem", { name: "审计日志", exact: true })
-		.click();
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await expectDetailFields(
 		page,
 		"操作审计",
@@ -99,12 +177,8 @@ test("操作审计和登录日志详情展示全部字段", async ({ page }) => 
 test("操作审计在临界宽度保持稳定的响应式列", async ({ page }) => {
 	await page.setViewportSize({ height: 760, width: 1286 });
 	await login(page);
-	await page
-		.getByRole("menuitem", { name: "审计日志", exact: true })
-		.click();
-	await page
-		.getByRole("menuitem", { name: "操作审计", exact: true })
-		.click();
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "操作审计", exact: true }).click();
 
 	const tableCard = page.getByTestId("audit-log-table-card");
 	await expect(tableCard).toBeVisible();

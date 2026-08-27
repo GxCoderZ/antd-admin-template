@@ -2,7 +2,6 @@ import {
 	AntDesignOutlined,
 	MenuFoldOutlined,
 	MenuUnfoldOutlined,
-	ProfileOutlined,
 	SettingOutlined,
 } from "@ant-design/icons";
 import {
@@ -45,7 +44,6 @@ const collapsibleSidebarRootKeys: readonly string[] =
 	adminCollapsibleSidebarGroupKeys;
 
 const groupIconByKey: Record<AdminGroupIconKey, ReactNode> = {
-	operations: <ProfileOutlined aria-hidden />,
 	system: <SettingOutlined aria-hidden />,
 };
 

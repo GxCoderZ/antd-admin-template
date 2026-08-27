@@ -24,7 +24,6 @@ export const enTranslation = {
 			positions: "Positions",
 			dictionaries: "Dictionaries",
 			announcements: "Announcements",
-			operations: "Audit logs",
 			auditLogs: "Operation audit",
 			loginLogs: "Login logs",
 			notificationCenter: "Notification center",
@@ -646,7 +645,6 @@ export const enTranslation = {
 				cascadeOff: "Separate",
 				menus: {
 					system: "System management menu",
-					operations: "Operations menu",
 				},
 				pages: {
 					roles: "Role management page",

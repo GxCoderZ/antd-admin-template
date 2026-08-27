@@ -24,7 +24,6 @@ export const koKRTranslation = {
 			positions: "직책 관리",
 			dictionaries: "사전 관리",
 			announcements: "공지 관리",
-			operations: "감사 로그",
 			auditLogs: "작업 감사",
 			loginLogs: "로그인 로그",
 			notificationCenter: "알림 센터",
@@ -638,7 +637,6 @@ export const koKRTranslation = {
 				cascadeOff: "독립",
 				menus: {
 					system: "시스템 관리 메뉴",
-					operations: "운영 관리 메뉴",
 				},
 				pages: {
 					roles: "역할 관리 페이지",

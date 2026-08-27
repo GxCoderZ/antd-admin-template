@@ -24,7 +24,6 @@ export const zhTWTranslation = {
 			positions: "職位管理",
 			dictionaries: "字典管理",
 			announcements: "公告管理",
-			operations: "稽核日誌",
 			auditLogs: "操作稽核",
 			loginLogs: "登入日誌",
 			notificationCenter: "通知中心",
@@ -633,7 +632,6 @@ export const zhTWTranslation = {
 				cascadeOff: "獨立",
 				menus: {
 					system: "系統管理選單",
-					operations: "營運管理選單",
 				},
 				pages: {
 					roles: "角色管理頁面",

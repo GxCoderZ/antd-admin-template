@@ -7,6 +7,7 @@ import {
 	getAdminRouteMetadata,
 	getAdminRouteOpenKeys,
 } from "./adminRoutes";
+import { platformPermissions } from "./permissions";
 
 describe("admin route template", () => {
 	it("contains the complete reference administration surface", () => {
@@ -35,8 +36,8 @@ describe("admin route template", () => {
 		const navigationGroupKeys = adminNavigationGroups.map((group) => group.key);
 		const routeKeys = adminRouteDefinitions.map((route) => route.key);
 
-		expect(navigationGroupKeys).toEqual(["operations", "system"]);
-		expect(adminCollapsibleSidebarGroupKeys).toEqual(["operations", "system"]);
+		expect(navigationGroupKeys).toEqual(["system"]);
+		expect(adminCollapsibleSidebarGroupKeys).toEqual(["system"]);
 		expect(routeKeys.some((key) => key.startsWith("/examples/"))).toBe(false);
 		expect(routeKeys.some((key) => key.startsWith("/result/"))).toBe(false);
 		expect(navigationGroupKeys).not.toContain("exceptions");
@@ -47,13 +48,47 @@ describe("admin route template", () => {
 		).not.toEqual(expect.arrayContaining(["/exception/403"]));
 	});
 
+	it("places log pages directly before settings in the system menu", () => {
+		const systemGroup = adminNavigationGroups.find(
+			(group) => group.key === "system",
+		);
+
+		expect(systemGroup?.nodes).toEqual([
+			{ routeKey: "/organization/users" },
+			{ routeKey: "/access/roles" },
+			{ routeKey: "/organization/departments" },
+			{ routeKey: "/organization/positions" },
+			{ routeKey: "/system/dictionaries" },
+			{ routeKey: "/system/announcements" },
+			{ routeKey: "/operations/login-logs" },
+			{ routeKey: "/operations/audit-logs" },
+			{ routeKey: "/system/settings" },
+			{ routeKey: "/system/about" },
+		]);
+	});
+
+	it.each(["/operations/login-logs", "/operations/audit-logs"])(
+		"keeps %s under system navigation without changing its permission",
+		(path) => {
+			const route = getAdminRouteMetadata(path);
+
+			expect(route).toMatchObject({
+				groupKey: "system",
+				key: path,
+				requiredPermission: platformPermissions.logsRead,
+				sectionKey: "adminShell.navigation.system",
+			});
+			expect(getAdminRouteOpenKeys(route)).toEqual(["system"]);
+		},
+	);
+
 	it("opens only foundation groups in sidebar navigation", () => {
 		const usersRoute = getAdminRouteMetadata("/organization/users");
 		const auditRoute = getAdminRouteMetadata("/operations/audit-logs");
 		const forbiddenRoute = getAdminRouteMetadata("/exception/403");
 
 		expect(getAdminRouteOpenKeys(usersRoute)).toEqual(["system"]);
-		expect(getAdminRouteOpenKeys(auditRoute)).toEqual(["operations"]);
+		expect(getAdminRouteOpenKeys(auditRoute)).toEqual(["system"]);
 		expect(getAdminRouteOpenKeys(forbiddenRoute)).toEqual([]);
 		expect(getAdminRouteMetadata("/examples/forms/basic").key).toBe(
 			"/exception/404",

@@ -12,7 +12,7 @@ type PermissionGroupKey =
 	| "logs"
 	| "positions"
 	| "settings";
-type PermissionMenuKey = "operations" | "system";
+type PermissionMenuKey = "system";
 type PermissionPageKey =
 	| "announcements"
 	| "departments"
@@ -176,10 +176,6 @@ const permissionMenuGroups: Record<
 	PermissionMenuKey,
 	{ pages: PermissionPageKey[]; titleKey: string }
 > = {
-	operations: {
-		pages: ["logs"],
-		titleKey: "adminShell.roles.permissions.menus.operations",
-	},
 	system: {
 		pages: [
 			"users",
@@ -188,6 +184,7 @@ const permissionMenuGroups: Record<
 			"positions",
 			"dictionaries",
 			"announcements",
+			"logs",
 			"settings",
 		],
 		titleKey: "adminShell.roles.permissions.menus.system",
@@ -232,7 +229,7 @@ const toPermissionMenu = (menuKey: PermissionMenuKey): PermissionTreeBranch => {
 };
 
 export const permissionTree: PermissionTreeBranch = {
-	children: (["system", "operations"] as const).map(toPermissionMenu),
+	children: [toPermissionMenu("system")],
 	key: "root:platform",
 	titleKey: "adminShell.roles.permissions.root",
 	type: "root",

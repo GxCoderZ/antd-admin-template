@@ -197,6 +197,8 @@ describe("RolesPage", () => {
 		expect(within(drawer).queryByText("角色状态")).not.toBeInTheDocument();
 		expect(within(drawer).getByText("平台权限")).toBeInTheDocument();
 		expect(within(drawer).getByText("系统管理菜单")).toBeInTheDocument();
+		expect(within(drawer).queryByText("运营管理菜单")).not.toBeInTheDocument();
+		expect(within(drawer).getByText("日志页面")).toBeInTheDocument();
 		expect(within(drawer).getByText("用户管理页面")).toBeInTheDocument();
 		expect(
 			within(drawer).getByRole("searchbox", { name: "搜索权限" }),

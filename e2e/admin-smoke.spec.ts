@@ -462,7 +462,6 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 		page.getByRole("button", { name: "删除" }).first(),
 	).toBeVisible();
 
-	await page.getByRole("menuitem", { name: "审计日志", exact: true }).click();
 	await page.getByRole("menuitem", { name: "操作审计", exact: true }).click();
 	await expect(
 		page.getByRole("button", { name: /查看日志/ }).first(),
@@ -483,7 +482,6 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 	).toBeVisible();
 	await page.keyboard.press("Escape");
 
-	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "关于系统", exact: true }).click();
 	await page.getByRole("button", { name: "更多", exact: true }).first().click();
 	await expect(page.getByRole("menuitem", { name: "复制包名" })).toBeVisible();

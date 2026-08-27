@@ -5,7 +5,7 @@ import { platformPermissions, type PlatformPermission } from "./permissions";
 export const dashboardPath = "/dashboard";
 
 export type AdminRouteGroupKey =
-	"dashboard" | "operations" | "exceptions" | "system" | "account";
+	"dashboard" | "exceptions" | "system" | "account";
 
 export type AdminRouteIconKey =
 	| "dashboard"
@@ -23,7 +23,7 @@ export type AdminRouteIconKey =
 	| "settings"
 	| "about";
 
-export type AdminGroupIconKey = "operations" | "system";
+export type AdminGroupIconKey = "system";
 
 interface LazyAdminRouteModule {
 	Component: ComponentType;
@@ -236,22 +236,22 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 	},
 	{
 		contentLayout: "table",
-		groupKey: "operations",
+		groupKey: "system",
 		iconKey: "auditLogs",
 		key: "/operations/audit-logs",
 		lazy: loadAuditLogPage,
 		requiredPermission: platformPermissions.logsRead,
-		sectionKey: "adminShell.navigation.operations",
+		sectionKey: "adminShell.navigation.system",
 		titleKey: "adminShell.navigation.auditLogs",
 	},
 	{
 		contentLayout: "table",
-		groupKey: "operations",
+		groupKey: "system",
 		iconKey: "loginLogs",
 		key: "/operations/login-logs",
 		lazy: loadLoginLogPage,
 		requiredPermission: platformPermissions.logsRead,
-		sectionKey: "adminShell.navigation.operations",
+		sectionKey: "adminShell.navigation.system",
 		titleKey: "adminShell.navigation.loginLogs",
 	},
 	{
@@ -328,16 +328,6 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 
 const allNavigationGroups: readonly AdminNavigationGroup[] = [
 	{
-		defaultRouteKey: "/operations/audit-logs",
-		iconKey: "operations",
-		key: "operations",
-		nodes: [
-			{ routeKey: "/operations/audit-logs" },
-			{ routeKey: "/operations/login-logs" },
-		],
-		titleKey: "adminShell.navigation.operations",
-	},
-	{
 		defaultRouteKey: "/organization/users",
 		iconKey: "system",
 		key: "system",
@@ -348,6 +338,8 @@ const allNavigationGroups: readonly AdminNavigationGroup[] = [
 			{ routeKey: "/organization/positions" },
 			{ routeKey: "/system/dictionaries" },
 			{ routeKey: "/system/announcements" },
+			{ routeKey: "/operations/login-logs" },
+			{ routeKey: "/operations/audit-logs" },
 			{ routeKey: "/system/settings" },
 			{ routeKey: "/system/about" },
 		],

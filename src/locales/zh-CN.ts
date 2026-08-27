@@ -24,7 +24,6 @@ export const zhCNTranslation = {
 			positions: "岗位管理",
 			dictionaries: "字典管理",
 			announcements: "公告管理",
-			operations: "审计日志",
 			auditLogs: "操作审计",
 			loginLogs: "登录日志",
 			notificationCenter: "通知中心",
@@ -633,7 +632,6 @@ export const zhCNTranslation = {
 				cascadeOff: "独立",
 				menus: {
 					system: "系统管理菜单",
-					operations: "运营管理菜单",
 				},
 				pages: {
 					roles: "角色管理页面",
