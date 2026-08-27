@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Flex, Layout, theme } from "antd";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -66,6 +67,8 @@ export function AdminShellPage({
 	const location = useLocation();
 	const navigate = useNavigate();
 	const navigation = useNavigation();
+	const queryClient = useQueryClient();
+	const [pageRevision, setPageRevision] = useState(0);
 	const [isFooterVisible, setFooterVisible] = useState(
 		readFooterVisiblePreference,
 	);
@@ -78,6 +81,12 @@ export function AdminShellPage({
 	const currentPage = getAdminRouteMetadata(location.pathname);
 	const usesPageContainer = currentPage.contentLayout === "pageContainer";
 	const usesTableLayout = currentPage.contentLayout === "table";
+	const reloadCurrentPage = () => {
+		// Remounting resets query-submission keys, so their earlier cache entries
+		// must also be stale. The remounted page alone triggers new requests.
+		void queryClient.invalidateQueries({ refetchType: "none" });
+		setPageRevision((revision) => revision + 1);
+	};
 	const openRouteTab = (nextPath: string) => {
 		const nextPage = adminRouteByPath.get(nextPath);
 
@@ -170,6 +179,7 @@ export function AdminShellPage({
 				>
 					<AdminTabsBar
 						currentPage={currentPage}
+						onReload={reloadCurrentPage}
 						workspaceRef={tabWorkspaceRef}
 					/>
 
@@ -203,7 +213,7 @@ export function AdminShellPage({
 									<PermissionBoundary
 										permission={currentPage.requiredPermission}
 									>
-										<Outlet />
+										<Outlet key={pageRevision} />
 									</PermissionBoundary>
 								)}
 							</Flex>

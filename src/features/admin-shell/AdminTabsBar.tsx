@@ -51,6 +51,7 @@ import { HeaderIconButton } from "./HeaderIconButton";
 
 interface AdminTabsBarProps {
 	currentPage: AdminRouteMetadata;
+	onReload: () => void;
 	workspaceRef: RefObject<HTMLDivElement | null>;
 }
 
@@ -155,7 +156,11 @@ function FixedTabNode({ children, ...tabProps }: Readonly<TabNodeProps>) {
 	});
 }
 
-export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
+export function AdminTabsBar({
+	currentPage,
+	onReload,
+	workspaceRef,
+}: AdminTabsBarProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const navigate = useNavigate();
@@ -237,7 +242,9 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 	};
 
 	const reloadTab = (targetKey: string) => {
-		void navigate(targetKey, { replace: true });
+		if (targetKey === currentPage.key) {
+			onReload();
+		}
 	};
 
 	const toggleFullscreen = () => {
@@ -345,6 +352,7 @@ export function AdminTabsBar({ currentPage, workspaceRef }: AdminTabsBarProps) {
 		return [
 			{
 				key: "reload",
+				disabled: targetKey !== currentPage.key,
 				icon: <ReloadOutlined aria-hidden />,
 				label: t("adminShell.tabs.reload"),
 			},

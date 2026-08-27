@@ -7,7 +7,7 @@ import {
 	waitFor,
 } from "@testing-library/react";
 import { createRef } from "react";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { createMemoryRouter, RouterProvider, useLocation } from "react-router";
 
 import { getAdminRouteMetadata } from "../../app/adminRoutes";
@@ -35,7 +35,7 @@ function RouteStateProbe({ routeKey }: Readonly<{ routeKey: string }>) {
 	);
 }
 
-function TabsHarness() {
+function TabsHarness({ onReload = vi.fn() }: { onReload?: () => void }) {
 	const location = useLocation();
 	const workspaceRef = createRef<HTMLDivElement>();
 
@@ -43,6 +43,7 @@ function TabsHarness() {
 		<div ref={workspaceRef}>
 			<AdminTabsBar
 				currentPage={getAdminRouteMetadata(location.pathname)}
+				onReload={onReload}
 				workspaceRef={workspaceRef}
 			/>
 			<RouteStateProbe key={location.pathname} routeKey={location.pathname} />
@@ -51,6 +52,57 @@ function TabsHarness() {
 }
 
 describe("AdminTabsBar", () => {
+	it.each(["button", "more", "context"])(
+		"reloads the active page through the shared command from %s",
+		async (entry) => {
+			const onReload = vi.fn();
+			const router = createMemoryRouter(
+				[{ path: "*", element: <TabsHarness onReload={onReload} /> }],
+				{ initialEntries: ["/organization/users?source=tab#content"] },
+			);
+			render(
+				<ConfigProvider theme={{ token: { motion: false } }}>
+					<RouterProvider router={router} />
+				</ConfigProvider>,
+			);
+			const originalLocation = router.state.location;
+			if (entry === "button") {
+				fireEvent.click(screen.getByRole("button", { name: "重新加载" }));
+			} else {
+				if (entry === "more") {
+					fireEvent.click(screen.getByRole("button", { name: "更多标签操作" }));
+				} else {
+					fireEvent.contextMenu(screen.getByText("用户管理"));
+				}
+				fireEvent.click(
+					await screen.findByRole("menuitem", { name: "重新加载" }),
+				);
+			}
+			expect(onReload).toHaveBeenCalledExactlyOnceWith();
+			expect(router.state.location).toBe(originalLocation);
+		},
+	);
+
+	it("disables refresh for an inactive context-menu target", async () => {
+		const onReload = vi.fn();
+		const router = createMemoryRouter(
+			[{ path: "*", element: <TabsHarness onReload={onReload} /> }],
+			{ initialEntries: ["/organization/users"] },
+		);
+		render(
+			<ConfigProvider theme={{ token: { motion: false } }}>
+				<RouterProvider router={router} />
+			</ConfigProvider>,
+		);
+		await act(() => router.navigate("/access/roles"));
+		fireEvent.contextMenu(screen.getByText("用户管理"));
+		const reload = await screen.findByRole("menuitem", { name: "重新加载" });
+		expect(reload).toHaveAttribute("aria-disabled", "true");
+		fireEvent.click(reload);
+		expect(onReload).not.toHaveBeenCalled();
+		expect(router.state.location.pathname).toBe("/access/roles");
+	});
+
 	it("clears temporary route state when a tab is closed", async () => {
 		sessionStorage.clear();
 		const router = createMemoryRouter(
