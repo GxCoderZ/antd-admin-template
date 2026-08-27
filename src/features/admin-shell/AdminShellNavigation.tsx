@@ -1,5 +1,4 @@
 import {
-	AntDesignOutlined,
 	MenuFoldOutlined,
 	MenuUnfoldOutlined,
 	SettingOutlined,
@@ -58,20 +57,24 @@ interface AdminShellNavigationProps {
 	children: (layout: { showSidebarNavigation: boolean }) => ReactNode;
 	currentPage: AdminRouteMetadata;
 	headerActions: ReactNode;
+	logo: ReactNode;
 	menuType: MenuType;
 	navigationMode: NavigationMode;
 	onNavigate: (path: string) => void;
 	siteTitle: string;
+	shortTitle: string;
 }
 
 export function AdminShellNavigation({
 	children,
 	currentPage,
 	headerActions,
+	logo,
 	menuType,
 	navigationMode,
 	onNavigate,
 	siteTitle,
+	shortTitle,
 }: AdminShellNavigationProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
@@ -348,17 +351,12 @@ export function AdminShellNavigation({
 					paddingInline: compact ? token.paddingSM : token.paddingLG,
 				}}
 			>
-				<AntDesignOutlined
-					aria-hidden
-					style={{
-						color: token.colorPrimary,
-						flex: "0 0 auto",
-						fontSize: token.controlHeight,
-					}}
-				/>
+				{logo}
 				{compact ? null : (
 					<Text
+						ellipsis
 						strong
+						title={siteTitle}
 						style={{
 							lineHeight: `${token.controlHeight}px`,
 							whiteSpace: "nowrap",
@@ -588,15 +586,14 @@ export function AdminShellNavigation({
 								to={dashboardPath}
 							>
 								<Flex align="center" gap={token.marginXS}>
-									<AntDesignOutlined
-										aria-hidden
-										style={{
-											color: token.colorPrimary,
-											fontSize: token.controlHeight,
-										}}
-									/>
-									<Text strong style={{ whiteSpace: "nowrap" }}>
-										{siteTitle}
+									{logo}
+									<Text
+										ellipsis
+										strong
+										style={{ maxWidth: sidebarWidth }}
+										title={siteTitle}
+									>
+										{shortTitle}
 									</Text>
 								</Flex>
 							</RouterLink>
@@ -651,7 +648,7 @@ export function AdminShellNavigation({
 					placement="left"
 					size={sidebarWidth}
 					styles={{ body: { padding: 0 } }}
-					title={siteTitle}
+					title={shortTitle}
 				>
 					<Menu
 						items={navigationItems}

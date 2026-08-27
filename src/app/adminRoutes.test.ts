@@ -121,20 +121,9 @@ describe("admin route template", () => {
 		expect(getAdminRouteMetadata("/missing-page").key).toBe("/exception/404");
 	});
 
-	it("keeps system settings subpages in the same route workspace", () => {
+	it("removes the old system appearance route", () => {
 		expect(getAdminRouteMetadata("/system/settings/appearance").key).toBe(
-			"/system/settings",
+			"/exception/404",
 		);
-
-		const settingsRoute = adminRouteDefinitions.find(
-			(route) => route.key === "/system/settings",
-		);
-		const appearanceRoute = settingsRoute?.aliases?.find(
-			(alias) => alias.path === "/system/settings/appearance",
-		);
-
-		expect(appearanceRoute).toBeDefined();
-		expect(appearanceRoute?.lazy).toEqual(expect.any(Function));
-		expect(appearanceRoute?.lazy).not.toBe(settingsRoute?.lazy);
 	});
 });

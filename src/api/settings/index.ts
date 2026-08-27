@@ -2,6 +2,7 @@ import { request } from "../client";
 import type { PlatformSettings, UpdatePlatformSettingsInput } from "./types";
 
 export * from "./types";
+export { passwordRequirements, platformSettingsLimits } from "./config";
 
 export const platformSettingsQueryKey = ["platform-settings"] as const;
 

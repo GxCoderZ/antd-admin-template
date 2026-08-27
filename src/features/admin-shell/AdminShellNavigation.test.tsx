@@ -34,10 +34,12 @@ function renderNavigation(
 					<AdminShellNavigation
 						currentPage={getAdminRouteMetadata(path)}
 						headerActions={null}
+						logo={null}
 						menuType="single"
 						navigationMode={navigationMode}
 						onNavigate={onNavigate}
 						siteTitle="Admin"
+						shortTitle="Admin"
 					>
 						{() => null}
 					</AdminShellNavigation>

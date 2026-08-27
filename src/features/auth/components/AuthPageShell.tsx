@@ -2,14 +2,14 @@ import {
 	BgColorsOutlined,
 	GlobalOutlined,
 	MoonOutlined,
-	SafetyCertificateFilled,
 	SunOutlined,
 } from "@ant-design/icons";
-import { Avatar, Card, Flex, Grid, Select, theme, Typography } from "antd";
+import { Card, Flex, Grid, Select, theme, Typography } from "antd";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { usePlatformSiteTitle } from "../../../app/usePlatformSiteTitle";
+import { PlatformLogo } from "../../../app/PlatformLogo";
+import { usePlatformBrand } from "../../../app/usePlatformBrand";
 import { resolveSupportedLanguage, supportedLanguages } from "../../../i18n";
 import styles from "./AuthPageShell.module.css";
 
@@ -30,7 +30,7 @@ export function AuthPageShell({
 }: AuthPageShellProps) {
 	const { t, i18n } = useTranslation();
 	const { token } = theme.useToken();
-	const siteTitle = usePlatformSiteTitle();
+	const brand = usePlatformBrand();
 	const screens = Grid.useBreakpoint();
 	const language = resolveSupportedLanguage(i18n.resolvedLanguage);
 	const isWide = screens.sm === true;
@@ -40,8 +40,6 @@ export function AuthPageShell({
 		pagePaddingInline +
 		token.controlHeight +
 		(isWide ? token.marginXL : token.marginLG);
-	const pagePaddingBlockEnd =
-		pagePaddingInline + (isWide ? token.controlHeight : token.controlHeightSM);
 	const toolbarInset = pagePaddingInline;
 	const selectWidth = token.controlHeight * 4 + (isWide ? token.marginXS : 0);
 	const cardMaxWidth = token.screenXS - token.marginXL * 2;
@@ -52,9 +50,10 @@ export function AuthPageShell({
 			className={styles.page}
 			style={{
 				background,
-				paddingBlockEnd: pagePaddingBlockEnd,
+				paddingBlockEnd: pagePaddingInline,
 				paddingBlockStart: pagePaddingBlockStart,
 				paddingInline: pagePaddingInline,
+				rowGap: token.marginLG,
 			}}
 		>
 			<Flex
@@ -107,18 +106,15 @@ export function AuthPageShell({
 			>
 				<Flex vertical gap={token.marginLG}>
 					<header className={styles.header}>
-						<Avatar
-							icon={<SafetyCertificateFilled />}
-							shape="square"
-							size={logoSize}
+						<PlatformLogo size={logoSize} src={brand.logoDataUrl} />
+						<Title
+							level={4}
 							style={{
-								backgroundColor: token.colorPrimary,
-								fontSize: token.fontSizeHeading3,
-								marginBottom: token.marginSM,
+								marginBlockEnd: token.marginXXS,
+								overflowWrap: "anywhere",
 							}}
-						/>
-						<Title level={4} style={{ marginBlockEnd: token.marginXXS }}>
-							{siteTitle}
+						>
+							{brand.siteTitle}
 						</Title>
 						<Text type="secondary">{t("app.description")}</Text>
 					</header>
@@ -127,12 +123,8 @@ export function AuthPageShell({
 				</Flex>
 			</Card>
 
-			<Text
-				className={styles.footer}
-				style={{ bottom: toolbarInset }}
-				type="secondary"
-			>
-				{t("app.copyright", { siteTitle })}
+			<Text className={styles.footer} type="secondary">
+				{brand.copyright}
 			</Text>
 		</main>
 	);

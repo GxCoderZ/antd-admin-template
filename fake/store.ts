@@ -755,9 +755,3 @@ export const loginLogs: PlatformLoginLog[] = Array.from(
 		};
 	},
 );
-
-export let siteTitle = "React Antd Admin";
-
-export function setSiteTitle(value: string) {
-	siteTitle = value;
-}

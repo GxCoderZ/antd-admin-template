@@ -25,11 +25,7 @@ import {
 	platformSessionQueryKey,
 } from "#src/api/auth";
 import { ApiProblemError } from "#src/api/client";
-import {
-	getPlatformSettings,
-	platformSettingsQueryKey,
-	type PlatformSettings,
-} from "#src/api/settings";
+import { platformSettingsQueryKey } from "#src/api/settings";
 import { AdminShellPage } from "../features/admin-shell/AdminShellPage";
 import { LoginPage } from "../features/auth/login/LoginPage";
 import { ForgotPasswordPage } from "../features/auth/forgot-password/ForgotPasswordPage";
@@ -45,7 +41,7 @@ import { adminRouteDefinitions } from "./adminRoutes";
 import { ApplicationSkeleton } from "./LoadingSkeletons";
 import { LocalePreferencesProvider } from "./LocalePreferencesProvider";
 import { PermissionProvider } from "./PermissionProvider";
-import { PlatformDocumentTitle } from "./PlatformBrand";
+import { PlatformBrandProvider } from "./PlatformBrand";
 import { useLocalePreferenceState } from "./localePreferences";
 import {
 	readColorBlindModePreference,
@@ -132,15 +128,10 @@ function selectAuthThemeProps(themeMode: ThemeModeContextValue) {
 }
 
 function clearQueriesPreservingPlatformSettings(queryClient: QueryClient) {
-	const platformSettings = queryClient.getQueryData<PlatformSettings>(
-		platformSettingsQueryKey,
-	);
-
-	queryClient.clear();
-
-	if (platformSettings) {
-		queryClient.setQueryData(platformSettingsQueryKey, platformSettings);
-	}
+	queryClient.removeQueries({
+		predicate: (query) => query.queryKey[0] !== platformSettingsQueryKey[0],
+	});
+	queryClient.getMutationCache().clear();
 }
 
 function AuthenticatedAdminShellRoute() {
@@ -156,12 +147,6 @@ function AuthenticatedAdminShellRoute() {
 		enabled: sessionQuery.isSuccess,
 		queryFn: ({ signal }) => getPlatformAccount(signal),
 		queryKey: platformAccountQueryKey,
-	});
-	useQuery({
-		enabled: sessionQuery.isSuccess,
-		queryFn: ({ signal }) => getPlatformSettings(signal),
-		queryKey: platformSettingsQueryKey,
-		staleTime: 0,
 	});
 	const logoutMutation = useMutation({ mutationFn: logoutPlatform });
 
@@ -345,17 +330,12 @@ export function App() {
 					ErrorBoundary: ShellRouteErrorPage,
 					HydrateFallback: ApplicationSkeleton,
 					children: [
-						...adminRouteDefinitions.flatMap((route) =>
-							[
-								{ lazy: route.lazy, path: route.key },
-								...(route.aliases ?? []),
-							].map(({ lazy, path }) => ({
-								handle: route,
-								lazy,
-								path,
-								ErrorBoundary: ShellRouteErrorPage,
-							})),
-						),
+						...adminRouteDefinitions.map((route) => ({
+							handle: route,
+							lazy: route.lazy,
+							path: route.key,
+							ErrorBoundary: ShellRouteErrorPage,
+						})),
 						{
 							path: "*",
 							Component: ShellNotFoundPage,
@@ -452,10 +432,11 @@ export function App() {
 		>
 			<LocalePreferencesProvider value={localePreferences}>
 				<QueryClientProvider client={queryClient}>
-					<PlatformDocumentTitle />
-					<ThemeModeProvider value={themeModeValue}>
-						<RouterProvider router={router} />
-					</ThemeModeProvider>
+					<PlatformBrandProvider>
+						<ThemeModeProvider value={themeModeValue}>
+							<RouterProvider router={router} />
+						</ThemeModeProvider>
+					</PlatformBrandProvider>
 				</QueryClientProvider>
 			</LocalePreferencesProvider>
 		</ConfigProvider>

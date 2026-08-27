@@ -22,7 +22,8 @@ import {
 	writeNavigationModePreference,
 } from "../../app/preferenceStorage";
 import type { ThemeChangeEvent } from "../../app/themeMode";
-import { usePlatformSiteTitle } from "../../app/usePlatformSiteTitle";
+import { PlatformLogo } from "../../app/PlatformLogo";
+import { usePlatformBrand } from "../../app/usePlatformBrand";
 import { resolveInitialLanguage } from "../../i18n";
 import { AdminShellHeader } from "./AdminShellHeader";
 import { AdminShellNavigation } from "./AdminShellNavigation";
@@ -57,9 +58,9 @@ export function AdminShellPage({
 	themeMode,
 }: AdminShellPageProps) {
 	const tabWorkspaceRef = useRef<HTMLDivElement>(null);
-	const { t, i18n } = useTranslation();
+	const { i18n } = useTranslation();
 	const { token } = theme.useToken();
-	const siteTitle = usePlatformSiteTitle();
+	const brand = usePlatformBrand();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const navigation = useNavigation();
@@ -143,9 +144,11 @@ export function AdminShellPage({
 				/>
 			}
 			menuType={menuType}
+			logo={<PlatformLogo size={token.controlHeight} src={brand.logoDataUrl} />}
 			navigationMode={navigationMode}
 			onNavigate={openRouteTab}
-			siteTitle={siteTitle}
+			shortTitle={brand.shortTitle}
+			siteTitle={brand.siteTitle}
 		>
 			{({ showSidebarNavigation }) => (
 				<div
@@ -212,7 +215,7 @@ export function AdminShellPage({
 									textAlign: "center",
 								}}
 							>
-								{t("app.copyright", { siteTitle })}
+								{brand.copyright}
 							</Footer>
 						) : null}
 					</Content>

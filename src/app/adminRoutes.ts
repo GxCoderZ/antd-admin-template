@@ -30,13 +30,7 @@ interface LazyAdminRouteModule {
 	Component: ComponentType;
 }
 
-interface AdminRouteAlias {
-	lazy: () => Promise<LazyAdminRouteModule>;
-	path: string;
-}
-
 export interface AdminRouteMetadata {
-	aliases?: readonly AdminRouteAlias[];
 	contentLayout?: "pageContainer" | "table";
 	groupKey: AdminRouteGroupKey;
 	iconKey?: AdminRouteIconKey;
@@ -124,13 +118,6 @@ const loadPlatformSettingsPage = async (): Promise<LazyAdminRouteModule> => {
 		await import("../features/system/PlatformSettingsPage");
 	return { Component: PlatformSettingsPage };
 };
-
-const loadPlatformSettingsAppearancePage =
-	async (): Promise<LazyAdminRouteModule> => {
-		const { PlatformSettingsAppearancePage } =
-			await import("../features/system/PlatformSettingsAppearancePage");
-		return { Component: PlatformSettingsAppearancePage };
-	};
 
 const loadAboutSystemPage = async (): Promise<LazyAdminRouteModule> => {
 	const { AboutSystemPage } =
@@ -258,12 +245,6 @@ const allAdminRoutes: readonly AdminRouteMetadata[] = [
 		titleKey: "adminShell.navigation.loginLogs",
 	},
 	{
-		aliases: [
-			{
-				lazy: loadPlatformSettingsAppearancePage,
-				path: "/system/settings/appearance",
-			},
-		],
 		groupKey: "system",
 		iconKey: "settings",
 		key: "/system/settings",
@@ -360,15 +341,7 @@ export const adminRouteDefinitions = allAdminRoutes;
 export const adminNavigationGroups = allNavigationGroups;
 
 export const adminRouteByPath = new Map<string, AdminRouteMetadata>(
-	adminRouteDefinitions.flatMap(
-		(route) =>
-			[
-				[route.key, route],
-				...(route.aliases ?? []).map(
-					(alias) => [alias.path, route] as [string, AdminRouteMetadata],
-				),
-			] as [string, AdminRouteMetadata][],
-	),
+	adminRouteDefinitions.map((route) => [route.key, route]),
 );
 
 export const adminNavigationGroupByKey = new Map<
