@@ -104,6 +104,31 @@ function renderPositionsPage() {
 }
 
 describe("PositionsPage", () => {
+	it("opens complete read-only position details from the name", async () => {
+		const user = renderPositionsPage();
+		await user.click(await screen.findByRole("button", { name: "运营专员" }));
+		const dialog = await screen.findByRole("dialog");
+		for (const label of [
+			"记录 ID",
+			"岗位名称",
+			"岗位标识",
+			"所属部门",
+			"部门 ID",
+			"状态",
+			"成员数",
+			"创建时间",
+			"更新时间",
+		]) {
+			expect(
+				within(dialog).getByText(label, { exact: true }),
+			).toBeInTheDocument();
+		}
+		expect(within(dialog).getByText(position.id)).toBeInTheDocument();
+		expect(within(dialog).getByText(position.departmentId)).toBeInTheDocument();
+		expect(within(dialog).queryByRole("textbox")).not.toBeInTheDocument();
+		expect(mocks.updatePlatformPosition).not.toHaveBeenCalled();
+	});
+
 	it("uses the standard query bar, table toolbar and expected page sizes", async () => {
 		renderPositionsPage();
 

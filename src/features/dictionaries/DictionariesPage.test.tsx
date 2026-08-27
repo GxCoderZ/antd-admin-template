@@ -314,11 +314,21 @@ describe("DictionariesPage", () => {
 		renderDictionariesPage();
 
 		await screen.findByText("用户状态");
-		fireEvent.click(screen.getByRole("button", { name: "管理项" }));
+		fireEvent.click(
+			within(screen.getByTestId("admin-dictionaries-type-table")).getByText(
+				"管理项",
+				{ exact: true },
+			),
+		);
 		await within(
 			screen.getByTestId("admin-dictionaries-item-table"),
 		).findByText("用户状态");
-		fireEvent.click(screen.getByRole("button", { name: "新建字典项" }));
+		fireEvent.click(
+			within(screen.getByTestId("admin-dictionaries-item-table")).getByText(
+				"新建字典项",
+				{ exact: true },
+			),
+		);
 		fireEvent.change(await screen.findByPlaceholderText("请输入值"), {
 			target: { value: "locked" },
 		});
@@ -328,7 +338,11 @@ describe("DictionariesPage", () => {
 		fireEvent.change(screen.getByPlaceholderText("请输入排序值"), {
 			target: { value: "30" },
 		});
-		fireEvent.click(screen.getByRole("button", { name: /保\s*存/ }));
+		fireEvent.click(
+			within(screen.getByRole("dialog")).getByRole("button", {
+				name: /保\s*存/,
+			}),
+		);
 
 		await waitFor(() => {
 			expect(mocks.createPlatformDictionaryItem).toHaveBeenCalledWith({
@@ -350,12 +364,11 @@ describe("DictionariesPage", () => {
 
 		await screen.findByText("用户状态");
 		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
-		await user.click(
-			within(typeTable).getByRole("button", { name: "用户状态" }),
-		);
+		await user.click(within(typeTable).getByText("用户状态", { exact: true }));
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("字典类型详情")).toBeInTheDocument();
+		expect(within(dialog).getByText(dictionaryType.id)).toBeInTheDocument();
 		expect(within(dialog).getByText("user_status")).toBeInTheDocument();
 		expect(within(dialog).getByText("用户状态选项")).toBeInTheDocument();
 	});
@@ -365,7 +378,7 @@ describe("DictionariesPage", () => {
 
 		await screen.findByText("用户状态");
 		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
-		fireEvent.click(within(typeTable).getByRole("button", { name: "管理项" }));
+		fireEvent.click(within(typeTable).getByText("管理项", { exact: true }));
 		await within(
 			screen.getByTestId("admin-dictionaries-item-table"),
 		).findByText("用户状态");
@@ -386,6 +399,8 @@ describe("DictionariesPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("字典项详情")).toBeInTheDocument();
+		expect(within(dialog).getByText(dictionaryItem.id)).toBeInTheDocument();
+		expect(within(dialog).getByText(dictionaryItem.typeId)).toBeInTheDocument();
 		expect(within(dialog).getByText("active")).toBeInTheDocument();
 		expect(within(dialog).getByText("可登录用户")).toBeInTheDocument();
 	});
@@ -396,7 +411,12 @@ describe("DictionariesPage", () => {
 		await waitFor(() => {
 			expect(mocks.listPlatformDictionaryItems).toHaveBeenCalled();
 		});
-		fireEvent.click(screen.getByRole("button", { name: "管理项" }));
+		fireEvent.click(
+			within(screen.getByTestId("admin-dictionaries-type-table")).getByText(
+				"管理项",
+				{ exact: true },
+			),
+		);
 		const itemTable = screen.getByTestId("admin-dictionaries-item-table");
 		await waitFor(() => {
 			expect(itemTable.textContent).toContain("更多");
@@ -433,7 +453,7 @@ describe("DictionariesPage", () => {
 
 		await screen.findByText("用户状态");
 		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
-		await user.click(within(typeTable).getByRole("button", { name: "更多" }));
+		await user.click(within(typeTable).getByText("更多", { exact: true }));
 		await user.click(screen.getByRole("menuitem", { name: /停用/ }));
 
 		await waitFor(() => {

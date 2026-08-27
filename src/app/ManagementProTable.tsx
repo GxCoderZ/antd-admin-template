@@ -1,14 +1,21 @@
 import {
 	ProTable,
+	type ColumnsState,
 	type ProColumns,
 	type ProTableProps,
 } from "@ant-design/pro-components";
-import type { TablePaginationConfig, TableProps } from "antd";
+import {
+	ConfigProvider,
+	theme,
+	type TablePaginationConfig,
+	type TableProps,
+} from "antd";
 import type { ReactNode } from "react";
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import { managementQueryLayout } from "./queryFilterLayout";
+import type { TableColumnConfig } from "./tableColumnVisibility";
 
 import {
 	defaultPreferences,
@@ -38,11 +45,11 @@ export interface ManagementProTableProps<
 	SearchValues extends object,
 > {
 	columnSettingsStorageKey: string;
+	columnVisibility: readonly TableColumnConfig[];
 	columns: ProColumns<Row>[];
 	dataSource: Row[];
 	emptyText: string;
 	initialLoading: boolean;
-	minimumWidth?: number;
 	onPageChange?: (page: number, pageSize: number) => void;
 	onReload: () => void;
 	onReset?: () => void;
@@ -64,11 +71,11 @@ export function ManagementProTable<
 	SearchValues extends object,
 >({
 	columnSettingsStorageKey,
+	columnVisibility,
 	columns,
 	dataSource,
 	emptyText,
 	initialLoading,
-	minimumWidth,
 	onPageChange,
 	onReload,
 	onReset,
@@ -85,6 +92,35 @@ export function ManagementProTable<
 	total,
 }: ManagementProTableProps<Row, SearchValues>) {
 	const { t } = useTranslation();
+	const { token } = theme.useToken();
+	const defaultColumnsState = useMemo<Record<string, ColumnsState>>(
+		() =>
+			Object.fromEntries(
+				columnVisibility.map((config, order) => [
+					config.key,
+					{
+						show: config.visibility !== "optional",
+						order,
+						...(config.key === "actions" ? { fixed: "right" as const } : {}),
+					},
+				]),
+			),
+		[columnVisibility],
+	);
+	const configuredColumns = useMemo(
+		() =>
+			columns.map((column) => {
+				const config = columnVisibility.find((item) => item.key === column.key);
+				return {
+					...column,
+					disable: config?.visibility === "required",
+					hideInSetting:
+						column.hideInTable || config?.visibility === "required",
+					...(column.key === "actions" ? { fixed: "right" as const } : {}),
+				};
+			}),
+		[columns, columnVisibility],
+	);
 	const tableSize = useSyncExternalStore(
 		subscribeToPreferenceChanges,
 		readUserTableDensityPreference,
@@ -113,51 +149,62 @@ export function ManagementProTable<
 					...(search ?? {}),
 				};
 
+	// Filter shadows let scrolled virtual rows intercept the popup title in Chromium.
+	// Use the public Popover styles API for Chromium issue 333067182.
 	return (
-		<div data-testid={testId}>
-			<ProTable<Row, SearchValues>
-				cardBordered={false}
-				columns={columns}
-				columnsState={{
-					persistenceKey: getProTableColumnSettingsStorageKey(
-						columnSettingsStorageKey,
-					),
-					persistenceType: "localStorage",
-				}}
-				dataSource={dataSource}
-				dateFormatter={false}
-				headerTitle={title}
-				loading={initialLoading || refreshing}
-				manualRequest
-				{...(onTableChange ? { onChange: onTableChange } : {})}
-				{...(onReset ? { onReset } : {})}
-				onSizeChange={(nextSize) => {
-					if (isUserTableDensity(nextSize)) {
-						writeUserTableDensityPreference(nextSize);
-					}
-				}}
-				{...(onSubmit ? { onSubmit } : {})}
-				options={{
-					density: true,
-					fullScreen: true,
-					reload: onReload,
-					setting: {
-						draggable: true,
-						listsHeight: 520,
-					},
-				}}
-				pagination={tablePagination}
-				rowKey="id"
-				search={tableSearch}
-				size={tableSize}
-				tableAlertRender={false}
-				tableLayout="fixed"
-				toolBarRender={() => (primaryAction ? [primaryAction] : [])}
-				locale={{ emptyText }}
-				scroll={{ x: minimumWidth ?? "max-content" }}
-				{...(searchForm ? { form: searchForm } : {})}
-			/>
-		</div>
+		<ConfigProvider
+			popover={{
+				styles: {
+					root: { filter: "none" },
+					container: { boxShadow: token.boxShadowSecondary },
+				},
+			}}
+		>
+			<div data-testid={testId}>
+				<ProTable<Row, SearchValues>
+					cardBordered={false}
+					columns={configuredColumns}
+					columnsState={{
+						defaultValue: defaultColumnsState,
+						persistenceKey: getProTableColumnSettingsStorageKey(
+							columnSettingsStorageKey,
+						),
+						persistenceType: "localStorage",
+					}}
+					dataSource={dataSource}
+					dateFormatter={false}
+					headerTitle={title}
+					loading={initialLoading || refreshing}
+					manualRequest
+					{...(onTableChange ? { onChange: onTableChange } : {})}
+					{...(onReset ? { onReset } : {})}
+					onSizeChange={(nextSize) => {
+						if (isUserTableDensity(nextSize)) {
+							writeUserTableDensityPreference(nextSize);
+						}
+					}}
+					{...(onSubmit ? { onSubmit } : {})}
+					options={{
+						density: true,
+						fullScreen: true,
+						reload: onReload,
+						setting: {
+							draggable: true,
+						},
+					}}
+					pagination={tablePagination}
+					rowKey="id"
+					search={tableSearch}
+					size={tableSize}
+					tableAlertRender={false}
+					tableLayout="fixed"
+					toolBarRender={() => (primaryAction ? [primaryAction] : [])}
+					locale={{ emptyText }}
+					scroll={{ x: "max-content" }}
+					{...(searchForm ? { form: searchForm } : {})}
+				/>
+			</div>
+		</ConfigProvider>
 	);
 }
 

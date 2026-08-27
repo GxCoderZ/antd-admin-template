@@ -22,6 +22,10 @@ export function AnnouncementDetailDrawer({
 	const items: DescriptionsProps["items"] = announcement
 		? [
 				{
+					children: announcement.id,
+					label: t("adminShell.recordDetails.id"),
+				},
+				{
 					children: announcement.title,
 					label: t("adminShell.announcements.fields.title"),
 				},

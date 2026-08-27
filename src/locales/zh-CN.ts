@@ -45,6 +45,11 @@ export const zhCNTranslation = {
 			logout: "退出",
 			logoutError: "退出失败，请重试",
 		},
+		recordDetails: {
+			id: "记录 ID",
+			version: "数据版本",
+			createdAt: "创建时间",
+		},
 		tableActions: {
 			actions: "操作",
 			copyError: "复制失败，请重试",
@@ -216,6 +221,9 @@ export const zhCNTranslation = {
 			},
 		},
 		departments: {
+			detailTitle: "部门详情",
+			parentId: "上级部门 ID",
+			children: "下级部门",
 			tableTitle: "部门列表",
 			create: "新建部门",
 			createChild: "新增下级",
@@ -273,6 +281,8 @@ export const zhCNTranslation = {
 			},
 		},
 		positions: {
+			detailTitle: "岗位详情",
+			departmentId: "部门 ID",
 			tableTitle: "岗位列表",
 			create: "新建岗位",
 			createTitle: "新建岗位",
@@ -334,6 +344,7 @@ export const zhCNTranslation = {
 			},
 		},
 		dictionaries: {
+			typeId: "字典类型 ID",
 			typeTableTitle: "字典类型",
 			itemTableTitle: "字典项",
 			noTypeSelected: "请先选择一个字典类型",

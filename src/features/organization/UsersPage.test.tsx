@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
 import {
 	cleanup,
+	fireEvent,
 	render,
 	screen,
 	waitFor,
@@ -190,32 +191,57 @@ describe("UsersPage", () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
-		expect(screen.getByRole("button", { name: "编辑" })).toBeVisible();
+		const table = within(screen.getByRole("table"));
+		expect(table.getByText("编辑", { exact: true })).toBeVisible();
 		expect(
-			screen.queryByRole("button", { name: "重置密码" }),
+			table.queryByText("重置密码", { exact: true }),
 		).not.toBeInTheDocument();
 
-		await user.click(screen.getByRole("button", { name: "更多" }));
-		expect(
-			screen.getByRole("menuitem", { name: "查看详情" }),
-		).toBeInTheDocument();
-		expect(screen.getByRole("menuitem", { name: "角色" })).toBeInTheDocument();
-		expect(
-			screen.getByRole("menuitem", { name: "重置密码" }),
-		).toBeInTheDocument();
+		await user.click(table.getByText("更多", { exact: true }));
+		const menu = within(screen.getByRole("menu"));
+		for (const label of ["查看详情", "角色", "重置密码"]) {
+			expect(menu.getByRole("menuitem", { name: label })).toBeInTheDocument();
+		}
 	});
 
 	it("opens read-only user details from the display name", async () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
-		await user.click(screen.getByRole("button", { name: "Platform Admin" }));
+		await user.click(
+			within(screen.getByRole("table")).getByRole("button", {
+				name: "Platform Admin",
+			}),
+		);
 
 		const dialog = await screen.findByRole("dialog");
 		await waitFor(() => {
 			expect(within(dialog).getByText("admin@example.com")).toBeInTheDocument();
 		});
 		expect(within(dialog).getByText("13800138000")).toBeInTheDocument();
+		for (const label of [
+			"用户 ID",
+			"用户名",
+			"显示名称",
+			"邮箱",
+			"手机号",
+			"部门",
+			"岗位",
+			"角色",
+			"状态",
+			"账号来源",
+			"MFA 状态",
+			"密码状态",
+			"最近登录",
+			"最近登录 IP",
+			"创建时间",
+			"更新时间",
+			"数据版本",
+		]) {
+			expect(
+				within(dialog).getByText(label, { exact: true }),
+			).toBeInTheDocument();
+		}
 		expect(mocks.getPlatformUser).toHaveBeenCalledWith(
 			adminUser.id,
 			expect.any(AbortSignal),
@@ -310,7 +336,7 @@ describe("UsersPage", () => {
 		await screen.findByText("admin");
 		await openUserColumnSettings(user);
 
-		const requiredColumns = ["用户名", "状态", "操作"];
+		const requiredColumns = ["用户名", "操作"];
 		const optionalColumns = [
 			"用户 ID",
 			"岗位",
@@ -318,80 +344,72 @@ describe("UsersPage", () => {
 			"MFA 状态",
 			"密码状态",
 			"最近登录 IP",
-			"更新时间",
 		];
 
 		for (const column of requiredColumns) {
 			expect(
-				screen.getByRole("checkbox", {
+				screen.queryByRole("checkbox", {
 					name: new RegExp(`^(holder )?${column}$`),
 				}),
-			).toHaveAttribute("aria-disabled", "true");
+			).not.toBeInTheDocument();
 		}
 		for (const column of optionalColumns) {
 			expect(
 				screen.getByRole("checkbox", { name: new RegExp(`${column}$`) }),
 			).toBeInTheDocument();
 		}
+		fireEvent.wheel(screen.getByRole("checkbox", { name: /用户 ID$/ }), {
+			deltaY: 600,
+		});
+		const updatedAtCheckbox = await screen.findByRole("checkbox", {
+			name: /更新时间$/,
+		});
+		expect(updatedAtCheckbox).toBeInTheDocument();
+		fireEvent.wheel(updatedAtCheckbox, { deltaY: -600 });
 
-		const userIdCheckbox = screen.getByRole("checkbox", {
+		const userIdCheckbox = await screen.findByRole("checkbox", {
 			name: /用户 ID$/,
 		});
-		expect(userIdCheckbox).toBeChecked();
+		expect(userIdCheckbox).not.toBeChecked();
 		await user.click(userIdCheckbox);
-		expect(
-			screen.queryByRole("columnheader", { name: "用户 ID" }),
-		).not.toBeInTheDocument();
+		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
 	});
 
-	it("keeps all user columns visible by default", async () => {
+	it("shows only important recommended user columns by default", async () => {
 		renderUsersPage();
 
 		await screen.findByText("admin");
 
 		for (const column of [
-			"用户 ID",
 			"用户名",
 			"显示名称",
 			"部门",
-			"岗位",
 			"角色",
-			"手机号",
-			"邮箱",
 			"状态",
-			"账号来源",
-			"MFA 状态",
-			"密码状态",
 			"最近登录",
-			"最近登录 IP",
-			"创建时间",
-			"更新时间",
 			"操作",
 		]) {
 			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
 		}
+		expect(screen.getAllByRole("columnheader")).toHaveLength(7);
 	});
 
-	it("persists manually hidden user columns", async () => {
+	it("persists manually enabled optional user columns", async () => {
 		const user = renderUsersPage();
 
 		await screen.findByText("admin");
 		await openUserColumnSettings(user);
 		await user.click(screen.getByRole("checkbox", { name: /用户 ID$/ }));
-		expect(
-			screen.queryByRole("columnheader", { name: "用户 ID" }),
-		).not.toBeInTheDocument();
+		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
 
 		cleanup();
 		renderUsersPage();
 
 		await screen.findByText("admin");
-		expect(
-			screen.queryByRole("columnheader", { name: "用户 ID" }),
-		).not.toBeInTheDocument();
+		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
 	});
 
-	it("keeps all default columns on spacious screens", async () => {
+	it("does not add supplementary columns on spacious screens", async () => {
 		Object.defineProperty(document.body, "clientWidth", {
 			configurable: true,
 			value: 1_520,
@@ -401,7 +419,9 @@ describe("UsersPage", () => {
 
 		await screen.findByText("admin");
 		for (const column of ["用户 ID", "手机号", "邮箱", "创建时间"]) {
-			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
+			expect(
+				screen.queryByRole("columnheader", { name: column }),
+			).not.toBeInTheDocument();
 		}
 	});
 });

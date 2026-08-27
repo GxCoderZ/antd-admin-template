@@ -45,6 +45,11 @@ export const koKRTranslation = {
 			logout: "로그아웃",
 			logoutError: "로그아웃하지 못했습니다. 다시 시도해 주세요.",
 		},
+		recordDetails: {
+			id: "레코드 ID",
+			version: "데이터 버전",
+			createdAt: "생성 시간",
+		},
 		tableActions: {
 			actions: "작업",
 			copyError: "복사하지 못했습니다. 다시 시도해 주세요.",
@@ -218,6 +223,9 @@ export const koKRTranslation = {
 			},
 		},
 		departments: {
+			detailTitle: "부서 상세",
+			parentId: "상위 부서 ID",
+			children: "하위 부서",
 			tableTitle: "부서 목록",
 			create: "부서 추가",
 			createChild: "하위 부서 추가",
@@ -275,6 +283,8 @@ export const koKRTranslation = {
 			},
 		},
 		positions: {
+			detailTitle: "직책 상세",
+			departmentId: "부서 ID",
 			tableTitle: "직책 목록",
 			create: "직책 추가",
 			createTitle: "직책 추가",
@@ -336,6 +346,7 @@ export const koKRTranslation = {
 			},
 		},
 		dictionaries: {
+			typeId: "사전 유형 ID",
 			typeTableTitle: "사전 유형",
 			itemTableTitle: "사전 항목",
 			noTypeSelected: "사전 유형을 먼저 선택하세요",

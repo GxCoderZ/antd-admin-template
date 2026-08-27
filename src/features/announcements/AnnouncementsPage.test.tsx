@@ -127,6 +127,7 @@ describe("AnnouncementsPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("公告详情")).toBeInTheDocument();
+		expect(within(dialog).getByText("记录 ID")).toBeInTheDocument();
 		expect(
 			within(dialog).getByText("平台将在周日凌晨进行例行维护。"),
 		).toBeInTheDocument();

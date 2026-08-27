@@ -21,7 +21,7 @@ import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { resolveTableSort } from "../../app/tableSorting";
-import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
+import type { TableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	TableActionButton,
 	TableActionMenu,
@@ -51,32 +51,31 @@ const auditTableSortToContractSort: Record<string, AuditLogSort> = {
 	created_at: "created_at",
 	result: "result",
 };
-const auditLogColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
-	[
-		{ key: "actorUsername", priority: "compact", required: true },
-		{ key: "action", priority: "compact" },
-		{ key: "target", priority: "regular" },
-		{ key: "result", priority: "compact" },
-		{ key: "requestIp", priority: "regular" },
-		{ key: "created_at", priority: "compact" },
-		{ key: "actions", priority: "compact", required: true },
-		{ key: "id", priority: "optional" },
-		{ key: "actorId", priority: "optional" },
-		{ key: "module", priority: "optional" },
-		{ key: "targetType", priority: "optional" },
-		{ key: "targetId", priority: "optional" },
-		{ key: "requestId", priority: "optional" },
-		{ key: "requestMethod", priority: "optional" },
-		{ key: "requestPath", priority: "optional" },
-		{ key: "device", priority: "optional" },
-		{ key: "browser", priority: "optional" },
-		{ key: "operatingSystem", priority: "optional" },
-		{ key: "durationMs", priority: "optional" },
-		{ key: "failureReason", priority: "optional" },
-		{ key: "before", priority: "optional" },
-		{ key: "after", priority: "optional" },
-		{ key: "userAgent", priority: "optional" },
-	];
+const auditLogColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "actorUsername", visibility: "required" },
+	{ key: "action", visibility: "recommended" },
+	{ key: "target", visibility: "recommended" },
+	{ key: "result", visibility: "recommended" },
+	{ key: "requestIp", visibility: "recommended" },
+	{ key: "created_at", visibility: "recommended" },
+	{ key: "actions", visibility: "required" },
+	{ key: "id", visibility: "optional" },
+	{ key: "actorId", visibility: "optional" },
+	{ key: "module", visibility: "optional" },
+	{ key: "targetType", visibility: "optional" },
+	{ key: "targetId", visibility: "optional" },
+	{ key: "requestId", visibility: "optional" },
+	{ key: "requestMethod", visibility: "optional" },
+	{ key: "requestPath", visibility: "optional" },
+	{ key: "device", visibility: "optional" },
+	{ key: "browser", visibility: "optional" },
+	{ key: "operatingSystem", visibility: "optional" },
+	{ key: "durationMs", visibility: "optional" },
+	{ key: "failureReason", visibility: "optional" },
+	{ key: "before", visibility: "optional" },
+	{ key: "after", visibility: "optional" },
+	{ key: "userAgent", visibility: "optional" },
+];
 
 interface AuditFilterFormValues {
 	action?: string;

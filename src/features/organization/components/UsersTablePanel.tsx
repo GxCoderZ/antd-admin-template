@@ -10,15 +10,35 @@ import {
 	type ManagementProTableColumn,
 } from "../../../app/ManagementProTable";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
+import type { TableColumnConfig } from "../../../app/tableColumnVisibility";
 import type { PlatformUser } from "#src/api/users";
 import { getProblemFallback } from "../userProblems";
 import {
 	defaultUserFilterValues,
 	type UserFilterValues,
 	type UserTableState,
-	userColumnWidthMultipliers,
 } from "../userTableTypes";
 import { useUserTableColumns } from "./useUserTableColumns";
+
+const userColumnVisibility: readonly TableColumnConfig[] = [
+	{ key: "id", visibility: "optional" },
+	{ key: "username", visibility: "required" },
+	{ key: "displayName", visibility: "recommended" },
+	{ key: "department", visibility: "recommended" },
+	{ key: "jobTitle", visibility: "optional" },
+	{ key: "roles", visibility: "recommended" },
+	{ key: "phone", visibility: "optional" },
+	{ key: "email", visibility: "optional" },
+	{ key: "status", visibility: "recommended" },
+	{ key: "authSource", visibility: "optional" },
+	{ key: "mfaEnabled", visibility: "optional" },
+	{ key: "mustChangePassword", visibility: "optional" },
+	{ key: "lastLoginAt", visibility: "recommended" },
+	{ key: "lastLoginIp", visibility: "optional" },
+	{ key: "createdAt", visibility: "optional" },
+	{ key: "updatedAt", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
+];
 
 interface UserPageData {
 	items: PlatformUser[];
@@ -130,10 +150,6 @@ export function UsersTablePanel({
 		],
 		[draftFilters.q, draftFilters.status, t, tableColumns],
 	);
-	const minimumWidth = Object.values(userColumnWidthMultipliers).reduce(
-		(total, multiplier) => total + token.controlHeight * multiplier,
-		0,
-	);
 
 	return (
 		<>
@@ -157,11 +173,11 @@ export function UsersTablePanel({
 				) : null}
 				<ManagementProTable<PlatformUser, UserFilterValues>
 					columnSettingsStorageKey={getTableColumnSettingsStorageKey("users")}
+					columnVisibility={userColumnVisibility}
 					columns={columns}
 					dataSource={data?.items ?? []}
 					emptyText={t("adminShell.users.empty")}
 					initialLoading={initialLoading}
-					minimumWidth={minimumWidth}
 					onPageChange={onPageChange}
 					onReload={onReload}
 					onReset={onResetFilters}

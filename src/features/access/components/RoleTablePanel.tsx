@@ -24,12 +24,25 @@ import {
 } from "../../../app/ManagementProTable";
 import { TableActionButton } from "../../../app/TableActionButton";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
+import type { TableColumnConfig } from "../../../app/tableColumnVisibility";
 import type { ListPlatformRolesInput, PlatformRole } from "#src/api/roles";
 import { permissionGroups } from "../rolePermissions";
 import { getRoleErrorTitleKey, getRoleProblemDetail } from "../roleProblems";
 
 const { Text } = Typography;
 type RoleSort = NonNullable<ListPlatformRolesInput["sort"]>;
+
+const roleColumnVisibility: readonly TableColumnConfig[] = [
+	{ key: "displayName", visibility: "required" },
+	{ key: "roleKey", visibility: "recommended" },
+	{ key: "memberCount", visibility: "recommended" },
+	{ key: "permissions", visibility: "optional" },
+	{ key: "id", visibility: "optional" },
+	{ key: "builtIn", visibility: "recommended" },
+	{ key: "createdAt", visibility: "optional" },
+	{ key: "updatedAt", visibility: "recommended" },
+	{ key: "actions", visibility: "required" },
+];
 
 export interface RoleFilterValues {
 	q?: string;
@@ -111,7 +124,6 @@ export function RoleTablePanel({
 			},
 			{
 				dataIndex: "displayName",
-				disable: true,
 				key: "displayName",
 				search: false,
 				sortDirections: ["ascend", "descend"],
@@ -211,7 +223,6 @@ export function RoleTablePanel({
 				width: token.controlHeight * 5,
 			},
 			{
-				disable: true,
 				key: "actions",
 				render: (_: unknown, role: PlatformRole) => {
 					const isBuiltIn = role.builtIn;
@@ -320,11 +331,11 @@ export function RoleTablePanel({
 			) : null}
 			<ManagementProTable<PlatformRole, RoleFilterValues>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey("roles")}
+				columnVisibility={roleColumnVisibility}
 				columns={columns}
 				dataSource={data}
 				emptyText={t("adminShell.roles.empty")}
 				initialLoading={initialLoading}
-				minimumWidth={token.controlHeight * 39}
 				onPageChange={onPageChange}
 				onReload={onReload}
 				onReset={onResetFilters}

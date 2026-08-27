@@ -38,7 +38,7 @@ import {
 	TableActionButton,
 	TableActionMenu,
 } from "../../app/TableActionButton";
-import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
+import type { TableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	createPlatformDepartment,
 	deletePlatformDepartment,
@@ -50,6 +50,7 @@ import {
 	updatePlatformDepartment,
 } from "#src/api/departments";
 import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
+import { DepartmentDetailDrawer } from "./DepartmentDetailDrawer";
 
 interface DepartmentFilterValues {
 	name?: string;
@@ -59,16 +60,15 @@ interface DepartmentFilterValues {
 const defaultDepartmentFilterValues: DepartmentFilterValues = { status: "all" };
 const formId = "department-form";
 const departmentsRouteKey = "/organization/departments";
-const departmentColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
-	[
-		{ key: "name", priority: "compact", required: true },
-		{ key: "code", priority: "regular" },
-		{ key: "status", priority: "compact" },
-		{ key: "memberCount", priority: "spacious" },
-		{ key: "positionCount", priority: "spacious" },
-		{ key: "updatedAt", priority: "optional" },
-		{ key: "actions", priority: "compact", required: true },
-	];
+const departmentColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "name", visibility: "required" },
+	{ key: "code", visibility: "recommended" },
+	{ key: "status", visibility: "recommended" },
+	{ key: "memberCount", visibility: "recommended" },
+	{ key: "positionCount", visibility: "recommended" },
+	{ key: "updatedAt", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
+];
 
 function flattenDepartments(
 	departments: PlatformDepartment[],
@@ -119,6 +119,9 @@ export function DepartmentsPage() {
 	const [editingDepartment, setEditingDepartment] =
 		useState<PlatformDepartment | null>(null);
 	const [creatingRoot, setCreatingRoot] = useState(false);
+	const [viewingDepartmentId, setViewingDepartmentId] = useState<string | null>(
+		null,
+	);
 	const [parentDepartment, setParentDepartment] =
 		useState<PlatformDepartment | null>(null);
 	const [deletingDepartment, setDeletingDepartment] =
@@ -233,6 +236,13 @@ export function DepartmentsPage() {
 			{
 				dataIndex: "name",
 				key: "name",
+				render: (_, department) => (
+					<TableActionButton
+						onClick={() => setViewingDepartmentId(department.id)}
+					>
+						{department.name}
+					</TableActionButton>
+				),
 				title: t("adminShell.departments.columns.name", {
 					defaultValue: "部门名称",
 				}),
@@ -440,6 +450,12 @@ export function DepartmentsPage() {
 	return (
 		<>
 			{messageContextHolder}
+			<DepartmentDetailDrawer
+				department={flattenDepartments(departmentsQuery.data ?? []).find(
+					(department) => department.id === viewingDepartmentId,
+				)}
+				onClose={() => setViewingDepartmentId(null)}
+			/>
 			<LogTablePanel<PlatformDepartment>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 					"departments",

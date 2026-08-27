@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
-import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
+import type { TableColumnConfig } from "../../app/tableColumnVisibility";
 import { i18n } from "../../i18n";
 import { LogTablePanel } from "./LogTablePanel";
 
@@ -42,11 +42,11 @@ const columns: TableColumnsType<TestRow> = [
 		width: 160,
 	},
 ];
-const columnVisibility: readonly ResponsiveTableColumnConfig<string>[] = [
-	{ key: "username", priority: "compact", required: true },
-	{ key: "result", priority: "compact" },
-	{ key: "ip", priority: "regular" },
-	{ key: "actions", priority: "compact", required: true },
+const columnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "username", visibility: "required" },
+	{ key: "result", visibility: "recommended" },
+	{ key: "ip", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
 ];
 const rows: TestRow[] = [
 	{ id: "row-1", ip: "192.168.1.1", result: "成功", username: "admin" },
@@ -94,32 +94,52 @@ function renderLogTablePanel() {
 }
 
 describe("LogTablePanel", () => {
-	it("keeps all columns visible and persists manual column choices", async () => {
+	it("defaults to recommended columns and persists optional choices", async () => {
 		const user = renderLogTablePanel();
 
 		expect(screen.getByRole("columnheader", { name: "账号" })).toBeVisible();
 		expect(screen.getByRole("columnheader", { name: "结果" })).toBeVisible();
 		expect(screen.getByRole("columnheader", { name: "操作" })).toBeVisible();
-		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
-
-		await user.click(screen.getByRole("button", { name: "列设置" }));
-		expect(screen.getByRole("checkbox", { name: "账号" })).toBeDisabled();
-		expect(screen.getByRole("checkbox", { name: "操作" })).toBeDisabled();
-		await user.click(screen.getByRole("checkbox", { name: "IP 地址" }));
 		expect(
 			screen.queryByRole("columnheader", { name: "IP 地址" }),
 		).not.toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "列设置" }));
+		expect(
+			screen.queryByRole("checkbox", { name: "账号" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("checkbox", { name: "操作" }),
+		).not.toBeInTheDocument();
+		expect(screen.getByRole("checkbox", { name: "IP 地址" })).not.toBeChecked();
+		await user.click(screen.getByRole("checkbox", { name: "IP 地址" }));
+		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
 		expect(
 			screen
 				.getAllByRole("columnheader")
 				.map((columnHeader) => columnHeader.textContent),
-		).toEqual(["账号", "结果", "操作"]);
+		).toEqual(["账号", "结果", "IP 地址", "操作"]);
 
 		cleanup();
-		renderLogTablePanel();
+		const restoredUser = renderLogTablePanel();
 
+		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
+		await restoredUser.click(screen.getByRole("button", { name: "列设置" }));
+		await restoredUser.click(
+			await screen.findByRole("checkbox", { name: "列显示" }),
+		);
+		expect(screen.getByRole("checkbox", { name: "列显示" })).not.toBeChecked();
 		expect(
-			screen.queryByRole("columnheader", { name: "IP 地址" }),
-		).not.toBeInTheDocument();
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(["账号", "操作"]);
+		await restoredUser.click(screen.getByRole("button", { name: "重置" }));
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(["账号", "结果", "操作"]);
+		cleanup();
+		renderLogTablePanel();
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(["账号", "结果", "操作"]);
 	});
 });

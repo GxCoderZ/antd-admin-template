@@ -24,7 +24,7 @@ import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { resolveTableSort } from "../../app/tableSorting";
-import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
+import type { TableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	TableActionButton,
 	TableActionMenu,
@@ -54,30 +54,29 @@ const loginTableSortToContractSort: Record<string, LoginLogSort> = {
 	identifier: "identifier",
 	result: "result",
 };
-const loginLogColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
-	[
-		{ key: "identifier", priority: "compact", required: true },
-		{ key: "result", priority: "compact" },
-		{ key: "userAgent", priority: "regular" },
-		{ key: "requestIp", priority: "regular" },
-		{ key: "acceptLanguage", priority: "spacious" },
-		{ key: "timeZone", priority: "spacious" },
-		{ key: "created_at", priority: "compact" },
-		{ key: "actions", priority: "compact", required: true },
-		{ key: "id", priority: "optional" },
-		{ key: "userId", priority: "optional" },
-		{ key: "requestId", priority: "optional" },
-		{ key: "authMethod", priority: "optional" },
-		{ key: "mfaUsed", priority: "optional" },
-		{ key: "location", priority: "optional" },
-		{ key: "browser", priority: "optional" },
-		{ key: "operatingSystem", priority: "optional" },
-		{ key: "durationMs", priority: "optional" },
-		{ key: "failureReason", priority: "optional" },
-		{ key: "sessionId", priority: "optional" },
-		{ key: "rawAcceptLanguage", priority: "optional" },
-		{ key: "rawUserAgent", priority: "optional" },
-	];
+const loginLogColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "identifier", visibility: "required" },
+	{ key: "result", visibility: "recommended" },
+	{ key: "userAgent", visibility: "recommended" },
+	{ key: "requestIp", visibility: "recommended" },
+	{ key: "acceptLanguage", visibility: "optional" },
+	{ key: "timeZone", visibility: "optional" },
+	{ key: "created_at", visibility: "recommended" },
+	{ key: "actions", visibility: "required" },
+	{ key: "id", visibility: "optional" },
+	{ key: "userId", visibility: "optional" },
+	{ key: "requestId", visibility: "optional" },
+	{ key: "authMethod", visibility: "optional" },
+	{ key: "mfaUsed", visibility: "optional" },
+	{ key: "location", visibility: "optional" },
+	{ key: "browser", visibility: "optional" },
+	{ key: "operatingSystem", visibility: "optional" },
+	{ key: "durationMs", visibility: "optional" },
+	{ key: "failureReason", visibility: "optional" },
+	{ key: "sessionId", visibility: "optional" },
+	{ key: "rawAcceptLanguage", visibility: "optional" },
+	{ key: "rawUserAgent", visibility: "optional" },
+];
 
 const loginResultStatus = {
 	invalid: "error",

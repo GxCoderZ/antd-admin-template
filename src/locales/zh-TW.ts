@@ -45,6 +45,11 @@ export const zhTWTranslation = {
 			logout: "登出",
 			logoutError: "登出失敗，請重試",
 		},
+		recordDetails: {
+			id: "記錄 ID",
+			version: "資料版本",
+			createdAt: "建立時間",
+		},
 		tableActions: {
 			actions: "操作",
 			copyError: "複製失敗，請重試",
@@ -216,6 +221,9 @@ export const zhTWTranslation = {
 			},
 		},
 		departments: {
+			detailTitle: "部門詳情",
+			parentId: "上級部門 ID",
+			children: "下級部門",
 			tableTitle: "部門列表",
 			create: "新增部門",
 			createChild: "新增下級",
@@ -273,6 +281,8 @@ export const zhTWTranslation = {
 			},
 		},
 		positions: {
+			detailTitle: "職位詳情",
+			departmentId: "部門 ID",
 			tableTitle: "職位列表",
 			create: "新增職位",
 			createTitle: "新增職位",
@@ -334,6 +344,7 @@ export const zhTWTranslation = {
 			},
 		},
 		dictionaries: {
+			typeId: "字典類型 ID",
 			typeTableTitle: "字典類型",
 			itemTableTitle: "字典項目",
 			noTypeSelected: "請先選擇字典類型",

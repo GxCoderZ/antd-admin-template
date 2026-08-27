@@ -1,4 +1,4 @@
-import type { ResponsiveTableColumnConfig } from "../../../app/tableColumnVisibility";
+import type { TableColumnConfig } from "../../../app/tableColumnVisibility";
 import type {
 	ListPlatformDictionaryItemsInput,
 	ListPlatformDictionaryTypesInput,
@@ -8,25 +8,23 @@ import type {
 export type TypeSort = NonNullable<ListPlatformDictionaryTypesInput["sort"]>;
 export type ItemSort = NonNullable<ListPlatformDictionaryItemsInput["sort"]>;
 
-export const typeColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
-	[
-		{ key: "name", priority: "compact", required: true },
-		{ key: "code", priority: "regular" },
-		{ key: "status", priority: "compact" },
-		{ key: "itemCount", priority: "spacious" },
-		{ key: "updatedAt", priority: "optional" },
-		{ key: "actions", priority: "compact", required: true },
-	];
-export const itemColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
-	[
-		{ key: "label", priority: "compact", required: true },
-		{ key: "value", priority: "regular" },
-		{ key: "color", priority: "spacious" },
-		{ key: "sort", priority: "spacious" },
-		{ key: "status", priority: "compact" },
-		{ key: "updatedAt", priority: "optional" },
-		{ key: "actions", priority: "compact", required: true },
-	];
+export const typeColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "name", visibility: "required" },
+	{ key: "code", visibility: "recommended" },
+	{ key: "status", visibility: "recommended" },
+	{ key: "itemCount", visibility: "recommended" },
+	{ key: "updatedAt", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
+];
+export const itemColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "label", visibility: "required" },
+	{ key: "value", visibility: "recommended" },
+	{ key: "color", visibility: "optional" },
+	{ key: "sort", visibility: "recommended" },
+	{ key: "status", visibility: "recommended" },
+	{ key: "updatedAt", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
+];
 
 export interface PageData<Row> {
 	items: Row[];

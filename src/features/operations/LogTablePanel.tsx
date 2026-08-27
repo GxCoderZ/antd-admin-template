@@ -29,7 +29,7 @@ import type {
 	TableProps,
 } from "antd";
 import type { ReactNode } from "react";
-import { useMemo, useRef, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -40,8 +40,8 @@ import {
 } from "../../app/preferenceStorage";
 import { managementQueryLayout } from "../../app/queryFilterLayout";
 import {
-	type ResponsiveTableColumnConfig,
-	useResponsiveTableColumns,
+	type TableColumnConfig,
+	useTableColumns,
 } from "../../app/tableColumnVisibility";
 
 const pageSizeOptions = [10, 20, 50, 100];
@@ -67,7 +67,7 @@ interface LogQueryPanelProps<Values extends object> {
 
 interface LogTablePanelProps<Row extends { id: string }> {
 	columnSettingsStorageKey: string;
-	columnVisibility: readonly ResponsiveTableColumnConfig<string>[];
+	columnVisibility: readonly TableColumnConfig[];
 	columns: TableColumnsType<Row>;
 	dataSource: Row[];
 	description?: ReactNode;
@@ -178,26 +178,9 @@ export function LogTablePanel<Row extends { id: string }>({
 }: LogTablePanelProps<Row>) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const workspaceRef = useRef<HTMLDivElement>(null);
-	const orderedColumns = useMemo(() => {
-		const actionColumns = columns.filter((column) => column.key === "actions");
-
-		return actionColumns.length === 0
-			? columns
-			: [
-					...columns.filter((column) => column.key !== "actions"),
-					...actionColumns,
-				];
-	}, [columns]);
-	const allColumnKeys = useMemo(
-		() => orderedColumns.map((column) => String(column.key)),
-		[orderedColumns],
-	);
-	const tableColumns = useResponsiveTableColumns<Row, string>({
-		columnKeys: allColumnKeys,
-		columns: orderedColumns,
+	const tableColumns = useTableColumns<Row>({
+		columns,
 		configs: columnVisibility,
-		containerRef: workspaceRef,
 		storageKey: columnSettingsStorageKey,
 	});
 	const tableSize = useSyncExternalStore(
@@ -245,9 +228,7 @@ export function LogTablePanel<Row extends { id: string }>({
 					indeterminate={tableColumns.isSomeColumnsVisible}
 					onChange={(event) => {
 						tableColumns.setVisibleColumnKeys(
-							event.target.checked
-								? tableColumns.availableColumnKeys
-								: tableColumns.requiredColumnKeys,
+							event.target.checked ? tableColumns.configurableColumnKeys : [],
 						);
 					}}
 				>
@@ -263,20 +244,19 @@ export function LogTablePanel<Row extends { id: string }>({
 			</Flex>
 			<Checkbox.Group
 				onChange={(keys) => tableColumns.setVisibleColumnKeys(keys.map(String))}
+				style={{ maxHeight: token.controlHeight * 8, overflowY: "auto" }}
 				value={tableColumns.visibleColumnKeys}
 			>
 				<Flex gap={token.marginXS} vertical>
-					{orderedColumns.map((column) => (
-						<Checkbox
-							disabled={tableColumns.requiredColumnKeys.includes(
-								String(column.key),
-							)}
-							key={String(column.key)}
-							value={String(column.key)}
-						>
-							{column.title as ReactNode}
-						</Checkbox>
-					))}
+					{columns
+						.filter((column) =>
+							tableColumns.configurableColumnKeys.includes(String(column.key)),
+						)
+						.map((column) => (
+							<Checkbox key={String(column.key)} value={String(column.key)}>
+								{column.title as ReactNode}
+							</Checkbox>
+						))}
 				</Flex>
 			</Checkbox.Group>
 		</Flex>
@@ -334,12 +314,7 @@ export function LogTablePanel<Row extends { id: string }>({
 	];
 
 	return (
-		<Flex
-			data-testid={workspaceTestId}
-			gap={token.margin}
-			ref={workspaceRef}
-			vertical
-		>
+		<Flex data-testid={workspaceTestId} gap={token.margin} vertical>
 			{queryPanel}
 			<Card
 				data-testid={testId}

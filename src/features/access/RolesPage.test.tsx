@@ -166,6 +166,21 @@ describe("RolesPage", () => {
 		).toBeInTheDocument();
 		expect(within(dialog).getByText("operator")).toBeInTheDocument();
 		expect(within(dialog).getByText("查看公告")).toBeInTheDocument();
+		for (const label of [
+			"角色 ID",
+			"角色名称",
+			"角色标识",
+			"成员数",
+			"角色类型",
+			"权限点",
+			"创建时间",
+			"更新时间",
+			"数据版本",
+		]) {
+			expect(
+				within(dialog).getByText(label, { exact: true }),
+			).toBeInTheDocument();
+		}
 	});
 
 	it("updates role permissions from the permission drawer", async () => {

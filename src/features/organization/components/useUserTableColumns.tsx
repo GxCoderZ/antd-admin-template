@@ -86,7 +86,6 @@ export function useUserTableColumns({
 			},
 			{
 				dataIndex: "username",
-				disable: true,
 				key: "username",
 				search: false,
 				sortDirections: ["ascend", "descend"],
@@ -187,7 +186,6 @@ export function useUserTableColumns({
 			},
 			{
 				dataIndex: "status",
-				disable: true,
 				key: "status",
 				render: (_, row) => (
 					<Badge
@@ -308,7 +306,6 @@ export function useUserTableColumns({
 		];
 
 		dataColumns.push({
-			disable: true,
 			key: "actions",
 			render: (_: unknown, row: PlatformUser) => (
 				<Space size="medium">

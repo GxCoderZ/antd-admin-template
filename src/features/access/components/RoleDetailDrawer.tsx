@@ -85,6 +85,10 @@ export function RoleDetailDrawer({ onClose, role }: RoleDetailDrawerProps) {
 					children: formatDateTime(role.updatedAt, formatPreferences),
 					label: t("adminShell.roles.columns.updatedAt"),
 				},
+				{
+					children: role.version ?? "-",
+					label: t("adminShell.recordDetails.version"),
+				},
 			]
 		: [];
 

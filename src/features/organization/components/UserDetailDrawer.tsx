@@ -139,6 +139,10 @@ export function UserDetailDrawer({
 					children: formatDateTime(user.updatedAt, formatPreferences),
 					label: t("adminShell.users.columns.updatedAt"),
 				},
+				{
+					children: user.version ?? missingValue,
+					label: t("adminShell.recordDetails.version"),
+				},
 			]
 		: [];
 

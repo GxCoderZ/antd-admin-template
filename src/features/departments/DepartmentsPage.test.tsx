@@ -90,6 +90,34 @@ function renderDepartmentsPage() {
 }
 
 describe("DepartmentsPage", () => {
+	it("opens complete read-only department details from the name", async () => {
+		const user = renderDepartmentsPage();
+		await user.click(await screen.findByRole("button", { name: "运营中心" }));
+		const dialog = await screen.findByRole("dialog");
+		for (const label of [
+			"记录 ID",
+			"部门名称",
+			"部门标识",
+			"上级部门 ID",
+			"下级部门",
+			"状态",
+			"成员数",
+			"岗位数",
+			"创建时间",
+			"更新时间",
+		]) {
+			expect(
+				within(dialog).getByText(label, { exact: true }),
+			).toBeInTheDocument();
+		}
+		expect(within(dialog).getByText(department.id)).toBeInTheDocument();
+		expect(
+			within(dialog).getByText("内容运营组 (content)"),
+		).toBeInTheDocument();
+		expect(within(dialog).queryByRole("textbox")).not.toBeInTheDocument();
+		expect(mocks.updatePlatformDepartment).not.toHaveBeenCalled();
+	});
+
 	it("uses the standard query bar and management table toolbar", async () => {
 		renderDepartmentsPage();
 

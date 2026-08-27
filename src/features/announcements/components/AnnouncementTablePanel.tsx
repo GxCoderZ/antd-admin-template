@@ -9,7 +9,7 @@ import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
 import { resolveTableSort } from "../../../app/tableSorting";
-import type { ResponsiveTableColumnConfig } from "../../../app/tableColumnVisibility";
+import type { TableColumnConfig } from "../../../app/tableColumnVisibility";
 import { TableActionButton } from "../../../app/TableActionButton";
 import type {
 	ListPlatformAnnouncementsInput,
@@ -50,13 +50,12 @@ interface AnnouncementTablePanelProps {
 	tableState: AnnouncementTableState;
 }
 
-const announcementColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
-	[
-		{ key: "title", priority: "compact", required: true },
-		{ key: "status", priority: "compact" },
-		{ key: "updatedAt", priority: "regular" },
-		{ key: "actions", priority: "compact", required: true },
-	];
+const announcementColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "title", visibility: "required" },
+	{ key: "status", visibility: "recommended" },
+	{ key: "updatedAt", visibility: "recommended" },
+	{ key: "actions", visibility: "required" },
+];
 
 const tableSortToContractSort: Record<string, AnnouncementSort> = {
 	status: "status",

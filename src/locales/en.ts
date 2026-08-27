@@ -45,6 +45,11 @@ export const enTranslation = {
 			logout: "Sign out",
 			logoutError: "Sign out failed. Please try again.",
 		},
+		recordDetails: {
+			id: "Record ID",
+			version: "Data version",
+			createdAt: "Created at",
+		},
 		tableActions: {
 			actions: "Actions",
 			copyError: "Copy failed. Please try again.",
@@ -221,6 +226,9 @@ export const enTranslation = {
 			},
 		},
 		departments: {
+			detailTitle: "Department details",
+			parentId: "Parent department ID",
+			children: "Child departments",
 			tableTitle: "Departments",
 			create: "New department",
 			createChild: "Add child",
@@ -280,6 +288,8 @@ export const enTranslation = {
 			},
 		},
 		positions: {
+			detailTitle: "Position details",
+			departmentId: "Department ID",
 			tableTitle: "Positions",
 			create: "New position",
 			createTitle: "New position",
@@ -342,6 +352,7 @@ export const enTranslation = {
 			},
 		},
 		dictionaries: {
+			typeId: "Dictionary type ID",
 			typeTableTitle: "Dictionary types",
 			itemTableTitle: "Dictionary items",
 			noTypeSelected: "Select a dictionary type first",

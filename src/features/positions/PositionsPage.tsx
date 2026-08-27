@@ -40,7 +40,7 @@ import {
 	TableActionButton,
 	TableActionMenu,
 } from "../../app/TableActionButton";
-import type { ResponsiveTableColumnConfig } from "../../app/tableColumnVisibility";
+import type { TableColumnConfig } from "../../app/tableColumnVisibility";
 import {
 	listPlatformDepartments,
 	platformDepartmentsQueryKey,
@@ -58,6 +58,7 @@ import {
 	updatePlatformPosition,
 } from "#src/api/positions";
 import { LogQueryPanel, LogTablePanel } from "../operations/LogTablePanel";
+import { PositionDetailDrawer } from "./PositionDetailDrawer";
 
 interface PositionFilterValues {
 	code?: string;
@@ -82,16 +83,15 @@ const defaultPositionTableState: PositionTableState = {
 	sort: "updated_at",
 };
 const formId = "position-form";
-const positionColumnVisibility: readonly ResponsiveTableColumnConfig<string>[] =
-	[
-		{ key: "name", priority: "compact", required: true },
-		{ key: "code", priority: "regular" },
-		{ key: "departmentName", priority: "regular" },
-		{ key: "status", priority: "compact" },
-		{ key: "memberCount", priority: "spacious" },
-		{ key: "updatedAt", priority: "optional" },
-		{ key: "actions", priority: "compact", required: true },
-	];
+const positionColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "name", visibility: "required" },
+	{ key: "code", visibility: "recommended" },
+	{ key: "departmentName", visibility: "recommended" },
+	{ key: "status", visibility: "recommended" },
+	{ key: "memberCount", visibility: "recommended" },
+	{ key: "updatedAt", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
+];
 const tableSortToContractSort: Record<
 	string,
 	NonNullable<ListPlatformPositionsInput["sort"]>
@@ -156,6 +156,9 @@ export function PositionsPage() {
 		stateKey: "table",
 	});
 	const [creatingPosition, setCreatingPosition] = useState(false);
+	const [viewingPositionId, setViewingPositionId] = useState<string | null>(
+		null,
+	);
 	const [editingPosition, setEditingPosition] =
 		useState<PlatformPosition | null>(null);
 	const [deletingPosition, setDeletingPosition] =
@@ -313,6 +316,11 @@ export function PositionsPage() {
 			{
 				dataIndex: "name",
 				key: "name",
+				render: (_, position) => (
+					<TableActionButton onClick={() => setViewingPositionId(position.id)}>
+						{position.name}
+					</TableActionButton>
+				),
 				sortDirections: ["ascend", "descend"],
 				sortOrder: sortOrder("name"),
 				sorter: true,
@@ -572,6 +580,12 @@ export function PositionsPage() {
 	return (
 		<>
 			{messageContextHolder}
+			<PositionDetailDrawer
+				position={positionsQuery.data?.items.find(
+					(position) => position.id === viewingPositionId,
+				)}
+				onClose={() => setViewingPositionId(null)}
+			/>
 			<LogTablePanel<PlatformPosition>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey("positions")}
 				columnVisibility={positionColumnVisibility}
