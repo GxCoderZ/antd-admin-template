@@ -1,4 +1,10 @@
 export const enTranslation = {
+	discardChanges: {
+		title: "Discard unsaved changes?",
+		description: "Unsaved changes will be lost when you close this editor.",
+		keepEditing: "Keep editing",
+		discard: "Discard changes",
+	},
 	app: {
 		name: "React Antd Admin",
 		description: "Enterprise Management Console",

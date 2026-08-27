@@ -41,6 +41,28 @@ beforeAll(async () => {
 });
 
 describe("UserEditDrawer", () => {
+	it("disables the managed department selector while saving", async () => {
+		render(
+			<QueryClientProvider client={new QueryClient()}>
+				<ConfigProvider>
+					<UserEditDrawer
+						error={null}
+						loading
+						onCancel={vi.fn()}
+						onReloadConflict={vi.fn()}
+						onSubmit={vi.fn()}
+						positionOptions={[]}
+						positionsLoading={false}
+						requestedStatus={undefined}
+						user={userRecord}
+					/>
+				</ConfigProvider>
+			</QueryClientProvider>,
+		);
+		await screen.findByText("平台研发部");
+		expect(screen.getByRole("combobox", { name: "部门" })).toBeDisabled();
+	});
+
 	it("saves routine edits without typed-name confirmation", async () => {
 		const onSubmit = vi.fn();
 		const user = userEvent.setup();

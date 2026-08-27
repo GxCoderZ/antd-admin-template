@@ -230,6 +230,7 @@ export function RolesPage() {
 				loading={createMutation.isPending}
 				onCancel={() => {
 					createMutation.reset();
+					createForm.resetFields();
 					setCreateOpen(false);
 				}}
 				onSubmit={(values) => createMutation.mutate(values)}

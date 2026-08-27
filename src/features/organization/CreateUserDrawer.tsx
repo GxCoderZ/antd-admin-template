@@ -4,6 +4,7 @@ import { Alert, Button, Drawer, Flex, Form, Input, theme } from "antd";
 import { useTranslation } from "react-i18next";
 import { platformDepartmentsQueryKey } from "#src/api/departments";
 import { UserDepartmentSelect } from "./components/UserDepartmentSelect";
+import { hasFormChanges, useDiscardChanges } from "../../app/useDiscardChanges";
 
 import {
 	createPlatformUser,
@@ -64,6 +65,18 @@ export function CreateUserDrawer({
 		createUserMutation.reset();
 		onClose();
 	};
+	const discard = useDiscardChanges({
+		isDirty: () =>
+			hasFormChanges(form, {
+				username: "",
+				displayName: "",
+				email: "",
+				password: "",
+				departmentId: null,
+			}),
+		onDiscard: closeDrawer,
+		saving: createUserMutation.isPending,
+	});
 	const createUser = (values: CreateUserFormValues) => {
 		createUserMutation.mutate(values, {
 			onSuccess: () => {
@@ -79,7 +92,10 @@ export function CreateUserDrawer({
 			destroyOnHidden
 			footer={
 				<Flex gap={token.marginXS} justify="flex-end">
-					<Button onClick={closeDrawer}>
+					<Button
+						disabled={createUserMutation.isPending}
+						onClick={discard.requestClose}
+					>
 						{t("adminShell.users.createForm.cancel")}
 					</Button>
 					<Button
@@ -91,10 +107,14 @@ export function CreateUserDrawer({
 					</Button>
 				</Flex>
 			}
-			onClose={closeDrawer}
+			onClose={discard.requestClose}
+			closable={!createUserMutation.isPending}
+			keyboard={!createUserMutation.isPending}
+			mask={{ closable: !createUserMutation.isPending }}
 			open={open}
 			title={t("adminShell.users.create")}
 		>
+			{discard.contextHolder}
 			<Flex gap={token.marginLG} vertical>
 				{createUserMutation.isError ? (
 					<Alert
@@ -108,6 +128,7 @@ export function CreateUserDrawer({
 					/>
 				) : null}
 				<Form<CreateUserFormValues>
+					disabled={createUserMutation.isPending}
 					form={form}
 					layout="vertical"
 					name="create-user"

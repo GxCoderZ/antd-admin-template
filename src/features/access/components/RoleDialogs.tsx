@@ -12,6 +12,10 @@ import type { FormInstance } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { DangerConfirmationModal } from "../../../app/DangerConfirmation";
+import {
+	hasFormChanges,
+	useDiscardChanges,
+} from "../../../app/useDiscardChanges";
 import type {
 	CreatePlatformRoleInput,
 	PlatformRole,
@@ -41,6 +45,11 @@ export function CreateRoleModal({
 }: CreateRoleModalProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const discard = useDiscardChanges({
+		isDirty: () => hasFormChanges(form, { displayName: "", roleKey: "" }),
+		onDiscard: onCancel,
+		saving: loading,
+	});
 
 	return (
 		<Modal
@@ -48,11 +57,16 @@ export function CreateRoleModal({
 			confirmLoading={loading}
 			destroyOnHidden
 			okText={t("adminShell.roles.create")}
-			onCancel={onCancel}
+			onCancel={discard.requestClose}
+			cancelButtonProps={{ disabled: loading }}
+			closable={!loading}
+			keyboard={!loading}
+			mask={{ closable: !loading }}
 			onOk={() => form.submit()}
 			open={open}
 			title={t("adminShell.roles.createTitle")}
 		>
+			{discard.contextHolder}
 			<Flex gap={token.margin} vertical>
 				{error ? (
 					<Alert
@@ -66,6 +80,7 @@ export function CreateRoleModal({
 					/>
 				) : null}
 				<Form<CreatePlatformRoleInput>
+					disabled={loading}
 					form={form}
 					layout="vertical"
 					onFinish={onSubmit}
@@ -126,6 +141,12 @@ export function RenameRoleModal({
 }: RenameRoleModalProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const discard = useDiscardChanges({
+		isDirty: () =>
+			role !== null && hasFormChanges(form, { displayName: role.displayName }),
+		onDiscard: onCancel,
+		saving: loading,
+	});
 
 	return (
 		<Modal
@@ -134,11 +155,16 @@ export function RenameRoleModal({
 			destroyOnHidden
 			okButtonProps={{ disabled: conflict }}
 			okText={t("adminShell.roles.save")}
-			onCancel={onCancel}
+			onCancel={discard.requestClose}
+			cancelButtonProps={{ disabled: loading }}
+			closable={!loading}
+			keyboard={!loading}
+			mask={{ closable: !loading }}
 			onOk={() => form.submit()}
 			open={role !== null}
 			title={t("adminShell.roles.renameTitle", { name: role?.displayName })}
 		>
+			{discard.contextHolder}
 			<Flex gap={token.margin} vertical>
 				{error ? (
 					<Alert
@@ -165,6 +191,7 @@ export function RenameRoleModal({
 					/>
 				) : null}
 				<Form<RenameRoleFormValues>
+					disabled={loading}
 					form={form}
 					layout="vertical"
 					onFinish={onSubmit}

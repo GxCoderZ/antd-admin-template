@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import type { PlatformRole } from "#src/api/roles";
 import type { PlatformUser } from "#src/api/users";
+import { useDiscardChanges } from "../../../app/useDiscardChanges";
 import {
 	getProblemFallback,
 	getUserMutationErrorTitleKey,
@@ -94,6 +95,14 @@ export function UserRolesDrawer({
 		.map((roleId) => rolesById.get(roleId))
 		.filter((role): role is RoleOption => role !== undefined);
 	const hasDraftChanges = addedRoles.length > 0 || removedRoles.length > 0;
+	const discard = useDiscardChanges({
+		isDirty: () => hasDraftChanges,
+		onDiscard: () => {
+			setDraftRoleIdsOverride(null);
+			onClose();
+		},
+		saving,
+	});
 
 	const isHighPrivilegeRole = (role: RoleOption) =>
 		role.roleKey.includes("admin") ||
@@ -145,11 +154,16 @@ export function UserRolesDrawer({
 								: t("adminShell.users.roles.noUnsaved")}
 						</Text>
 						<Flex gap={token.marginXS}>
-							<Button onClick={() => setDraftRoleIdsOverride(null)}>
+							<Button
+								disabled={saving}
+								onClick={() => setDraftRoleIdsOverride(null)}
+							>
 								{t("adminShell.users.roles.reset")}
 							</Button>
 							<Button
-								disabled={!hasDraftChanges || detailLoading || Boolean(rolesError)}
+								disabled={
+									!hasDraftChanges || detailLoading || Boolean(rolesError)
+								}
 								loading={saving}
 								onClick={() => onSaveRoles(draftRoleIds)}
 								type="primary"
@@ -161,13 +175,14 @@ export function UserRolesDrawer({
 				) : null
 			}
 			loading={detailLoading}
-			onClose={() => {
-				setDraftRoleIdsOverride(null);
-				onClose();
-			}}
+			onClose={discard.requestClose}
+			closable={!saving}
+			keyboard={!saving}
+			mask={{ closable: !saving }}
 			open={user !== null}
 			title={t("adminShell.users.roles.title", { name: user?.username })}
 		>
+			{discard.contextHolder}
 			<Flex gap={token.marginLG} vertical>
 				{detailError ? (
 					<Alert
@@ -227,7 +242,7 @@ export function UserRolesDrawer({
 						) : null}
 						<Select
 							aria-label={t("adminShell.users.roles.selectorLabel")}
-							disabled={detailLoading || Boolean(rolesError)}
+							disabled={saving || detailLoading || Boolean(rolesError)}
 							maxTagCount="responsive"
 							mode="multiple"
 							onChange={(nextRoleIds) =>
@@ -255,7 +270,9 @@ export function UserRolesDrawer({
 												<Tag>{t("adminShell.users.roles.disabled")}</Tag>
 											) : null}
 										</Flex>
-										<Text type={isHighPrivilegeRole(role) ? "danger" : "secondary"}>
+										<Text
+											type={isHighPrivilegeRole(role) ? "danger" : "secondary"}
+										>
 											{isHighPrivilegeRole(role)
 												? t("adminShell.users.roles.highPrivilegeRisk")
 												: getRoleDescription(role)}

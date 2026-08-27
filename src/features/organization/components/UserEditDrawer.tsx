@@ -5,6 +5,10 @@ import { useTranslation } from "react-i18next";
 import type { PlatformUser, UpdatePlatformUserInput } from "#src/api/users";
 import { UserDepartmentSelect } from "./UserDepartmentSelect";
 import {
+	hasFormChanges,
+	useDiscardChanges,
+} from "../../../app/useDiscardChanges";
+import {
 	getProblemFallback,
 	getUserMutationErrorTitleKey,
 	isApiProblemStatus,
@@ -63,29 +67,42 @@ export function UserEditDrawer({
 	}, [currentJobTitle, positionOptions]);
 	const showsDisableWarning =
 		user !== null && user.status !== "disabled" && editingStatus === "disabled";
+	const initialValues = useMemo<UserEditFormValues | null>(
+		() =>
+			user
+				? {
+						departmentId: user.departmentId,
+						displayName: user.displayName,
+						email: user.email,
+						jobTitle: user.jobTitle,
+						phone: user.phone,
+						status: user.status === "locked" ? "disabled" : user.status,
+					}
+				: null,
+		[user],
+	);
+	const discard = useDiscardChanges({
+		isDirty: () =>
+			initialValues !== null && hasFormChanges(form, initialValues),
+		onDiscard: onCancel,
+		saving: loading,
+	});
 
 	useEffect(() => {
-		if (!user) {
+		if (!initialValues) {
 			form.resetFields();
 			return;
 		}
 
-		form.setFieldsValue({
-			departmentId: user.departmentId,
-			displayName: user.displayName,
-			email: user.email,
-			jobTitle: user.jobTitle,
-			phone: user.phone,
-			status: user.status === "locked" ? "disabled" : user.status,
-		});
-	}, [form, user]);
+		form.setFieldsValue(initialValues);
+	}, [form, initialValues]);
 
 	return (
 		<Drawer
 			destroyOnHidden
 			footer={
 				<Flex gap={token.marginXS} justify="flex-end">
-					<Button onClick={onCancel}>
+					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.users.editForm.cancel")}
 					</Button>
 					<Button
@@ -98,12 +115,16 @@ export function UserEditDrawer({
 					</Button>
 				</Flex>
 			}
-			onClose={onCancel}
+			onClose={discard.requestClose}
+			closable={!loading}
+			keyboard={!loading}
+			mask={{ closable: !loading }}
 			open={user !== null}
 			title={t("adminShell.users.editForm.title", {
 				name: user?.username,
 			})}
 		>
+			{discard.contextHolder}
 			<Flex gap={token.margin} vertical>
 				{error ? (
 					<Alert
@@ -139,6 +160,7 @@ export function UserEditDrawer({
 					/>
 				) : null}
 				<Form<UserEditFormValues>
+					disabled={loading}
 					form={form}
 					layout="vertical"
 					name="edit-user"

@@ -1,6 +1,10 @@
 import { Alert, Button, Drawer, Form, Input, Select, Space } from "antd";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import {
+	hasFormChanges,
+	useDiscardChanges,
+} from "../../../app/useDiscardChanges";
 
 import type {
 	CreatePlatformAnnouncementInput,
@@ -28,13 +32,8 @@ export function AnnouncementFormDrawer({
 }: AnnouncementFormDrawerProps) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<CreatePlatformAnnouncementInput>();
-
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-
-		form.setFieldsValue(
+	const initialValues = useMemo<CreatePlatformAnnouncementInput>(
+		() =>
 			announcement
 				? {
 						content: announcement.content,
@@ -42,15 +41,28 @@ export function AnnouncementFormDrawer({
 						title: announcement.title,
 					}
 				: { content: "", status: "draft", title: "" },
-		);
-	}, [announcement, form, open]);
+		[announcement],
+	);
+	const discard = useDiscardChanges({
+		isDirty: () => hasFormChanges(form, initialValues),
+		onDiscard: onClose,
+		saving: loading,
+	});
+
+	useEffect(() => {
+		if (!open) {
+			return;
+		}
+
+		form.setFieldsValue(initialValues);
+	}, [initialValues, form, open]);
 
 	return (
 		<Drawer
 			destroyOnHidden
 			extra={
 				<Space>
-					<Button disabled={loading} onClick={onClose}>
+					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.announcements.cancel")}
 					</Button>
 					<Button
@@ -63,7 +75,10 @@ export function AnnouncementFormDrawer({
 					</Button>
 				</Space>
 			}
-			onClose={onClose}
+			onClose={discard.requestClose}
+			closable={!loading}
+			keyboard={!loading}
+			mask={{ closable: !loading }}
 			open={open}
 			title={t(
 				announcement
@@ -71,6 +86,7 @@ export function AnnouncementFormDrawer({
 					: "adminShell.announcements.createTitle",
 			)}
 		>
+			{discard.contextHolder}
 			{error ? (
 				<Alert
 					description={t("adminShell.announcements.errors.fallback")}
@@ -81,6 +97,7 @@ export function AnnouncementFormDrawer({
 				/>
 			) : null}
 			<Form<CreatePlatformAnnouncementInput>
+				disabled={loading}
 				form={form}
 				id={formId}
 				layout="vertical"

@@ -26,6 +26,7 @@ import {
 } from "../rolePermissions";
 import { getRoleErrorTitleKey, getRoleProblemDetail } from "../roleProblems";
 import { RolePermissionSaveError } from "../saveRolePermissions";
+import { useDiscardChanges } from "../../../app/useDiscardChanges";
 
 const { Text } = Typography;
 
@@ -77,6 +78,11 @@ export function RolePermissionDrawer({
 				(permission) => !role.permissions.includes(permission),
 			));
 
+	const discard = useDiscardChanges({
+		isDirty: () => hasDraftChanges,
+		onDiscard: onClose,
+		saving: loading,
+	});
 	const { treeData, visiblePermissionValueSet } = useMemo(() => {
 		const visiblePermissionValues: PlatformPermission[] = [];
 		const matchesSearch = (node: PermissionTreeNode) => {
@@ -161,7 +167,7 @@ export function RolePermissionDrawer({
 			destroyOnHidden
 			footer={
 				<Flex gap={token.marginXS} justify="end">
-					<Button disabled={loading} onClick={onClose}>
+					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.roles.cancel")}
 					</Button>
 					<Button
@@ -176,7 +182,7 @@ export function RolePermissionDrawer({
 			}
 			keyboard={!loading}
 			mask={{ closable: !loading }}
-			onClose={onClose}
+			onClose={discard.requestClose}
 			open={open}
 			size="min(560px, 100vw)"
 			styles={{
@@ -188,6 +194,7 @@ export function RolePermissionDrawer({
 				name: role?.displayName,
 			})}
 		>
+			{discard.contextHolder}
 			{role ? (
 				<Flex gap={token.marginSM} vertical>
 					{saved && !hasDraftChanges ? (

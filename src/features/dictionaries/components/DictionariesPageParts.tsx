@@ -9,7 +9,7 @@ import {
 	Space,
 	Tag,
 } from "antd";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -20,6 +20,10 @@ import type {
 	PlatformDictionaryType,
 } from "#src/api/dictionaries";
 import { colorOptions } from "./DictionariesPageModel";
+import {
+	hasFormChanges,
+	useDiscardChanges,
+} from "../../../app/useDiscardChanges";
 
 type TypeFormValues = Omit<CreatePlatformDictionaryTypeInput, "description"> & {
 	description?: string;
@@ -60,13 +64,8 @@ export function TypeFormDrawer({
 }) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<TypeFormValues>();
-
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-
-		form.setFieldsValue(
+	const initialValues = useMemo<TypeFormValues>(
+		() =>
 			dictionaryType
 				? {
 						code: dictionaryType.code,
@@ -75,15 +74,28 @@ export function TypeFormDrawer({
 						status: dictionaryType.status,
 					}
 				: { code: "", description: "", name: "", status: "active" },
-		);
-	}, [dictionaryType, form, open]);
+		[dictionaryType],
+	);
+	const discard = useDiscardChanges({
+		isDirty: () => hasFormChanges(form, initialValues),
+		onDiscard: onClose,
+		saving: loading,
+	});
+
+	useEffect(() => {
+		if (!open) {
+			return;
+		}
+
+		form.setFieldsValue(initialValues);
+	}, [initialValues, form, open]);
 
 	return (
 		<Drawer
 			destroyOnHidden
 			extra={
 				<Space>
-					<Button disabled={loading} onClick={onClose}>
+					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.dictionaries.cancel")}
 					</Button>
 					<Button
@@ -96,7 +108,10 @@ export function TypeFormDrawer({
 					</Button>
 				</Space>
 			}
-			onClose={onClose}
+			onClose={discard.requestClose}
+			closable={!loading}
+			keyboard={!loading}
+			mask={{ closable: !loading }}
 			open={open}
 			title={t(
 				dictionaryType
@@ -104,6 +119,7 @@ export function TypeFormDrawer({
 					: "adminShell.dictionaries.createTypeTitle",
 			)}
 		>
+			{discard.contextHolder}
 			{error ? (
 				<Alert
 					description={t("adminShell.dictionaries.errors.fallback")}
@@ -114,6 +130,7 @@ export function TypeFormDrawer({
 				/>
 			) : null}
 			<Form<TypeFormValues>
+				disabled={loading}
 				form={form}
 				id="dictionary-type-form"
 				layout="vertical"
@@ -211,13 +228,8 @@ export function ItemFormDrawer({
 }) {
 	const { t } = useTranslation();
 	const [form] = Form.useForm<ItemFormValues>();
-
-	useEffect(() => {
-		if (!open) {
-			return;
-		}
-
-		form.setFieldsValue(
+	const initialValues = useMemo<ItemFormValues>(
+		() =>
 			dictionaryItem
 				? {
 						color: dictionaryItem.color,
@@ -235,15 +247,28 @@ export function ItemFormDrawer({
 						status: "active",
 						value: "",
 					},
-		);
-	}, [dictionaryItem, form, open]);
+		[dictionaryItem],
+	);
+	const discard = useDiscardChanges({
+		isDirty: () => hasFormChanges(form, initialValues),
+		onDiscard: onClose,
+		saving: loading,
+	});
+
+	useEffect(() => {
+		if (!open) {
+			return;
+		}
+
+		form.setFieldsValue(initialValues);
+	}, [initialValues, form, open]);
 
 	return (
 		<Drawer
 			destroyOnHidden
 			extra={
 				<Space>
-					<Button disabled={loading} onClick={onClose}>
+					<Button disabled={loading} onClick={discard.requestClose}>
 						{t("adminShell.dictionaries.cancel")}
 					</Button>
 					<Button
@@ -256,7 +281,10 @@ export function ItemFormDrawer({
 					</Button>
 				</Space>
 			}
-			onClose={onClose}
+			onClose={discard.requestClose}
+			closable={!loading}
+			keyboard={!loading}
+			mask={{ closable: !loading }}
 			open={open}
 			title={t(
 				dictionaryItem
@@ -264,6 +292,7 @@ export function ItemFormDrawer({
 					: "adminShell.dictionaries.createItemTitle",
 			)}
 		>
+			{discard.contextHolder}
 			{error ? (
 				<Alert
 					description={t("adminShell.dictionaries.errors.fallback")}
@@ -274,6 +303,7 @@ export function ItemFormDrawer({
 				/>
 			) : null}
 			<Form<ItemFormValues>
+				disabled={loading}
 				form={form}
 				id="dictionary-item-form"
 				layout="vertical"

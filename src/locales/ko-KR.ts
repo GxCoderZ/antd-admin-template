@@ -1,4 +1,10 @@
 export const koKRTranslation = {
+	discardChanges: {
+		title: "저장하지 않은 변경 사항을 버리시겠습니까?",
+		description: "닫으면 저장하지 않은 내용이 사라집니다.",
+		keepEditing: "계속 편집",
+		discard: "변경 사항 버리기",
+	},
 	app: {
 		name: "React Antd Admin",
 		description: "기업 관리 콘솔",

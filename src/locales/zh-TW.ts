@@ -1,4 +1,10 @@
 export const zhTWTranslation = {
+	discardChanges: {
+		title: "放棄未儲存的變更？",
+		description: "關閉後，本次未儲存的內容將遺失。",
+		keepEditing: "繼續編輯",
+		discard: "放棄變更",
+	},
 	app: {
 		name: "React Antd Admin",
 		description: "企業管理控制台",

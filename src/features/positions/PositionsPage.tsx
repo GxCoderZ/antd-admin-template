@@ -1,4 +1,5 @@
 import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
+import { hasFormChanges, useDiscardChanges } from "../../app/useDiscardChanges";
 import { useRef } from "react";
 import {
 	CheckCircleOutlined,
@@ -260,12 +261,8 @@ export function PositionsPage() {
 		},
 	});
 	const editorOpen = creatingPosition || editingPosition !== null;
-
-	useEffect(() => {
-		if (!editorOpen) {
-			return;
-		}
-		editorForm.setFieldsValue(
+	const initialValues = useMemo<CreatePlatformPositionInput>(
+		() =>
 			editingPosition
 				? toPositionInput(editingPosition)
 				: {
@@ -274,8 +271,23 @@ export function PositionsPage() {
 						name: "",
 						status: "active",
 					},
-		);
-	}, [departmentOptions, editingPosition, editorForm, editorOpen]);
+		[editingPosition, departmentOptions],
+	);
+	const discard = useDiscardChanges({
+		isDirty: () => hasFormChanges(editorForm, initialValues),
+		onDiscard: () => {
+			setEditingPosition(null);
+			setCreatingPosition(false);
+		},
+		saving: saveMutation.isPending,
+	});
+
+	useEffect(() => {
+		if (!editorOpen) {
+			return;
+		}
+		editorForm.setFieldsValue(initialValues);
+	}, [initialValues, editorForm, editorOpen]);
 
 	const applyFilters = (values: PositionFilterValues) => {
 		setFilters(values);
@@ -598,10 +610,7 @@ export function PositionsPage() {
 					<Space>
 						<Button
 							disabled={saveMutation.isPending}
-							onClick={() => {
-								setCreatingPosition(false);
-								setEditingPosition(null);
-							}}
+							onClick={discard.requestClose}
 						>
 							{t("adminShell.positions.cancel", { defaultValue: "取消" })}
 						</Button>
@@ -615,10 +624,10 @@ export function PositionsPage() {
 						</Button>
 					</Space>
 				}
-				onClose={() => {
-					setCreatingPosition(false);
-					setEditingPosition(null);
-				}}
+				onClose={discard.requestClose}
+				closable={!saveMutation.isPending}
+				keyboard={!saveMutation.isPending}
+				mask={{ closable: !saveMutation.isPending }}
 				open={editorOpen}
 				title={t(
 					editingPosition
@@ -627,6 +636,7 @@ export function PositionsPage() {
 					{ defaultValue: editingPosition ? "编辑岗位" : "新建岗位" },
 				)}
 			>
+				{discard.contextHolder}
 				{saveMutation.isError ? (
 					<Alert
 						description={t("adminShell.positions.errors.fallback", {
@@ -641,6 +651,7 @@ export function PositionsPage() {
 					/>
 				) : null}
 				<Form<CreatePlatformPositionInput>
+					disabled={saveMutation.isPending}
 					form={editorForm}
 					id={formId}
 					layout="vertical"

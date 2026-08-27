@@ -56,6 +56,7 @@ import {
 	LogTablePanel,
 } from "../operations/LogTablePanel";
 import { DepartmentDetailDrawer } from "./DepartmentDetailDrawer";
+import { hasFormChanges, useDiscardChanges } from "../../app/useDiscardChanges";
 
 interface DepartmentFilterValues {
 	name?: string;
@@ -214,12 +215,8 @@ export function DepartmentsPage() {
 	});
 	const editorOpen =
 		creatingRoot || editingDepartment !== null || parentDepartment !== null;
-
-	useEffect(() => {
-		if (!editorOpen) {
-			return;
-		}
-		editorForm.setFieldsValue(
+	const initialValues = useMemo<CreatePlatformDepartmentInput>(
+		() =>
 			editingDepartment
 				? toDepartmentInput(editingDepartment)
 				: {
@@ -228,8 +225,24 @@ export function DepartmentsPage() {
 						parentId: parentDepartment?.id ?? null,
 						status: "active",
 					},
-		);
-	}, [editingDepartment, editorForm, editorOpen, parentDepartment]);
+		[editingDepartment, parentDepartment],
+	);
+	const discard = useDiscardChanges({
+		isDirty: () => hasFormChanges(editorForm, initialValues),
+		onDiscard: () => {
+			setEditingDepartment(null);
+			setCreatingRoot(false);
+			setParentDepartment(null);
+		},
+		saving: saveMutation.isPending,
+	});
+
+	useEffect(() => {
+		if (!editorOpen) {
+			return;
+		}
+		editorForm.setFieldsValue(initialValues);
+	}, [initialValues, editorForm, editorOpen]);
 
 	const applyFilters = (values: DepartmentFilterValues) => {
 		setFilters(values);
@@ -489,11 +502,7 @@ export function DepartmentsPage() {
 					<Space>
 						<Button
 							disabled={saveMutation.isPending}
-							onClick={() => {
-								setEditingDepartment(null);
-								setCreatingRoot(false);
-								setParentDepartment(null);
-							}}
+							onClick={discard.requestClose}
 						>
 							{t("adminShell.departments.cancel", { defaultValue: "取消" })}
 						</Button>
@@ -507,11 +516,10 @@ export function DepartmentsPage() {
 						</Button>
 					</Space>
 				}
-				onClose={() => {
-					setEditingDepartment(null);
-					setCreatingRoot(false);
-					setParentDepartment(null);
-				}}
+				onClose={discard.requestClose}
+				closable={!saveMutation.isPending}
+				keyboard={!saveMutation.isPending}
+				mask={{ closable: !saveMutation.isPending }}
 				open={editorOpen}
 				title={t(
 					editingDepartment
@@ -520,6 +528,7 @@ export function DepartmentsPage() {
 					{ defaultValue: editingDepartment ? "编辑部门" : "新建部门" },
 				)}
 			>
+				{discard.contextHolder}
 				{saveMutation.isError ? (
 					<Alert
 						description={t("adminShell.departments.errors.fallback", {
@@ -534,6 +543,7 @@ export function DepartmentsPage() {
 					/>
 				) : null}
 				<Form<CreatePlatformDepartmentInput>
+					disabled={saveMutation.isPending}
 					form={editorForm}
 					id={formId}
 					layout="vertical"

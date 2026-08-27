@@ -41,7 +41,7 @@ export function UserDepartmentSelect({
 			<TreeSelect
 				allowClear
 				aria-label={t("adminShell.users.columns.department")}
-				disabled={query.isPending || query.isError}
+				{...(query.isPending || query.isError ? { disabled: true } : {})}
 				{...(id ? { id } : {})}
 				loading={query.isFetching}
 				onChange={(next: string | undefined) => onChange?.(next ?? null)}

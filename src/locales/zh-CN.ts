@@ -1,4 +1,10 @@
 export const zhCNTranslation = {
+	discardChanges: {
+		title: "放弃未保存的更改？",
+		description: "关闭后，本次未保存的内容将丢失。",
+		keepEditing: "继续编辑",
+		discard: "放弃更改",
+	},
 	app: {
 		name: "React Antd Admin",
 		description: "企业管理控制台",
