@@ -336,7 +336,6 @@ export const zhTWTranslation = {
 		dictionaries: {
 			typeTableTitle: "字典類型",
 			itemTableTitle: "字典項目",
-			itemTableHint: "目前類型：{{name}}",
 			noTypeSelected: "請先選擇字典類型",
 			createType: "新增類型",
 			createTypeTitle: "新增字典類型",
@@ -364,7 +363,7 @@ export const zhTWTranslation = {
 			itemEmpty: "暫無字典項目",
 			toggleSuccess: "狀態已更新",
 			toggleError: "狀態更新失敗",
-			filters: { q: "關鍵字", status: "狀態", itemQuery: "字典項目關鍵字" },
+			filters: { q: "關鍵字", status: "狀態" },
 			fields: {
 				name: "類型名稱",
 				code: "類型識別碼",

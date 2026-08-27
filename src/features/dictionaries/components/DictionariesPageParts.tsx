@@ -220,7 +220,7 @@ export function ItemQueryPanel({
 		>
 			<Col span={columnSpan}>
 				<Form.Item
-					label={t("adminShell.dictionaries.filters.itemQuery")}
+					label={t("adminShell.dictionaries.filters.q")}
 					style={{ marginBottom: 0 }}
 				>
 					<Input

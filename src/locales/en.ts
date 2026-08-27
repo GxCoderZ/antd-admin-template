@@ -344,7 +344,6 @@ export const enTranslation = {
 		dictionaries: {
 			typeTableTitle: "Dictionary types",
 			itemTableTitle: "Dictionary items",
-			itemTableHint: "Current type: {{name}}",
 			noTypeSelected: "Select a dictionary type first",
 			createType: "New type",
 			createTypeTitle: "New dictionary type",
@@ -374,7 +373,7 @@ export const enTranslation = {
 			itemEmpty: "No dictionary items",
 			toggleSuccess: "Status updated",
 			toggleError: "Failed to update status",
-			filters: { q: "Keyword", status: "Status", itemQuery: "Item keyword" },
+			filters: { q: "Keyword", status: "Status" },
 			fields: {
 				name: "Type name",
 				code: "Type code",

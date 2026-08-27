@@ -128,12 +128,10 @@ beforeAll(async () => {
 						value: "值",
 					},
 					filters: {
-						itemQuery: "字典项",
-						q: "关键字",
+						q: "关键词",
 						status: "状态",
 					},
 					itemEmpty: "暂无字典项",
-					itemTableHint: "当前类型：{{name}}",
 					itemTableTitle: "字典项",
 					manageItems: "管理项",
 					more: "更多",
@@ -326,7 +324,9 @@ describe("DictionariesPage", () => {
 
 		await screen.findByText("用户状态");
 		fireEvent.click(screen.getByRole("button", { name: "管理项" }));
-		await screen.findByText("当前类型：用户状态");
+		await within(
+			screen.getByTestId("admin-dictionaries-item-table"),
+		).findByText("用户状态");
 		fireEvent.click(screen.getByRole("button", { name: "新建字典项" }));
 		fireEvent.change(await screen.findByPlaceholderText("请输入值"), {
 			target: { value: "locked" },
@@ -375,7 +375,9 @@ describe("DictionariesPage", () => {
 		await screen.findByText("用户状态");
 		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
 		fireEvent.click(within(typeTable).getByRole("button", { name: "管理项" }));
-		await screen.findByText("当前类型：用户状态");
+		await within(
+			screen.getByTestId("admin-dictionaries-item-table"),
+		).findByText("用户状态");
 		await waitFor(() =>
 			expect(mocks.listPlatformDictionaryItems).toHaveBeenCalled(),
 		);

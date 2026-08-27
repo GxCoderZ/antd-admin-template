@@ -336,7 +336,6 @@ export const zhCNTranslation = {
 		dictionaries: {
 			typeTableTitle: "字典类型",
 			itemTableTitle: "字典项",
-			itemTableHint: "当前类型：{{name}}",
 			noTypeSelected: "请先选择一个字典类型",
 			createType: "新建类型",
 			createTypeTitle: "新建字典类型",
@@ -364,7 +363,7 @@ export const zhCNTranslation = {
 			itemEmpty: "暂无字典项",
 			toggleSuccess: "状态已更新",
 			toggleError: "状态更新失败",
-			filters: { q: "关键词", status: "状态", itemQuery: "字典项关键词" },
+			filters: { q: "关键词", status: "状态" },
 			fields: {
 				name: "类型名称",
 				code: "类型标识",

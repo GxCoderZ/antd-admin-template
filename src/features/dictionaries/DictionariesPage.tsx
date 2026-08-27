@@ -721,20 +721,11 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			columnVisibility={itemColumnVisibility}
 			columns={itemColumns}
 			dataSource={itemQuery.data?.items ?? []}
-			description={
-				selectedType ? (
-					<Typography.Text type="secondary">
-						{t("adminShell.dictionaries.itemTableHint", {
-							name: selectedType.name,
-						})}
-					</Typography.Text>
-				) : (
-					<Typography.Text type="secondary">
-						{t("adminShell.dictionaries.noTypeSelected")}
-					</Typography.Text>
-				)
+			emptyText={
+				selectedType
+					? t("adminShell.dictionaries.itemEmpty")
+					: t("adminShell.dictionaries.noTypeSelected")
 			}
-			emptyText={t("adminShell.dictionaries.itemEmpty")}
 			error={itemQuery.error}
 			errorFallback={t("adminShell.dictionaries.errors.fallback")}
 			errorTitle={t("adminShell.dictionaries.errors.load")}
@@ -783,7 +774,11 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			}
 			refreshing={itemQuery.isFetching && !itemQuery.isPending}
 			testId="admin-dictionaries-item-table"
-			title={t("adminShell.dictionaries.itemTableTitle")}
+			title={
+				selectedType
+					? selectedType.name
+					: t("adminShell.dictionaries.itemTableTitle")
+			}
 			total={itemQuery.data?.total ?? 0}
 			workspaceTestId="admin-dictionaries-item-workspace"
 		/>
@@ -792,7 +787,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		<Tabs
 			activeKey={activePane}
 			data-testid="admin-dictionaries-master-detail"
-			destroyOnHidden={false}
+			destroyOnHidden
 			items={[
 				{
 					children: typePanel,

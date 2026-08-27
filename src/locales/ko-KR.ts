@@ -338,7 +338,6 @@ export const koKRTranslation = {
 		dictionaries: {
 			typeTableTitle: "사전 유형",
 			itemTableTitle: "사전 항목",
-			itemTableHint: "현재 유형: {{name}}",
 			noTypeSelected: "사전 유형을 먼저 선택하세요",
 			createType: "유형 추가",
 			createTypeTitle: "사전 유형 추가",
@@ -367,7 +366,7 @@ export const koKRTranslation = {
 			itemEmpty: "사전 항목이 없습니다",
 			toggleSuccess: "상태가 업데이트되었습니다",
 			toggleError: "상태 업데이트에 실패했습니다",
-			filters: { q: "키워드", status: "상태", itemQuery: "항목 키워드" },
+			filters: { q: "키워드", status: "상태" },
 			fields: {
 				name: "유형 이름",
 				code: "유형 코드",
