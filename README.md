@@ -62,7 +62,15 @@ pnpm run check:unused
 pnpm run build:prod
 ```
 
-GitLab CI 使用锁定的 `@playwright/test` 版本安装 Chromium，并串行执行 E2E。母版流水线只检查和构建，不包含发布任务或外部发布目标；具体产品需另行明确配置自己的发布流程。
+GitLab CI 使用锁定的 `@playwright/test` 版本安装 Chromium，并串行执行 E2E。默认流水线只检查和构建。
+
+经当次明确授权后，可在推送 `main` 时显式触发现有 [Cloudflare Pages 预览站](https://antd-admin-template.pages.dev) 的更新：
+
+```bash
+git push -o ci.variable="PUBLISH_TEMPLATE_PREVIEW=true" origin main
+```
+
+只有默认分支且该变量为 `true` 时才发布，代码检查和完整 E2E 必须先通过。沿用 GitLab 已配置的 `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_API_TOKEN` 和现有 `production` 环境；这里发布的仍是 Fake-only UI 预览，不是生产业务系统。发布产物记录当前提交 SHA，凭据不得写入仓库。具体产品需另行明确自己的发布流程。
 
 ESLint 拦截运行时代码中的直接 HTTP 调用、计时器补丁、类型逃逸和规则禁用；依赖检查同时覆盖 `src` 与 `fake`，禁止 API/Fake 反向依赖页面和运行时代码导入测试。例外以 `AGENTS.md` 为准。
 
