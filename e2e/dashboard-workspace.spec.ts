@@ -269,6 +269,40 @@ for (const width of [1440, 768, 460, 390]) {
 			`按 ${timeZone} 统计今日成功登录次数`,
 		);
 		const interactionTimes = [performance.now() - interactionStarted];
+		await activity.scrollIntoViewIfNeeded();
+		await expect(activity.getByRole("heading")).toHaveCount(0);
+		const headerBox = await activity.getByRole("tablist").boundingBox();
+		const cardBox = await activity.boundingBox();
+		if (!headerBox || !cardBox)
+			throw new Error("Missing activity header bounds");
+		expect(headerBox.y).toBeCloseTo(cardBox.y, 0);
+		for (const name of ["最近操作", "最近登录", "最近操作"]) {
+			const started = performance.now();
+			await activity.getByRole("tab", { name, exact: true }).click();
+			await expect(activity.getByRole("tabpanel", { name })).toBeVisible();
+			await activity.evaluate(async (node) => {
+				await new Promise<void>((resolve) =>
+					requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+				);
+				await Promise.allSettled(
+					node
+						.getAnimations({ subtree: true })
+						.filter(
+							(animation) =>
+								animation.effect?.getTiming().iterations !== Infinity,
+						)
+						.map((animation) => animation.finished),
+				);
+			});
+			interactionTimes.push(performance.now() - started);
+			await expect(activity.getByRole("listitem")).toHaveCount(5);
+			expect(
+				await activity.evaluate((node) => node.scrollWidth <= node.clientWidth),
+			).toBe(true);
+		}
+		await activity.screenshot({
+			path: testInfo.outputPath(`dashboard-${width}-activity.png`),
+		});
 		const users = page.getByTestId("dashboard-stat-users");
 		await expect(
 			users.getByRole("img", { name: "caret-up", exact: true }),
@@ -300,13 +334,6 @@ for (const width of [1440, 768, 460, 390]) {
 		expect(Math.max(...resizeTimes)).toBeLessThan(800);
 		expect(metricsReport.interaction.p95).toBeLessThan(800);
 		expect(Math.max(...interactionTimes)).toBeLessThan(1000);
-		await activity.scrollIntoViewIfNeeded();
-		await page.getByRole("tab", { name: "最近操作", exact: true }).click();
-		await expect(activity.getByRole("listitem")).toHaveCount(5);
-		await page.screenshot({
-			path: testInfo.outputPath(`dashboard-${width}-activity.png`),
-			animations: "disabled",
-		});
 		await page
 			.getByRole("region", { name: "轻量提醒" })
 			.scrollIntoViewIfNeeded();

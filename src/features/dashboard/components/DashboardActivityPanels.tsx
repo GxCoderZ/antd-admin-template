@@ -110,17 +110,13 @@ function DashboardRecentActivity({
 	return (
 		<Card
 			role="region"
-			aria-labelledby="dashboard-activity-title"
+			aria-label={t("adminShell.dashboard.recentActivityTitle")}
 			variant="borderless"
 			styles={{ body: { padding: 0 } }}
-			title={
-				<Title level={5} id="dashboard-activity-title" style={{ margin: 0 }}>
-					{t("adminShell.dashboard.recentActivityTitle")}
-				</Title>
-			}
 		>
 			<Tabs
-				animated={false}
+				animated={{ inkBar: true, tabPane: false }}
+				size="large"
 				styles={{ header: { margin: 0, paddingInline: token.paddingLG } }}
 				items={[
 					{

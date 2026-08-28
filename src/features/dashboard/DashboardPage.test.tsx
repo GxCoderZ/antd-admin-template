@@ -161,6 +161,25 @@ function renderDashboard(
 }
 
 describe("dashboard workspace", () => {
+	it("uses recent-activity tabs without a separate card title", async () => {
+		renderDashboard();
+		const activity = within(
+			await screen.findByRole("region", { name: "最近动态" }),
+		);
+		expect(activity.queryByRole("heading")).not.toBeInTheDocument();
+		expect(activity.getAllByRole("tab")).toHaveLength(2);
+		expect(activity.getByRole("tab", { name: "最近登录" })).toHaveAttribute(
+			"aria-selected",
+			"true",
+		);
+		expect(activity.getByRole("tabpanel", { name: "最近登录" })).toBeVisible();
+		fireEvent.click(activity.getByRole("tab", { name: "最近操作" }));
+		expect(activity.getByRole("tabpanel", { name: "最近操作" })).toBeVisible();
+		expect(
+			activity.getByRole("button", { name: "查看操作日志" }),
+		).toBeVisible();
+	});
+
 	it("shows the Pro weekly and daily comparisons with numeric footer values", async () => {
 		renderDashboard();
 		await screen.findByTestId("dashboard-stat-users");
