@@ -38,6 +38,8 @@ pnpm preview
 
 公告管理是完整的参考领域。不要把页面直接连到真实后端，也不要添加 Fake/Real 开关。
 
+模块依赖、裁剪和升级步骤见 [交接指南](docs/template-handoff.md)；本轮改动见 [变更记录](CHANGELOG.md)，验收证据见 [任务队列](docs/template-readiness-queue.md)。
+
 ## 初始化副本
 
 初始化脚本可重复执行，并只改模板元数据、展示名称、本地 favicon 和权限字符串前缀；它不会更改 Vite Fake Server 配置或添加任何真实 API。先使用 dry-run 审阅将要变更的文件和 SHA-256，再去掉该参数执行。
