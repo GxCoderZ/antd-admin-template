@@ -148,6 +148,148 @@ for (const width of [1440, 768, 390]) {
 	});
 }
 
+test("横向导航及两级子菜单共享长按水波纹并保留原生交互", async ({
+	page,
+}, testInfo) => {
+	const errors: string[] = [];
+	page.on("pageerror", (error) => errors.push(error.message));
+	page.on("console", (message) => {
+		if (message.type() === "error") errors.push(message.text());
+	});
+	page.on("response", (response) => {
+		if (response.status() >= 400)
+			errors.push(`${response.status()} ${response.url()}`);
+	});
+	page.on("requestfailed", (request) => {
+		if (request.failure()?.errorText !== "net::ERR_ABORTED")
+			errors.push(request.url());
+	});
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await signIn(page);
+	const header = page.getByRole("banner");
+	await header.getByRole("button", { name: "Platform Admin" }).click();
+	await page.getByRole("menuitem", { name: "偏好设置", exact: true }).click();
+	const preferences = page.getByRole("dialog", { name: "偏好设置" });
+	await preferences
+		.getByRole("radio", { name: "顶部菜单", exact: true })
+		.check();
+	await preferences.getByRole("button", { name: "关闭", exact: true }).click();
+	await expect(preferences).toBeHidden();
+	const dashboard = header.getByRole("menuitem", {
+		name: "仪表盘",
+		exact: true,
+	});
+	const selection = await dashboard.evaluate((item) => ({
+		background: getComputedStyle(item).backgroundColor,
+		underline: getComputedStyle(item, "::after").borderBottom,
+	}));
+	expect(selection.underline).toContain("2px solid");
+	const bounds = await dashboard.boundingBox();
+	await dashboard.hover({ position: { x: 4, y: 20 } });
+	await expect(page.locator('[data-rippling="true"]')).toHaveCount(0);
+	await page.mouse.down();
+	const ripple = dashboard.locator('[data-rippling="true"]');
+	await expectHeldRipple(ripple, null);
+	expect(await dashboard.boundingBox()).toEqual(bounds);
+	expect(
+		await dashboard.evaluate((item) => ({
+			background: getComputedStyle(item).backgroundColor,
+			underline: getComputedStyle(item, "::after").borderBottom,
+		})),
+	).toEqual(selection);
+	await page.screenshot({
+		path: testInfo.outputPath("top-navigation-held.png"),
+	});
+	await page.mouse.up();
+	await expectRippleRelease(ripple, true);
+	for (const key of ["Enter", "Space"]) {
+		await dashboard.focus();
+		await page.keyboard.down(key);
+		await expectHeldRipple(ripple, null);
+		await expect(dashboard).toBeFocused();
+		await expect(dashboard).toHaveCSS("outline-style", "solid");
+		await page.keyboard.up(key);
+		await expectRippleRelease(ripple, true);
+	}
+	const starts: Animation["startTime"][] = [];
+	for (let click = 0; click < 3; click += 1) {
+		await dashboard.click();
+		starts.push(
+			await ripple.evaluate(async (element) => {
+				const fade = element
+					.getAnimations()
+					.find(
+						(animation) =>
+							animation instanceof CSSAnimation &&
+							animation.animationName.includes("rippleFadeOut"),
+					);
+				if (!fade) throw new Error("Missing repeated menu ripple");
+				await fade.ready;
+				return fade.startTime;
+			}),
+		);
+	}
+	expect(starts).not.toContain(null);
+	expect(new Set(starts).size).toBe(3);
+	await expectRippleRelease(ripple, true);
+	const system = header.getByRole("menuitem", {
+		name: "系统管理",
+		exact: true,
+	});
+	await system.hover();
+	const users = page.getByRole("menuitem", { name: "用户管理", exact: true });
+	await expect(users).toBeVisible();
+	await expect(page.locator('[data-rippling="true"]')).toHaveCount(0);
+	for (const item of [system, users]) {
+		await item.hover({ position: { x: 4, y: 20 } });
+		await page.mouse.down();
+		const itemRipple = item.locator('[data-rippling="true"]');
+		await expectHeldRipple(itemRipple, null);
+		await expect(item).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+		await page.screenshot({
+			path: testInfo.outputPath(
+				item === system ? "top-group-held.png" : "top-popup-held.png",
+			),
+		});
+		await page.mouse.up();
+		await expectRippleRelease(itemRipple, true);
+	}
+	await expect(page).toHaveURL(/\/organization\/users$/);
+	await system.hover();
+	await users.hover({ position: { x: 4, y: 20 } });
+	const selectedBackground = await users.evaluate(
+		(item) => getComputedStyle(item).backgroundColor,
+	);
+	expect(selectedBackground).not.toBe("rgba(0, 0, 0, 0)");
+	await page.mouse.down();
+	const selectedRipple = users.locator('[data-rippling="true"]');
+	await expectHeldRipple(selectedRipple, null);
+	await expect(users).toHaveCSS("background-color", selectedBackground);
+	await page.mouse.up();
+	await expectRippleRelease(selectedRipple, true);
+	await system.hover();
+	const logs = page.getByRole("menuitem", { name: "日志管理", exact: true });
+	await logs.hover();
+	const audit = page.getByRole("menuitem", { name: "操作审计", exact: true });
+	await expect(audit).toBeVisible();
+	await expect(page.locator('[data-rippling="true"]')).toHaveCount(0);
+	for (const item of [logs, audit]) {
+		await item.hover({ position: { x: 4, y: 20 } });
+		await page.mouse.down();
+		const itemRipple = item.locator('[data-rippling="true"]');
+		await expectHeldRipple(itemRipple, null);
+		await page.mouse.up();
+		await expectRippleRelease(itemRipple, true);
+	}
+	await expect(page).toHaveURL(/\/operations\/audit-logs$/);
+	expect(
+		await page.evaluate(
+			() => document.documentElement.scrollWidth <= innerWidth,
+		),
+	).toBe(true);
+	expect(errors).toEqual([]);
+});
+
 for (const width of [1440, 768, 390]) {
 	test(`顶栏保留 Pro 尺寸并使用单一项目水波纹（${width}px）`, async ({
 		page,

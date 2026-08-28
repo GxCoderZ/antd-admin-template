@@ -3,13 +3,13 @@ import {
 	MenuUnfoldOutlined,
 	SettingOutlined,
 } from "@ant-design/icons";
+import { TopNavHeader } from "@ant-design/pro-components";
 import {
 	Breadcrumb,
 	Drawer,
 	Flex,
 	Grid,
 	Layout,
-	Menu,
 	type MenuProps,
 	theme,
 	Typography,
@@ -341,6 +341,31 @@ export function AdminShellNavigation({
 		),
 		{ title: t(currentPage.titleKey) },
 	];
+	const topNavigationMenu = (
+		<NavigationMenu
+			data-testid="admin-shell-top-navigation"
+			items={topNavigationItems}
+			mode="horizontal"
+			onClick={({ key }) => {
+				if (navigationMode === "mixed") {
+					openNavigationGroup(key);
+					return;
+				}
+				openRouteTab(String(key));
+			}}
+			selectedKeys={
+				navigationMode === "mixed"
+					? [currentPage.groupKey]
+					: [currentPage.key, currentPage.groupKey]
+			}
+			style={{
+				background: token.colorBgContainer,
+				borderBottom: 0,
+				flex: "1 1 auto",
+				minWidth: 0,
+			}}
+		/>
+	);
 	const renderSidebarLogo = (compact: boolean) => (
 		<RouterLink
 			aria-label={t(dashboardRoute.titleKey)}
@@ -528,8 +553,7 @@ export function AdminShellNavigation({
 						minWidth: 0,
 						overflow: "hidden",
 						paddingInlineEnd: token.padding,
-						paddingInlineStart:
-							showSidebarNavigation || showMobileNavigation ? 0 : token.padding,
+						paddingInlineStart: 0,
 						width: "100%",
 					}}
 				>
@@ -587,53 +611,28 @@ export function AdminShellNavigation({
 							/>
 						) : null}
 						{showTopNavigation && !showSidebarNavigation ? (
-							<RouterLink
-								aria-label={t(dashboardRoute.titleKey)}
-								style={{
-									color: "inherit",
-									flex: "0 0 auto",
-									textDecoration: "none",
-								}}
-								to={dashboardPath}
-							>
-								<Flex align="center" gap={token.marginXS}>
-									{logo}
-									<Text
-										ellipsis
-										strong
-										style={{ maxWidth: sidebarWidth }}
-										title={siteTitle}
+							<TopNavHeader
+								headerContentRender={() => topNavigationMenu}
+								menuHeaderRender={(brandLogo, brandTitle) => (
+									<RouterLink
+										aria-label={t(dashboardRoute.titleKey)}
+										style={{ color: "inherit", textDecoration: "none" }}
+										to={dashboardPath}
 									>
-										{shortTitle}
-									</Text>
-								</Flex>
-							</RouterLink>
-						) : null}
-						{showTopNavigation ? (
-							<Menu
-								data-testid="admin-shell-top-navigation"
-								items={topNavigationItems}
-								mode="horizontal"
-								onClick={({ key }) => {
-									if (navigationMode === "mixed") {
-										openNavigationGroup(key);
-										return;
-									}
-									openRouteTab(String(key));
-								}}
-								selectedKeys={
-									navigationMode === "mixed"
-										? [currentPage.groupKey]
-										: [currentPage.key, currentPage.groupKey]
-								}
-								style={{
-									background: token.colorBgContainer,
-									borderBottom: 0,
-									flex: "1 1 auto",
-									minWidth: 0,
-								}}
+										{brandLogo}
+										{brandTitle}
+									</RouterLink>
+								)}
+								layout="top"
+								logo={logo}
+								matchMenuKeys={[currentPage.key]}
+								style={{ minWidth: 0 }}
+								title={siteTitle}
 							/>
 						) : null}
+						{showTopNavigation && showSidebarNavigation
+							? topNavigationMenu
+							: null}
 						{showMobileNavigation ? (
 							<Text
 								data-testid="admin-shell-mobile-title"

@@ -39,7 +39,7 @@ function renderNavigation(
 						menuType={menuType}
 						navigationMode={navigationMode}
 						onNavigate={onNavigate}
-						siteTitle="Admin"
+						siteTitle="React Antd Admin"
 						shortTitle="Admin"
 					>
 						{() => null}
@@ -52,6 +52,18 @@ function renderNavigation(
 }
 
 describe("log navigation", () => {
+	it.each(["top", "mixed"] as const)(
+		"shows the complete site title beside the logo in %s navigation",
+		(mode) => {
+			renderNavigation("/dashboard", [], mode);
+			const brand = within(screen.getByRole("banner")).getByRole("link", {
+				name: "仪表盘",
+			});
+			expect(brand).toHaveTextContent("React Antd Admin");
+			expect(brand).toHaveAttribute("href", "/dashboard");
+		},
+	);
+
 	it.each(["single", "twoColumn", "serviceGrid", "splitServiceGrid"] as const)(
 		"supports held and repeated full-item ripples in %s sidebar menus",
 		(menuType) => {
@@ -70,6 +82,24 @@ describe("log navigation", () => {
 			fireEvent.pointerUp(item);
 			expect(ripple).toHaveAttribute("data-ripple-state", "released");
 			fireEvent.pointerDown(item, { button: 0, clientX: 10, clientY: 12 });
+			expect(ripple).toHaveAttribute("data-ripple-phase", "alternate");
+			expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
+			fireEvent.pointerCancel(item);
+			expect(ripple).toHaveAttribute("data-ripple-state", "released");
+		},
+	);
+
+	it.each(["top", "mixed"] as const)(
+		"supports held and repeated full-item ripples in %s horizontal navigation",
+		(mode) => {
+			renderNavigation("/dashboard", [], mode);
+			const item = screen.getByRole("menuitem", { name: "仪表盘" });
+			fireEvent.pointerDown(item, { button: 0, clientX: 2, clientY: 2 });
+			const ripple = item.querySelector('[data-rippling="true"]');
+			expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
+			fireEvent.pointerUp(item);
+			expect(ripple).toHaveAttribute("data-ripple-state", "released");
+			fireEvent.pointerDown(item, { button: 0, clientX: 4, clientY: 4 });
 			expect(ripple).toHaveAttribute("data-ripple-phase", "alternate");
 			expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
 			fireEvent.pointerCancel(item);
