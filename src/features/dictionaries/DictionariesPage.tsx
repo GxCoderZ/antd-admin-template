@@ -1,33 +1,15 @@
-import type { ProColumns } from "@ant-design/pro-components";
-import {
-	CheckCircleOutlined,
-	DeleteOutlined,
-	PlusOutlined,
-	StopOutlined,
-} from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import {
 	keepPreviousData,
 	useMutation,
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import {
-	Alert,
-	Button,
-	Flex,
-	Modal,
-	Space,
-	Tag,
-	Tabs,
-	message,
-	theme,
-} from "antd";
+import { Alert, Button, Flex, Modal, Tabs, message, theme } from "antd";
 import type { TableProps } from "antd";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { formatDateTime } from "../../app/formatting";
-import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { useQuerySubmission } from "../../app/queryFilterLayout";
 import { useRouteSessionState } from "../../app/routeSessionState";
@@ -35,10 +17,6 @@ import {
 	resolveTableSort,
 	tableSortStateVersion,
 } from "../../app/tableSorting";
-import {
-	TableActionButton,
-	TableActionMenu,
-} from "../../app/TableActionButton";
 import {
 	createPlatformDictionaryItem,
 	createPlatformDictionaryType,
@@ -53,8 +31,6 @@ import {
 	type ListPlatformDictionaryItemsInput,
 	type ListPlatformDictionaryTypesInput,
 	type PlatformDictionaryItem,
-	type PlatformDictionaryStatus,
-	type PlatformDictionaryTagColor,
 	type PlatformDictionaryType,
 	updatePlatformDictionaryItem,
 	updatePlatformDictionaryType,
@@ -66,10 +42,13 @@ import {
 } from "./components/DictionaryDetailDrawers";
 
 import {
-	DictionaryColorTag,
 	ItemFormDrawer,
 	TypeFormDrawer,
 } from "./components/DictionariesPageParts";
+import {
+	useDictionaryItemTableColumns,
+	useDictionaryTypeTableColumns,
+} from "./components/useDictionaryTableColumns";
 import { useItemQuery, useTypeQuery } from "./components/useDictionaryQueries";
 import {
 	defaultItemFilters,
@@ -77,17 +56,14 @@ import {
 	defaultTypeFilters,
 	defaultTypeTableState,
 	dictionariesRouteKey,
-	getStatusColor,
 	itemColumnVisibility,
 	itemSortMap,
 	typeColumnVisibility,
 	typeSortMap,
 	type ItemFilterValues,
-	type ItemSort,
 	type ItemTableState,
 	type PageData,
 	type TypeFilterValues,
-	type TypeSort,
 	type TypeTableState,
 } from "./components/DictionariesPageModel";
 
@@ -99,7 +75,6 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 	const { token } = theme.useToken();
 	const queryClient = useQueryClient();
 	const [messageApi, messageContext] = message.useMessage();
-	const formatPreferences = useLocalePreferences();
 	const [typeFilters, setTypeFilters] = useRouteSessionState<TypeFilterValues>({
 		initialState: defaultTypeFilters,
 		routeKey: dictionariesRouteKey,
@@ -342,285 +317,53 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			void messageApi.error(t("adminShell.dictionaries.toggleError"));
 		},
 	});
-	const statusTag = useCallback(
-		(status: PlatformDictionaryStatus) => (
-			<Tag color={getStatusColor(status)}>
-				{t(`adminShell.dictionaries.statuses.${status}`)}
-			</Tag>
-		),
-		[t],
+	const handleTypeEdit = useCallback(
+		(dictionaryType: PlatformDictionaryType) => {
+			saveTypeMutation.reset();
+			setEditingType(dictionaryType);
+			setTypeFormOpen(true);
+		},
+		[saveTypeMutation],
 	);
-	const typeColumns = useMemo<ProColumns<PlatformDictionaryType>[]>(() => {
-		const sortOrder = (column: TypeSort) =>
-			typeTableState.sort === column && typeTableState.order
-				? typeTableState.order === "asc"
-					? "ascend"
-					: "descend"
-				: null;
-		const columns: ProColumns<PlatformDictionaryType>[] = [
-			{
-				dataIndex: "name",
-				key: "name",
-				renderText: (name: string, dictionaryType) => (
-					<TableActionButton onClick={() => setViewingType(dictionaryType)}>
-						{name}
-					</TableActionButton>
-				),
-				sorter: true,
-				sortOrder: sortOrder("name"),
-				title: t("adminShell.dictionaries.columns.name"),
-				width: token.controlHeight * 4,
-			},
-			{
-				dataIndex: "code",
-				key: "code",
-				sorter: true,
-				sortOrder: sortOrder("code"),
-				title: t("adminShell.dictionaries.columns.code"),
-				width: token.controlHeight * 5,
-			},
-			{
-				dataIndex: "status",
-				key: "status",
-				renderText: statusTag,
-				sorter: true,
-				sortOrder: sortOrder("status"),
-				title: t("adminShell.dictionaries.columns.status"),
-				width: token.controlHeight * 3,
-			},
-			{
-				dataIndex: "itemCount",
-				key: "itemCount",
-				sorter: true,
-				sortOrder: sortOrder("item_count"),
-				title: t("adminShell.dictionaries.columns.itemCount"),
-				width: token.controlHeight * 3,
-			},
-			{
-				dataIndex: "updatedAt",
-				key: "updatedAt",
-				renderText: (value: string) => formatDateTime(value, formatPreferences),
-				sorter: true,
-				sortOrder: sortOrder("updated_at"),
-				title: t("adminShell.dictionaries.columns.updatedAt"),
-				width: token.controlHeight * 5,
-			},
-		];
-
-		if (canManage) {
-			columns.push({
-				key: "actions",
-				render: (_value, dictionaryType) => {
-					const toggleLabel = t(
-						dictionaryType.status === "active"
-							? "adminShell.dictionaries.disable"
-							: "adminShell.dictionaries.enable",
-					);
-					return (
-						<Space size="middle">
-							<TableActionButton
-								onClick={() => {
-									saveTypeMutation.reset();
-									setEditingType(dictionaryType);
-									setTypeFormOpen(true);
-								}}
-							>
-								{t("adminShell.dictionaries.edit")}
-							</TableActionButton>
-							<TableActionButton
-								onClick={() => {
-									selectTypeForItems(dictionaryType.id);
-								}}
-							>
-								{t("adminShell.dictionaries.manageItems")}
-							</TableActionButton>
-							<TableActionMenu
-								items={[
-									{
-										icon:
-											dictionaryType.status === "active" ? (
-												<StopOutlined aria-hidden />
-											) : (
-												<CheckCircleOutlined aria-hidden />
-											),
-										key: "toggle",
-										label: toggleLabel,
-										onClick: () => {
-											toggleTypeMutation.mutate(dictionaryType);
-										},
-									},
-									{
-										danger: true,
-										icon: <DeleteOutlined aria-hidden />,
-										key: "delete",
-										label: t("adminShell.dictionaries.delete"),
-										onClick: () => {
-											deleteTypeMutation.reset();
-											setDeletingType(dictionaryType);
-										},
-									},
-								]}
-								label={t("adminShell.dictionaries.more")}
-							/>
-						</Space>
-					);
-				},
-				title: t("adminShell.dictionaries.columns.actions"),
-				width: token.controlHeight * 7,
-			});
-		}
-
-		return columns;
-	}, [
+	const handleItemEdit = useCallback(
+		(dictionaryItem: PlatformDictionaryItem) => {
+			saveItemMutation.reset();
+			setEditingItem(dictionaryItem);
+			setItemFormOpen(true);
+		},
+		[saveItemMutation],
+	);
+	const handleTypeDelete = useCallback(
+		(dictionaryType: PlatformDictionaryType) => {
+			deleteTypeMutation.reset();
+			setDeletingType(dictionaryType);
+		},
+		[deleteTypeMutation],
+	);
+	const handleItemDelete = useCallback(
+		(dictionaryItem: PlatformDictionaryItem) => {
+			deleteItemMutation.reset();
+			setDeletingItem(dictionaryItem);
+		},
+		[deleteItemMutation],
+	);
+	const typeColumns = useDictionaryTypeTableColumns({
 		canManage,
-		deleteTypeMutation,
-		formatPreferences,
-		saveTypeMutation,
-		selectTypeForItems,
-		statusTag,
-		t,
-		toggleTypeMutation,
-		token.controlHeight,
-		typeTableState.order,
-		typeTableState.sort,
-	]);
-	const itemColumns = useMemo<ProColumns<PlatformDictionaryItem>[]>(() => {
-		const sortOrder = (column: ItemSort) =>
-			itemTableState.sort === column && itemTableState.order
-				? itemTableState.order === "asc"
-					? "ascend"
-					: "descend"
-				: null;
-		const columns: ProColumns<PlatformDictionaryItem>[] = [
-			{
-				dataIndex: "label",
-				key: "label",
-				renderText: (label: string, dictionaryItem) => (
-					<TableActionButton onClick={() => setViewingItem(dictionaryItem)}>
-						{label}
-					</TableActionButton>
-				),
-				sorter: true,
-				sortOrder: sortOrder("label"),
-				title: t("adminShell.dictionaries.columns.label"),
-				width: token.controlHeight * 4,
-			},
-			{
-				dataIndex: "value",
-				key: "value",
-				sorter: true,
-				sortOrder: sortOrder("value"),
-				title: t("adminShell.dictionaries.columns.value"),
-				width: token.controlHeight * 4,
-			},
-			{
-				dataIndex: "color",
-				key: "color",
-				renderText: (color: PlatformDictionaryTagColor, dictionaryItem) => (
-					<DictionaryColorTag color={color}>
-						{dictionaryItem.label}
-					</DictionaryColorTag>
-				),
-				title: t("adminShell.dictionaries.columns.color"),
-				width: token.controlHeight * 3,
-			},
-			{
-				dataIndex: "sort",
-				key: "sort",
-				sorter: true,
-				sortOrder: sortOrder("sort"),
-				title: t("adminShell.dictionaries.columns.sort"),
-				width: token.controlHeight * 3,
-			},
-			{
-				dataIndex: "status",
-				key: "status",
-				renderText: statusTag,
-				sorter: true,
-				sortOrder: sortOrder("status"),
-				title: t("adminShell.dictionaries.columns.status"),
-				width: token.controlHeight * 3,
-			},
-			{
-				dataIndex: "updatedAt",
-				key: "updatedAt",
-				renderText: (value: string) => formatDateTime(value, formatPreferences),
-				sorter: true,
-				sortOrder: sortOrder("updated_at"),
-				title: t("adminShell.dictionaries.columns.updatedAt"),
-				width: token.controlHeight * 5,
-			},
-		];
-
-		if (canManage) {
-			columns.push({
-				key: "actions",
-				render: (_value, dictionaryItem) => {
-					const toggleLabel = t(
-						dictionaryItem.status === "active"
-							? "adminShell.dictionaries.disable"
-							: "adminShell.dictionaries.enable",
-					);
-					return (
-						<Space size="middle">
-							<TableActionButton
-								onClick={() => {
-									saveItemMutation.reset();
-									setEditingItem(dictionaryItem);
-									setItemFormOpen(true);
-								}}
-							>
-								{t("adminShell.dictionaries.edit")}
-							</TableActionButton>
-							<TableActionMenu
-								items={[
-									{
-										icon:
-											dictionaryItem.status === "active" ? (
-												<StopOutlined aria-hidden />
-											) : (
-												<CheckCircleOutlined aria-hidden />
-											),
-										key: "toggle",
-										label: toggleLabel,
-										onClick: () => {
-											toggleItemMutation.mutate(dictionaryItem);
-										},
-									},
-									{
-										danger: true,
-										icon: <DeleteOutlined aria-hidden />,
-										key: "delete",
-										label: t("adminShell.dictionaries.delete"),
-										onClick: () => {
-											deleteItemMutation.reset();
-											setDeletingItem(dictionaryItem);
-										},
-									},
-								]}
-								label={t("adminShell.dictionaries.more")}
-							/>
-						</Space>
-					);
-				},
-				title: t("adminShell.dictionaries.columns.actions"),
-				width: token.controlHeight * 5,
-			});
-		}
-
-		return columns;
-	}, [
+		onDelete: handleTypeDelete,
+		onEdit: handleTypeEdit,
+		onManageItems: (dictionaryType) => selectTypeForItems(dictionaryType.id),
+		onToggle: toggleTypeMutation.mutate,
+		onView: setViewingType,
+		tableState: typeTableState,
+	});
+	const itemColumns = useDictionaryItemTableColumns({
 		canManage,
-		deleteItemMutation,
-		formatPreferences,
-		itemTableState.order,
-		itemTableState.sort,
-		saveItemMutation,
-		statusTag,
-		t,
-		toggleItemMutation,
-		token.controlHeight,
-	]);
+		onDelete: handleItemDelete,
+		onEdit: handleItemEdit,
+		onToggle: toggleItemMutation.mutate,
+		onView: setViewingItem,
+		tableState: itemTableState,
+	});
 	const handleTypeTableChange: NonNullable<
 		TableProps<PlatformDictionaryType>["onChange"]
 	> = (pagination, _filters, sorterState) => {

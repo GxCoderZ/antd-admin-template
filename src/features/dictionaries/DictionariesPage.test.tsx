@@ -309,6 +309,16 @@ describe("DictionariesPage", () => {
 		});
 	});
 
+	it("opens the dictionary type editor from its table action", async () => {
+		const user = renderDictionariesPage();
+
+		await screen.findByText("用户状态");
+		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
+		await user.click(within(typeTable).getByText("编辑", { exact: true }));
+		expect(await screen.findByText("编辑字典类型")).toBeInTheDocument();
+		expect(screen.getByDisplayValue(dictionaryType.code)).toBeInTheDocument();
+	});
+
 	it("selects a dictionary type and manages items", async () => {
 		renderDictionariesPage();
 
