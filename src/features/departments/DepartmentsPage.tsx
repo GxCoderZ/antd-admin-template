@@ -70,9 +70,9 @@ const departmentsRouteKey = "/organization/departments";
 const departmentColumnVisibility: readonly TableColumnConfig<string>[] = [
 	{ key: "name", visibility: "required" },
 	{ key: "code", visibility: "recommended" },
-	{ key: "status", visibility: "recommended" },
 	{ key: "memberCount", visibility: "recommended" },
 	{ key: "positionCount", visibility: "recommended" },
+	{ key: "status", visibility: "recommended" },
 	{ key: "updatedAt", visibility: "optional" },
 	{ key: "actions", visibility: "required" },
 ];
@@ -281,21 +281,6 @@ export function DepartmentsPage() {
 				width: token.controlHeight * 5,
 			},
 			{
-				dataIndex: "status",
-				key: "status",
-				renderText: (status: PlatformDepartmentStatus) => (
-					<Tag color={status === "active" ? "success" : "default"}>
-						{t(`adminShell.departments.statuses.${status}`, {
-							defaultValue: status === "active" ? "启用" : "停用",
-						})}
-					</Tag>
-				),
-				title: t("adminShell.departments.columns.status", {
-					defaultValue: "状态",
-				}),
-				width: token.controlHeight * 3,
-			},
-			{
 				dataIndex: "memberCount",
 				key: "memberCount",
 				title: t("adminShell.departments.columns.memberCount", {
@@ -308,6 +293,21 @@ export function DepartmentsPage() {
 				key: "positionCount",
 				title: t("adminShell.departments.columns.positionCount", {
 					defaultValue: "岗位数",
+				}),
+				width: token.controlHeight * 3,
+			},
+			{
+				dataIndex: "status",
+				key: "status",
+				renderText: (status: PlatformDepartmentStatus) => (
+					<Tag color={status === "active" ? "success" : "default"}>
+						{t(`adminShell.departments.statuses.${status}`, {
+							defaultValue: status === "active" ? "启用" : "停用",
+						})}
+					</Tag>
+				),
+				title: t("adminShell.departments.columns.status", {
+					defaultValue: "状态",
 				}),
 				width: token.controlHeight * 3,
 			},
@@ -335,21 +335,19 @@ export function DepartmentsPage() {
 						>
 							{t("adminShell.departments.edit", { defaultValue: "编辑" })}
 						</TableActionButton>
-						<TableActionButton
-							icon={<PlusOutlined aria-hidden />}
-							onClick={() => {
-								saveMutation.reset();
-								setCreatingRoot(false);
-								setEditingDepartment(null);
-								setParentDepartment(department);
-							}}
-						>
-							{t("adminShell.departments.createChild", {
-								defaultValue: "新增下级",
-							})}
-						</TableActionButton>
 						<TableActionMenu
 							items={[
+								{
+									icon: <PlusOutlined aria-hidden />,
+									key: "createChild",
+									label: t("adminShell.departments.createChild"),
+									onClick: () => {
+										saveMutation.reset();
+										setCreatingRoot(false);
+										setEditingDepartment(null);
+										setParentDepartment(department);
+									},
+								},
 								{
 									icon:
 										department.status === "active" ? (
@@ -391,7 +389,7 @@ export function DepartmentsPage() {
 				title: t("adminShell.departments.columns.actions", {
 					defaultValue: "操作",
 				}),
-				width: token.controlHeight * 7,
+				width: token.controlHeight * 5,
 			},
 		],
 		[

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Table Fields
+
+- Reviewed all ten tables separately. Management lists keep required identity
+  and action columns, default recommended columns, and opt-in comparison fields.
+- Moved raw identifiers, complete permissions and long log payloads out of column
+  settings; grouped the complete read-only record fields in detail drawers.
+- Preserved existing column preferences and the native shared table implementation.
+  The per-table checklist is `docs/table-field-review-queue.md`.
+- Consolidated secondary department and dictionary type actions so fixed action
+  columns no longer obscure record names on narrow screens.
+
 ### Template Boundaries
 
 - Removed the default external deployment job. CI only verifies and builds.

@@ -68,6 +68,33 @@ async function expectFitsViewport(page: Page, surface: Locator) {
 	expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
 }
 
+async function finishDrawerTransition(page: Page) {
+	await page.waitForFunction(() =>
+		/ant-drawer-panel-motion-right-(appear|enter)-active/.test(
+			document.querySelector('[role="dialog"]')?.parentElement?.className ?? "",
+		),
+	);
+	await page.waitForFunction(() => {
+		const wrapper = document.querySelector('[role="dialog"]')?.parentElement;
+		return (
+			wrapper &&
+			!/ant-drawer-panel-motion-right-(appear|enter)-active/.test(
+				wrapper.className,
+			)
+		);
+	});
+}
+
+async function finishDropdownTransition(page: Page, menu: Locator) {
+	// The initial visible frame precedes rc-motion's actual enter phase.
+	await page.waitForFunction(() =>
+		/ant-slide-up-(appear|enter)-active/.test(
+			document.querySelector(".ant-dropdown")?.className ?? "",
+		),
+	);
+	await finishTransitions(page, menu);
+}
+
 function summarize(samples: number[]) {
 	const sorted = [...samples].sort((a, b) => a - b);
 	return {
@@ -144,22 +171,7 @@ for (const entry of pages) {
 			await page.keyboard.press("Enter");
 			const dialog = page.getByRole("dialog");
 			// An initial untransformed frame precedes rc-motion's actual enter phase.
-			await page.waitForFunction(() =>
-				/ant-drawer-panel-motion-right-(appear|enter)-active/.test(
-					document.querySelector('[role="dialog"]')?.parentElement?.className ??
-						"",
-				),
-			);
-			await page.waitForFunction(() => {
-				const wrapper =
-					document.querySelector('[role="dialog"]')?.parentElement;
-				return (
-					wrapper &&
-					!/ant-drawer-panel-motion-right-(appear|enter)-active/.test(
-						wrapper.className,
-					)
-				);
-			});
+			await finishDrawerTransition(page);
 			await expect(dialog).toBeInViewport({ ratio: 1 });
 			await finishTransitions(page, dialog);
 			interactionTimes.push(performance.now() - started);
@@ -225,6 +237,257 @@ for (const entry of pages) {
 		);
 		await testInfo.attach("experience-metrics", {
 			body: JSON.stringify(report, null, 2),
+			contentType: "application/json",
+		});
+		expect(errors).toEqual([]);
+		expect(Math.max(...openTimes)).toBeLessThan(5000);
+		expect(report.open.p50).toBeLessThan(1500);
+		expect(report.open.p95).toBeLessThan(3000);
+		expect(Math.max(...resizeTimes)).toBeLessThan(800);
+		expect(report.resize.p95).toBeLessThan(700);
+		expect(Math.max(...interactionTimes)).toBeLessThan(1000);
+		expect(report.interaction.p95).toBeLessThan(800);
+	});
+}
+
+type TableDetailEntry = {
+	path: string;
+	table: string;
+	tab?: string;
+} & ({ kind: "cell"; cell: number } | { kind: "menu" | "log" | "readonly" });
+
+const detailTables: TableDetailEntry[] = [
+	{
+		path: "/organization/users",
+		table: "admin-users-table-card",
+		kind: "cell",
+		cell: 1,
+	},
+	{ path: "/access/roles", table: "admin-roles-table-card", kind: "menu" },
+	{
+		path: "/organization/departments",
+		table: "admin-departments-table-card",
+		kind: "cell",
+		cell: 0,
+	},
+	{
+		path: "/organization/positions",
+		table: "admin-positions-table-card",
+		kind: "cell",
+		cell: 0,
+	},
+	{
+		path: "/system/dictionaries",
+		table: "admin-dictionaries-type-table",
+		kind: "cell",
+		cell: 0,
+		tab: "字典类型",
+	},
+	{
+		path: "/system/dictionaries",
+		table: "admin-dictionaries-item-table",
+		kind: "cell",
+		cell: 0,
+		tab: "字典项",
+	},
+	{
+		path: "/system/announcements",
+		table: "admin-announcements-table-card",
+		kind: "cell",
+		cell: 1,
+	},
+	{
+		path: "/operations/audit-logs",
+		table: "audit-log-table-card",
+		kind: "log",
+	},
+	{
+		path: "/operations/login-logs",
+		table: "login-log-table-card",
+		kind: "log",
+	},
+	{
+		path: "/system/about",
+		table: "about-production-dependencies",
+		kind: "readonly",
+	},
+];
+
+for (const entry of detailTables) {
+	test(`${entry.table}逐表字段与详情体验验收`, async ({ page }, testInfo) => {
+		const errors: string[] = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		page.on("console", (message) => {
+			if (message.type() === "error") errors.push(message.text());
+		});
+		page.on("response", (response) => {
+			if (response.status() >= 400)
+				errors.push(`${response.status()} ${response.url()}`);
+		});
+		page.on("requestfailed", (request) => {
+			if (request.failure()?.errorText !== "net::ERR_ABORTED")
+				errors.push(`${request.url()} ${request.failure()?.errorText}`);
+		});
+		await page.clock.setFixedTime(new Date("2026-08-28T00:00:00Z"));
+		await page.setViewportSize({ width: 1440, height: 900 });
+		await page.goto("/login");
+		await page.locator('input[autocomplete="username"]').fill("admin");
+		await page.locator('input[autocomplete="current-password"]').fill("admin");
+		await page.locator('button[type="submit"]').click();
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await finishTransitions(page);
+		let started = performance.now();
+		await page.evaluate((path) => {
+			history.pushState(null, "", path);
+			dispatchEvent(new PopStateEvent("popstate"));
+		}, entry.path);
+		if (entry.tab)
+			await page.getByRole("tab", { name: entry.tab, exact: true }).click();
+		const table = page.getByTestId(entry.table);
+		await expect(table.getByRole("row").nth(1)).toBeVisible();
+		await expect(table.locator(".ant-spin-spinning")).toHaveCount(0);
+		await finishTransitions(page);
+		const openTimes = [performance.now() - started];
+		const resizeTimes: number[] = [];
+		const interactionTimes: number[] = [];
+		const defaultHeaders = await table
+			.getByRole("columnheader")
+			.allTextContents();
+		const workflowTimes: number[] = [];
+		for (const width of [1440, 768, 390, 1286, 1440]) {
+			started = performance.now();
+			await page.setViewportSize({ width, height: 900 });
+			await finishTransitions(page);
+			resizeTimes.push(performance.now() - started);
+			expect(
+				await page.evaluate(
+					() => document.documentElement.scrollWidth <= innerWidth,
+				),
+			).toBe(true);
+			await expect(table.getByRole("columnheader")).toHaveText(defaultHeaders);
+			const trigger =
+				entry.kind === "cell"
+					? table
+							.getByRole("row")
+							.nth(1)
+							.getByRole("cell")
+							.nth(entry.cell)
+							.getByRole("button")
+							.last()
+					: table
+							.getByRole("button", {
+								name: entry.kind === "log" ? /查看日志/ : "更多",
+								exact: entry.kind !== "log",
+							})
+							.first();
+			await trigger.scrollIntoViewIfNeeded();
+			if (width === 390 && entry.kind === "cell" && entry.cell === 0) {
+				const nameBox = await trigger.boundingBox();
+				const actionsBox = await table
+					.getByRole("row")
+					.nth(1)
+					.getByRole("cell")
+					.last()
+					.boundingBox();
+				if (!nameBox || !actionsBox) throw new Error("Missing name or actions");
+				expect(nameBox.x + nameBox.width).toBeLessThanOrEqual(actionsBox.x);
+			}
+			await trigger.focus();
+			started = performance.now();
+			const workflowStarted = started;
+			await page.keyboard.press("Enter");
+			if (entry.kind === "readonly") {
+				const menu = page
+					.getByRole("menu")
+					.filter({ has: page.getByRole("menuitem", { name: "复制包名" }) });
+				await expect(menu).toBeVisible();
+				await finishDropdownTransition(page, menu);
+				interactionTimes.push(performance.now() - started);
+				await expectFitsViewport(page, menu);
+				await page.keyboard.press("Escape");
+				await expect(menu).toBeHidden();
+			} else {
+				if (entry.kind === "menu") {
+					const viewDetails = page.getByRole("menuitem", {
+						name: "查看详情",
+						exact: true,
+					});
+					await expect(viewDetails).toBeVisible();
+					await finishDropdownTransition(page, viewDetails);
+					interactionTimes.push(performance.now() - started);
+					started = performance.now();
+					await viewDetails.click();
+				}
+				await finishDrawerTransition(page);
+				const dialog = page.getByRole("dialog");
+				await expect(dialog).toBeInViewport({ ratio: 1 });
+				await finishTransitions(page, dialog);
+				interactionTimes.push(performance.now() - started);
+				if (entry.kind === "menu")
+					workflowTimes.push(performance.now() - workflowStarted);
+				await expectFitsViewport(page, dialog);
+				if (width === 390)
+					expect((await dialog.boundingBox())?.width).toBe(390);
+				await expect(
+					dialog.getByText("基本信息", { exact: true }),
+				).toBeVisible();
+				expect(
+					await dialog
+						.locator(".ant-drawer-body")
+						.evaluate((node) => node.scrollWidth <= node.clientWidth),
+				).toBe(true);
+				await page.keyboard.press("Tab");
+				expect(
+					await dialog.evaluate((node) =>
+						node.contains(document.activeElement),
+					),
+				).toBe(true);
+				await page.screenshot({
+					path: testInfo.outputPath(`detail-${width}.png`),
+					animations: "disabled",
+				});
+				await dialog
+					.locator(".ant-descriptions")
+					.last()
+					.scrollIntoViewIfNeeded();
+				await expect(
+					dialog.locator(".ant-descriptions").last(),
+				).toBeInViewport();
+				await page.screenshot({
+					path: testInfo.outputPath(`detail-records-${width}.png`),
+					animations: "disabled",
+				});
+				await page.keyboard.press("Escape");
+				await expect(dialog).toBeHidden();
+			}
+			await finishTransitions(page);
+			await page.mouse.move(0, 0);
+			await page.screenshot({
+				path: testInfo.outputPath(`fields-${width}.png`),
+				animations: "disabled",
+			});
+			await expect(table.getByRole("columnheader")).toHaveText(defaultHeaders);
+			expect(
+				await page.evaluate(
+					() => document.documentElement.scrollWidth <= innerWidth,
+				),
+			).toBe(true);
+		}
+		const report = {
+			open: summarize(openTimes),
+			resize: summarize(resizeTimes),
+			interaction: summarize(interactionTimes),
+		};
+		const metrics = {
+			...report,
+			...(workflowTimes.length ? { workflow: summarize(workflowTimes) } : {}),
+		};
+		await writeFile(
+			testInfo.outputPath("field-experience-metrics.json"),
+			JSON.stringify(metrics, null, 2),
+		);
+		await testInfo.attach("field-experience-metrics", {
+			body: JSON.stringify(metrics, null, 2),
 			contentType: "application/json",
 		});
 		expect(errors).toEqual([]);

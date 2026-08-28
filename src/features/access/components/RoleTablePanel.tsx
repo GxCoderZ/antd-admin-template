@@ -26,7 +26,6 @@ import { TableActionButton } from "../../../app/TableActionButton";
 import { getTableColumnSettingsStorageKey } from "../../../app/preferenceStorage";
 import type { TableColumnConfig } from "../../../app/tableColumnVisibility";
 import type { ListPlatformRolesInput, PlatformRole } from "#src/api/roles";
-import { permissionGroups } from "../rolePermissions";
 import { getRoleErrorTitleKey, getRoleProblemDetail } from "../roleProblems";
 
 const { Text } = Typography;
@@ -35,10 +34,8 @@ type RoleSort = NonNullable<ListPlatformRolesInput["sort"]>;
 const roleColumnVisibility: readonly TableColumnConfig[] = [
 	{ key: "displayName", visibility: "required" },
 	{ key: "roleKey", visibility: "recommended" },
-	{ key: "memberCount", visibility: "recommended" },
-	{ key: "permissions", visibility: "optional" },
-	{ key: "id", visibility: "optional" },
 	{ key: "builtIn", visibility: "recommended" },
+	{ key: "memberCount", visibility: "recommended" },
 	{ key: "createdAt", visibility: "optional" },
 	{ key: "updatedAt", visibility: "recommended" },
 	{ key: "actions", visibility: "required" },
@@ -144,57 +141,6 @@ export function RoleTablePanel({
 				width: token.controlHeight * 5,
 			},
 			{
-				align: "right",
-				dataIndex: "memberCount",
-				key: "memberCount",
-				render: (_, role) => role.memberCount ?? 0,
-				search: false,
-				sortDirections: ["ascend", "descend"],
-				sorter: true,
-				sortOrder: sortOrder("member_count"),
-				title: t("adminShell.roles.columns.memberCount"),
-				width: token.controlHeight * 4,
-			},
-			{
-				key: "permissions",
-				render: (_: unknown, role: PlatformRole) => {
-					const summaries = permissionGroups
-						.map((group) => ({
-							count: group.permissions.filter((definition) =>
-								role.permissions.includes(definition.permission),
-							).length,
-							groupKey: group.groupKey,
-						}))
-						.filter((summary) => summary.count > 0);
-
-					return summaries.length > 0 ? (
-						<Space size={token.marginXXS} style={{ whiteSpace: "nowrap" }}>
-							{summaries.map((summary) => (
-								<Tag key={summary.groupKey}>
-									{t(`adminShell.roles.permissions.groups.${summary.groupKey}`)}{" "}
-									{summary.count}
-								</Tag>
-							))}
-						</Space>
-					) : (
-						<Text type="secondary">
-							{t("adminShell.roles.permissions.notConfigured")}
-						</Text>
-					);
-				},
-				search: false,
-				title: t("adminShell.roles.columns.permissions"),
-				width: token.controlHeight * 14,
-			},
-			{
-				dataIndex: "id",
-				key: "id",
-				render: (_, role) => <Text code>{role.id}</Text>,
-				search: false,
-				title: t("adminShell.roles.columns.id"),
-				width: token.controlHeight * 5,
-			},
-			{
 				dataIndex: "builtIn",
 				key: "builtIn",
 				render: (_, role) => (
@@ -205,6 +151,18 @@ export function RoleTablePanel({
 				search: false,
 				title: t("adminShell.roles.columns.builtIn"),
 				width: token.controlHeight * 3,
+			},
+			{
+				align: "right",
+				dataIndex: "memberCount",
+				key: "memberCount",
+				render: (_, role) => role.memberCount ?? 0,
+				search: false,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("member_count"),
+				title: t("adminShell.roles.columns.memberCount"),
+				width: token.controlHeight * 4,
 			},
 			{
 				dataIndex: "createdAt",
@@ -309,7 +267,6 @@ export function RoleTablePanel({
 		formatPreferences,
 		t,
 		token.controlHeight,
-		token.marginXXS,
 	]);
 
 	return (

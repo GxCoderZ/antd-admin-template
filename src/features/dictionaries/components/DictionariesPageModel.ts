@@ -11,8 +11,8 @@ export type ItemSort = NonNullable<ListPlatformDictionaryItemsInput["sort"]>;
 export const typeColumnVisibility: readonly TableColumnConfig<string>[] = [
 	{ key: "name", visibility: "required" },
 	{ key: "code", visibility: "recommended" },
-	{ key: "status", visibility: "recommended" },
 	{ key: "itemCount", visibility: "recommended" },
+	{ key: "status", visibility: "recommended" },
 	{ key: "updatedAt", visibility: "optional" },
 	{ key: "actions", visibility: "required" },
 ];

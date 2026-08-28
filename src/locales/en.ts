@@ -46,6 +46,18 @@ export const enTranslation = {
 			logoutError: "Sign out failed. Please try again.",
 		},
 		recordDetails: {
+			departmentId: "Department ID",
+			sections: {
+				basic: "Basic information",
+				organization: "Related information",
+				access: "Account and permissions",
+				activity: "Activity and records",
+				content: "Content",
+				request: "Request information",
+				device: "Device information",
+				changes: "Changes",
+				technical: "Technical information",
+			},
 			id: "Record ID",
 			version: "Data version",
 			createdAt: "Created at",

@@ -90,11 +90,23 @@ function renderDepartmentsPage() {
 }
 
 describe("DepartmentsPage", () => {
+	it("orders department comparison fields before status", async () => {
+		renderDepartmentsPage();
+		await screen.findByText("运营中心");
+		expect(
+			screen
+				.getAllByRole("columnheader")
+				.map((header) => header.textContent?.trim()),
+		).toEqual(["部门名称", "部门标识", "成员数", "岗位数", "状态", "操作"]);
+	});
 	it("opens complete read-only department details from the name", async () => {
 		const user = renderDepartmentsPage();
 		await user.click(await screen.findByRole("button", { name: "运营中心" }));
 		const dialog = await screen.findByRole("dialog");
 		for (const label of [
+			"基本信息",
+			"关联信息",
+			"时间与记录",
 			"记录 ID",
 			"部门名称",
 			"部门标识",
@@ -153,7 +165,11 @@ describe("DepartmentsPage", () => {
 		const user = renderDepartmentsPage();
 
 		await screen.findByText("运营中心");
-		await user.click(screen.getByRole("button", { name: "新增下级" }));
+		expect(
+			screen.queryByRole("button", { name: "新增下级" }),
+		).not.toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: "更多" }));
+		await user.click(await screen.findByRole("menuitem", { name: "新增下级" }));
 		await user.type(
 			await screen.findByPlaceholderText("请输入部门名称"),
 			"质量组",

@@ -46,6 +46,18 @@ export const koKRTranslation = {
 			logoutError: "로그아웃하지 못했습니다. 다시 시도해 주세요.",
 		},
 		recordDetails: {
+			departmentId: "부서 ID",
+			sections: {
+				basic: "기본 정보",
+				organization: "관련 정보",
+				access: "계정 및 권한",
+				activity: "활동 및 기록",
+				content: "업무 내용",
+				request: "요청 정보",
+				device: "기기 정보",
+				changes: "변경 내용",
+				technical: "기술 정보",
+			},
 			id: "레코드 ID",
 			version: "데이터 버전",
 			createdAt: "생성 시간",

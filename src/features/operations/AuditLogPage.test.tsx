@@ -83,6 +83,17 @@ function renderAuditLogPage() {
 }
 
 describe("AuditLogPage", () => {
+	it("defaults to chronological audit review fields", async () => {
+		renderAuditLogPage();
+
+		await screen.findByText("operator");
+		expect(
+			screen
+				.getAllByRole("columnheader")
+				.map((header) => header.textContent?.replace(/\s+/g, "").trim()),
+		).toEqual(["发生时间", "操作人", "动作", "目标", "结果", "IP地址", "操作"]);
+	});
+
 	it("requests the initial audit list without an explicit sort", async () => {
 		renderAuditLogPage();
 

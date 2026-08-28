@@ -3,6 +3,7 @@ import {
 	Badge,
 	Descriptions,
 	Drawer,
+	Flex,
 	Skeleton,
 	Space,
 	Tag,
@@ -37,111 +38,141 @@ export function UserDetailDrawer({
 	const formatPreferences = useLocalePreferences();
 	const missingValue = <Text type="secondary">-</Text>;
 
-	const items: DescriptionsProps["items"] = user
+	const sections: (DescriptionsProps & { key: string })[] = user
 		? [
 				{
-					children: <Text code>{user.id}</Text>,
-					label: t("adminShell.users.columns.id"),
+					key: "basic",
+					title: t("adminShell.recordDetails.sections.basic"),
+					items: [
+						{
+							children: user.username,
+							label: t("adminShell.users.columns.username"),
+						},
+						{
+							children: user.displayName,
+							label: t("adminShell.users.columns.displayName"),
+						},
+						{
+							children: user.email,
+							label: t("adminShell.users.columns.email"),
+						},
+						{
+							children: user.phone || missingValue,
+							label: t("adminShell.users.columns.phone"),
+						},
+					],
 				},
 				{
-					children: user.username,
-					label: t("adminShell.users.columns.username"),
+					key: "organization",
+					title: t("adminShell.recordDetails.sections.organization"),
+					items: [
+						{
+							children: user.departmentName ?? "-",
+							label: t("adminShell.users.columns.department"),
+						},
+						{
+							children: user.departmentId ?? missingValue,
+							label: t("adminShell.recordDetails.departmentId"),
+						},
+						{
+							children: user.jobTitle || missingValue,
+							label: t("adminShell.users.columns.jobTitle"),
+						},
+						{
+							children:
+								user.roles.length > 0 ? (
+									<Space wrap>
+										{user.roles.map((role) => (
+											<Tag key={role.id}>{role.displayName}</Tag>
+										))}
+									</Space>
+								) : (
+									missingValue
+								),
+							label: t("adminShell.users.columns.roles"),
+						},
+					],
 				},
 				{
-					children: user.displayName,
-					label: t("adminShell.users.columns.displayName"),
+					key: "access",
+					title: t("adminShell.recordDetails.sections.access"),
+					items: [
+						{
+							children: (
+								<Badge
+									status={
+										user.status === "active"
+											? "success"
+											: user.status === "locked"
+												? "error"
+												: "default"
+									}
+									text={t(`adminShell.users.statuses.${user.status}`)}
+								/>
+							),
+							label: t("adminShell.users.columns.status"),
+						},
+						{
+							children: (
+								<Tag>
+									{t(`adminShell.users.authSources.${user.authSource}`)}
+								</Tag>
+							),
+							label: t("adminShell.users.columns.authSource"),
+						},
+						{
+							children: t(
+								user.mfaEnabled
+									? "adminShell.users.columnValues.enabled"
+									: "adminShell.users.columnValues.disabled",
+							),
+							label: t("adminShell.users.columns.mfaEnabled"),
+						},
+						{
+							children: t(
+								user.mustChangePassword
+									? "adminShell.users.columnValues.changeRequired"
+									: "adminShell.users.columnValues.normal",
+							),
+							label: t("adminShell.users.columns.mustChangePassword"),
+						},
+					],
 				},
 				{
-					children: user.email,
-					label: t("adminShell.users.columns.email"),
-				},
-				{
-					children: user.phone || missingValue,
-					label: t("adminShell.users.columns.phone"),
-				},
-				{
-					children: user.departmentName ?? "-",
-					label: t("adminShell.users.columns.department"),
-				},
-				{
-					children: user.jobTitle || missingValue,
-					label: t("adminShell.users.columns.jobTitle"),
-				},
-				{
-					children:
-						user.roles.length > 0 ? (
-							<Space wrap>
-								{user.roles.map((role) => (
-									<Tag key={role.id}>{role.displayName}</Tag>
-								))}
-							</Space>
-						) : (
-							missingValue
-						),
-					label: t("adminShell.users.columns.roles"),
-				},
-				{
-					children: (
-						<Badge
-							status={
-								user.status === "active"
-									? "success"
-									: user.status === "locked"
-										? "error"
-										: "default"
-							}
-							text={t(`adminShell.users.statuses.${user.status}`)}
-						/>
-					),
-					label: t("adminShell.users.columns.status"),
-				},
-				{
-					children: (
-						<Tag>{t(`adminShell.users.authSources.${user.authSource}`)}</Tag>
-					),
-					label: t("adminShell.users.columns.authSource"),
-				},
-				{
-					children: t(
-						user.mfaEnabled
-							? "adminShell.users.columnValues.enabled"
-							: "adminShell.users.columnValues.disabled",
-					),
-					label: t("adminShell.users.columns.mfaEnabled"),
-				},
-				{
-					children: t(
-						user.mustChangePassword
-							? "adminShell.users.columnValues.changeRequired"
-							: "adminShell.users.columnValues.normal",
-					),
-					label: t("adminShell.users.columns.mustChangePassword"),
-				},
-				{
-					children: user.lastLoginAt
-						? formatDateTime(user.lastLoginAt, formatPreferences)
-						: t("adminShell.users.columnValues.never"),
-					label: t("adminShell.users.columns.lastLoginAt"),
-				},
-				{
-					children: user.lastLoginIp ? (
-						<Text code>{user.lastLoginIp}</Text>
-					) : (
-						missingValue
-					),
-					label: t("adminShell.users.columns.lastLoginIp"),
-				},
-				{
-					children: formatDateTime(user.createdAt, formatPreferences),
-					label: t("adminShell.users.columns.createdAt"),
-				},
-				{
-					children: formatDateTime(user.updatedAt, formatPreferences),
-					label: t("adminShell.users.columns.updatedAt"),
-				},
-				{
-					children: user.version ?? missingValue,
-					label: t("adminShell.recordDetails.version"),
+					key: "activity",
+					title: t("adminShell.recordDetails.sections.activity"),
+					items: [
+						{
+							children: user.lastLoginAt
+								? formatDateTime(user.lastLoginAt, formatPreferences)
+								: t("adminShell.users.columnValues.never"),
+							label: t("adminShell.users.columns.lastLoginAt"),
+						},
+						{
+							children: user.lastLoginIp ? (
+								<Text code>{user.lastLoginIp}</Text>
+							) : (
+								missingValue
+							),
+							label: t("adminShell.users.columns.lastLoginIp"),
+						},
+						{
+							children: formatDateTime(user.createdAt, formatPreferences),
+							label: t("adminShell.users.columns.createdAt"),
+						},
+						{
+							children: formatDateTime(user.updatedAt, formatPreferences),
+							label: t("adminShell.users.columns.updatedAt"),
+						},
+						{
+							children: <Text code>{user.id}</Text>,
+							label: t("adminShell.users.columns.id"),
+						},
+						{
+							children: user.version ?? missingValue,
+							label: t("adminShell.recordDetails.version"),
+						},
+					],
 				},
 			]
 		: [];
@@ -151,6 +182,7 @@ export function UserDetailDrawer({
 			destroyOnHidden
 			onClose={onClose}
 			open={open}
+			size="min(560px, 100vw)"
 			title={t("adminShell.users.detail.title", {
 				name: user?.displayName ?? user?.username ?? "",
 			})}
@@ -168,7 +200,18 @@ export function UserDetailDrawer({
 			) : loading ? (
 				<Skeleton active paragraph={{ rows: 8 }} />
 			) : (
-				<Descriptions bordered column={1} items={items} size="small" />
+				<Flex vertical gap="large">
+					{sections.map(({ key, ...section }) => (
+						<Descriptions
+							key={key}
+							{...section}
+							bordered
+							column={1}
+							size="small"
+							styles={{ content: { overflowWrap: "anywhere" } }}
+						/>
+					))}
+				</Flex>
 			)}
 		</Drawer>
 	);

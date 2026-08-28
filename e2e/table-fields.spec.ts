@@ -4,6 +4,7 @@ const tables = [
 	{
 		path: "/organization/users",
 		id: "admin-users-table-card",
+		detailOnly: ["用户 ID"],
 		defaults: [
 			"用户名",
 			"显示名称",
@@ -17,11 +18,12 @@ const tables = [
 	{
 		path: "/access/roles",
 		id: "admin-roles-table-card",
+		detailOnly: ["角色 ID", "权限点"],
 		defaults: [
 			"角色名称",
 			"角色标识",
-			"成员数",
 			"角色类型",
+			"成员数",
 			"更新时间",
 			"操作",
 		],
@@ -29,24 +31,26 @@ const tables = [
 	{
 		path: "/organization/departments",
 		id: "admin-departments-table-card",
-		defaults: ["部门名称", "部门标识", "状态", "成员数", "岗位数", "操作"],
+		defaults: ["部门名称", "部门标识", "成员数", "岗位数", "状态", "操作"],
 	},
 	{
 		path: "/organization/positions",
 		id: "admin-positions-table-card",
-		defaults: ["岗位名称", "岗位标识", "所属部门", "状态", "成员数", "操作"],
+		defaults: ["岗位名称", "岗位标识", "所属部门", "成员数", "状态", "操作"],
 	},
 	{
 		path: "/system/dictionaries",
 		id: "admin-dictionaries-type-table",
 		tab: "字典类型",
-		defaults: ["类型名称", "类型标识", "状态", "字典项数", "操作"],
+		defaults: ["类型名称", "类型标识", "字典项数", "状态", "操作"],
+		detailOnly: ["记录 ID", "说明"],
 	},
 	{
 		path: "/system/dictionaries",
 		id: "admin-dictionaries-item-table",
 		tab: "字典项",
 		defaults: ["显示标签", "字典值", "排序", "状态", "操作"],
+		detailOnly: ["记录 ID", "字典类型 ID", "说明"],
 	},
 	{
 		path: "/system/announcements",
@@ -55,16 +59,32 @@ const tables = [
 		minimumHeaders: ["", "公告标题", "操作"],
 		recommended: "发布状态",
 		required: ["公告标题", "操作"],
+		detailOnly: ["记录 ID", "公告内容"],
 	},
 	{
 		path: "/operations/audit-logs",
 		id: "audit-log-table-card",
-		defaults: ["操作人", "动作", "目标", "结果", "IP 地址", "发生时间", "操作"],
+		defaults: ["发生时间", "操作人", "动作", "目标", "结果", "IP 地址", "操作"],
+		required: ["操作人", "操作"],
+		recommended: "发生时间",
+		detailOnly: [
+			"日志 ID",
+			"操作人 ID",
+			"目标 ID",
+			"请求 ID",
+			"失败原因",
+			"变更前",
+			"变更后",
+			"User-Agent",
+		],
 	},
 	{
 		path: "/operations/login-logs",
 		id: "login-log-table-card",
-		defaults: ["登录标识", "结果", "设备", "IP 地址", "登录时间", "操作"],
+		defaults: ["登录时间", "登录标识", "结果", "IP 地址", "设备", "操作"],
+		required: ["登录标识", "操作"],
+		recommended: "登录时间",
+		detailOnly: ["日志 ID", "用户 ID", "请求 ID", "失败原因", "User-Agent"],
 	},
 ];
 
@@ -122,6 +142,11 @@ for (const table of tables) {
 		}
 		const selectAll = settings.getByRole("checkbox").first();
 		await selectAll.check();
+		for (const label of table.detailOnly ?? []) {
+			await expect(
+				panel.getByRole("columnheader", { name: label, exact: true }),
+			).toHaveCount(0);
+		}
 		await selectAll.uncheck();
 		await expect(headers).toHaveText(table.minimumHeaders ?? requiredLabels);
 		await settings.getByText("重置", { exact: true }).click();

@@ -2,6 +2,7 @@ import type { ProColumns } from "@ant-design/pro-components";
 import {
 	CheckCircleOutlined,
 	DeleteOutlined,
+	EditOutlined,
 	StopOutlined,
 } from "@ant-design/icons";
 import { Space, Tag, theme } from "antd";
@@ -96,20 +97,20 @@ export function useDictionaryTypeTableColumns({
 				width: token.controlHeight * 5,
 			},
 			{
+				dataIndex: "itemCount",
+				key: "itemCount",
+				sorter: true,
+				sortOrder: sortOrder("item_count"),
+				title: t("adminShell.dictionaries.columns.itemCount"),
+				width: token.controlHeight * 3,
+			},
+			{
 				dataIndex: "status",
 				key: "status",
 				renderText: renderStatus,
 				sorter: true,
 				sortOrder: sortOrder("status"),
 				title: t("adminShell.dictionaries.columns.status"),
-				width: token.controlHeight * 3,
-			},
-			{
-				dataIndex: "itemCount",
-				key: "itemCount",
-				sorter: true,
-				sortOrder: sortOrder("item_count"),
-				title: t("adminShell.dictionaries.columns.itemCount"),
 				width: token.controlHeight * 3,
 			},
 			{
@@ -128,14 +129,17 @@ export function useDictionaryTypeTableColumns({
 				key: "actions",
 				render: (_value, dictionaryType) => (
 					<Space size="middle">
-						<TableActionButton onClick={() => onEdit(dictionaryType)}>
-							{t("adminShell.dictionaries.edit")}
-						</TableActionButton>
 						<TableActionButton onClick={() => onManageItems(dictionaryType)}>
 							{t("adminShell.dictionaries.manageItems")}
 						</TableActionButton>
 						<TableActionMenu
 							items={[
+								{
+									icon: <EditOutlined aria-hidden />,
+									key: "edit",
+									label: t("adminShell.dictionaries.edit"),
+									onClick: () => onEdit(dictionaryType),
+								},
 								{
 									icon:
 										dictionaryType.status === "active" ? (
@@ -164,7 +168,7 @@ export function useDictionaryTypeTableColumns({
 					</Space>
 				),
 				title: t("adminShell.dictionaries.columns.actions"),
-				width: token.controlHeight * 7,
+				width: token.controlHeight * 5,
 			});
 		}
 

@@ -1,25 +1,13 @@
 import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
 import { useRef } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-	Badge,
-	DatePicker,
-	Flex,
-	Select,
-	Space,
-	theme,
-	Typography,
-} from "antd";
+import { Badge, DatePicker, Flex, Select, Space, theme } from "antd";
 import type { TableProps } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-	formatDeviceInfo,
-	getDeviceDetails,
-	getPrimaryLanguage,
-} from "../../app/deviceInfo";
+import { formatDeviceInfo, getDeviceDetails } from "../../app/deviceInfo";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
 import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
@@ -40,6 +28,7 @@ import {
 	LogDetailsDrawer,
 	LogTablePanel,
 } from "./LogTablePanel";
+import { LoginLogDetails } from "./LogDetailContent";
 import {
 	listPlatformLoginLogs,
 	loginLogsQueryKey,
@@ -47,7 +36,6 @@ import {
 	type PlatformLoginLog,
 } from "#src/api/operations";
 
-const { Text } = Typography;
 type LoginLogSort = "created_at" | "identifier" | "result";
 type SortOrder = "asc" | "desc";
 const loginLogsRouteKey = "/operations/login-logs";
@@ -57,27 +45,18 @@ const loginTableSortToContractSort: Record<string, LoginLogSort> = {
 	result: "result",
 };
 const loginLogColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "created_at", visibility: "recommended" },
 	{ key: "identifier", visibility: "required" },
 	{ key: "result", visibility: "recommended" },
-	{ key: "userAgent", visibility: "recommended" },
 	{ key: "requestIp", visibility: "recommended" },
-	{ key: "acceptLanguage", visibility: "optional" },
-	{ key: "timeZone", visibility: "optional" },
-	{ key: "created_at", visibility: "recommended" },
-	{ key: "actions", visibility: "required" },
-	{ key: "id", visibility: "optional" },
-	{ key: "userId", visibility: "optional" },
-	{ key: "requestId", visibility: "optional" },
+	{ key: "userAgent", visibility: "recommended" },
 	{ key: "authMethod", visibility: "optional" },
 	{ key: "mfaUsed", visibility: "optional" },
 	{ key: "location", visibility: "optional" },
 	{ key: "browser", visibility: "optional" },
 	{ key: "operatingSystem", visibility: "optional" },
 	{ key: "durationMs", visibility: "optional" },
-	{ key: "failureReason", visibility: "optional" },
-	{ key: "sessionId", visibility: "optional" },
-	{ key: "rawAcceptLanguage", visibility: "optional" },
-	{ key: "rawUserAgent", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
 ];
 
 const loginResultStatus = {
@@ -202,19 +181,17 @@ export function LoginLogPage() {
 		sort === column && order ? (order === "asc" ? "ascend" : "descend") : null;
 	const missingDeviceValue = t("adminShell.deviceInfo.notRecorded");
 	const unknownDevice = t("adminShell.deviceInfo.unknownDevice");
-	const renderCodeValue = (value: string | undefined) => {
-		const displayValue = value?.trim() || missingDeviceValue;
-		return (
-			<Text
-				code
-				ellipsis={{ tooltip: displayValue }}
-				style={{ maxWidth: "100%" }}
-			>
-				{displayValue}
-			</Text>
-		);
-	};
 	const columns: ProColumns<PlatformLoginLog>[] = [
+		{
+			dataIndex: "createdAt",
+			key: "created_at",
+			renderText: (value: string) => formatDateTime(value, formatPreferences),
+			sortDirections: ["ascend", "descend"],
+			sorter: true,
+			sortOrder: sortOrder("created_at"),
+			title: t("adminShell.logs.login.columns.occurredAt"),
+			width: token.controlHeight * 5,
+		},
 		{
 			dataIndex: "identifier",
 			key: "identifier",
@@ -240,95 +217,18 @@ export function LoginLogPage() {
 			width: token.controlHeight * 3,
 		},
 		{
-			dataIndex: "userAgent",
-			key: "userAgent",
-			renderText: (value: string | undefined) =>
-				formatDeviceInfo(value, unknownDevice),
-			title: t("adminShell.deviceInfo.device"),
-			width: token.controlHeight * 7,
-		},
-		{
 			dataIndex: "requestIp",
 			key: "requestIp",
 			title: t("adminShell.logs.login.columns.ipAddress"),
 			width: token.controlHeight * 4,
 		},
 		{
-			dataIndex: "acceptLanguage",
-			key: "acceptLanguage",
+			dataIndex: "userAgent",
+			key: "userAgent",
 			renderText: (value: string | undefined) =>
-				getPrimaryLanguage(value) ?? missingDeviceValue,
-			title: t("adminShell.deviceInfo.language"),
-			width: token.controlHeight * 3,
-		},
-		{
-			dataIndex: "timeZone",
-			key: "timeZone",
-			renderText: (value: string | undefined) =>
-				value?.trim() || missingDeviceValue,
-			title: t("adminShell.deviceInfo.timeZone"),
-			width: token.controlHeight * 5,
-		},
-		{
-			dataIndex: "createdAt",
-			key: "created_at",
-			renderText: (value: string) => formatDateTime(value, formatPreferences),
-			sortDirections: ["ascend", "descend"],
-			sorter: true,
-			sortOrder: sortOrder("created_at"),
-			title: t("adminShell.logs.login.columns.occurredAt"),
-			width: token.controlHeight * 5,
-		},
-		{
-			key: "actions",
-			render: (_, row) => (
-				<Space size="medium">
-					<TableActionButton
-						aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
-						onClick={() => setSelectedLog(row)}
-					>
-						{t("adminShell.logs.common.view")}
-					</TableActionButton>
-					<TableActionMenu
-						items={[
-							{
-								key: "copyId",
-								label: t("adminShell.tableActions.copyRecordId"),
-								onClick: () => void copyTableValue(row.id),
-							},
-							{
-								key: "copyIp",
-								label: t("adminShell.tableActions.copyIpAddress"),
-								onClick: () => void copyTableValue(row.requestIp),
-							},
-						]}
-						label={t("adminShell.tableActions.more")}
-					/>
-				</Space>
-			),
-			title: t("adminShell.logs.login.columns.actions"),
-			width: token.controlHeight * 4,
-		},
-		{
-			dataIndex: "id",
-			key: "id",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.recordId"),
-			width: token.controlHeight * 4,
-		},
-		{
-			dataIndex: "userId",
-			key: "userId",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.login.columns.userId"),
-			width: token.controlHeight * 5,
-		},
-		{
-			dataIndex: "requestId",
-			key: "requestId",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.requestId"),
-			width: token.controlHeight * 5,
+				formatDeviceInfo(value, unknownDevice),
+			title: t("adminShell.deviceInfo.device"),
+			width: token.controlHeight * 7,
 		},
 		{
 			dataIndex: "authMethod",
@@ -377,32 +277,34 @@ export function LoginLogPage() {
 			width: token.controlHeight * 3,
 		},
 		{
-			dataIndex: "failureReason",
-			key: "failureReason",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.failureReason"),
-			width: token.controlHeight * 5,
-		},
-		{
-			dataIndex: "sessionId",
-			key: "sessionId",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.login.columns.sessionId"),
-			width: token.controlHeight * 5,
-		},
-		{
-			dataIndex: "acceptLanguage",
-			key: "rawAcceptLanguage",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.acceptLanguage"),
-			width: token.controlHeight * 5,
-		},
-		{
-			dataIndex: "userAgent",
-			key: "rawUserAgent",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.userAgent"),
-			width: token.controlHeight * 10,
+			key: "actions",
+			render: (_, row) => (
+				<Space size="medium">
+					<TableActionButton
+						aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
+						onClick={() => setSelectedLog(row)}
+					>
+						{t("adminShell.logs.common.view")}
+					</TableActionButton>
+					<TableActionMenu
+						items={[
+							{
+								key: "copyId",
+								label: t("adminShell.tableActions.copyRecordId"),
+								onClick: () => void copyTableValue(row.id),
+							},
+							{
+								key: "copyIp",
+								label: t("adminShell.tableActions.copyIpAddress"),
+								onClick: () => void copyTableValue(row.requestIp),
+							},
+						]}
+						label={t("adminShell.tableActions.more")}
+					/>
+				</Space>
+			),
+			title: t("adminShell.logs.login.columns.actions"),
+			width: token.controlHeight * 4,
 		},
 	];
 
@@ -536,134 +438,12 @@ export function LoginLogPage() {
 			/>
 
 			<LogDetailsDrawer
-				items={
-					selectedLog
-						? [
-								{
-									key: "id",
-									label: t("adminShell.logs.common.recordId"),
-									children: selectedLog.id,
-								},
-								{
-									key: "requestId",
-									label: t("adminShell.logs.common.requestId"),
-									children: selectedLog.requestId,
-								},
-								{
-									key: "userId",
-									label: t("adminShell.logs.login.columns.userId"),
-									children: selectedLog.userId ?? missingDeviceValue,
-								},
-								{
-									key: "identifier",
-									label: t("adminShell.logs.login.columns.identifier"),
-									children: selectedLog.identifier,
-								},
-								{
-									key: "authMethod",
-									label: t("adminShell.logs.login.columns.authMethod"),
-									children: t(
-										`adminShell.logs.login.authMethods.${selectedLog.authMethod}`,
-									),
-								},
-								{
-									key: "mfaUsed",
-									label: t("adminShell.logs.login.columns.mfaUsed"),
-									children: t(
-										`adminShell.logs.common.${selectedLog.mfaUsed ? "yes" : "no"}`,
-									),
-								},
-								{
-									key: "result",
-									label: t("adminShell.logs.login.columns.result"),
-									children: t(
-										`adminShell.logs.common.results.${selectedLog.result}`,
-									),
-								},
-								{
-									key: "ipAddress",
-									label: t("adminShell.logs.login.columns.ipAddress"),
-									children: selectedLog.requestIp,
-								},
-								{
-									key: "location",
-									label: t("adminShell.logs.login.columns.location"),
-									children: selectedLog.location ?? missingDeviceValue,
-								},
-								{
-									key: "device",
-									label: t("adminShell.deviceInfo.device"),
-									children: formatDeviceInfo(
-										selectedLog.userAgent,
-										unknownDevice,
-									),
-								},
-								{
-									key: "browser",
-									label: t("adminShell.logs.common.browser"),
-									children:
-										getDeviceDetails(selectedLog.userAgent).browser ??
-										missingDeviceValue,
-								},
-								{
-									key: "operatingSystem",
-									label: t("adminShell.logs.common.operatingSystem"),
-									children:
-										getDeviceDetails(selectedLog.userAgent).operatingSystem ??
-										missingDeviceValue,
-								},
-								{
-									key: "language",
-									label: t("adminShell.deviceInfo.language"),
-									children:
-										getPrimaryLanguage(selectedLog.acceptLanguage) ??
-										missingDeviceValue,
-								},
-								{
-									key: "acceptLanguage",
-									label: t("adminShell.logs.common.acceptLanguage"),
-									children: selectedLog.acceptLanguage ?? missingDeviceValue,
-								},
-								{
-									key: "timeZone",
-									label: t("adminShell.deviceInfo.timeZone"),
-									children: selectedLog.timeZone?.trim() || missingDeviceValue,
-								},
-								{
-									key: "durationMs",
-									label: t("adminShell.logs.common.duration"),
-									children: `${selectedLog.durationMs} ms`,
-								},
-								{
-									key: "failureReason",
-									label: t("adminShell.logs.common.failureReason"),
-									children: selectedLog.failureReason ?? missingDeviceValue,
-								},
-								{
-									key: "sessionId",
-									label: t("adminShell.logs.login.columns.sessionId"),
-									children: selectedLog.sessionId ?? missingDeviceValue,
-								},
-								{
-									key: "userAgent",
-									label: t("adminShell.logs.common.userAgent"),
-									children: selectedLog.userAgent ?? missingDeviceValue,
-								},
-								{
-									key: "occurredAt",
-									label: t("adminShell.logs.login.columns.occurredAt"),
-									children: formatDateTime(
-										selectedLog.createdAt,
-										formatPreferences,
-									),
-								},
-							]
-						: undefined
-				}
 				onClose={() => setSelectedLog(null)}
 				open={selectedLog !== null}
 				title={t("adminShell.logs.login.detailsTitle")}
-			/>
+			>
+				{selectedLog ? <LoginLogDetails log={selectedLog} /> : null}
+			</LogDetailsDrawer>
 		</Flex>
 	);
 }

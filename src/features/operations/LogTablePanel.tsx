@@ -1,8 +1,7 @@
 import type { ProColumns, ProFormInstance } from "@ant-design/pro-components";
 import { ApiProblemError } from "#src/api/client";
-import { Alert, Button, Descriptions, Drawer } from "antd";
-import type { DescriptionsProps } from "antd";
 import type { ReactNode, RefObject } from "react";
+import { Alert, Button, Drawer } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -118,12 +117,12 @@ export function LogTablePanel<
 }
 
 export function LogDetailsDrawer({
-	items,
+	children,
 	onClose,
 	open,
 	title,
 }: {
-	items: DescriptionsProps["items"] | undefined;
+	children: ReactNode;
 	onClose: () => void;
 	open: boolean;
 	title: string;
@@ -136,9 +135,7 @@ export function LogDetailsDrawer({
 			size="min(560px, 100vw)"
 			title={title}
 		>
-			{items ? (
-				<Descriptions bordered column={1} items={items} size="small" />
-			) : null}
+			{children}
 		</Drawer>
 	);
 }

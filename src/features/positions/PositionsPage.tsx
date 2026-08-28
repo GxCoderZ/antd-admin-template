@@ -95,8 +95,8 @@ const positionColumnVisibility: readonly TableColumnConfig<string>[] = [
 	{ key: "name", visibility: "required" },
 	{ key: "code", visibility: "recommended" },
 	{ key: "departmentName", visibility: "recommended" },
-	{ key: "status", visibility: "recommended" },
 	{ key: "memberCount", visibility: "recommended" },
+	{ key: "status", visibility: "recommended" },
 	{ key: "updatedAt", visibility: "optional" },
 	{ key: "actions", visibility: "required" },
 ];
@@ -379,6 +379,17 @@ export function PositionsPage() {
 				width: token.controlHeight * 5,
 			},
 			{
+				dataIndex: "memberCount",
+				key: "memberCount",
+				sortDirections: ["ascend", "descend"],
+				sortOrder: sortOrder("member_count"),
+				sorter: true,
+				title: t("adminShell.positions.columns.memberCount", {
+					defaultValue: "成员数",
+				}),
+				width: token.controlHeight * 3,
+			},
+			{
 				dataIndex: "status",
 				key: "status",
 				renderText: (status: PlatformPositionStatus) => (
@@ -393,17 +404,6 @@ export function PositionsPage() {
 				sorter: true,
 				title: t("adminShell.positions.columns.status", {
 					defaultValue: "状态",
-				}),
-				width: token.controlHeight * 3,
-			},
-			{
-				dataIndex: "memberCount",
-				key: "memberCount",
-				sortDirections: ["ascend", "descend"],
-				sortOrder: sortOrder("member_count"),
-				sorter: true,
-				title: t("adminShell.positions.columns.memberCount", {
-					defaultValue: "成员数",
 				}),
 				width: token.controlHeight * 3,
 			},

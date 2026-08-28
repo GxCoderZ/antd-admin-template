@@ -314,7 +314,11 @@ describe("DictionariesPage", () => {
 
 		await screen.findByText("用户状态");
 		const typeTable = screen.getByTestId("admin-dictionaries-type-table");
-		await user.click(within(typeTable).getByText("编辑", { exact: true }));
+		expect(
+			within(typeTable).queryByText("编辑", { exact: true }),
+		).not.toBeInTheDocument();
+		await user.click(within(typeTable).getByText("更多", { exact: true }));
+		await user.click(await screen.findByRole("menuitem", { name: "编辑" }));
 		expect(await screen.findByText("编辑字典类型")).toBeInTheDocument();
 		expect(screen.getByDisplayValue(dictionaryType.code)).toBeInTheDocument();
 	});
@@ -377,6 +381,22 @@ describe("DictionariesPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("字典类型详情")).toBeInTheDocument();
+		for (const label of [
+			"基本信息",
+			"业务内容",
+			"时间与记录",
+			"名称",
+			"编码",
+			"状态",
+			"字典项",
+			"描述",
+			"创建时间",
+			"更新时间",
+		]) {
+			expect(
+				within(dialog).getByText(label, { exact: true }),
+			).toBeInTheDocument();
+		}
 		expect(within(dialog).getByText(dictionaryType.id)).toBeInTheDocument();
 		expect(within(dialog).getByText("user_status")).toBeInTheDocument();
 		expect(within(dialog).getByText("用户状态选项")).toBeInTheDocument();
@@ -408,6 +428,24 @@ describe("DictionariesPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("字典项详情")).toBeInTheDocument();
+		for (const label of [
+			"基本信息",
+			"业务内容",
+			"时间与记录",
+			"标签",
+			"值",
+			"排序值",
+			"状态",
+			"颜色",
+			"描述",
+			"字典类型 ID",
+			"创建时间",
+			"更新时间",
+		]) {
+			expect(
+				within(dialog).getByText(label, { exact: true }),
+			).toBeInTheDocument();
+		}
 		expect(within(dialog).getByText(dictionaryItem.id)).toBeInTheDocument();
 		expect(within(dialog).getByText(dictionaryItem.typeId)).toBeInTheDocument();
 		expect(within(dialog).getByText("active")).toBeInTheDocument();

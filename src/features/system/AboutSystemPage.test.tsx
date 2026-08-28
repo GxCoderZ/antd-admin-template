@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -84,6 +84,31 @@ describe("AboutSystemPage", () => {
 		renderAboutSystemPage();
 
 		const moreButtons = await screen.findAllByRole("button", { name: "更多" });
+		const table = within(screen.getByTestId("about-production-dependencies"));
+		expect(
+			table
+				.getAllByRole("columnheader")
+				.map((header) => header.textContent?.trim()),
+		).toEqual(["依赖", "版本", "操作"]);
+		expect(
+			table
+				.getAllByRole("row")
+				.slice(1)
+				.map((row) =>
+					within(row)
+						.getAllByRole("cell")
+						.slice(0, 2)
+						.map((cell) => cell.textContent),
+				),
+		).toEqual(
+			Object.entries(__ADMIN_WEB_DEPENDENCIES__).sort(([left], [right]) =>
+				left.localeCompare(right),
+			),
+		);
+		expect(table.queryByRole("checkbox")).not.toBeInTheDocument();
+		expect(
+			table.queryByRole("button", { name: "查看详情" }),
+		).not.toBeInTheDocument();
 		await user.click(moreButtons[0]!);
 		expect(
 			screen.getByRole("menuitem", { name: "复制包名" }),

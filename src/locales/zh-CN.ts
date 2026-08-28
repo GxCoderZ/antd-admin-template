@@ -46,6 +46,18 @@ export const zhCNTranslation = {
 			logoutError: "退出失败，请重试",
 		},
 		recordDetails: {
+			departmentId: "部门 ID",
+			sections: {
+				basic: "基本信息",
+				organization: "关联信息",
+				access: "账号与权限",
+				activity: "时间与记录",
+				content: "业务内容",
+				request: "请求信息",
+				device: "设备信息",
+				changes: "变更内容",
+				technical: "技术信息",
+			},
 			id: "记录 ID",
 			version: "数据版本",
 			createdAt: "创建时间",

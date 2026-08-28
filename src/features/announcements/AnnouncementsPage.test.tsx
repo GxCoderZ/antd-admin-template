@@ -222,6 +222,20 @@ describe("AnnouncementsPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("公告详情")).toBeInTheDocument();
+		for (const label of [
+			"基本信息",
+			"业务内容",
+			"时间与记录",
+			"公告标题",
+			"发布状态",
+			"公告内容",
+			"创建时间",
+			"更新时间",
+		]) {
+			expect(
+				within(dialog).getByText(label, { exact: true }),
+			).toBeInTheDocument();
+		}
 		expect(within(dialog).getByText("记录 ID")).toBeInTheDocument();
 		expect(
 			within(dialog).getByText("平台将在周日凌晨进行例行维护。"),

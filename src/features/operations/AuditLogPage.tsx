@@ -37,6 +37,7 @@ import {
 	LogDetailsDrawer,
 	LogTablePanel,
 } from "./LogTablePanel";
+import { AuditLogDetails } from "./LogDetailContent";
 import {
 	auditLogsQueryKey,
 	listPlatformAuditLogs,
@@ -54,29 +55,21 @@ const auditTableSortToContractSort: Record<string, AuditLogSort> = {
 	result: "result",
 };
 const auditLogColumnVisibility: readonly TableColumnConfig<string>[] = [
+	{ key: "created_at", visibility: "recommended" },
 	{ key: "actorUsername", visibility: "required" },
 	{ key: "action", visibility: "recommended" },
 	{ key: "target", visibility: "recommended" },
 	{ key: "result", visibility: "recommended" },
 	{ key: "requestIp", visibility: "recommended" },
-	{ key: "created_at", visibility: "recommended" },
-	{ key: "actions", visibility: "required" },
-	{ key: "id", visibility: "optional" },
-	{ key: "actorId", visibility: "optional" },
 	{ key: "module", visibility: "optional" },
 	{ key: "targetType", visibility: "optional" },
-	{ key: "targetId", visibility: "optional" },
-	{ key: "requestId", visibility: "optional" },
 	{ key: "requestMethod", visibility: "optional" },
 	{ key: "requestPath", visibility: "optional" },
 	{ key: "device", visibility: "optional" },
 	{ key: "browser", visibility: "optional" },
 	{ key: "operatingSystem", visibility: "optional" },
 	{ key: "durationMs", visibility: "optional" },
-	{ key: "failureReason", visibility: "optional" },
-	{ key: "before", visibility: "optional" },
-	{ key: "after", visibility: "optional" },
-	{ key: "userAgent", visibility: "optional" },
+	{ key: "actions", visibility: "required" },
 ];
 
 interface AuditFilterFormValues {
@@ -132,19 +125,6 @@ function formatTarget(log: PlatformAuditLog) {
 	return log.targetId ? `${log.targetType}:${log.targetId}` : log.targetType;
 }
 
-function formatAuditRecordValue(
-	value: Record<string, unknown> | undefined,
-	emptyText: string,
-) {
-	return value && Object.keys(value).length > 0 ? (
-		<Text code style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-			{JSON.stringify(value, null, 2)}
-		</Text>
-	) : (
-		<Text type="secondary">{emptyText}</Text>
-	);
-}
-
 export function AuditLogPage() {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
@@ -192,20 +172,6 @@ export function AuditLogPage() {
 	const formatPreferences = useLocalePreferences();
 	const notRecorded = t("adminShell.deviceInfo.notRecorded");
 	const unknownDevice = t("adminShell.deviceInfo.unknownDevice");
-	const renderCodeValue = (value: string | undefined) => {
-		const displayValue = value?.trim() || notRecorded;
-		return (
-			<Text
-				code
-				ellipsis={{ tooltip: displayValue }}
-				style={{ maxWidth: "100%" }}
-			>
-				{displayValue}
-			</Text>
-		);
-	};
-	const formatChange = (value: Record<string, unknown> | undefined) =>
-		value ? JSON.stringify(value) : notRecorded;
 	const query = useQuery({
 		placeholderData: keepPreviousData,
 		queryKey: [
@@ -231,6 +197,16 @@ export function AuditLogPage() {
 	const sortOrder = (column: AuditLogSort) =>
 		sort === column && order ? (order === "asc" ? "ascend" : "descend") : null;
 	const columns: ProColumns<PlatformAuditLog>[] = [
+		{
+			dataIndex: "createdAt",
+			key: "created_at",
+			renderText: (value: string) => formatDateTime(value, formatPreferences),
+			sortDirections: ["ascend", "descend"],
+			sorter: true,
+			sortOrder: sortOrder("created_at"),
+			title: t("adminShell.logs.audit.columns.occurredAt"),
+			width: token.controlHeight * 5,
+		},
 		{
 			dataIndex: "actorUsername",
 			key: "actorUsername",
@@ -275,98 +251,30 @@ export function AuditLogPage() {
 			width: token.controlHeight * 4,
 		},
 		{
-			dataIndex: "createdAt",
-			key: "created_at",
-			renderText: (value: string) => formatDateTime(value, formatPreferences),
-			sortDirections: ["ascend", "descend"],
-			sorter: true,
-			sortOrder: sortOrder("created_at"),
-			title: t("adminShell.logs.audit.columns.occurredAt"),
-			width: token.controlHeight * 5,
-		},
-		{
-			key: "actions",
-			render: (_, row) => (
-				<Space size="medium">
-					<TableActionButton
-						aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
-						onClick={() => setSelectedLog(row)}
-					>
-						{t("adminShell.logs.common.view")}
-					</TableActionButton>
-					<TableActionMenu
-						items={[
-							{
-								key: "copyId",
-								label: t("adminShell.tableActions.copyRecordId"),
-								onClick: () => void copyTableValue(row.id),
-							},
-							{
-								key: "copyTarget",
-								label: t("adminShell.tableActions.copyTarget"),
-								onClick: () => void copyTableValue(formatTarget(row)),
-							},
-						]}
-						label={t("adminShell.tableActions.more")}
-					/>
-				</Space>
-			),
-			title: t("adminShell.logs.audit.columns.actions"),
-			width: token.controlHeight * 4,
-		},
-		{
-			dataIndex: "id",
-			key: "id",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.recordId"),
-			width: token.controlHeight * 4,
-		},
-		{
-			dataIndex: "actorId",
-			key: "actorId",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.audit.columns.actorId"),
-			width: token.controlHeight * 5,
-		},
-		{
 			dataIndex: "module",
 			key: "module",
-			renderText: renderCodeValue,
+			renderText: (value: string) => <Text code>{value}</Text>,
 			title: t("adminShell.logs.audit.columns.module"),
 			width: token.controlHeight * 3,
 		},
 		{
 			dataIndex: "targetType",
 			key: "targetType",
-			renderText: renderCodeValue,
+			renderText: (value: string) => <Text code>{value}</Text>,
 			title: t("adminShell.logs.audit.columns.targetType"),
 			width: token.controlHeight * 4,
 		},
 		{
-			dataIndex: "targetId",
-			key: "targetId",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.audit.columns.targetId"),
-			width: token.controlHeight * 5,
-		},
-		{
-			dataIndex: "requestId",
-			key: "requestId",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.requestId"),
-			width: token.controlHeight * 5,
-		},
-		{
 			dataIndex: "requestMethod",
 			key: "requestMethod",
-			renderText: renderCodeValue,
+			renderText: (value: string) => <Text code>{value}</Text>,
 			title: t("adminShell.logs.audit.columns.requestMethod"),
 			width: token.controlHeight * 3,
 		},
 		{
 			dataIndex: "requestPath",
 			key: "requestPath",
-			renderText: renderCodeValue,
+			renderText: (value: string) => <Text code>{value}</Text>,
 			title: t("adminShell.logs.audit.columns.requestPath"),
 			width: token.controlHeight * 7,
 		},
@@ -402,34 +310,34 @@ export function AuditLogPage() {
 			width: token.controlHeight * 3,
 		},
 		{
-			dataIndex: "failureReason",
-			key: "failureReason",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.failureReason"),
-			width: token.controlHeight * 5,
-		},
-		{
-			dataIndex: "before",
-			key: "before",
-			renderText: (value: Record<string, unknown> | undefined) =>
-				renderCodeValue(formatChange(value)),
-			title: t("adminShell.logs.audit.columns.before"),
-			width: token.controlHeight * 6,
-		},
-		{
-			dataIndex: "after",
-			key: "after",
-			renderText: (value: Record<string, unknown> | undefined) =>
-				renderCodeValue(formatChange(value)),
-			title: t("adminShell.logs.audit.columns.after"),
-			width: token.controlHeight * 6,
-		},
-		{
-			dataIndex: "userAgent",
-			key: "userAgent",
-			renderText: renderCodeValue,
-			title: t("adminShell.logs.common.userAgent"),
-			width: token.controlHeight * 10,
+			key: "actions",
+			render: (_, row) => (
+				<Space size="medium">
+					<TableActionButton
+						aria-label={t("adminShell.logs.common.viewRecord", { id: row.id })}
+						onClick={() => setSelectedLog(row)}
+					>
+						{t("adminShell.logs.common.view")}
+					</TableActionButton>
+					<TableActionMenu
+						items={[
+							{
+								key: "copyId",
+								label: t("adminShell.tableActions.copyRecordId"),
+								onClick: () => void copyTableValue(row.id),
+							},
+							{
+								key: "copyTarget",
+								label: t("adminShell.tableActions.copyTarget"),
+								onClick: () => void copyTableValue(formatTarget(row)),
+							},
+						]}
+						label={t("adminShell.tableActions.more")}
+					/>
+				</Space>
+			),
+			title: t("adminShell.logs.audit.columns.actions"),
+			width: token.controlHeight * 4,
 		},
 	];
 
@@ -575,148 +483,12 @@ export function AuditLogPage() {
 			/>
 
 			<LogDetailsDrawer
-				items={
-					selectedLog
-						? [
-								{
-									key: "id",
-									label: t("adminShell.logs.common.recordId"),
-									children: selectedLog.id,
-								},
-								{
-									key: "requestId",
-									label: t("adminShell.logs.common.requestId"),
-									children: selectedLog.requestId,
-								},
-								{
-									key: "actor",
-									label: t("adminShell.logs.audit.columns.actor"),
-									children: selectedLog.actorUsername,
-								},
-								{
-									key: "actorId",
-									label: t("adminShell.logs.audit.columns.actorId"),
-									children: selectedLog.actorId || (
-										<Text type="secondary">{notRecorded}</Text>
-									),
-								},
-								{
-									key: "action",
-									label: t("adminShell.logs.audit.columns.action"),
-									children: selectedLog.action,
-								},
-								{
-									key: "module",
-									label: t("adminShell.logs.audit.columns.module"),
-									children: selectedLog.module,
-								},
-								{
-									key: "target",
-									label: t("adminShell.logs.audit.columns.target"),
-									children: formatTarget(selectedLog),
-								},
-								{
-									key: "targetType",
-									label: t("adminShell.logs.audit.columns.targetType"),
-									children: selectedLog.targetType,
-								},
-								{
-									key: "targetId",
-									label: t("adminShell.logs.audit.columns.targetId"),
-									children: selectedLog.targetId || (
-										<Text type="secondary">{notRecorded}</Text>
-									),
-								},
-								{
-									key: "result",
-									label: t("adminShell.logs.audit.columns.result"),
-									children: t(
-										`adminShell.logs.common.results.${selectedLog.result}`,
-									),
-								},
-								{
-									key: "ipAddress",
-									label: t("adminShell.logs.audit.columns.ipAddress"),
-									children: selectedLog.requestIp,
-								},
-								{
-									key: "requestMethod",
-									label: t("adminShell.logs.audit.columns.requestMethod"),
-									children: selectedLog.requestMethod,
-								},
-								{
-									key: "requestPath",
-									label: t("adminShell.logs.audit.columns.requestPath"),
-									children: selectedLog.requestPath,
-								},
-								{
-									key: "failureReason",
-									label: t("adminShell.logs.common.failureReason"),
-									children: selectedLog.failureReason ?? notRecorded,
-								},
-								{
-									key: "device",
-									label: t("adminShell.deviceInfo.device"),
-									children: formatDeviceInfo(
-										selectedLog.userAgent,
-										unknownDevice,
-									),
-								},
-								{
-									key: "browser",
-									label: t("adminShell.logs.common.browser"),
-									children:
-										getDeviceDetails(selectedLog.userAgent).browser ??
-										notRecorded,
-								},
-								{
-									key: "operatingSystem",
-									label: t("adminShell.logs.common.operatingSystem"),
-									children:
-										getDeviceDetails(selectedLog.userAgent).operatingSystem ??
-										notRecorded,
-								},
-								{
-									key: "durationMs",
-									label: t("adminShell.logs.common.duration"),
-									children: `${selectedLog.durationMs} ms`,
-								},
-								{
-									key: "before",
-									label: t("adminShell.logs.audit.columns.before"),
-									children: formatAuditRecordValue(
-										selectedLog.before,
-										notRecorded,
-									),
-								},
-								{
-									key: "after",
-									label: t("adminShell.logs.audit.columns.after"),
-									children: formatAuditRecordValue(
-										selectedLog.after,
-										notRecorded,
-									),
-								},
-								{
-									key: "userAgent",
-									label: t("adminShell.logs.common.userAgent"),
-									children: selectedLog.userAgent ?? notRecorded,
-								},
-								{
-									key: "occurredAt",
-									label: t("adminShell.logs.audit.columns.occurredAt"),
-									children: formatDateTime(
-										selectedLog.createdAt,
-										formatPreferences,
-									),
-								},
-							]
-						: undefined
-				}
 				onClose={() => setSelectedLog(null)}
 				open={selectedLog !== null}
 				title={t("adminShell.logs.audit.detailsTitle")}
-			/>
+			>
+				{selectedLog ? <AuditLogDetails log={selectedLog} /> : null}
+			</LogDetailsDrawer>
 		</Flex>
 	);
 }

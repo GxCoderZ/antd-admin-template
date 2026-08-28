@@ -1,4 +1,4 @@
-import { Descriptions, Drawer, Tag, Typography } from "antd";
+import { Descriptions, Drawer, Flex, Tag, Typography } from "antd";
 import type { DescriptionsProps } from "antd";
 import { useTranslation } from "react-i18next";
 
@@ -19,43 +19,69 @@ export function AnnouncementDetailDrawer({
 }: AnnouncementDetailDrawerProps) {
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
-	const items: DescriptionsProps["items"] = announcement
+	const sections: (DescriptionsProps & { key: string })[] = announcement
 		? [
 				{
-					children: announcement.id,
-					label: t("adminShell.recordDetails.id"),
+					key: "basic",
+					title: t("adminShell.recordDetails.sections.basic"),
+					items: [
+						{
+							children: announcement.title,
+							label: t("adminShell.announcements.fields.title"),
+						},
+						{
+							children: (
+								<Tag
+									color={
+										announcement.status === "published" ? "success" : "default"
+									}
+								>
+									{t(
+										`adminShell.announcements.statuses.${announcement.status}`,
+									)}
+								</Tag>
+							),
+							label: t("adminShell.announcements.fields.status"),
+						},
+					],
 				},
 				{
-					children: announcement.title,
-					label: t("adminShell.announcements.fields.title"),
+					key: "content",
+					title: t("adminShell.recordDetails.sections.content"),
+					items: [
+						{
+							children: (
+								<Paragraph style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}>
+									{announcement.content}
+								</Paragraph>
+							),
+							label: t("adminShell.announcements.fields.content"),
+						},
+					],
 				},
 				{
-					children: (
-						<Tag
-							color={
-								announcement.status === "published" ? "success" : "default"
-							}
-						>
-							{t(`adminShell.announcements.statuses.${announcement.status}`)}
-						</Tag>
-					),
-					label: t("adminShell.announcements.fields.status"),
-				},
-				{
-					children: (
-						<Paragraph style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}>
-							{announcement.content}
-						</Paragraph>
-					),
-					label: t("adminShell.announcements.fields.content"),
-				},
-				{
-					children: formatDateTime(announcement.createdAt, formatPreferences),
-					label: t("adminShell.announcements.columns.createdAt"),
-				},
-				{
-					children: formatDateTime(announcement.updatedAt, formatPreferences),
-					label: t("adminShell.announcements.columns.updatedAt"),
+					key: "activity",
+					title: t("adminShell.recordDetails.sections.activity"),
+					items: [
+						{
+							children: formatDateTime(
+								announcement.createdAt,
+								formatPreferences,
+							),
+							label: t("adminShell.announcements.columns.createdAt"),
+						},
+						{
+							children: formatDateTime(
+								announcement.updatedAt,
+								formatPreferences,
+							),
+							label: t("adminShell.announcements.columns.updatedAt"),
+						},
+						{
+							children: announcement.id,
+							label: t("adminShell.recordDetails.id"),
+						},
+					],
 				},
 			]
 		: [];
@@ -63,11 +89,23 @@ export function AnnouncementDetailDrawer({
 	return (
 		<Drawer
 			destroyOnHidden
+			size="min(560px, 100vw)"
 			onClose={onClose}
 			open={announcement !== null}
 			title={t("adminShell.announcements.detailTitle")}
 		>
-			<Descriptions bordered column={1} items={items} size="small" />
+			<Flex vertical gap="large">
+				{sections.map(({ key, ...section }) => (
+					<Descriptions
+						key={key}
+						{...section}
+						bordered
+						column={1}
+						size="small"
+						styles={{ content: { overflowWrap: "anywhere" } }}
+					/>
+				))}
+			</Flex>
 		</Drawer>
 	);
 }

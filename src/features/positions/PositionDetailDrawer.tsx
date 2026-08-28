@@ -1,4 +1,4 @@
-import { Descriptions, Drawer, Tag, Typography } from "antd";
+import { Descriptions, Drawer, Flex, Tag, Typography } from "antd";
 import type { DescriptionsProps } from "antd";
 import { useTranslation } from "react-i18next";
 
@@ -17,58 +17,90 @@ export function PositionDetailDrawer({
 }: PositionDetailDrawerProps) {
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
-	const items: DescriptionsProps["items"] = position
+	const sections: (DescriptionsProps & { key: string })[] = position
 		? [
 				{
-					label: t("adminShell.recordDetails.id"),
-					children: <Typography.Text code>{position.id}</Typography.Text>,
+					key: "basic",
+					title: t("adminShell.recordDetails.sections.basic"),
+					items: [
+						{
+							label: t("adminShell.positions.fields.name"),
+							children: position.name,
+						},
+						{
+							label: t("adminShell.positions.fields.code"),
+							children: position.code,
+						},
+						{
+							label: t("adminShell.positions.columns.memberCount"),
+							children: position.memberCount,
+						},
+						{
+							label: t("adminShell.positions.fields.status"),
+							children: (
+								<Tag
+									color={position.status === "active" ? "success" : "default"}
+								>
+									{t(`adminShell.positions.statuses.${position.status}`)}
+								</Tag>
+							),
+						},
+					],
 				},
 				{
-					label: t("adminShell.positions.fields.name"),
-					children: position.name,
+					key: "organization",
+					title: t("adminShell.recordDetails.sections.organization"),
+					items: [
+						{
+							label: t("adminShell.positions.fields.department"),
+							children: position.departmentName,
+						},
+						{
+							label: t("adminShell.positions.departmentId"),
+							children: position.departmentId,
+						},
+					],
 				},
 				{
-					label: t("adminShell.positions.fields.code"),
-					children: position.code,
-				},
-				{
-					label: t("adminShell.positions.fields.department"),
-					children: position.departmentName,
-				},
-				{
-					label: t("adminShell.positions.departmentId"),
-					children: position.departmentId,
-				},
-				{
-					label: t("adminShell.positions.fields.status"),
-					children: (
-						<Tag color={position.status === "active" ? "success" : "default"}>
-							{t(`adminShell.positions.statuses.${position.status}`)}
-						</Tag>
-					),
-				},
-				{
-					label: t("adminShell.positions.columns.memberCount"),
-					children: position.memberCount,
-				},
-				{
-					label: t("adminShell.recordDetails.createdAt"),
-					children: formatDateTime(position.createdAt, formatPreferences),
-				},
-				{
-					label: t("adminShell.positions.columns.updatedAt"),
-					children: formatDateTime(position.updatedAt, formatPreferences),
+					key: "activity",
+					title: t("adminShell.recordDetails.sections.activity"),
+					items: [
+						{
+							label: t("adminShell.recordDetails.createdAt"),
+							children: formatDateTime(position.createdAt, formatPreferences),
+						},
+						{
+							label: t("adminShell.positions.columns.updatedAt"),
+							children: formatDateTime(position.updatedAt, formatPreferences),
+						},
+						{
+							label: t("adminShell.recordDetails.id"),
+							children: <Typography.Text code>{position.id}</Typography.Text>,
+						},
+					],
 				},
 			]
 		: [];
 	return (
 		<Drawer
 			destroyOnHidden
+			size="min(560px, 100vw)"
 			onClose={onClose}
 			open={Boolean(position)}
 			title={t("adminShell.positions.detailTitle")}
 		>
-			<Descriptions bordered column={1} items={items} size="small" />
+			<Flex vertical gap="large">
+				{sections.map(({ key, ...section }) => (
+					<Descriptions
+						key={key}
+						{...section}
+						bordered
+						column={1}
+						size="small"
+						styles={{ content: { overflowWrap: "anywhere" } }}
+					/>
+				))}
+			</Flex>
 		</Drawer>
 	);
 }

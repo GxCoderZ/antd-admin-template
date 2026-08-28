@@ -46,6 +46,18 @@ export const zhTWTranslation = {
 			logoutError: "登出失敗，請重試",
 		},
 		recordDetails: {
+			departmentId: "部門 ID",
+			sections: {
+				basic: "基本資訊",
+				organization: "關聯資訊",
+				access: "帳號與權限",
+				activity: "時間與記錄",
+				content: "業務內容",
+				request: "請求資訊",
+				device: "裝置資訊",
+				changes: "變更內容",
+				technical: "技術資訊",
+			},
 			id: "記錄 ID",
 			version: "資料版本",
 			createdAt: "建立時間",

@@ -77,14 +77,6 @@ export function useUserTableColumns({
 				: null;
 		const dataColumns: ManagementProTableColumn<PlatformUser>[] = [
 			{
-				dataIndex: "id",
-				key: "id",
-				render: (_, row) => <Text code>{row.id}</Text>,
-				search: false,
-				title: t("adminShell.users.columns.id"),
-				width: token.controlHeight * userColumnWidthMultipliers.id,
-			},
-			{
 				dataIndex: "username",
 				key: "username",
 				search: false,
@@ -164,6 +156,16 @@ export function useUserTableColumns({
 				width: token.controlHeight * userColumnWidthMultipliers.roles,
 			},
 			{
+				dataIndex: "email",
+				key: "email",
+				search: false,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("email"),
+				title: t("adminShell.users.columns.email"),
+				width: token.controlHeight * userColumnWidthMultipliers.email,
+			},
+			{
 				dataIndex: "phone",
 				key: "phone",
 				render: (_, row) => row.phone || <Text type="secondary">-</Text>,
@@ -173,16 +175,6 @@ export function useUserTableColumns({
 				sortOrder: sortOrder("phone"),
 				title: t("adminShell.users.columns.phone"),
 				width: token.controlHeight * userColumnWidthMultipliers.phone,
-			},
-			{
-				dataIndex: "email",
-				key: "email",
-				search: false,
-				sortDirections: ["ascend", "descend"],
-				sorter: true,
-				sortOrder: sortOrder("email"),
-				title: t("adminShell.users.columns.email"),
-				width: token.controlHeight * userColumnWidthMultipliers.email,
 			},
 			{
 				dataIndex: "status",

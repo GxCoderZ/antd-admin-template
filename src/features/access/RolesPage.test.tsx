@@ -105,6 +105,30 @@ async function openRoleActions(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("RolesPage", () => {
+	it("orders role columns by identity and type and keeps full permissions in details", async () => {
+		const { user } = renderRolesPage();
+		await screen.findByText("运营管理员");
+		expect(
+			screen
+				.getAllByRole("columnheader")
+				.map((header) => header.textContent?.trim()),
+		).toEqual([
+			"角色名称",
+			"角色标识",
+			"角色类型",
+			"成员数",
+			"更新时间",
+			"操作",
+		]);
+		await user.click(screen.getByRole("img", { name: "setting" }));
+		await screen.findByRole("checkbox", { name: /角色标识/ });
+		expect(
+			screen.queryByRole("checkbox", { name: /角色 ID|权限点/ }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.getByRole("checkbox", { name: /创建时间/ }),
+		).not.toBeChecked();
+	});
 	it("restores the role query draft after the page remounts", async () => {
 		const { user, unmount } = renderRolesPage();
 
@@ -167,6 +191,9 @@ describe("RolesPage", () => {
 		expect(within(dialog).getByText("operator")).toBeInTheDocument();
 		expect(within(dialog).getByText("查看公告")).toBeInTheDocument();
 		for (const label of [
+			"基本信息",
+			"账号与权限",
+			"时间与记录",
 			"角色 ID",
 			"角色名称",
 			"角色标识",

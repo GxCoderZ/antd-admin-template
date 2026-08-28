@@ -104,11 +104,23 @@ function renderPositionsPage() {
 }
 
 describe("PositionsPage", () => {
+	it("orders position identity and organization before status", async () => {
+		renderPositionsPage();
+		await screen.findByText("运营专员");
+		expect(
+			screen
+				.getAllByRole("columnheader")
+				.map((header) => header.textContent?.trim()),
+		).toEqual(["岗位名称", "岗位标识", "所属部门", "成员数", "状态", "操作"]);
+	});
 	it("opens complete read-only position details from the name", async () => {
 		const user = renderPositionsPage();
 		await user.click(await screen.findByRole("button", { name: "运营专员" }));
 		const dialog = await screen.findByRole("dialog");
 		for (const label of [
+			"基本信息",
+			"关联信息",
+			"时间与记录",
 			"记录 ID",
 			"岗位名称",
 			"岗位标识",

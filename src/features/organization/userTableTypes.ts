@@ -20,7 +20,6 @@ export type UserColumnKey =
 	| "department"
 	| "displayName"
 	| "email"
-	| "id"
 	| "jobTitle"
 	| "lastLoginAt"
 	| "lastLoginIp"
@@ -38,7 +37,6 @@ export const userColumnWidthMultipliers: Record<UserColumnKey, number> = {
 	department: 4,
 	displayName: 5,
 	email: 7,
-	id: 5,
 	jobTitle: 4,
 	lastLoginAt: 5,
 	lastLoginIp: 4,

@@ -13,6 +13,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LocalePreferencesProvider } from "../../app/LocalePreferencesProvider";
 import { PermissionContext, platformPermissions } from "../../app/permissions";
+import { getTableColumnSettingsStorageKey } from "../../app/preferenceStorage";
 import { i18n } from "../../i18n";
 import { UsersPage } from "./UsersPage";
 
@@ -52,16 +53,14 @@ vi.mock("#src/api/positions", () => ({
 }));
 
 vi.mock("#src/api/departments", () => ({
-	listPlatformDepartments: vi
-		.fn()
-		.mockResolvedValue([
-			{
-				id: "dept-platform",
-				name: "平台研发部",
-				status: "active",
-				children: [],
-			},
-		]),
+	listPlatformDepartments: vi.fn().mockResolvedValue([
+		{
+			id: "dept-platform",
+			name: "平台研发部",
+			status: "active",
+			children: [],
+		},
+	]),
 	platformDepartmentsQueryKey: ["platform-departments"],
 }));
 
@@ -198,10 +197,36 @@ async function openUserColumnSettings(
 	user: ReturnType<typeof userEvent.setup>,
 ) {
 	await user.click(screen.getByRole("img", { name: "setting" }));
-	await screen.findByRole("checkbox", { name: /用户 ID/ });
+	await screen.findByRole("checkbox", { name: /显示名称/ });
 }
 
 describe("UsersPage", () => {
+	it("keeps saved column choices when a technical ID moves to details", async () => {
+		const key = `${getTableColumnSettingsStorageKey("users")}:pro-table`;
+		const choices = {
+			id: { show: true, order: 0 },
+			username: { show: true, order: 1 },
+			phone: { show: true, order: 2 },
+			displayName: { show: false, order: 3 },
+			department: { show: false, order: 4 },
+			roles: { show: false, order: 5 },
+			status: { show: true, order: 6 },
+			lastLoginAt: { show: false, order: 7 },
+			actions: { show: true, fixed: "right", order: 8 },
+		};
+		localStorage.setItem(key, JSON.stringify(choices));
+		renderUsersPage();
+		await screen.findByText("admin");
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(["用户名", "手机号", "状态", "操作"]);
+		cleanup();
+		renderUsersPage();
+		await screen.findByText("admin");
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(["用户名", "手机号", "状态", "操作"]);
+	});
 	it("requests the initial user list without an explicit sort", async () => {
 		renderUsersPage();
 
@@ -269,12 +294,17 @@ describe("UsersPage", () => {
 		});
 		expect(within(dialog).getByText("13800138000")).toBeInTheDocument();
 		for (const label of [
+			"基本信息",
+			"关联信息",
+			"账号与权限",
+			"时间与记录",
 			"用户 ID",
 			"用户名",
 			"显示名称",
 			"邮箱",
 			"手机号",
 			"部门",
+			"部门 ID",
 			"岗位",
 			"角色",
 			"状态",
@@ -387,7 +417,6 @@ describe("UsersPage", () => {
 
 		const requiredColumns = ["用户名", "操作"];
 		const optionalColumns = [
-			"用户 ID",
 			"岗位",
 			"账号来源",
 			"MFA 状态",
@@ -407,7 +436,10 @@ describe("UsersPage", () => {
 				screen.getByRole("checkbox", { name: new RegExp(column) }),
 			).toBeInTheDocument();
 		}
-		fireEvent.wheel(screen.getByRole("checkbox", { name: /用户 ID/ }), {
+		expect(
+			screen.queryByRole("checkbox", { name: /用户 ID/ }),
+		).not.toBeInTheDocument();
+		fireEvent.wheel(screen.getByRole("checkbox", { name: /显示名称/ }), {
 			deltaY: 600,
 		});
 		const updatedAtCheckbox = await screen.findByRole("checkbox", {
@@ -416,12 +448,12 @@ describe("UsersPage", () => {
 		expect(updatedAtCheckbox).toBeInTheDocument();
 		fireEvent.wheel(updatedAtCheckbox, { deltaY: -600 });
 
-		const userIdCheckbox = await screen.findByRole("checkbox", {
-			name: /用户 ID/,
+		const jobTitleCheckbox = await screen.findByRole("checkbox", {
+			name: /岗位/,
 		});
-		expect(userIdCheckbox).not.toBeChecked();
-		await user.click(userIdCheckbox);
-		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+		expect(jobTitleCheckbox).not.toBeChecked();
+		await user.click(jobTitleCheckbox);
+		expect(screen.getByRole("columnheader", { name: "岗位" })).toBeVisible();
 	});
 
 	it("shows only important recommended user columns by default", async () => {
@@ -448,14 +480,14 @@ describe("UsersPage", () => {
 
 		await screen.findByText("admin");
 		await openUserColumnSettings(user);
-		await user.click(screen.getByRole("checkbox", { name: /用户 ID/ }));
-		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+		await user.click(screen.getByRole("checkbox", { name: /岗位/ }));
+		expect(screen.getByRole("columnheader", { name: "岗位" })).toBeVisible();
 
 		cleanup();
 		renderUsersPage();
 
 		await screen.findByText("admin");
-		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
+		expect(screen.getByRole("columnheader", { name: "岗位" })).toBeVisible();
 	});
 
 	it("does not add supplementary columns on spacious screens", async () => {
