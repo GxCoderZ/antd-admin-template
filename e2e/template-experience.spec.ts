@@ -316,7 +316,7 @@ const detailTables: TableDetailEntry[] = [
 		path: "/organization/users",
 		table: "admin-users-table-card",
 		kind: "cell",
-		cell: 1,
+		cell: 0,
 		sections: 3,
 	},
 	{

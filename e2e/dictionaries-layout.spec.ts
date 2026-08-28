@@ -129,7 +129,15 @@ for (const width of [1440, 390]) {
 			["字典类型", "type"],
 			["字典项", "item"],
 		] as const) {
-			const positionsPromise = page.evaluate(async (tableKind) => {
+			const tab = page.getByRole("tab", { name, exact: true });
+			const positionsPromise = tab.evaluate(async (target, tableKind) => {
+				// Sample from the actual click, not while Playwright waits for actionability.
+				await new Promise<void>((resolve) =>
+					target.addEventListener("click", () => resolve(), {
+						capture: true,
+						once: true,
+					}),
+				);
 				const positions: number[] = [];
 				for (let frame = 0; frame < 30; frame += 1) {
 					await new Promise(requestAnimationFrame);
@@ -148,7 +156,7 @@ for (const width of [1440, 390]) {
 				}
 				return positions;
 			}, kind);
-			await page.getByRole("tab", { name, exact: true }).click();
+			await tab.click();
 			const positions = await positionsPromise;
 			expect(positions.length).toBeGreaterThan(1);
 			expect(new Set(positions).size).toBe(1);
