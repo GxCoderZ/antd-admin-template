@@ -124,6 +124,46 @@ test("system settings layout preview preserves the original and adapts across wi
 			throw new Error("Missing preview settings bounds");
 		expect(Math.abs(tabBounds.x - fieldBounds.x)).toBeLessThanOrEqual(1);
 		expect(tabBounds.y + tabBounds.height).toBeLessThan(fieldBounds.y);
+		const formBounds = await form.boundingBox();
+		if (!formBounds) throw new Error("Missing settings form bounds");
+		const screenshot = await page.screenshot({ scale: "css" });
+		const dividerReachesEdges = await page.evaluate(
+			async ({ imageData, left, right, top, bottom }) => {
+				const image = new Image();
+				image.src = `data:image/png;base64,${imageData}`;
+				await image.decode();
+				const canvas = document.createElement("canvas");
+				canvas.width = image.width;
+				canvas.height = image.height;
+				const context = canvas.getContext("2d");
+				if (!context) throw new Error("Canvas is unavailable");
+				context.drawImage(image, 0, 0);
+				const colorAt = (x: number, y: number) =>
+					Array.from(context.getImageData(x, y, 1, 1).data).join(",");
+				const background = colorAt(left, top);
+				for (let y = top + 1; y < bottom; y += 1) {
+					const color = colorAt(left, y);
+					if (
+						color !== background &&
+						color === colorAt(Math.round((left + right) / 2), y) &&
+						color === colorAt(right, y)
+					)
+						return true;
+				}
+				return false;
+			},
+			{
+				imageData: screenshot.toString("base64"),
+				left: Math.ceil(formBounds.x) + 2,
+				right: Math.floor(formBounds.x + formBounds.width) - 3,
+				top: Math.ceil(tabBounds.y + tabBounds.height),
+				bottom: Math.floor(fieldBounds.y),
+			},
+		);
+		expect(
+			dividerReachesEdges,
+			"The tab divider must reach both card edges",
+		).toBe(true);
 		if (width === 1440) {
 			const bounds = { x: fieldBounds.x, width: fieldBounds.width };
 			if (desktopBounds) expect(bounds).toEqual(desktopBounds);

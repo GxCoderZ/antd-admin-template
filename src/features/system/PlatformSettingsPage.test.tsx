@@ -209,6 +209,7 @@ describe("PlatformSettingsPage", () => {
 					expect.objectContaining({
 						expectedVersion: 1,
 						general: { ...settings.general, siteTitle: "Example Console" },
+						security: settings.security,
 						notifications: {
 							...settings.notifications,
 							unreadReminderEnabled: false,

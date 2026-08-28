@@ -65,41 +65,29 @@ export function PlatformSettingsForm({
 			fields: <NotificationSettingsFields disabled={disabled} />,
 		},
 	];
-	const tabs = (
-		<Tabs
-			activeKey={selected}
-			animated={{ inkBar: true, tabPane: false }}
-			aria-label={t("adminShell.platformSettings.navigationLabel")}
-			items={sections.map(({ key, fields }) => {
-				const content = (
-					<Flex style={{ maxWidth: token.screenSM }} vertical>
-						{fields}
-						{canManage ? (
-							<Flex>
-								<Button
-									disabled={conflict || readingLogo}
-									htmlType="submit"
-									icon={<SaveOutlined aria-hidden />}
-									loading={saving}
-									type="primary"
-								>
-									{t("adminShell.platformSettings.save")}
-								</Button>
-							</Flex>
-						) : null}
+	const items = sections.map(({ key, fields }) => ({
+		key,
+		label: t(`adminShell.platformSettings.sections.${key}`),
+		forceRender: true,
+		children: (
+			<Flex style={{ maxWidth: token.screenSM }} vertical>
+				{fields}
+				{canManage ? (
+					<Flex>
+						<Button
+							disabled={conflict || readingLogo}
+							htmlType="submit"
+							icon={<SaveOutlined aria-hidden />}
+							loading={saving}
+							type="primary"
+						>
+							{t("adminShell.platformSettings.save")}
+						</Button>
 					</Flex>
-				);
-				return {
-					key,
-					label: t(`adminShell.platformSettings.sections.${key}`),
-					forceRender: true,
-					children: layoutPreview ? content : <Card>{content}</Card>,
-				};
-			})}
-			onChange={changeSection}
-			tabBarStyle={{ marginBottom: token.marginLG }}
-		/>
-	);
+				) : null}
+			</Flex>
+		),
+	}));
 	return (
 		<Form<PlatformSettingsValues>
 			disabled={disabled}
@@ -116,9 +104,35 @@ export function PlatformSettingsForm({
 			onValuesChange={onChange}
 		>
 			{layoutPreview ? (
-				<Card styles={{ body: { paddingTop: 0 } }}>{tabs}</Card>
+				<Card
+					activeTabKey={selected}
+					onTabChange={changeSection}
+					tabList={items.map(({ key, label }) => ({ key, label }))}
+					tabProps={{
+						animated: { inkBar: true, tabPane: false },
+						"aria-label": t("adminShell.platformSettings.navigationLabel"),
+						size: "medium",
+					}}
+				>
+					{/* Keep every field registered for cross-section validation and saving. */}
+					{items.map(({ key, label, children }) => (
+						<section aria-label={label} hidden={selected !== key} key={key}>
+							{children}
+						</section>
+					))}
+				</Card>
 			) : (
-				tabs
+				<Tabs
+					activeKey={selected}
+					animated={{ inkBar: true, tabPane: false }}
+					aria-label={t("adminShell.platformSettings.navigationLabel")}
+					items={items.map((item) => ({
+						...item,
+						children: <Card>{item.children}</Card>,
+					}))}
+					onChange={changeSection}
+					tabBarStyle={{ marginBottom: token.marginLG }}
+				/>
 			)}
 		</Form>
 	);
