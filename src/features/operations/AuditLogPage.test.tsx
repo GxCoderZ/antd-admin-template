@@ -132,15 +132,10 @@ describe("AuditLogPage", () => {
 		const user = renderAuditLogPage();
 
 		await screen.findByText("operator");
-		await user.click(
-			screen.getByRole("button", { name: "查看日志 audit-log-001" }),
-		);
+		await user.click(screen.getByLabelText("查看日志 audit-log-001"));
 
-		const title = await screen.findByText("审计日志详情");
-		const dialog = title.closest(".ant-drawer");
-		if (!(dialog instanceof HTMLElement)) {
-			throw new Error("Audit log details drawer was not rendered.");
-		}
+		const dialog = await screen.findByRole("dialog");
+		expect(within(dialog).getByText("审计日志详情")).toBeVisible();
 		expect(within(dialog).getAllByRole("table")).toHaveLength(3);
 		for (const duplicate of ["目标", "设备"]) {
 			expect(

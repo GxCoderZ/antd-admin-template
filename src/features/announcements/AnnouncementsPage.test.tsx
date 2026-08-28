@@ -190,12 +190,12 @@ describe("AnnouncementsPage", () => {
 	it("keeps both actions visible when a row only has edit and delete", async () => {
 		renderAnnouncementsPage();
 
-		await screen.findByText("系统维护通知");
-		expect(screen.getByRole("button", { name: "编辑" })).toBeVisible();
-		expect(screen.getByRole("button", { name: "删除" })).toBeVisible();
-		expect(
-			screen.queryByRole("button", { name: "更多" }),
-		).not.toBeInTheDocument();
+		const row = within(
+			(await screen.findByText("系统维护通知")).closest("tr")!,
+		);
+		expect(row.getByText("编辑").closest("button")).toBeVisible();
+		expect(row.getByText("删除").closest("button")).toBeVisible();
+		expect(row.queryByText("更多")).not.toBeInTheDocument();
 	});
 
 	it("uses the standard management query bar and table toolbar", async () => {

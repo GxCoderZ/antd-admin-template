@@ -6,6 +6,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LocalePreferencesProvider } from "../../app/LocalePreferencesProvider";
 import { i18n } from "../../i18n";
+import { clickDropdownMenuItem } from "../../test/dropdown";
 import { PositionsPage } from "./PositionsPage";
 
 const mocks = vi.hoisted(() => ({
@@ -176,14 +177,19 @@ describe("PositionsPage", () => {
 	it("creates and edits positions without confirmation", async () => {
 		const user = renderPositionsPage();
 
-		await screen.findByText("运营专员");
-		await user.click(screen.getByRole("button", { name: "新建岗位" }));
+		const row = within((await screen.findByText("运营专员")).closest("tr")!);
+		await user.click(screen.getByText("新建岗位").closest("button")!);
+		const createDrawer = await screen.findByRole("dialog");
+		const createForm = within(createDrawer);
 		await user.type(
-			await screen.findByPlaceholderText("请输入岗位名称"),
+			createForm.getByPlaceholderText("请输入岗位名称"),
 			"质量专员",
 		);
-		await user.type(screen.getByPlaceholderText("请输入岗位标识"), "quality");
-		await user.click(screen.getByRole("button", { name: /保\s*存/ }));
+		await user.type(
+			createForm.getByPlaceholderText("请输入岗位标识"),
+			"quality",
+		);
+		await user.click(createForm.getByText(/^保\s*存$/).closest("button")!);
 
 		await waitFor(() => {
 			expect(mocks.createPlatformPosition).toHaveBeenCalledWith({
@@ -194,13 +200,16 @@ describe("PositionsPage", () => {
 			});
 		});
 
-		await user.click(screen.getByRole("button", { name: "编辑" }));
-		await user.clear(await screen.findByPlaceholderText("请输入岗位名称"));
+		await waitFor(() => expect(createDrawer).not.toBeInTheDocument());
+		await user.click(row.getByText("编辑").closest("button")!);
+		const editDrawer = await screen.findByRole("dialog");
+		const editForm = within(editDrawer);
+		await user.clear(editForm.getByPlaceholderText("请输入岗位名称"));
 		await user.type(
-			screen.getByPlaceholderText("请输入岗位名称"),
+			editForm.getByPlaceholderText("请输入岗位名称"),
 			"高级运营专员",
 		);
-		await user.click(screen.getByRole("button", { name: /保\s*存/ }));
+		await user.click(editForm.getByText(/^保\s*存$/).closest("button")!);
 
 		await waitFor(() => {
 			expect(mocks.updatePlatformPosition).toHaveBeenCalledWith({
@@ -213,14 +222,15 @@ describe("PositionsPage", () => {
 				positionId: position.id,
 			});
 		});
+		await waitFor(() => expect(editDrawer).not.toBeInTheDocument());
 	});
 
 	it("disables positions and deletes positions after explicit confirmation", async () => {
 		const user = renderPositionsPage();
 
-		await screen.findByText("运营专员");
-		await user.click(screen.getByRole("button", { name: "更多" }));
-		await user.click(await screen.findByRole("menuitem", { name: /停用/ }));
+		const row = within((await screen.findByText("运营专员")).closest("tr")!);
+		await user.click(row.getByText("更多").closest("button")!);
+		await clickDropdownMenuItem(user, /停用/);
 		await waitFor(() => {
 			expect(mocks.updatePlatformPosition).toHaveBeenCalledWith({
 				input: {
@@ -232,12 +242,17 @@ describe("PositionsPage", () => {
 				positionId: position.id,
 			});
 		});
+		await screen.findByText("岗位状态已更新");
 
-		await user.click(screen.getByRole("button", { name: "更多" }));
-		await user.click(await screen.findByRole("menuitem", { name: /删除/ }));
-		await user.click(screen.getByRole("button", { name: "确认删除" }));
+		await user.click(row.getByText("更多").closest("button")!);
+		await clickDropdownMenuItem(user, /删除/);
+		const confirmation = await screen.findByRole("dialog");
+		await user.click(
+			within(confirmation).getByText("确认删除").closest("button")!,
+		);
 		await waitFor(() => {
 			expect(mocks.deletePlatformPosition.mock.calls[0]?.[0]).toBe(position.id);
 		});
+		await screen.findByText("岗位已删除");
 	});
 });

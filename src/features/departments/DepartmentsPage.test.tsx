@@ -6,6 +6,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LocalePreferencesProvider } from "../../app/LocalePreferencesProvider";
 import { i18n } from "../../i18n";
+import { clickDropdownMenuItem } from "../../test/dropdown";
 import { DepartmentsPage } from "./DepartmentsPage";
 
 const mocks = vi.hoisted(() => ({
@@ -164,18 +165,23 @@ describe("DepartmentsPage", () => {
 	it("creates child departments and edits departments without confirmation", async () => {
 		const user = renderDepartmentsPage();
 
-		await screen.findByText("运营中心");
+		const row = within((await screen.findByText("运营中心")).closest("tr")!);
 		expect(
-			screen.queryByRole("button", { name: "新增下级" }),
+			row.queryByRole("button", { name: "新增下级" }),
 		).not.toBeInTheDocument();
-		await user.click(screen.getByRole("button", { name: "更多" }));
-		await user.click(await screen.findByRole("menuitem", { name: "新增下级" }));
+		await user.click(row.getByText("更多").closest("button")!);
+		await clickDropdownMenuItem(user, "新增下级");
+		const createDrawer = await screen.findByRole("dialog");
+		const createForm = within(createDrawer);
 		await user.type(
-			await screen.findByPlaceholderText("请输入部门名称"),
+			createForm.getByPlaceholderText("请输入部门名称"),
 			"质量组",
 		);
-		await user.type(screen.getByPlaceholderText("请输入部门标识"), "quality");
-		await user.click(screen.getByRole("button", { name: /保\s*存/ }));
+		await user.type(
+			createForm.getByPlaceholderText("请输入部门标识"),
+			"quality",
+		);
+		await user.click(createForm.getByText(/^保\s*存$/).closest("button")!);
 
 		await waitFor(() => {
 			expect(mocks.createPlatformDepartment).toHaveBeenCalledWith({
@@ -186,13 +192,16 @@ describe("DepartmentsPage", () => {
 			});
 		});
 
-		await user.click(screen.getAllByRole("button", { name: "编辑" })[0]!);
-		await user.clear(await screen.findByPlaceholderText("请输入部门名称"));
+		await waitFor(() => expect(createDrawer).not.toBeInTheDocument());
+		await user.click(row.getByText("编辑").closest("button")!);
+		const editDrawer = await screen.findByRole("dialog");
+		const editForm = within(editDrawer);
+		await user.clear(editForm.getByPlaceholderText("请输入部门名称"));
 		await user.type(
-			screen.getByPlaceholderText("请输入部门名称"),
+			editForm.getByPlaceholderText("请输入部门名称"),
 			"运营管理中心",
 		);
-		await user.click(screen.getByRole("button", { name: /保\s*存/ }));
+		await user.click(editForm.getByText(/^保\s*存$/).closest("button")!);
 
 		await waitFor(() => {
 			expect(mocks.updatePlatformDepartment).toHaveBeenCalledWith({
@@ -205,14 +214,15 @@ describe("DepartmentsPage", () => {
 				},
 			});
 		});
+		await waitFor(() => expect(editDrawer).not.toBeInTheDocument());
 	});
 
 	it("disables departments and deletes departments after explicit confirmation", async () => {
 		const user = renderDepartmentsPage();
 
-		await screen.findByText("运营中心");
-		await user.click(screen.getAllByRole("button", { name: "更多" })[0]!);
-		await user.click(await screen.findByRole("menuitem", { name: /停用/ }));
+		const row = within((await screen.findByText("运营中心")).closest("tr")!);
+		await user.click(row.getByText("更多").closest("button")!);
+		await clickDropdownMenuItem(user, /停用/);
 		await waitFor(() => {
 			expect(mocks.updatePlatformDepartment).toHaveBeenCalledWith({
 				departmentId: department.id,
@@ -224,14 +234,19 @@ describe("DepartmentsPage", () => {
 				},
 			});
 		});
+		await screen.findByText("部门状态已更新");
 
-		await user.click(screen.getAllByRole("button", { name: "更多" })[0]!);
-		await user.click(await screen.findByRole("menuitem", { name: /删除/ }));
-		await user.click(screen.getByRole("button", { name: "确认删除" }));
+		await user.click(row.getByText("更多").closest("button")!);
+		await clickDropdownMenuItem(user, /删除/);
+		const confirmation = await screen.findByRole("dialog");
+		await user.click(
+			within(confirmation).getByText("确认删除").closest("button")!,
+		);
 		await waitFor(() => {
 			expect(mocks.deletePlatformDepartment.mock.calls[0]?.[0]).toBe(
 				department.id,
 			);
 		});
+		await screen.findByText("部门已删除");
 	});
 });
