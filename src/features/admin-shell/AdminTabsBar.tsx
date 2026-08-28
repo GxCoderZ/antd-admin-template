@@ -51,6 +51,7 @@ import { HeaderIconButton } from "./HeaderIconButton";
 
 interface AdminTabsBarProps {
 	currentPage: AdminRouteMetadata;
+	isReloading?: boolean;
 	onReload: () => void;
 	workspaceRef: RefObject<HTMLDivElement | null>;
 }
@@ -158,6 +159,7 @@ function FixedTabNode({ children, ...tabProps }: Readonly<TabNodeProps>) {
 
 export function AdminTabsBar({
 	currentPage,
+	isReloading = false,
 	onReload,
 	workspaceRef,
 }: AdminTabsBarProps) {
@@ -247,7 +249,7 @@ export function AdminTabsBar({
 	};
 
 	const reloadTab = (targetKey: string) => {
-		if (targetKey === currentPage.key) {
+		if (targetKey === currentPage.key && !isReloading) {
 			onReload();
 		}
 	};
@@ -357,7 +359,7 @@ export function AdminTabsBar({
 		return [
 			{
 				key: "reload",
-				disabled: targetKey !== currentPage.key,
+				disabled: targetKey !== currentPage.key || isReloading,
 				icon: <ReloadOutlined aria-hidden />,
 				label: t("adminShell.tabs.reload"),
 			},
@@ -557,7 +559,8 @@ export function AdminTabsBar({
 				>
 					<HeaderIconButton
 						aria-label={t("adminShell.tabs.reload")}
-						icon={<ReloadOutlined aria-hidden />}
+						disabled={isReloading}
+						icon={<ReloadOutlined aria-hidden spin={isReloading} />}
 						onClick={() => reloadTab(currentPage.key)}
 						type="text"
 					/>

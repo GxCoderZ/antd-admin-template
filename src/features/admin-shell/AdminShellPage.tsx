@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Flex, Layout, theme } from "antd";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate, useNavigation } from "react-router";
 
@@ -68,6 +68,26 @@ export function AdminShellPage({
 	const navigation = useNavigation();
 	const queryClient = useQueryClient();
 	const [pageRevision, setPageRevision] = useState(0);
+	const [refreshingLocation, setRefreshingLocation] = useState<string | null>(
+		null,
+	);
+	const isReloading = refreshingLocation === location.key;
+	useEffect(() => {
+		if (pageRevision === 0) return;
+		let current = true;
+		// The remounted route must stay mounted while its query observers fetch.
+		// Query errors remain owned by the page; either outcome ends the skeleton.
+		const requests = queryClient
+			.getQueryCache()
+			.findAll({ type: "active", fetchStatus: "fetching" })
+			.flatMap((query) => (query.promise ? [query.promise] : []));
+		void Promise.allSettled(requests).then(() => {
+			if (current) setRefreshingLocation(null);
+		});
+		return () => {
+			current = false;
+		};
+	}, [pageRevision, queryClient]);
 	const [isFooterVisible, setFooterVisible] = useState(
 		readFooterVisiblePreference,
 	);
@@ -81,9 +101,11 @@ export function AdminShellPage({
 	const usesPageContainer = currentPage.contentLayout === "pageContainer";
 	const usesTableLayout = currentPage.contentLayout === "table";
 	const reloadCurrentPage = () => {
+		if (isReloading || navigation.state !== "idle") return;
 		// Remounting resets query-submission keys, so their earlier cache entries
 		// must also be stale. The remounted page alone triggers new requests.
 		void queryClient.invalidateQueries({ refetchType: "none" });
+		setRefreshingLocation(location.key);
 		setPageRevision((revision) => revision + 1);
 	};
 	const openRouteTab = (nextPath: string) => {
@@ -178,6 +200,7 @@ export function AdminShellPage({
 				>
 					<AdminTabsBar
 						currentPage={currentPage}
+						isReloading={isReloading}
 						onReload={reloadCurrentPage}
 						workspaceRef={tabWorkspaceRef}
 					/>
@@ -193,8 +216,8 @@ export function AdminShellPage({
 					>
 						<Flex vertical>
 							<Flex
+								aria-busy={isReloading || navigation.state === "loading"}
 								data-testid="admin-shell-page-content"
-								gap={usesPageContainer ? 0 : token.marginLG}
 								style={{
 									paddingBlock: usesPageContainer
 										? 0
@@ -209,11 +232,20 @@ export function AdminShellPage({
 								{navigation.state === "loading" ? (
 									<RouteContentSkeleton />
 								) : (
-									<PermissionBoundary
-										permission={currentPage.requiredPermission}
-									>
-										<Outlet key={pageRevision} />
-									</PermissionBoundary>
+									<>
+										{isReloading ? <RouteContentSkeleton /> : null}
+										<Flex
+											gap={usesPageContainer ? 0 : token.marginLG}
+											style={{ display: isReloading ? "none" : undefined }}
+											vertical
+										>
+											<PermissionBoundary
+												permission={currentPage.requiredPermission}
+											>
+												<Outlet key={pageRevision} />
+											</PermissionBoundary>
+										</Flex>
+									</>
 								)}
 							</Flex>
 						</Flex>

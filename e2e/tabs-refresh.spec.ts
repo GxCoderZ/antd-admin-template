@@ -55,6 +55,7 @@ test("tab refresh re-fetches the current page without losing query state or relo
 	const panel = page.getByTestId("admin-users-table-card");
 	const form = page.getByTestId("admin-users-query-form");
 	const reload = page.getByRole("button", { name: "重新加载", exact: true });
+	const content = page.getByTestId("admin-shell-page-content");
 	await expect(panel.locator("tbody tr.ant-table-row").first()).toBeVisible();
 	await expect(panel.locator(".ant-spin-spinning")).toHaveCount(0);
 	timings.open.push(performance.now() - started);
@@ -148,6 +149,46 @@ test("tab refresh re-fetches the current page without losing query state or relo
 			),
 		).toBe(true);
 
+		// Hold a real response to inspect the loading phase without adding
+		// an artificial minimum duration to the application or timing samples.
+		const gate = await page.evaluateHandle(() => {
+			const originalFetch = window.fetch.bind(window);
+			let releaseResponse!: () => void;
+			const responseReady = new Promise<void>((resolve) => {
+				releaseResponse = resolve;
+			});
+			window.fetch = async (...args) => {
+				const response = await originalFetch(...args);
+				const input = args[0];
+				const url = new URL(
+					input instanceof Request ? input.url : String(input),
+					location.href,
+				);
+				if (url.pathname === "/api/platform/users") await responseReady;
+				return response;
+			};
+			return {
+				release: () => {
+					window.fetch = originalFetch;
+					releaseResponse();
+				},
+			};
+		});
+		await reload.click();
+		await expect(content).toHaveAttribute("aria-busy", "true");
+		await expect(content.locator(".ant-skeleton")).toBeVisible();
+		await expect(form).toBeHidden();
+		await expect(reload).toBeDisabled();
+		await expect(page.getByRole("tab", { name: /用户管理/ })).toBeVisible();
+		await page.screenshot({
+			path: testInfo.outputPath(`tabs-refresh-loading-${width}.png`),
+		});
+		await gate.evaluate((control) => control.release());
+		await gate.dispose();
+		await expect(content).toHaveAttribute("aria-busy", "false");
+		await expect(form).toBeVisible();
+		await expect(reload).toBeEnabled();
+
 		const count = (await userRequests()).length;
 		started = performance.now();
 		await reload.click();
@@ -155,6 +196,7 @@ test("tab refresh re-fetches the current page without losing query state or relo
 			.poll(async () => (await userRequests()).length)
 			.toBe(count + 1);
 		await expect(panel.locator(".ant-spin-spinning")).toHaveCount(0);
+		await expect(content).toHaveAttribute("aria-busy", "false");
 		timings.interaction.push(performance.now() - started);
 		expect((await userRequests()).at(-1)?.href).toBe(expectedRequest.href);
 		await expect(form.getByRole("textbox")).toHaveValue("未提交筛选");

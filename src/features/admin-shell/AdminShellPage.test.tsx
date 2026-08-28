@@ -1,5 +1,11 @@
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+	act,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import { ConfigProvider, Grid } from "antd";
 import { useState } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router";
@@ -36,7 +42,13 @@ vi.mock("./AdminShellHeader", () => ({
 	},
 }));
 
-function PageProbe({ loadPage }: { loadPage: () => Promise<string> }) {
+function PageProbe({
+	loadPage,
+	loadSummary,
+}: {
+	loadPage: () => Promise<string>;
+	loadSummary: () => Promise<string>;
+}) {
 	const [draft, setDraft] = useRouteSessionState({
 		routeKey: "/dashboard",
 		stateKey: "refresh-query-draft",
@@ -47,6 +59,10 @@ function PageProbe({ loadPage }: { loadPage: () => Promise<string> }) {
 	const query = useQuery({
 		queryKey: ["refresh-page", submission.revision],
 		queryFn: loadPage,
+	});
+	const summary = useQuery({
+		queryKey: ["refresh-summary"],
+		queryFn: loadSummary,
 	});
 	return (
 		<>
@@ -61,6 +77,10 @@ function PageProbe({ loadPage }: { loadPage: () => Promise<string> }) {
 			<button onClick={submission.submit} type="button">
 				Submit query
 			</button>
+			<button onClick={() => void query.refetch()} type="button">
+				Refresh table
+			</button>
+			<output aria-label="Page summary">{summary.data}</output>
 			{detailsOpen ? <div role="dialog" aria-label="Page details" /> : null}
 			{query.isError ? (
 				<div role="alert">{query.error.message}</div>
@@ -81,7 +101,18 @@ beforeEach(async () => {
 
 afterEach(() => vi.restoreAllMocks());
 
-async function renderShell(loadPage: () => Promise<string>) {
+function deferredResponse() {
+	let resolve!: (value: string) => void;
+	const promise = new Promise<string>((complete) => {
+		resolve = complete;
+	});
+	return { promise, resolve };
+}
+
+async function renderShell(
+	loadPage: () => Promise<string>,
+	loadSummary: () => Promise<string> = () => Promise.resolve("summary data"),
+) {
 	const queryClient = createAppQueryClient();
 	const loadInactive = vi.fn(() => Promise.resolve("cached inactive data"));
 	await queryClient.prefetchQuery({
@@ -107,7 +138,13 @@ async function renderShell(loadPage: () => Promise<string>) {
 					/>
 				),
 				children: [
-					{ path: "/dashboard", element: <PageProbe loadPage={loadPage} /> },
+					{
+						path: "/dashboard",
+						element: (
+							<PageProbe loadPage={loadPage} loadSummary={loadSummary} />
+						),
+					},
+					{ path: "/about", element: <div>Another page</div> },
 				],
 			},
 		],
@@ -151,6 +188,106 @@ async function renderShell(loadPage: () => Promise<string>) {
 }
 
 describe("AdminShellPage refresh", () => {
+	it("shows content loading until all refreshed page queries settle without refreshing the shell", async () => {
+		const loadPage = vi.fn(() => Promise.resolve("initial data"));
+		const loadSummary = vi.fn(() => Promise.resolve("initial summary"));
+		const { queryClient, unmount } = await renderShell(loadPage, loadSummary);
+		await screen.findByText("initial data");
+		await screen.findByText("initial summary");
+		const content = screen.getByTestId("admin-shell-page-content");
+		const shell = screen.getByRole("textbox", { name: "Shell draft" });
+		const pageResponse = deferredResponse();
+		const summaryResponse = deferredResponse();
+		loadPage.mockReturnValueOnce(pageResponse.promise);
+		loadSummary.mockReturnValueOnce(summaryResponse.promise);
+		fireEvent.change(screen.getByRole("textbox", { name: "Query draft" }), {
+			target: { value: "saved filter" },
+		});
+		fireEvent.click(screen.getByRole("button", { name: "重新加载" }));
+
+		expect(content).toHaveAttribute("aria-busy", "true");
+		expect(screen.getByRole("button", { name: "重新加载" })).toBeDisabled();
+		expect(screen.queryByRole("textbox", { name: "Query draft" })).toBeNull();
+		expect(shell).toBeVisible();
+		await act(async () => {
+			pageResponse.resolve("refreshed data");
+			await pageResponse.promise;
+		});
+		expect(content).toHaveAttribute("aria-busy", "true");
+		await act(async () => {
+			summaryResponse.resolve("refreshed summary");
+			await summaryResponse.promise;
+		});
+		await waitFor(() => expect(content).toHaveAttribute("aria-busy", "false"));
+		expect(screen.getByRole("status", { name: "Page data" })).toHaveTextContent(
+			"refreshed data",
+		);
+		expect(
+			screen.getByRole("status", { name: "Page summary" }),
+		).toHaveTextContent("refreshed summary");
+		expect(screen.getByRole("textbox", { name: "Query draft" })).toHaveValue(
+			"saved filter",
+		);
+		expect(screen.getByRole("button", { name: "重新加载" })).toBeEnabled();
+		expect(screen.getByRole("textbox", { name: "Shell draft" })).toBe(shell);
+		expect(loadPage).toHaveBeenCalledTimes(2);
+		expect(loadSummary).toHaveBeenCalledTimes(2);
+		expect(loadShell).toHaveBeenCalledTimes(1);
+		unmount();
+		queryClient.clear();
+	});
+
+	it("keeps table-only refresh local and leaves the page draft and details mounted", async () => {
+		const loadPage = vi.fn(() => Promise.resolve("initial data"));
+		const loadSummary = vi.fn(() => Promise.resolve("summary data"));
+		const { queryClient, unmount } = await renderShell(loadPage, loadSummary);
+		await screen.findByText("initial data");
+		fireEvent.click(screen.getByRole("button", { name: "重新加载" }));
+		await waitFor(() => expect(loadPage).toHaveBeenCalledTimes(2));
+		const content = screen.getByTestId("admin-shell-page-content");
+		await waitFor(() => expect(content).toHaveAttribute("aria-busy", "false"));
+		fireEvent.click(screen.getByRole("button", { name: "Open details" }));
+		const draft = screen.getByRole("textbox", { name: "Query draft" });
+		const response = deferredResponse();
+		loadPage.mockReturnValueOnce(response.promise);
+		fireEvent.click(screen.getByRole("button", { name: "Refresh table" }));
+		expect(content).toHaveAttribute("aria-busy", "false");
+		expect(draft).toBeVisible();
+		expect(screen.getByRole("dialog", { name: "Page details" })).toBeVisible();
+		await act(async () => {
+			response.resolve("updated table");
+			await response.promise;
+		});
+		await screen.findByText("updated table");
+		expect(screen.getByRole("textbox", { name: "Query draft" })).toBe(draft);
+		expect(loadSummary).toHaveBeenCalledTimes(2);
+		unmount();
+		queryClient.clear();
+	});
+
+	it("does not carry a pending refresh into another route", async () => {
+		const loadPage = vi.fn(() => Promise.resolve("initial data"));
+		const { router, queryClient, unmount } = await renderShell(loadPage);
+		await screen.findByText("initial data");
+		const response = deferredResponse();
+		loadPage.mockReturnValueOnce(response.promise);
+		fireEvent.click(screen.getByRole("button", { name: "重新加载" }));
+		expect(screen.getByTestId("admin-shell-page-content")).toHaveAttribute(
+			"aria-busy",
+			"true",
+		);
+		await act(() => router.navigate("/about"));
+		expect(screen.getByText("Another page")).toBeVisible();
+		expect(screen.getByRole("button", { name: "重新加载" })).toBeEnabled();
+		await act(async () => {
+			response.resolve("old page response");
+			await response.promise;
+		});
+		expect(screen.getByText("Another page")).toBeVisible();
+		unmount();
+		queryClient.clear();
+	});
+
 	it("re-fetches after query submission even when the pre-submission key is cached", async () => {
 		const loadPage = vi.fn(() => Promise.resolve("initial data"));
 		const { queryClient, unmount } = await renderShell(loadPage);

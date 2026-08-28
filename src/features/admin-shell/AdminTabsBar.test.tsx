@@ -35,7 +35,13 @@ function RouteStateProbe({ routeKey }: Readonly<{ routeKey: string }>) {
 	);
 }
 
-function TabsHarness({ onReload = vi.fn() }: { onReload?: () => void }) {
+function TabsHarness({
+	isReloading = false,
+	onReload = vi.fn(),
+}: {
+	isReloading?: boolean;
+	onReload?: () => void;
+}) {
 	const location = useLocation();
 	const workspaceRef = createRef<HTMLDivElement>();
 
@@ -43,6 +49,7 @@ function TabsHarness({ onReload = vi.fn() }: { onReload?: () => void }) {
 		<div ref={workspaceRef}>
 			<AdminTabsBar
 				currentPage={getAdminRouteMetadata(location.pathname)}
+				isReloading={isReloading}
 				onReload={onReload}
 				workspaceRef={workspaceRef}
 			/>
@@ -52,6 +59,36 @@ function TabsHarness({ onReload = vi.fn() }: { onReload?: () => void }) {
 }
 
 describe("AdminTabsBar", () => {
+	it("disables all refresh entries while content is reloading", async () => {
+		const onReload = vi.fn();
+		const router = createMemoryRouter(
+			[{ path: "*", element: <TabsHarness isReloading onReload={onReload} /> }],
+			{ initialEntries: ["/organization/users"] },
+		);
+		render(
+			<ConfigProvider theme={{ token: { motion: false } }}>
+				<RouterProvider router={router} />
+			</ConfigProvider>,
+		);
+		const reload = screen.getByRole("button", { name: "重新加载" });
+		expect(reload).toBeDisabled();
+		fireEvent.click(reload);
+		for (const entry of ["more", "context"]) {
+			if (entry === "more") {
+				fireEvent.click(screen.getByRole("button", { name: "更多标签操作" }));
+			} else {
+				fireEvent.contextMenu(screen.getByText("用户管理"));
+			}
+			const menuReload = await screen.findByRole("menuitem", {
+				name: "重新加载",
+			});
+			expect(menuReload).toHaveAttribute("aria-disabled", "true");
+			fireEvent.click(menuReload);
+			fireEvent.mouseDown(document.body);
+		}
+		expect(onReload).not.toHaveBeenCalled();
+	});
+
 	it.each(["button", "more", "context"])(
 		"reloads the active page through the shared command from %s",
 		async (entry) => {
