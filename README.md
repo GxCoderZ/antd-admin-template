@@ -60,7 +60,9 @@ pnpm run check:unused
 pnpm run build:prod
 ```
 
-GitLab CI 使用锁定的 `@playwright/test` 版本安装 Chromium，并串行执行稳定的 E2E；既有的 Cloudflare Pages 发布 job 会等待质量与 E2E 都通过后，才在默认分支发布预览。
+GitLab CI 使用锁定的 `@playwright/test` 版本安装 Chromium，并串行执行 E2E。母版流水线只检查和构建，不包含发布任务或外部发布目标；具体产品需另行明确配置自己的发布流程。
+
+ESLint 拦截运行时代码中的直接 HTTP 调用、计时器补丁、类型逃逸和规则禁用；依赖检查同时覆盖 `src` 与 `fake`，禁止 API/Fake 反向依赖页面和运行时代码导入测试。例外以 `AGENTS.md` 为准。
 
 ## 边界
 

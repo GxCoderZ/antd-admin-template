@@ -21,7 +21,6 @@ default:
 stages:
   - verify
   - e2e
-  - deploy
 
 quality:
   stage: verify
@@ -48,19 +47,3 @@ e2e_chromium:
       - playwright-report/
       - test-results/
     expire_in: 7 days
-
-deploy_pages:
-  stage: deploy
-  needs:
-    - job: quality
-      artifacts: true
-    - job: e2e_chromium
-      artifacts: false
-  script:
-    - pnpm run build:prod
-    - pnpm dlx wrangler@4 pages deploy dist --project-name=antd-admin-template --branch="$CI_COMMIT_REF_NAME"
-  environment:
-    name: production
-    url: https://antd-admin-template.pages.dev
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

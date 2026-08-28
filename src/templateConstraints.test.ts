@@ -48,15 +48,12 @@ describe("product UI template constraints", () => {
 		expect(missingFakeDomains).toEqual([]);
 	});
 
-	it("does not expose Fake transport URLs or Fake modules to UI code", () => {
+	it("does not expose Fake transport URLs to UI code", () => {
 		const sourceRoot = path.join(root, "src");
 		const violations = listRuntimeSourceFiles(sourceRoot).flatMap((file) => {
 			const source = fs.readFileSync(file, "utf8");
 			const relativeFile = path.relative(root, file).replaceAll("\\", "/");
 			const reasons = [
-				/from\s+["'][^"']*fake\//.test(source)
-					? "imports fake data"
-					: undefined,
 				relativeFile !== "src/api/client.ts" && /["'`]\/api\//.test(source)
 					? "contains a raw /api URL"
 					: undefined,

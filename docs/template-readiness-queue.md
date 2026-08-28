@@ -7,14 +7,14 @@ modules, a plugin system, a real backend, deployment, or a new framework.
 Existing working features are reused, not rebuilt. Each logical change has its
 own local commit. No push or external publication is authorized.
 
-| Order | Status | Owner / Deliverable | Acceptance |
-| --- | --- | --- | --- |
-| 1 | Complete | Baseline and bounded queue | Existing checks inspected; 65 Vitest files / 283 tests pass; production build passes. |
-| 2 | In Progress | CI and architecture rules | No default deployment; executable lint tests reject forbidden dependencies and runtime workarounds; all six checks pass. |
-| 3 | Pending | Representative UI baselines | Management list and editor screenshots; 1440/768/390 plus the audit-log boundary; page/resize/action p50 and p95; no errors or page overflow. |
-| 4 | Pending | State and interaction coverage | Error/try-again, empty results, failed-save draft, keyboard/focus and long labels covered using existing owners. |
-| 5 | Pending | Dictionary page responsibilities | Characterization tests precede moving column rendering; route retains query/mutation/session orchestration; no duplicate implementation. |
-| 6 | Pending | Handoff and final acceptance | Core/optional modules, add/remove/brand/upgrade recipes, change record, full verification and local commit references. |
+| Order | Status      | Owner / Deliverable              | Acceptance                                                                                                                                    |
+| ----- | ----------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | Complete    | Baseline and bounded queue       | Existing checks inspected; 65 Vitest files / 283 tests pass; production build passes.                                                         |
+| 2     | Complete | CI and architecture rules        | No default deployment; 22 executable lint tests reject forbidden dependencies and runtime workarounds; all six checks pass.                      |
+| 3     | Awaiting Authorization | Representative UI baselines      | Local browser login, interactions and screenshots require scoped approval before capture. |
+| 4     | Pending     | State and interaction coverage   | Error/try-again, empty results, failed-save draft, keyboard/focus and long labels covered using existing owners.                              |
+| 5     | Pending     | Dictionary page responsibilities | Characterization tests precede moving column rendering; route retains query/mutation/session orchestration; no duplicate implementation.      |
+| 6     | Pending     | Handoff and final acceptance     | Core/optional modules, add/remove/brand/upgrade recipes, change record, full verification and local commit references.                        |
 
 ## Verification Contract
 
@@ -43,5 +43,18 @@ own local commit. No push or external publication is authorized.
 
 ## Change Log
 
-Update this section with each completed item, its local commit, removed legacy
-paths (or explicitly nonenonenone), verification and remaining limits.
+- Item 1: `c7841c3`, baseline and queue. No runtime change or legacy path removed.
+- Item 2: `build: enforce template boundaries and remove default deployment`.
+  Owners: ESLint, dependency-cruiser and GitLab CI configuration.
+  Removed the deployment job/stage and the replaced regex-based Fake import check.
+  New rule tests failed 19/22 before the change and passed 22/22 afterward.
+  Fresh results: typecheck, lint, dependency checks (266 modules), unused-code
+  checks and production build passed; Vitest 66 files / 305 tests passed.
+  No external pipeline was executed and no application route or UI was changed.
+
+## Current Checkpoint
+
+Approval requested for Playwright against local ports 3003/4173, Fake demo login,
+and user/announcement/dictionary/audit pages with related overlays at
+1440/768/390/1286px. No browser action has been taken under this queue.
+Items 3-5 and final acceptance remain incomplete until this checkpoint is resolved.

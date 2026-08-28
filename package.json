@@ -24,7 +24,7 @@
 		"lint": "eslint src fake e2e vite.config.ts playwright.config.ts --max-warnings=0",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"check:circular-deps": "depcruise --config dependency-cruiser.config.cjs src",
+		"check:circular-deps": "depcruise --config dependency-cruiser.config.cjs src fake",
 		"check:unused": "knip"
 	},
 	"dependencies": {
