@@ -50,14 +50,16 @@ async function navigate(page: Page, path: string) {
 }
 
 for (const width of [1440, 390]) {
-	test(`跨管理页退出编辑草稿 ${width}px`, async ({ page }) => {
-		await page.setViewportSize({ width, height: 720 });
-		await page.goto("/login");
-		await page.locator('input[autocomplete="username"]').fill("admin");
-		await page.locator('input[autocomplete="current-password"]').fill("admin");
-		await page.locator('button[type="submit"]').click();
-		await expect(page).toHaveURL(/\/dashboard$/);
-		for (const editor of editors) {
+	for (const editor of editors) {
+		test(`${editor.button}退出编辑草稿 ${width}px`, async ({ page }) => {
+			await page.setViewportSize({ width, height: 720 });
+			await page.goto("/login");
+			await page.locator('input[autocomplete="username"]').fill("admin");
+			await page
+				.locator('input[autocomplete="current-password"]')
+				.fill("admin");
+			await page.locator('button[type="submit"]').click();
+			await expect(page).toHaveURL(/\/dashboard$/);
 			await navigate(page, editor.path);
 			if (editor.tab)
 				await page.getByRole("tab", { name: editor.tab, exact: true }).click();
@@ -122,6 +124,6 @@ for (const width of [1440, 390]) {
 			await expect(field).toHaveValue(initialValue);
 			await dialog.getByRole("button", { name: /取\s*消/ }).click();
 			await expect(dialog).toHaveCount(0);
-		}
-	});
+		});
+	}
 }

@@ -59,10 +59,15 @@ test("顶栏快捷入口和搜索历史跨页保留", async ({ page }) => {
 
 	await page.keyboard.press("Control+k");
 	const search = page.getByRole("dialog", { name: "导航搜索" });
+	await expect(search).toBeVisible();
+	await finishVisualTransitions(page);
 	await search.getByRole("textbox").fill("用户管理");
 	await search.getByRole("textbox").press("Enter");
 	await expect(page).toHaveURL(/\/organization\/users$/);
+	await expect(search).toBeHidden();
 	await header.getByRole("button", { name: "搜索", exact: true }).click();
+	await expect(search).toBeVisible();
+	await finishVisualTransitions(page);
 	await expect(
 		search.getByRole("menuitem", { name: "用户管理", exact: true }),
 	).toBeVisible();
@@ -70,6 +75,7 @@ test("顶栏快捷入口和搜索历史跨页保留", async ({ page }) => {
 	await expect(
 		search.getByRole("menuitem", { name: "用户管理", exact: true }),
 	).toHaveCount(0);
+	await expect(search.getByText("暂无最近访问", { exact: true })).toBeVisible();
 	await expect(page).toHaveURL(/\/organization\/users$/);
 	await page.keyboard.press("Escape");
 });
@@ -160,6 +166,7 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 		await header.getByRole("button", { name: "搜索", exact: true }).click();
 		const search = page.getByRole("dialog", { name: "导航搜索" });
 		await expect(search.getByRole("textbox")).toBeFocused();
+		await finishVisualTransitions(page);
 		timings.interaction.push(performance.now() - started);
 		await search.getByRole("textbox").fill("管理");
 		await expect(
