@@ -85,6 +85,14 @@ export function AdminShellNavigation({
 	const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
 	const [mobileOpenKeys, setMobileOpenKeys] = useState<string[]>([]);
 	const shellHeaderHeight = token.controlHeightLG + token.margin;
+	const navigationTriggerStyle: CSSProperties = {
+		flex: "0 0 auto",
+		fontSize: token.fontSizeLG,
+		height: "100%",
+		// Keep keyboard focus visible inside the edge-to-edge hit area.
+		outlineOffset: -token.lineWidthFocus,
+		width: shellHeaderHeight,
+	};
 	const collapsedSidebarWidth = token.controlHeightLG * 2;
 	const sidebarWidth = token.controlHeightLG + token.paddingLG * 8;
 	const hasSidebarBreakpoint = screens.sm === true;
@@ -516,7 +524,9 @@ export function AdminShellNavigation({
 						lineHeight: `${shellHeaderHeight}px`,
 						minWidth: 0,
 						overflow: "hidden",
-						paddingInline: token.padding,
+						paddingInlineEnd: token.padding,
+						paddingInlineStart:
+							showSidebarNavigation || showMobileNavigation ? 0 : token.padding,
 						width: "100%",
 					}}
 				>
@@ -525,6 +535,7 @@ export function AdminShellNavigation({
 						gap={token.marginXS}
 						style={{
 							flex: "1 1 auto",
+							height: "100%",
 							minWidth: 0,
 							overflow: "hidden",
 						}}
@@ -537,6 +548,7 @@ export function AdminShellNavigation({
 									setMobileOpenKeys(activeSidebarOpenKeys);
 									setMobileNavigationOpen(true);
 								}}
+								style={navigationTriggerStyle}
 								type="text"
 							/>
 						) : null}
@@ -556,12 +568,7 @@ export function AdminShellNavigation({
 									)
 								}
 								onClick={toggleSidebar}
-								style={{
-									borderRadius: token.borderRadius,
-									flex: "0 0 auto",
-									height: token.controlHeight,
-									width: token.controlHeight,
-								}}
+								style={navigationTriggerStyle}
 								type="text"
 							/>
 						) : null}

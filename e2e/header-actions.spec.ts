@@ -9,7 +9,9 @@ async function signIn(page: Page) {
 }
 
 for (const width of [1440, 768, 390]) {
-	test(`顶栏操作区使用 Pro 头像和按钮尺寸（${width}px）`, async ({ page }) => {
+	test(`顶栏操作区使用 Pro 头像和按钮尺寸（${width}px）`, async ({
+		page,
+	}, testInfo) => {
 		await page.setViewportSize({ height: 900, width });
 		await signIn(page);
 
@@ -74,11 +76,38 @@ for (const width of [1440, 768, 390]) {
 			);
 		});
 		expect(centered).toBe(0);
+		const profile = page.getByRole("menuitem", {
+			name: "个人资料",
+			exact: true,
+		});
 		await account.hover();
-		await expect(
-			page.getByRole("menuitem", { name: "个人资料", exact: true }),
-		).toBeVisible();
-		await page.getByRole("menuitem", { name: "个人资料", exact: true }).click();
+		await expect(profile).toBeVisible();
+		for (let click = 0; click < 3; click += 1) {
+			await account.click();
+			// A closing menu is still visible until its finite animation finishes.
+			await page.evaluate(async () => {
+				await Promise.allSettled(
+					document
+						.getAnimations()
+						.filter(
+							(animation) =>
+								animation.effect?.getTiming().iterations !== Infinity,
+						)
+						.map((animation) => animation.finished),
+				);
+			});
+			await expect(profile).toBeVisible();
+		}
+		await page.screenshot({
+			path: testInfo.outputPath(`header-menu-${width}.png`),
+			animations: "disabled",
+		});
+		await page.getByTestId("admin-shell-page-content").hover({
+			position: { x: 4, y: 4 },
+		});
+		await expect(profile).not.toBeVisible();
+		await account.hover();
+		await profile.click();
 		await expect(page).toHaveURL(/\/account\/profile$/);
 		expect(
 			await page.evaluate(
@@ -154,3 +183,35 @@ for (const width of [1440, 390]) {
 		).toBeVisible();
 	});
 }
+
+test.describe("触摸屏头像菜单", () => {
+	test.use({
+		hasTouch: true,
+		isMobile: true,
+		viewport: { width: 390, height: 844 },
+	});
+
+	test("原生触摸触发支持打开、导航与点击外部关闭", async ({ page }) => {
+		await signIn(page);
+		const account = page.getByRole("banner").getByRole("button", {
+			name: "Platform Admin",
+			exact: true,
+		});
+		await account.tap();
+		const profile = page.getByRole("menuitem", {
+			name: "个人资料",
+			exact: true,
+		});
+		await expect(profile).toBeVisible();
+		await profile.tap();
+		await expect(page).toHaveURL(/\/account\/profile$/);
+		await expect(profile).not.toBeVisible();
+
+		await account.tap();
+		await expect(profile).toBeVisible();
+		await page.getByTestId("admin-shell-page-content").tap({
+			position: { x: 8, y: 8 },
+		});
+		await expect(profile).not.toBeVisible();
+	});
+});

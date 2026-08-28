@@ -103,9 +103,9 @@ describe("AdminShellHeader", () => {
 		const { onChangeThemeMode, onNavigate, user } = renderHeader(
 			vi.fn().mockResolvedValue(undefined),
 		);
-		await user.click(screen.getByRole("button", { name: "测试用户" }));
+		await user.hover(screen.getByRole("button", { name: "测试用户" }));
 		expect(
-			screen.getByRole("menuitem", { name: "账号设置" }),
+			await screen.findByRole("menuitem", { name: "账号设置" }),
 		).toBeInTheDocument();
 		await user.click(await screen.findByRole("menuitem", { name: "偏好设置" }));
 
@@ -129,7 +129,7 @@ describe("AdminShellHeader", () => {
 		const onLogout = vi.fn().mockRejectedValue(new Error("logout failed"));
 		const { user } = renderHeader(onLogout);
 
-		await user.click(screen.getByRole("button", { name: "测试用户" }));
+		await user.hover(screen.getByRole("button", { name: "测试用户" }));
 		await user.click(await screen.findByRole("menuitem", { name: "退出" }));
 
 		expect(onLogout).toHaveBeenCalledOnce();
