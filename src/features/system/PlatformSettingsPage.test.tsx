@@ -186,61 +186,55 @@ describe("PlatformSettingsPage", () => {
 		expect(screen.getByLabelText("登录入口")).toBeVisible();
 	});
 
-	it.each(["", "?layoutPreview=integrated"])(
-		"preserves drafts and saves all groups together with %s",
-		async (search) => {
-			const user = renderSettings(`/system/settings${search}`);
-			const title = await screen.findByLabelText("系统名称");
-			await user.clear(title);
-			await user.type(title, "Example Console");
-			await user.click(screen.getByRole("tab", { name: "通知与公告" }));
-			expect(screen.getByTestId("location-search")).toHaveTextContent(
-				`${search || "?"}${search ? "&" : ""}section=notifications`,
-			);
-			await user.click(screen.getByRole("switch", { name: "未读消息提醒" }));
-			await user.click(screen.getByRole("tab", { name: "基础信息" }));
-			expect(screen.getByTestId("location-search")).toHaveTextContent(
-				`/system/settings${search}`,
-			);
-			expect(screen.getByLabelText("系统名称")).toHaveValue("Example Console");
-			await user.click(screen.getByRole("button", { name: /保.*存/ }));
-			await waitFor(() =>
-				expect(updatePlatformSettings).toHaveBeenCalledWith(
-					expect.objectContaining({
-						expectedVersion: 1,
-						general: { ...settings.general, siteTitle: "Example Console" },
-						security: settings.security,
-						notifications: {
-							...settings.notifications,
-							unreadReminderEnabled: false,
-						},
-					}),
-					expect.anything(),
-				),
-			);
-			expect(await screen.findByText("系统设置已保存")).toBeVisible();
-		},
-	);
+	it("preserves drafts and saves all groups together", async () => {
+		const user = renderSettings();
+		const title = await screen.findByLabelText("系统名称");
+		await user.clear(title);
+		await user.type(title, "Example Console");
+		await user.click(screen.getByRole("tab", { name: "通知与公告" }));
+		expect(screen.getByTestId("location-search")).toHaveTextContent(
+			"/system/settings?section=notifications",
+		);
+		await user.click(screen.getByRole("switch", { name: "未读消息提醒" }));
+		await user.click(screen.getByRole("tab", { name: "基础信息" }));
+		expect(screen.getByTestId("location-search")).toHaveTextContent(
+			"/system/settings",
+		);
+		expect(screen.getByLabelText("系统名称")).toHaveValue("Example Console");
+		await user.click(screen.getByRole("button", { name: /保.*存/ }));
+		await waitFor(() =>
+			expect(updatePlatformSettings).toHaveBeenCalledWith(
+				expect.objectContaining({
+					expectedVersion: 1,
+					general: { ...settings.general, siteTitle: "Example Console" },
+					security: settings.security,
+					notifications: {
+						...settings.notifications,
+						unreadReminderEnabled: false,
+					},
+				}),
+				expect.anything(),
+			),
+		);
+		expect(await screen.findByText("系统设置已保存")).toBeVisible();
+	});
 
-	it.each(["", "?layoutPreview=integrated"])(
-		"returns to the invalid section without saving incomplete values with %s",
-		async (search) => {
-			const user = renderSettings(`/system/settings${search}`);
-			await user.clear(await screen.findByLabelText("系统名称"));
-			await user.click(screen.getByRole("tab", { name: "通知与公告" }));
-			await user.click(screen.getByRole("button", { name: /保.*存/ }));
-			await waitFor(() =>
-				expect(
-					screen.getByText("请输入 1 至 64 个字符。", { exact: true }),
-				).toBeVisible(),
-			);
-			expect(screen.getByRole("tab", { name: "基础信息" })).toHaveAttribute(
-				"aria-selected",
-				"true",
-			);
-			expect(updatePlatformSettings).not.toHaveBeenCalled();
-		},
-	);
+	it("returns to the invalid section without saving incomplete values", async () => {
+		const user = renderSettings();
+		await user.clear(await screen.findByLabelText("系统名称"));
+		await user.click(screen.getByRole("tab", { name: "通知与公告" }));
+		await user.click(screen.getByRole("button", { name: /保.*存/ }));
+		await waitFor(() =>
+			expect(
+				screen.getByText("请输入 1 至 64 个字符。", { exact: true }),
+			).toBeVisible(),
+		);
+		expect(screen.getByRole("tab", { name: "基础信息" })).toHaveAttribute(
+			"aria-selected",
+			"true",
+		);
+		expect(updatePlatformSettings).not.toHaveBeenCalled();
+	});
 
 	it("requires a maintenance message only while maintenance is enabled", async () => {
 		const user = renderSettings("/system/settings?section=security");
@@ -292,16 +286,13 @@ describe("PlatformSettingsPage", () => {
 		);
 	});
 
-	it.each(["", "?layoutPreview=integrated"])(
-		"disables editing and omits save without manage permission with %s",
-		async (search) => {
-			const user = renderSettings(`/system/settings${search}`, false);
-			expect(await screen.findByLabelText("系统名称")).toBeDisabled();
-			expect(
-				screen.queryByRole("button", { name: /保.*存/ }),
-			).not.toBeInTheDocument();
-			await user.click(screen.getByRole("tab", { name: "登录与安全" }));
-			expect(screen.getByRole("switch", { name: "维护模式" })).toBeDisabled();
-		},
-	);
+	it("disables editing and omits save without manage permission", async () => {
+		const user = renderSettings("/system/settings", false);
+		expect(await screen.findByLabelText("系统名称")).toBeDisabled();
+		expect(
+			screen.queryByRole("button", { name: /保.*存/ }),
+		).not.toBeInTheDocument();
+		await user.click(screen.getByRole("tab", { name: "登录与安全" }));
+		expect(screen.getByRole("switch", { name: "维护模式" })).toBeDisabled();
+	});
 });

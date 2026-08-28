@@ -1,6 +1,6 @@
 import { SaveOutlined } from "@ant-design/icons";
 import type { PlatformSettingsValues } from "#src/api/settings";
-import { Button, Card, Flex, Form, Tabs, theme } from "antd";
+import { Button, Card, Flex, Form, theme } from "antd";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
@@ -31,8 +31,6 @@ export function PlatformSettingsForm({
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
 	const [searchParams, setSearchParams] = useSearchParams();
-	// Remove the preview switch and the rejected layout after the user's comparison.
-	const layoutPreview = searchParams.get("layoutPreview") === "integrated";
 	const section = searchParams.get("section");
 	const selected =
 		section === "security" || section === "notifications" ? section : "general";
@@ -68,7 +66,6 @@ export function PlatformSettingsForm({
 	const items = sections.map(({ key, fields }) => ({
 		key,
 		label: t(`adminShell.platformSettings.sections.${key}`),
-		forceRender: true,
 		children: (
 			<Flex style={{ maxWidth: token.screenSM }} vertical>
 				{fields}
@@ -103,37 +100,23 @@ export function PlatformSettingsForm({
 			}}
 			onValuesChange={onChange}
 		>
-			{layoutPreview ? (
-				<Card
-					activeTabKey={selected}
-					onTabChange={changeSection}
-					tabList={items.map(({ key, label }) => ({ key, label }))}
-					tabProps={{
-						animated: { inkBar: true, tabPane: false },
-						"aria-label": t("adminShell.platformSettings.navigationLabel"),
-						size: "medium",
-					}}
-				>
-					{/* Keep every field registered for cross-section validation and saving. */}
-					{items.map(({ key, label, children }) => (
-						<section aria-label={label} hidden={selected !== key} key={key}>
-							{children}
-						</section>
-					))}
-				</Card>
-			) : (
-				<Tabs
-					activeKey={selected}
-					animated={{ inkBar: true, tabPane: false }}
-					aria-label={t("adminShell.platformSettings.navigationLabel")}
-					items={items.map((item) => ({
-						...item,
-						children: <Card>{item.children}</Card>,
-					}))}
-					onChange={changeSection}
-					tabBarStyle={{ marginBottom: token.marginLG }}
-				/>
-			)}
+			<Card
+				activeTabKey={selected}
+				onTabChange={changeSection}
+				tabList={items.map(({ key, label }) => ({ key, label }))}
+				tabProps={{
+					animated: { inkBar: true, tabPane: false },
+					"aria-label": t("adminShell.platformSettings.navigationLabel"),
+					size: "medium",
+				}}
+			>
+				{/* Keep every field registered for cross-section validation and saving. */}
+				{items.map(({ key, label, children }) => (
+					<section aria-label={label} hidden={selected !== key} key={key}>
+						{children}
+					</section>
+				))}
+			</Card>
 		</Form>
 	);
 }

@@ -66,7 +66,7 @@ function summarizeSettingsTimings(samples: number[]) {
 	};
 }
 
-test("system settings layout preview preserves the original and adapts across widths", async ({
+test("system settings uses integrated tabs and adapts across widths", async ({
 	page,
 }, testInfo) => {
 	const errors: string[] = [];
@@ -91,14 +91,6 @@ test("system settings layout preview preserves the original and adapts across wi
 	const form = page.locator("form").filter({ has: title });
 	await expect(title).toBeVisible();
 	await finishSettingsLayout(form);
-	const originalTab = await firstTab.boundingBox();
-	const originalField = await title.boundingBox();
-	if (!originalTab || !originalField)
-		throw new Error("Missing original settings bounds");
-	expect(originalField.x).toBeGreaterThan(originalTab.x);
-	await page.screenshot({
-		path: testInfo.outputPath("settings-original-1440.png"),
-	});
 	const openTimes: number[] = [];
 	const resizeTimes: number[] = [];
 	const interactionTimes: number[] = [];
@@ -114,14 +106,13 @@ test("system settings layout preview preserves the original and adapts across wi
 			page.getByRole("heading", { name: "系统概览", exact: true }),
 		).toBeVisible();
 		started = performance.now();
-		await navigate(page, "/system/settings?layoutPreview=integrated");
+		await navigate(page, "/system/settings");
 		await expect(title).toBeVisible();
 		await finishSettingsLayout(form);
 		openTimes.push(performance.now() - started);
 		const tabBounds = await firstTab.boundingBox();
 		const fieldBounds = await title.boundingBox();
-		if (!tabBounds || !fieldBounds)
-			throw new Error("Missing preview settings bounds");
+		if (!tabBounds || !fieldBounds) throw new Error("Missing settings bounds");
 		expect(Math.abs(tabBounds.x - fieldBounds.x)).toBeLessThanOrEqual(1);
 		expect(tabBounds.y + tabBounds.height).toBeLessThan(fieldBounds.y);
 		const formBounds = await form.boundingBox();
@@ -170,7 +161,7 @@ test("system settings layout preview preserves the original and adapts across wi
 			else desktopBounds = bounds;
 		}
 		const originalTitle = await title.inputValue();
-		await title.fill("布局预览草稿");
+		await title.fill("设置页草稿");
 		for (const [section, label] of [
 			["登录与安全", "登录入口"],
 			["通知与公告", "消息保留天数"],
@@ -181,9 +172,6 @@ test("system settings layout preview preserves the original and adapts across wi
 			await expect(page.getByLabel(label, { exact: true })).toBeVisible();
 			await finishSettingsLayout(form);
 			interactionTimes.push(performance.now() - started);
-			expect(new URL(page.url()).searchParams.get("layoutPreview")).toBe(
-				"integrated",
-			);
 			expect(
 				await page.evaluate(
 					() => document.documentElement.scrollWidth <= innerWidth,
@@ -193,11 +181,11 @@ test("system settings layout preview preserves the original and adapts across wi
 				await form.evaluate((node) => node.scrollWidth <= node.clientWidth),
 			).toBe(true);
 			if (section === "基础信息") {
-				await expect(title).toHaveValue("布局预览草稿");
+				await expect(title).toHaveValue("设置页草稿");
 				await title.fill(originalTitle);
 			}
 			await page.screenshot({
-				path: testInfo.outputPath(`settings-preview-${section}-${width}.png`),
+				path: testInfo.outputPath(`settings-${section}-${width}.png`),
 			});
 		}
 		const save = page.getByRole("button", { name: /保.*存/ });
