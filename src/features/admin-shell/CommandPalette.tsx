@@ -256,7 +256,12 @@ export function CommandPalette({
 									}}
 									style={{ minWidth: 0 }}
 								>
-									<span className={styles.resultTitle}>{item.label}</span>
+									<span
+										className={styles.resultTitle}
+										data-testid={`command-palette-result-title-${item.key}`}
+									>
+										{item.label}
+									</span>
 									<span className={styles.resultPath}>{item.key}</span>
 									{!isSearching ? (
 										<Tooltip

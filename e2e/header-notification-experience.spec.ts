@@ -170,8 +170,8 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 			exact: true,
 		});
 		const resultBox = await result.boundingBox();
-		const labelBox = await result
-			.getByText("用户管理", { exact: true })
+		const labelBox = await search
+			.getByTestId("command-palette-result-title-/organization/users")
 			.boundingBox();
 		if (!resultBox || !labelBox)
 			throw new Error("Search result label is missing");

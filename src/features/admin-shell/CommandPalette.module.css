@@ -8,16 +8,21 @@
 }
 
 .resultTitle {
-	min-width: 0;
+	flex: 0 0 auto;
+	max-width: 45%;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .resultPath {
+	flex: 1 1 auto;
 	min-width: 0;
 	margin-inline-start: auto;
 	opacity: 0.65;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: 12px;
+	text-align: end;
+	white-space: nowrap;
 }
