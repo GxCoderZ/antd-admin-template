@@ -11,11 +11,18 @@ interface DashboardRecentActivity {
 }
 
 export interface DashboardStatistics {
+	activeUserCount: number;
+	assignedPermissionCount: number;
+	builtInRoleCount: number;
 	draftAnnouncementCount: number;
 	latestAnnouncements: Pick<
 		PlatformAnnouncement,
 		"id" | "title" | "updatedAt"
 	>[];
+	metricComparisons: Record<
+		"users" | "roles" | "permissions" | "logins",
+		{ week: number; day: number }
+	>;
 	permissionCount: number;
 	recentActivities: DashboardRecentActivity[];
 	recentLogins: Pick<

@@ -33,6 +33,22 @@ afterEach(() => {
 });
 
 describe("Fake dashboard workspace", () => {
+	it("returns preview period comparisons and live numeric card footers", () => {
+		expect(statistics()).toMatchObject({
+			activeUserCount: users.filter((user) => user.status === "active").length,
+			builtInRoleCount: roles.filter((role) => role.builtIn).length,
+			assignedPermissionCount: new Set(
+				roles.flatMap((role) => role.permissions),
+			).size,
+			metricComparisons: {
+				users: { week: 0.12, day: -0.11 },
+				roles: { week: 0.08, day: 0.02 },
+				permissions: { week: 0.06, day: 0.01 },
+				logins: { week: 0.16, day: -0.04 },
+			},
+		});
+	});
+
 	it("returns live domain counts and only the newest published announcements", () => {
 		const data = statistics();
 		expect(

@@ -29,8 +29,19 @@ function getDashboardStatisticsSnapshot(
 
 	return {
 		userCount: users.length,
+		activeUserCount: users.filter((user) => user.status === "active").length,
 		roleCount: roles.length,
+		builtInRoleCount: roles.filter((role) => role.builtIn).length,
 		permissionCount: allPermissions.length,
+		assignedPermissionCount: new Set(roles.flatMap((role) => role.permissions))
+			.size,
+		// Fixed comparison samples demonstrate Pro's trend states, not real history.
+		metricComparisons: {
+			users: { week: 0.12, day: -0.11 },
+			roles: { week: 0.08, day: 0.02 },
+			permissions: { week: 0.06, day: 0.01 },
+			logins: { week: 0.16, day: -0.04 },
+		},
 		todayLoginCount: todayLogins.filter((item) => item.result === "success")
 			.length,
 		todayAbnormalLoginCount: todayLogins.filter(

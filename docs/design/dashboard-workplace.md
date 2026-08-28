@@ -25,6 +25,11 @@ Ant Design Pro, MIT license, commit
 - [Field](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/Field/index.tsx)
   and [styles](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/Field/index.style.ts):
   ported footer label/value and 8px spacing alongside ChartCard.
+- [Trend](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Trend/index.tsx)
+  and [styles](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Trend/index.style.ts):
+  copied inline comparisons, CaretUpOutlined/CaretDownOutlined, 22px line height,
+  red-6/green-6 colors and the source color variants. IntroduceRow supplies the
+  16px comparison gap and 8px value spacing. Source HEAD was rechecked on 2026-08-29.
 
 `DashboardOverview`, `DashboardQuickEntries`, and `DashboardActivityPanels` adapt
 these layout patterns to the installed Ant Design version and theme tokens.
@@ -49,9 +54,16 @@ than copying framework internals or upstream application dependencies.
   no styling or class-name dependency is added. Unused avatar, function-total
   support and the unused `chartTopHasMargin` style are not imported. Custom
   ChartCard props are consumed locally rather than forwarded as DOM attributes.
-- The four values and abnormal-login footer use the existing dashboard aggregate;
-  the other footers state the counting scope. No fabricated trends or extra API
-  fields are added. Number formatting follows the current application language.
+- The first IntroduceRow card's complete content now appears in every metric:
+  weekly comparison, daily comparison, arrows, and a numeric Field footer.
+  The earlier summary-only content and counting-scope footers were incomplete
+  ports and are removed. Summaries remain only in the existing information tooltip.
+- The four totals still use the existing dashboard aggregate. Footer values are
+  active users, built-in roles, assigned permission nodes, and abnormal logins,
+  derived from the same Fake stores. Period comparisons are explicit fixed Fake
+  samples in `fake/dashboard.fake.ts`, not invented client-side values or real
+  historical analytics. Their signed ratios travel through the existing Query/API
+  chain; locale-aware formatting shows the absolute percentage beside the arrow.
 - Information tooltips retain hover and also support keyboard focus through the
   public AntD trigger API; no custom open-state or timing logic is introduced.
 - Mobile metrics use the source's single-column layout. Navigation keeps the upstream link grouping

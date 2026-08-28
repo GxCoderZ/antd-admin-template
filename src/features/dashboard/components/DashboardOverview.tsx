@@ -23,6 +23,8 @@ import {
 	usePermissionChecker,
 } from "../../../app/permissions";
 import { ChartCard, ChartCardField } from "./ChartCard";
+import styles from "./ChartCard.module.css";
+import { Trend } from "./Trend";
 
 const { Text, Title } = Typography;
 
@@ -152,8 +154,9 @@ export function DashboardOverview({
 			label: t("adminShell.dashboard.userCount"),
 			value: statistics.userCount,
 			summary: t("adminShell.dashboard.userSummary"),
-			footerLabel: t("adminShell.dashboard.metricScope"),
-			footerValue: t("adminShell.dashboard.allStatuses"),
+			comparison: statistics.metricComparisons.users,
+			footerLabel: t("adminShell.dashboard.activeUserCount"),
+			footerValue: statistics.activeUserCount,
 			permission: platformPermissions.usersRead,
 		},
 		{
@@ -161,8 +164,9 @@ export function DashboardOverview({
 			label: t("adminShell.dashboard.roleCount"),
 			value: statistics.roleCount,
 			summary: t("adminShell.dashboard.roleSummary"),
-			footerLabel: t("adminShell.dashboard.metricScope"),
-			footerValue: t("adminShell.dashboard.allStatuses"),
+			comparison: statistics.metricComparisons.roles,
+			footerLabel: t("adminShell.dashboard.builtInRoleCount"),
+			footerValue: statistics.builtInRoleCount,
 			permission: platformPermissions.rolesManage,
 		},
 		{
@@ -170,8 +174,9 @@ export function DashboardOverview({
 			label: t("adminShell.dashboard.permissionCount"),
 			value: statistics.permissionCount,
 			summary: t("adminShell.dashboard.permissionSummary"),
-			footerLabel: t("adminShell.dashboard.metricScope"),
-			footerValue: t("adminShell.dashboard.allNodes"),
+			comparison: statistics.metricComparisons.permissions,
+			footerLabel: t("adminShell.dashboard.assignedPermissionCount"),
+			footerValue: statistics.assignedPermissionCount,
 			permission: platformPermissions.rolesManage,
 		},
 		{
@@ -179,14 +184,17 @@ export function DashboardOverview({
 			label: t("adminShell.dashboard.todayLoginCount"),
 			value: statistics.todayLoginCount,
 			summary: t("adminShell.dashboard.loginSummary"),
+			comparison: statistics.metricComparisons.logins,
 			hint: t("adminShell.dashboard.todayLoginHint", { timeZone }),
 			footerLabel: t("adminShell.dashboard.todayAbnormalCount"),
-			footerValue: new Intl.NumberFormat(language).format(
-				statistics.todayAbnormalLoginCount,
-			),
+			footerValue: statistics.todayAbnormalLoginCount,
 			permission: platformPermissions.logsRead,
 		},
 	].filter((metric) => can(metric.permission));
+	const formatPercent = new Intl.NumberFormat(language, {
+		style: "percent",
+		maximumFractionDigits: 1,
+	});
 	return (
 		<Row gutter={[token.marginLG, token.marginLG]}>
 			{metrics.map((metric) => (
@@ -207,13 +215,29 @@ export function DashboardOverview({
 						footer={
 							<ChartCardField
 								label={metric.footerLabel}
-								value={metric.footerValue}
+								value={new Intl.NumberFormat(language).format(
+									metric.footerValue,
+								)}
 							/>
 						}
 						contentHeight={46}
 						style={{ height: "100%" }}
 					>
-						{metric.summary}
+						<Trend
+							flag={metric.comparison.week >= 0 ? "up" : "down"}
+							style={{ marginRight: 16 }}
+						>
+							{t("adminShell.dashboard.weekComparison")}
+							<span className={styles.trendText}>
+								{formatPercent.format(Math.abs(metric.comparison.week))}
+							</span>
+						</Trend>
+						<Trend flag={metric.comparison.day >= 0 ? "up" : "down"}>
+							{t("adminShell.dashboard.dayComparison")}
+							<span className={styles.trendText}>
+								{formatPercent.format(Math.abs(metric.comparison.day))}
+							</span>
+						</Trend>
 					</ChartCard>
 				</Col>
 			))}

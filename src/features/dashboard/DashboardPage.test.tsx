@@ -41,10 +41,19 @@ vi.mock("#src/api/system", () => ({
 
 const statistics: DashboardStatistics = {
 	userCount: 32,
+	activeUserCount: 28,
 	roleCount: 8,
+	builtInRoleCount: 2,
 	permissionCount: 10,
+	assignedPermissionCount: 8,
 	todayLoginCount: 18,
 	todayAbnormalLoginCount: 2,
+	metricComparisons: {
+		users: { week: 0.12, day: -0.11 },
+		roles: { week: 0.08, day: 0.02 },
+		permissions: { week: 0.06, day: 0.01 },
+		logins: { week: 0.16, day: -0.04 },
+	},
 	draftAnnouncementCount: 3,
 	recentLogins: [
 		{
@@ -152,23 +161,29 @@ function renderDashboard(
 }
 
 describe("dashboard workspace", () => {
-	it("shows metric summaries and footer values from the existing aggregate", async () => {
+	it("shows the Pro weekly and daily comparisons with numeric footer values", async () => {
 		renderDashboard();
 		await screen.findByTestId("dashboard-stat-users");
-		for (const [key, summary, scope] of [
-			["users", "全部平台账号", "全部状态"],
-			["roles", "全部访问角色", "全部状态"],
-			["permissions", "已注册权限节点", "全部节点"],
+		for (const [key, week, day, footer, value] of [
+			["users", "12%", "11%", "启用用户", "28"],
+			["roles", "8%", "2%", "内置角色", "2"],
+			["permissions", "6%", "1%", "已分配节点", "8"],
+			["logins", "16%", "4%", "今日异常", "2"],
 		] as const) {
 			const card = within(screen.getByTestId(`dashboard-stat-${key}`));
-			expect(card.getByText(summary)).toBeVisible();
-			expect(card.getByText("统计范围")).toBeVisible();
-			expect(card.getByText(scope)).toBeVisible();
+			const content = within(card.getByTestId("chart-card-content"));
+			expect(content.getByText("周同比")).toBeVisible();
+			expect(content.getByText("日同比")).toBeVisible();
+			expect(content.getByText(week)).toBeVisible();
+			expect(content.getByText(day)).toBeVisible();
+			const field = within(card.getByTestId("chart-card-footer"));
+			expect(field.getByText(footer)).toBeVisible();
+			expect(field.getByText(value, { exact: true })).toBeVisible();
+			expect(card.queryByText("统计范围")).not.toBeInTheDocument();
 		}
-		const logins = within(screen.getByTestId("dashboard-stat-logins"));
-		expect(logins.getByText("成功登录次数")).toBeVisible();
-		expect(logins.getByText("今日异常")).toBeVisible();
-		expect(logins.getByText("2", { exact: true })).toBeVisible();
+		const users = within(screen.getByTestId("dashboard-stat-users"));
+		expect(users.getByRole("img", { name: "caret-up" })).toBeVisible();
+		expect(users.getByRole("img", { name: "caret-down" })).toBeVisible();
 	});
 
 	it("shows the four core metrics and five quick entries, with recent logins and operations", async () => {

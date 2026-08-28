@@ -1,3 +1,61 @@
+# Dashboard ChartCard Fidelity Check
+
+## Target
+
+- Source visual: `C:/Users/ADMINI~1/AppData/Local/Temp/codex-clipboard-0c4ced66-6c99-4b96-a858-4f782da24d7a.png`.
+- Source implementation: Ant Design Pro commit `adfd44085738ca953573a13322c1ba84aca8b9e3`, Analysis `IntroduceRow`, `Trend`, `ChartCard`, and `Field`.
+- Scope: four existing system metrics, with the reference's weekly/daily comparisons, arrows and numeric footer. No sales domain or charts are added.
+- Implementation: `D:/Dev/.codex-worktrees/antd-admin-template-pro-trends-20260829`.
+- Intended viewports: 1440px, 768px and 390px; light Chinese and dark English.
+- Implementation screenshot: not captured in this task. Browser operation authorization is pending.
+- Source density, normalized CSS crop, full-view and focused comparisons: not verified without a matching browser capture.
+
+## Confirmed Source Defect And Fix
+
+The previous port retained ChartCard and Field but replaced IntroduceRow's Trend
+children with summary text. The new tests reproduced missing comparisons and
+missing numerical footer fields before implementation. Trend and its source
+styles are now ported, with CSS Modules and the existing AntD token prefix replacing
+upstream styling dependencies. The source's 16px comparison gap, 8px value gap and
+22px line height are preserved. Summary text remains only in the information tooltip.
+
+## Fidelity Surfaces
+
+- Typography: source declarations retained; rendered fonts and wrapping await comparison.
+- Spacing: existing 237px frame and 46px content area retained; browser geometry assertions updated but not run in this task.
+- Colors: source red-6/green-6 tokens retained; computed light/dark colors await browser verification.
+- Assets: source Ant Design CaretUpOutlined/CaretDownOutlined and existing InfoCircleOutlined are used, with no generated or hand-drawn substitutes.
+- Content: system names and Fake values replace sales content; both period labels, percentages and numeric footer are present in component tests.
+
+## Verification
+
+- Initial regression run: two expected failures (missing comparisons and Fake footer fields).
+- Focused regression: 19 tests passed, including the committed baseline's four language key sets.
+- Fresh required checks passed: typecheck, all unit tests (68 files / 330 tests), lint, circular dependencies, unused code and production build.
+- Playwright dashboard assertions now cover the comparison content, arrow colors, 768px layout, resize restoration and performance samples. They have not been executed in this task.
+- No screenshot comparison result or p50/p95 result is claimed.
+
+## Integration Checkpoint
+
+The canonical workspace has an unrelated, uncommitted language migration from
+four languages to eight, including removal of ko-KR and five new locale files.
+This task changes dashboard labels in the committed baseline's locale files.
+The language migration must be committed or its ownership coordinated before
+integration, so all currently selected languages receive the new labels without
+committing or overwriting another task's work.
+
+## Remaining Work
+
+1. Reconcile the new dashboard labels with the language migration and integrate using Git.
+2. Obtain this task's browser/Playwright inspection authorization.
+3. Run the updated page tests on a fresh build, compare the rendered card with the source at matched dimensions, and record timing and screenshot evidence.
+4. Resolve any visual mismatches before marking the fidelity check passed.
+
+## Historical Reports
+
+The records below describe earlier accepted scopes. Their deliberate omission
+of comparison content is superseded by the current screenshot requirement.
+
 # Dashboard Design QA
 
 ## ChartCard Pass
@@ -142,4 +200,6 @@ dashboard change and are not included in its commit. The dashboard-specific
 desktop and mobile cases passed. The full first run was 74/75, followed by the
 successful targeted recheck; it is not reported as a fresh single-run 75/75.
 
-final result: passed
+Historical result: passed
+
+final result: blocked
