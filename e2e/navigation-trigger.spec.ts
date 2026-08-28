@@ -56,7 +56,7 @@ for (const width of [1440, 768, 390]) {
 				name: "搜索",
 				exact: true,
 			}),
-		).toHaveCSS("height", width >= 768 ? "32px" : "28px");
+		).toHaveCSS("height", "36px");
 
 		if (mobile) {
 			await trigger.click({ position: { x: geometry.width / 2, y: 2 } });

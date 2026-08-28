@@ -149,6 +149,15 @@ function AuthenticatedAdminShellRoute() {
 		);
 	}
 
+	// Resolve the display name before mounting hover targets in the header.
+	if (accountQuery.isPending) {
+		return <ApplicationSkeleton />;
+	}
+
+	if (accountQuery.isError) {
+		return <ShellRouteErrorPage />;
+	}
+
 	const handleLogout = async () => {
 		await logoutMutation.mutateAsync();
 		await navigate("/login", { replace: true });
@@ -162,9 +171,7 @@ function AuthenticatedAdminShellRoute() {
 				currentUserAvatarRevision={accountQuery.dataUpdatedAt}
 				currentUserId={sessionQuery.data.user.id}
 				currentUsername={
-					accountQuery.data?.displayName.trim() ||
-					accountQuery.data?.username ||
-					sessionQuery.data.user.username
+					accountQuery.data.displayName.trim() || accountQuery.data.username
 				}
 				onLogout={handleLogout}
 			/>

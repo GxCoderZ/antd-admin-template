@@ -16,7 +16,7 @@ for (const width of [1440, 768, 390]) {
 		await signIn(page);
 
 		const header = page.getByRole("banner");
-		const names = ["语言", "切换为深色模式", "通知"];
+		const names = ["搜索", "语言", "切换为深色模式", "通知"];
 		for (const name of ["设置", "更多操作"]) {
 			await expect(
 				header.getByRole("button", { name, exact: true }),
@@ -24,20 +24,11 @@ for (const width of [1440, 768, 390]) {
 		}
 		for (const name of names) {
 			const button = header.getByRole("button", { name, exact: true });
-			await expect(button).toHaveCSS("height", "28px");
-			await expect(button).toHaveCSS("width", "28px");
-			await expect(button).toHaveCSS("font-size", "16px");
-			await expect(button).toHaveCSS("padding", "6px");
+			await expect(button).toHaveCSS("height", "36px");
+			await expect(button).toHaveCSS("width", "36px");
+			await expect(button).toHaveCSS("padding-block", "0px");
+			await expect(button).toHaveCSS("padding-inline", "8px");
 		}
-		const searchTrigger = header.getByRole("button", {
-			name: "搜索",
-			exact: true,
-		});
-		await expect(searchTrigger).toBeVisible();
-		await expect(searchTrigger).toHaveCSS(
-			"height",
-			width >= 768 ? "32px" : "28px",
-		);
 		// Measure relative spacing in one frame while the shell is mounting.
 		const centers = await header.getByRole("button").evaluateAll(
 			(buttons, names) =>
@@ -53,7 +44,7 @@ for (const width of [1440, 768, 390]) {
 		);
 		for (const [index, center] of centers.entries()) {
 			const previous = centers[index - 1];
-			if (previous !== undefined) expect(center - previous).toBe(32);
+			if (previous !== undefined) expect(center - previous).toBe(36);
 		}
 
 		const account = header.getByRole("button", {

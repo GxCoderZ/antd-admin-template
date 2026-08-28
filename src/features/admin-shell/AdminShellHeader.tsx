@@ -7,6 +7,7 @@ import {
 	SunOutlined,
 } from "@ant-design/icons";
 import {
+	Button,
 	Dropdown,
 	Flex,
 	Grid,
@@ -42,7 +43,6 @@ import {
 } from "../../i18n";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { CommandPalette } from "./CommandPalette";
-import { HeaderIconButton } from "./HeaderIconButton";
 import { NotificationPopover } from "./NotificationPopover";
 import { SettingsDrawer } from "./SettingsDrawer";
 
@@ -118,17 +118,18 @@ export function AdminShellHeader({
 	const [changingLanguage, setChangingLanguage] = useState(false);
 	const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
 	const showAccountName = screens.sm === true;
-	// Match ProLayout GlobalHeader/ActionsContent and rightContentStyle dimensions.
+	// Ported from ant-design/ant-design-pro src/components/RightContent/style.ts.
+	// Public Button styles preserve its dimensions without the upstream !important overrides.
 	const iconActionStyle: CSSProperties = {
-		border: 0,
+		alignItems: "center",
 		borderRadius: token.borderRadius,
-		color: token.colorTextTertiary,
+		display: "inline-flex",
 		flex: "0 0 auto",
-		fontSize: 16,
-		height: 28,
-		marginInline: 2,
-		padding: 6,
-		width: 28,
+		height: 36,
+		justifyContent: "center",
+		minWidth: 36,
+		paddingBlock: 0,
+		paddingInline: token.paddingXS,
 	};
 	const accountActionStyle: CSSProperties = {
 		border: 0,
@@ -215,29 +216,13 @@ export function AdminShellHeader({
 			{messageContextHolder}
 			<Flex align="center" style={{ flex: "0 0 auto", height: "100%" }}>
 				<Tooltip title={t("adminShell.header.search")}>
-					<HeaderIconButton
+					<Button
 						aria-label={t("adminShell.header.search")}
 						icon={<SearchOutlined aria-hidden />}
 						onClick={() => setCommandPaletteOpen(true)}
-						style={
-							screens.md
-								? {
-										...iconActionStyle,
-										background: token.colorBgLayout,
-										borderRadius: token.controlHeight,
-										fontSize: token.fontSizeSM,
-										height: token.controlHeight,
-										paddingInline: token.paddingSM,
-										width: "auto",
-										minWidth: token.controlHeight * 2.5,
-										marginInlineEnd: token.marginXS,
-									}
-								: iconActionStyle
-						}
+						style={iconActionStyle}
 						type="text"
-					>
-						{screens.md ? t("adminShell.header.search") : null}
-					</HeaderIconButton>
+					/>
 				</Tooltip>
 				<Dropdown
 					open={languageMenuOpen}
@@ -255,7 +240,7 @@ export function AdminShellHeader({
 					placement="bottomRight"
 				>
 					<Tooltip title={languageMenuOpen ? null : t("language.label")}>
-						<HeaderIconButton
+						<Button
 							aria-label={t("language.label")}
 							icon={<GlobalOutlined aria-hidden />}
 							loading={changingLanguage}
@@ -265,7 +250,7 @@ export function AdminShellHeader({
 					</Tooltip>
 				</Dropdown>
 				<Tooltip title={themeActionLabel}>
-					<HeaderIconButton
+					<Button
 						aria-label={themeActionLabel}
 						icon={
 							isDarkMode ? (
@@ -274,9 +259,7 @@ export function AdminShellHeader({
 								<MoonOutlined aria-hidden />
 							)
 						}
-						onClick={() =>
-							onChangeThemeMode(isDarkMode ? "light" : "dark")
-						}
+						onClick={() => onChangeThemeMode(isDarkMode ? "light" : "dark")}
 						style={iconActionStyle}
 						type="text"
 					/>
@@ -295,7 +278,7 @@ export function AdminShellHeader({
 					}}
 					placement="bottomRight"
 				>
-					<HeaderIconButton
+					<Button
 						aria-label={currentUsername}
 						style={accountActionStyle}
 						type="text"
@@ -310,7 +293,7 @@ export function AdminShellHeader({
 							/>
 							{showAccountName ? <span>{currentUsername}</span> : null}
 						</Space>
-					</HeaderIconButton>
+					</Button>
 				</Dropdown>
 			</Flex>
 

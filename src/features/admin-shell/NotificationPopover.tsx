@@ -27,7 +27,6 @@ import {
 } from "#src/api/notifications";
 import { resolveSupportedLanguage } from "../../i18n";
 import { NotificationAvatar } from "../notifications/NotificationAvatar";
-import { HeaderIconButton } from "./HeaderIconButton";
 import styles from "./NotificationPopover.module.css";
 
 const { Text } = Typography;
@@ -293,7 +292,7 @@ export function NotificationPopover({
 					offset={[-2, 4]}
 					style={{ display: "inline-flex" }}
 				>
-					<HeaderIconButton
+					<Button
 						aria-label={t("adminShell.notificationCenter.button")}
 						icon={<BellOutlined aria-hidden />}
 						style={triggerStyle}

@@ -4,11 +4,14 @@ import {
 	fireEvent,
 	render,
 	screen,
+	waitFor,
 } from "@testing-library/react";
 import { Button } from "antd";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import * as accountApi from "#src/api/account";
+import * as authApi from "#src/api/auth";
 import { i18n } from "../i18n";
 import { App } from "./App";
 import {
@@ -27,7 +30,9 @@ vi.mock("../features/auth/login/LoginPage", () => ({
 }));
 
 vi.mock("../features/admin-shell/AdminShellPage", () => ({
-	AdminShellPage: () => null,
+	AdminShellPage: ({ currentUsername }: { currentUsername: string }) => (
+		<header>{currentUsername}</header>
+	),
 }));
 
 function ThemeControls() {
@@ -77,6 +82,7 @@ beforeEach(async () => {
 
 afterEach(() => {
 	cleanup();
+	vi.restoreAllMocks();
 	if (originalTransition) {
 		Object.defineProperty(document, "startViewTransition", originalTransition);
 	} else {
@@ -88,6 +94,66 @@ afterEach(() => {
 		Reflect.deleteProperty(document.documentElement, "animate");
 	}
 	clearStoredPreferences();
+});
+
+describe("App header identity", () => {
+	beforeEach(() => {
+		window.history.replaceState(null, "", "/dashboard");
+		vi.spyOn(authApi, "getPlatformSession").mockResolvedValue({
+			permissions: [],
+			user: { id: "preview-admin", username: "admin", email: "" },
+		});
+	});
+
+	it.each([
+		["Platform Admin", "Platform Admin"],
+		["", "admin"],
+	])(
+		"waits for account identity before rendering the header (%s)",
+		async (displayName, expectedName) => {
+			let resolveAccount!: (account: accountApi.PlatformAccount) => void;
+			const pendingAccount = new Promise<accountApi.PlatformAccount>(
+				(resolve) => {
+					resolveAccount = resolve;
+				},
+			);
+			const getAccount = vi
+				.spyOn(accountApi, "getPlatformAccount")
+				.mockReturnValue(pendingAccount);
+			render(<App />);
+			await waitFor(() => expect(getAccount).toHaveBeenCalled());
+			expect(screen.queryByRole("banner")).not.toBeInTheDocument();
+
+			await act(async () => {
+				resolveAccount({
+					address: "",
+					bio: "",
+					city: "",
+					country: "",
+					createdAt: "2026-08-28T00:00:00Z",
+					displayName,
+					email: "",
+					id: "preview-admin",
+					phoneAreaCode: "",
+					phoneNumber: "",
+					province: "",
+					roles: [],
+					username: "admin",
+				});
+				await pendingAccount;
+			});
+			expect(await screen.findByRole("banner")).toHaveTextContent(expectedName);
+		},
+	);
+
+	it("shows the existing error page when account identity cannot load", async () => {
+		vi.spyOn(accountApi, "getPlatformAccount").mockRejectedValue(
+			new Error("Preview account unavailable"),
+		);
+		render(<App />);
+		expect(await screen.findByText("500", { exact: true })).toBeVisible();
+		expect(screen.queryByRole("banner")).not.toBeInTheDocument();
+	});
 });
 
 describe("App theme switching", () => {

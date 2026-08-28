@@ -59,6 +59,21 @@ function renderHeader(onLogout: () => Promise<void>, isDarkMode = false) {
 }
 
 describe("AdminShellHeader", () => {
+	it("uses the official 36px action size for every toolbar button", () => {
+		renderHeader(vi.fn().mockResolvedValue(undefined));
+		for (const name of ["搜索", "语言", "切换为深色模式"]) {
+			expect(screen.getByRole("button", { name })).toHaveStyle({
+				height: "36px",
+				minWidth: "36px",
+				paddingBlock: "0px",
+				paddingInline: "8px",
+			});
+		}
+		expect(screen.getByRole("button", { name: "测试用户" })).toHaveStyle({
+			height: "44px",
+		});
+	});
+
 	it("keeps search, language and theme directly available", () => {
 		renderHeader(vi.fn().mockResolvedValue(undefined));
 
