@@ -113,7 +113,6 @@ for (const width of [1440, 768, 460, 390]) {
 				),
 			).toBe(true);
 		}
-		const system = page.getByRole("region", { name: "系统概览" });
 		const entries = page.getByRole("region", { name: "快捷入口" });
 		const activity = page.getByRole("region", { name: "最近动态" });
 		const announcements = page.getByRole("region", { name: "最新公告" });
@@ -171,9 +170,8 @@ for (const width of [1440, 768, 460, 390]) {
 			expect(second.y).toBeCloseTo(first.y, 0);
 			expect(third.y).toBeGreaterThan(first.y);
 		}
-		await expect(system).toContainText("预览正常");
+		await expect(page.getByRole("region", { name: "系统概览" })).toHaveCount(0);
 		for (const region of [
-			system,
 			entries,
 			activity,
 			announcements,
@@ -214,9 +212,7 @@ for (const width of [1440, 768, 460, 390]) {
 				expect(boxes[index]!.left).toBeCloseTo(boxes[0]!.left, 0);
 			}
 		}
-		expect(
-			(await system.boundingBox())!.y + (await system.boundingBox())!.height,
-		).toBeLessThanOrEqual(boxes[0]!.top);
+		await expect(metrics.first()).toBeInViewport();
 		expect((await entries.boundingBox())!.y).toBeGreaterThanOrEqual(
 			boxes[3]!.bottom,
 		);

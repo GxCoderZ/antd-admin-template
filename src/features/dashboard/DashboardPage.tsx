@@ -11,16 +11,12 @@ import {
 	getPlatformSettings,
 	platformSettingsQueryKey,
 } from "#src/api/settings";
-import { getSystemInfo, systemInfoQueryKey } from "#src/api/system";
 import { useLocalePreferences } from "../../app/localePreferences";
 import {
 	platformPermissions,
 	usePermissionChecker,
 } from "../../app/permissions";
-import {
-	DashboardOverview,
-	DashboardSystemStatus,
-} from "./components/DashboardOverview";
+import { DashboardOverview } from "./components/DashboardOverview";
 import { DashboardQuickEntries } from "./components/DashboardQuickEntries";
 import { DashboardActivityPanels } from "./components/DashboardActivityPanels";
 
@@ -46,16 +42,8 @@ export function DashboardPage() {
 		queryFn: ({ signal }) => getPlatformSettings(signal),
 		queryKey: platformSettingsQueryKey,
 	});
-	const systemQuery = useQuery({
-		queryFn: ({ signal }) => getSystemInfo(signal),
-		queryKey: [systemInfoQueryKey],
-	});
 
-	if (
-		settingsQuery.isError ||
-		systemQuery.isError ||
-		(hasStatistics && statisticsQuery.isError)
-	) {
+	if (settingsQuery.isError || (hasStatistics && statisticsQuery.isError)) {
 		return (
 			<Result
 				status="error"
@@ -66,7 +54,6 @@ export function DashboardPage() {
 						icon={<ReloadOutlined aria-hidden />}
 						onClick={() => {
 							if (settingsQuery.isError) void settingsQuery.refetch();
-							if (systemQuery.isError) void systemQuery.refetch();
 							if (hasStatistics && statisticsQuery.isError)
 								void statisticsQuery.refetch();
 						}}
@@ -78,11 +65,7 @@ export function DashboardPage() {
 		);
 	}
 
-	if (
-		settingsQuery.isPending ||
-		systemQuery.isPending ||
-		(hasStatistics && statisticsQuery.isPending)
-	) {
+	if (settingsQuery.isPending || (hasStatistics && statisticsQuery.isPending)) {
 		return (
 			<Flex
 				vertical
@@ -110,10 +93,6 @@ export function DashboardPage() {
 			}}
 		>
 			<Flex vertical gap={token.marginLG}>
-				<DashboardSystemStatus
-					settings={settingsQuery.data}
-					system={systemQuery.data}
-				/>
 				<DashboardOverview
 					statistics={hasStatistics ? statisticsQuery.data : undefined}
 				/>

@@ -79,7 +79,7 @@ for (const entry of queries) {
 		await page.locator('input[autocomplete="username"]').fill("admin");
 		await page.locator('input[autocomplete="current-password"]').fill("admin");
 		await page.locator('button[type="submit"]').click();
-		await expect(page.getByRole("heading", { name: "系统概览" })).toBeVisible();
+		await expect(page.getByTestId("dashboard-stat-users")).toBeVisible();
 		const opened = performance.now();
 		await page.evaluate((path) => {
 			history.pushState(null, "", path);

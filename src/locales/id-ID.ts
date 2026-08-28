@@ -204,16 +204,6 @@ export const idIDTranslation = {
 			},
 		},
 		dashboard: {
-			systemTitle: "Sistem ringkasan",
-			preview: "Demo lingkungan",
-			runningStatus: "Sistem status",
-			running: "Pratinjau tersedia",
-			maintenanceStatus: "Pemeliharaan mode",
-			maintenanceOn: "Diaktifkan",
-			maintenanceOff: "Dinonaktifkan",
-			loginStatus: "Sign-in akses",
-			version: "Saat ini versi",
-			updatedAt: "Diperbarui {{time}}",
 			userCount: "Total users",
 			roleCount: "Peran",
 			permissionCount: "Izin node",
@@ -230,7 +220,7 @@ export const idIDTranslation = {
 			assignedPermissionCount: "Simpul ditetapkan",
 			todayAbnormalCount: "Tidak normal today",
 			noPermissionData: "Tidak ada ringkasan data tersedia untuk this account",
-			loadError: "Sistem ringkasan dapat tidak be loaded",
+			loadError: "Dasbor tidak dapat dimuat",
 			retry: "Reload",
 			quickEntryTitle: "Cepat akses",
 			operationLogs: "Operasi log",
@@ -1262,4 +1252,3 @@ export const idIDTranslation = {
 		},
 	},
 } as const;
-

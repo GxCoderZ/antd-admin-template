@@ -128,7 +128,7 @@ for (const entry of pages) {
 		await page.locator('input[autocomplete="current-password"]').fill("admin");
 		await page.locator('button[type="submit"]').click();
 		await expect(page).toHaveURL(/\/dashboard$/);
-		await expect(page.getByRole("heading", { name: "系统概览" })).toBeVisible();
+		await expect(page.getByTestId("dashboard-stat-users")).toBeVisible();
 		await page.keyboard.press("Control+k");
 		const search = page.getByRole("dialog", { name: "导航搜索" });
 		await search.getByRole("textbox").fill(entry.name);

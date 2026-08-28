@@ -102,9 +102,7 @@ test("system settings uses integrated tabs and adapts across widths", async ({
 		await finishSettingsLayout(form);
 		resizeTimes.push(performance.now() - started);
 		await navigate(page, "/dashboard");
-		await expect(
-			page.getByRole("heading", { name: "系统概览", exact: true }),
-		).toBeVisible();
+		await expect(page.getByTestId("dashboard-stat-users")).toBeVisible();
 		started = performance.now();
 		await navigate(page, "/system/settings");
 		await expect(title).toBeVisible();

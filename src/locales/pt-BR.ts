@@ -208,16 +208,6 @@ export const ptBRTranslation = {
 			},
 		},
 		dashboard: {
-			systemTitle: "Visão geral do sistema",
-			preview: "Demo environment",
-			runningStatus: "Status do sistema",
-			running: "Preview available",
-			maintenanceStatus: "Maintenance mode",
-			maintenanceOn: "Ativado",
-			maintenanceOff: "Desativado",
-			loginStatus: "Sign-in access",
-			version: "Current version",
-			updatedAt: "Updated {{time}}",
 			userCount: "Total users",
 			roleCount: "Funções",
 			permissionCount: "Permission nodes",
@@ -234,7 +224,7 @@ export const ptBRTranslation = {
 			assignedPermissionCount: "Nós atribuídos",
 			todayAbnormalCount: "Abnormal today",
 			noPermissionData: "No overview data available for this account",
-			loadError: "System overview could not be loaded",
+			loadError: "Não foi possível carregar o painel",
 			retry: "Recarregar",
 			quickEntryTitle: "Acesso rápido",
 			operationLogs: "Operation logs",
@@ -1266,4 +1256,3 @@ export const ptBRTranslation = {
 		},
 	},
 } as const;
-

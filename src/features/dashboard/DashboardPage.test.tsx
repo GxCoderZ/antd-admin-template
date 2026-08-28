@@ -116,13 +116,6 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	mocks.getStatistics.mockResolvedValue(structuredClone(statistics));
 	mocks.getSettings.mockResolvedValue(structuredClone(settings));
-	mocks.getSystemInfo.mockResolvedValue({
-		version: "0.1.0",
-		builtAt: "2026-08-28T00:00:00.000Z",
-		service: "antd-admin-template-fake-ui",
-		environment: "local-development",
-		commitSha: "local",
-	});
 });
 
 function renderDashboard(
@@ -161,6 +154,15 @@ function renderDashboard(
 }
 
 describe("dashboard workspace", () => {
+	it("opens without a system overview or a system information request", async () => {
+		renderDashboard();
+		expect(await screen.findByTestId("dashboard-stat-users")).toBeVisible();
+		expect(
+			screen.queryByRole("region", { name: "系统概览" }),
+		).not.toBeInTheDocument();
+		expect(mocks.getSystemInfo).not.toHaveBeenCalled();
+	});
+
 	it("uses recent-activity tabs without a separate card title", async () => {
 		renderDashboard();
 		const activity = within(
@@ -207,9 +209,7 @@ describe("dashboard workspace", () => {
 
 	it("shows the four core metrics and five quick entries, with recent logins and operations", async () => {
 		renderDashboard();
-		expect(
-			await screen.findByRole("region", { name: "系统概览" }),
-		).toBeVisible();
+		expect(await screen.findByTestId("dashboard-stat-users")).toBeVisible();
 		for (const [key, value] of Object.entries({
 			users: 32,
 			roles: 8,
@@ -255,7 +255,7 @@ describe("dashboard workspace", () => {
 			platformPermissions.usersRead,
 			platformPermissions.announcementsRead,
 		]);
-		await screen.findByRole("region", { name: "系统概览" });
+		await screen.findByTestId("dashboard-stat-users");
 		expect(screen.getByTestId("dashboard-stat-users")).toBeVisible();
 		expect(
 			screen.queryByTestId("dashboard-stat-roles"),
@@ -278,22 +278,19 @@ describe("dashboard workspace", () => {
 		expect(screen.getByText("预览版本更新")).toBeVisible();
 	});
 
-	it("keeps system status and authorized dictionary entry when there is no statistics permission", async () => {
+	it("keeps authorized entries and maintenance reminders without statistics permission", async () => {
 		renderDashboard([platformPermissions.dictionariesManage]);
-		expect(
-			await screen.findByRole("region", { name: "系统概览" }),
-		).toBeVisible();
-		expect(screen.getByRole("link", { name: "字典管理" })).toBeVisible();
+		expect(await screen.findByRole("link", { name: "字典管理" })).toBeVisible();
+		expect(screen.getByText("当前未开启维护模式")).toBeVisible();
 		expect(screen.getByText("暂无可查看的概览数据")).toBeVisible();
 		expect(mocks.getStatistics).not.toHaveBeenCalled();
 	});
 
-	it("shows maintenance and restricted sign-in settings and respects the announcement switch", async () => {
+	it("keeps maintenance details and respects the announcement switch", async () => {
 		mocks.getSettings.mockResolvedValue({
 			...settings,
 			security: {
 				...settings.security,
-				loginAccess: "adminOnly",
 				maintenanceEnabled: true,
 				maintenanceMessage: "预览维护提示",
 				maintenanceEndsAt: "2026-08-29T00:00:00.000Z",
@@ -301,8 +298,7 @@ describe("dashboard workspace", () => {
 			notifications: { ...settings.notifications, announcementsEnabled: false },
 		});
 		renderDashboard();
-		expect(await screen.findByText("仅管理员可登录")).toBeVisible();
-		expect(screen.getByText("预览维护提示")).toBeVisible();
+		expect(await screen.findByText("预览维护提示")).toBeVisible();
 		expect(screen.getByText(/预计恢复/)).toHaveTextContent("2026");
 		expect(screen.getByText("系统公告已关闭")).toBeVisible();
 		expect(screen.queryByText("预览版本更新")).not.toBeInTheDocument();
@@ -347,7 +343,7 @@ describe("dashboard workspace", () => {
 			screen.queryByTestId("dashboard-stat-users"),
 		).not.toBeInTheDocument();
 		rejectRequest(new Error("Preview unavailable"));
-		expect(await screen.findByText("系统概览加载失败")).toBeVisible();
+		expect(await screen.findByText("仪表盘加载失败")).toBeVisible();
 		fireEvent.click(screen.getByRole("button", { name: "重新加载" }));
 		expect(await screen.findByTestId("dashboard-stat-users")).toBeVisible();
 	});

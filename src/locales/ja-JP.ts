@@ -208,16 +208,6 @@ export const jaJPTranslation = {
 			},
 		},
 		dashboard: {
-			systemTitle: "システム概要",
-			preview: "デモ環境",
-			runningStatus: "システムステータス",
-			running: "プレビュー利用可能",
-			maintenanceStatus: "メンテナンスモード",
-			maintenanceOn: "有効",
-			maintenanceOff: "無効",
-			loginStatus: "サインインアクセス",
-			version: "現在のバージョン",
-			updatedAt: "更新日時: {{time}}",
 			userCount: "ユーザー総数",
 			roleCount: "ロール",
 			permissionCount: "権限ノード",
@@ -234,7 +224,7 @@ export const jaJPTranslation = {
 			assignedPermissionCount: "割り当て済みノード",
 			todayAbnormalCount: "本日の異常",
 			noPermissionData: "このアカウントで利用可能な概要データはありません",
-			loadError: "システム概要を読み込めませんでした",
+			loadError: "ダッシュボードを読み込めませんでした",
 			retry: "再読み込み",
 			quickEntryTitle: "クイックアクセス",
 			operationLogs: "操作ログ",
@@ -1266,4 +1256,3 @@ export const jaJPTranslation = {
 		},
 	},
 } as const;
-
