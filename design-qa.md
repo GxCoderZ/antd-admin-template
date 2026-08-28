@@ -5,10 +5,13 @@
 - Source visual: `C:/Users/ADMINI~1/AppData/Local/Temp/codex-clipboard-0c4ced66-6c99-4b96-a858-4f782da24d7a.png`.
 - Source implementation: Ant Design Pro commit `adfd44085738ca953573a13322c1ba84aca8b9e3`, Analysis `IntroduceRow`, `Trend`, `ChartCard`, and `Field`.
 - Scope: four existing system metrics, with the reference's weekly/daily comparisons, arrows and numeric footer. No sales domain or charts are added.
-- Implementation: `D:/Dev/.codex-worktrees/antd-admin-template-pro-trends-20260829`.
-- Intended viewports: 1440px, 768px and 390px; light Chinese and dark English.
-- Implementation screenshot: not captured in this task. Browser operation authorization is pending.
-- Source density, normalized CSS crop, full-view and focused comparisons: not verified without a matching browser capture.
+- Implementation: `D:/Dev/antd-admin-template`, local route `http://127.0.0.1:3003/dashboard`.
+- Integration: `0c57400` contains the trend/footers port; `3ba5dd6` integrates it with the eight-language UI; `a1f28a1` aligns browser assertions with native markup. Acceptance started at `ec04667` with unrelated shell work left untouched.
+- Authorized acceptance: local Fake login, browser inspection, Playwright and screenshots on 2026-08-29. No external publishing or real account operations.
+- Viewports: 1440x1000, 768x1000 and 390x1000, plus 460x1000 for the matched-width card crop. Chromium device scale factor 1; Chinese light and English dark.
+- Fresh-build screenshot root: `.codex-audits/dashboard-trace-verification/`. The `dashboard-workspace-工作台布局和管理入口（WIDTHpx）-chromium-repeat1` directories contain `dashboard-WIDTH-top.png`, `dashboard-WIDTH-metric.png`, `dashboard-WIDTH-activity.png` and `dashboard-WIDTH-reminders.png`.
+- English dark evidence: `dashboard-workspace-工作台指标卡保留英文和深色主题（390px）-chromium-repeat1/dashboard-en-dark-390.png` under the same root.
+- The source and 460px-viewport metric crop were opened together with desktop, tablet, mobile and dark captures in one comparison input. The reference's approximately 397x237 CSS-pixel card matches the element's 397px width and measured 237px height. No image stretching or density scaling was applied; the element screenshot excludes the surrounding margin and shadow area.
 
 ## Confirmed Source Defect And Fix
 
@@ -21,35 +24,40 @@ upstream styling dependencies. The source's 16px comparison gap, 8px value gap a
 
 ## Fidelity Surfaces
 
-- Typography: source declarations retained; rendered fonts and wrapping await comparison.
-- Spacing: existing 237px frame and 46px content area retained; browser geometry assertions updated but not run in this task.
-- Colors: source red-6/green-6 tokens retained; computed light/dark colors await browser verification.
+- Typography: 30px/38px totals, 14px/22px comparison content and footer, native Card heading. The host font rasterization is not claimed as pixel-identical to the reference. Chinese and English content is unclipped at 390px.
+- Spacing: measured 237px frame, 56px native title bar, 24px horizontal body padding, 46px comparison area, 16px comparison gap, 8px value gap, 1px footer divider and 9px footer top padding. Four/two/one-column layouts and width restoration passed.
+- Colors: source red-6/green-6 arrows resolve to `rgb(245, 34, 45)` and `rgb(82, 196, 26)` in the light browser checks. Dark card/text/background remain token-driven and readable. The 8px radius and Pro shadow match the source frame.
 - Assets: source Ant Design CaretUpOutlined/CaretDownOutlined and existing InfoCircleOutlined are used, with no generated or hand-drawn substitutes.
-- Content: system names and Fake values replace sales content; both period labels, percentages and numeric footer are present in component tests.
+- Content: system names and Fake values replace sales content; period labels, percentages and numeric footer are visible in all four cards. Summary text is only in native hover/focus tooltips. The earlier summary-only comparison area and counting-scope footer are replaced, not retained as a parallel path.
 
 ## Verification
 
 - Initial regression run: two expected failures (missing comparisons and Fake footer fields).
 - Focused regression: 19 tests passed, including the committed baseline's four language key sets.
-- Fresh required checks passed: typecheck, all unit tests (68 files / 330 tests), lint, circular dependencies, unused code and production build.
-- Playwright dashboard assertions now cover the comparison content, arrow colors, 768px layout, resize restoration and performance samples. They have not been executed in this task.
-- No screenshot comparison result or p50/p95 result is claimed.
+- The original isolated implementation passed all six required checks (68 files / 330 unit tests). The fresh canonical typecheck, unit tests (381 passed), lint, circular-dependency check, unused-code check and production build all passed. Logs: `.codex-audits/dashboard-current-{typecheck,unit,lint,circular,unused,build}.log`.
+- Initial current-build dashboard run: 6/7 passed. The English dark case reached `/dashboard` but only the shell/footer rendered, without the metric card. Its screenshot and error context are retained in `.codex-audits/dashboard-acceptance/`; that run did not collect a trace for the failed case.
+- Diagnostic rerun of English dark with a trace: 1/1 passed. A subsequent bounded two-round traced suite passed 14/14, including both timezones, all viewport cases, native tooltips, activity tabs, five management links and maintenance navigation. No timeouts were enlarged, assertions disabled or application workaround added.
+- In-app inspection at 1440px, 768px and 390px confirmed the card layout and theme/language changes. The captured console had no warnings or errors. Chinese/light and the default viewport were restored after inspection.
+- The 14-test run reported no browser errors or failed requests in the cross-route cases, no page-level overflow, no comparison/footer clipping and no interaction threshold failures. JSON evidence: `.codex-audits/dashboard-trace-verification.json`.
 
-## Integration Checkpoint
+| Measurement | Samples | p50 (ms) | p95 (ms) | Maximum (ms) |
+| --- | ---: | ---: | ---: | ---: |
+| Dashboard available after Fake sign-in | 8 | 1124.5 | 1167.0 | 1167.0 |
+| Viewport change and layout restoration | 32 | 72.6 | 327.9 | 330.0 |
+| Tooltip and activity-tab interaction | 32 | 366.5 | 402.2 | 418.9 |
 
-The canonical workspace has an unrelated, uncommitted language migration from
-four languages to eight, including removal of ko-KR and five new locale files.
-This task changes dashboard labels in the committed baseline's locale files.
-The language migration must be committed or its ownership coordinated before
-integration, so all currently selected languages receive the new labels without
-committing or overwriting another task's work.
+## Remaining Acceptance Risk
 
-## Remaining Work
+No actionable visual mismatch remains in the comparison-card scope. However,
+the initial English-dark empty-content event has not been explained: subsequent
+traced runs and in-app switching did not reproduce it. Reviewing the dashboard,
+shell outlet and app assembly did not establish a root cause. Concurrent shell
+work was present, but is not proven to have caused the event.
 
-1. Reconcile the new dashboard labels with the language migration and integrate using Git.
-2. Obtain this task's browser/Playwright inspection authorization.
-3. Run the updated page tests on a fresh build, compare the rendered card with the source at matched dimensions, and record timing and screenshot evidence.
-4. Resolve any visual mismatches before marking the fidelity check passed.
+The feature is integrated and visually verified; overall acceptance remains
+blocked on capturing and resolving that intermittent first-entry behavior.
+Passing diagnostic reruns are not represented as a fix or as an initial 7/7 pass.
+No speculative shell, routing or theme change was made in this acceptance pass.
 
 ## Historical Reports
 
