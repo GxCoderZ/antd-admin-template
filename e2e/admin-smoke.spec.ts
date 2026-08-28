@@ -609,8 +609,7 @@ test("公告管理在窄屏下保持可导航和可编辑", async ({ page }) => 
 		.filter({ hasText: "新建公告" })
 		.locator(".ant-drawer-content-wrapper");
 	await expect(drawer).toBeVisible();
-	const drawerBounds = await drawer.boundingBox();
-	expect(drawerBounds?.width).toBeLessThanOrEqual(390);
+	await expect(drawer).toHaveCSS("width", "390px");
 });
 
 test("站内通知中心支持未读筛选和已读 Mutation", async ({ page }) => {
