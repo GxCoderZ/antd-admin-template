@@ -51,8 +51,14 @@ test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 		/ant-table-medium/,
 	);
 	await expect(
-		page.getByTestId("about-technology-item-Cloudflare Pages / GitHub"),
+		page.getByTestId("about-technology-item-GitLab CI/CD"),
 	).toBeVisible();
+	await expect(
+		page.getByTestId("about-technology-item-Cloudflare Pages"),
+	).toBeVisible();
+	await expect(
+		page.getByTestId("about-technology-platform").getByText(/GitHub/),
+	).toHaveCount(0);
 	await expect(
 		page.getByTestId("about-technology-item-Playwright"),
 	).toBeVisible();

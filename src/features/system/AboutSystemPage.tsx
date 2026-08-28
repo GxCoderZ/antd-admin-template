@@ -158,7 +158,7 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{ name: "GitLab CI/CD", status: "enabled", type: "ci" },
 			{
-				name: "Cloudflare Pages / GitHub",
+				name: "Cloudflare Pages",
 				status: "enabled",
 				type: "deployment",
 			},

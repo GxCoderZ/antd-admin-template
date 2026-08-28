@@ -62,6 +62,8 @@ pnpm run check:unused
 pnpm run build:prod
 ```
 
+代码托管与 CI 唯一入口是 [GitLab 项目](https://gitlab.gx1024.com/product-ui/admin-temp)，本地 `origin` 指向该仓库；Cloudflare Pages 只承载预览，不另设 GitHub 镜像或发布入口。
+
 GitLab CI 使用锁定的 `@playwright/test` 版本安装 Chromium，并串行执行 E2E。默认流水线只检查和构建。
 
 经当次明确授权后，可在推送 `main` 时显式触发现有 [Cloudflare Pages 预览站](https://antd-admin-template.pages.dev) 的更新：

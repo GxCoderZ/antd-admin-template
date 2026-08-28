@@ -63,9 +63,15 @@ describe("AboutSystemPage", () => {
 
 		renderAboutSystemPage();
 
-		expect(await screen.findByText("Cloudflare Pages")).toBeVisible();
+		const runtime = within(screen.getByTestId("about-runtime-service"));
+		const platform = within(screen.getByTestId("about-technology-platform"));
+		expect(await runtime.findByText("Cloudflare Pages")).toBeVisible();
 		expect(screen.getByText("93376d3f")).toBeVisible();
-		expect(screen.getByText("Cloudflare Pages / GitHub")).toBeVisible();
+		expect(platform.getByText("GitLab CI/CD")).toBeVisible();
+		expect(
+			platform.getByText("Cloudflare Pages", { exact: true }),
+		).toBeVisible();
+		expect(platform.queryByText(/GitHub/)).not.toBeInTheDocument();
 		expect(screen.getByText(/服务端状态与请求缓存/)).toBeVisible();
 		expect(screen.queryByText("Zustand")).not.toBeInTheDocument();
 		expect(screen.queryByText("Ant Design Plots")).not.toBeInTheDocument();
