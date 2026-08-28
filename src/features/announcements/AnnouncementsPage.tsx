@@ -196,7 +196,6 @@ export function AnnouncementsPage() {
 				sort: undefined,
 			}));
 			clearSelection();
-			querySubmission.submit();
 		},
 	});
 	const updateSelectedStatus = (status: PlatformAnnouncementStatus) => {

@@ -253,7 +253,6 @@ export function DepartmentsPage() {
 		filterForm.current?.setFieldsValue({ name: "", status: "all" });
 		setDraftFilters(defaultDepartmentFilterValues);
 		setFilters(defaultDepartmentFilterValues);
-		querySubmission.submit();
 	};
 	const columns = useMemo<ProColumns<PlatformDepartment>[]>(
 		() => [

@@ -306,7 +306,6 @@ export function PositionsPage() {
 			page: 1,
 			sort: undefined,
 		}));
-		querySubmission.submit();
 	};
 	const handleTableChange: NonNullable<
 		TableProps<PlatformPosition>["onChange"]

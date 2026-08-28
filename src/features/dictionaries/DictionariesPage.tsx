@@ -415,7 +415,6 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 				page: 1,
 				sort: undefined,
 			}));
-			submitTypeQuery();
 		},
 	});
 
@@ -434,7 +433,6 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 				page: 1,
 				sort: undefined,
 			}));
-			submitItemQuery();
 		},
 	});
 

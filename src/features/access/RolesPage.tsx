@@ -173,7 +173,6 @@ export function RolesPage() {
 			page: 1,
 			sort: undefined,
 		}));
-		querySubmission.submit();
 	};
 	const handleTableChange: TableProps<PlatformRole>["onChange"] = (
 		_pagination,

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { useQuerySubmission } from "./queryFilterLayout";
 
 describe("useQuerySubmission", () => {
-	it("creates a new query revision for every submit or reset action", () => {
+	it("creates a new query revision for every explicit query submission", () => {
 		const { result } = renderHook(() => useQuerySubmission());
 
 		expect(result.current.revision).toBe(0);

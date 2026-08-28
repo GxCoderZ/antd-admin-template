@@ -328,7 +328,6 @@ export function UsersPage() {
 			page: 1,
 			sort: undefined,
 		}));
-		userQuerySubmission.submit();
 	};
 
 	return (

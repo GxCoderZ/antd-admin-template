@@ -332,7 +332,6 @@ export function LoginLogPage() {
 		setPage(1);
 		setSort(undefined);
 		setOrder(undefined);
-		querySubmission.submit();
 	};
 
 	const handleTableChange: NonNullable<
