@@ -141,6 +141,12 @@ describe("AuditLogPage", () => {
 		if (!(dialog instanceof HTMLElement)) {
 			throw new Error("Audit log details drawer was not rendered.");
 		}
+		expect(within(dialog).getAllByRole("table")).toHaveLength(3);
+		for (const duplicate of ["目标", "设备"]) {
+			expect(
+				within(dialog).queryByText(duplicate, { exact: true }),
+			).not.toBeInTheDocument();
+		}
 		for (const label of [
 			"日志 ID",
 			"请求 ID",
@@ -148,7 +154,6 @@ describe("AuditLogPage", () => {
 			"操作人 ID",
 			"动作",
 			"功能模块",
-			"目标",
 			"目标类型",
 			"目标 ID",
 			"结果",
@@ -156,7 +161,6 @@ describe("AuditLogPage", () => {
 			"请求方法",
 			"请求路径",
 			"失败原因",
-			"设备",
 			"浏览器",
 			"操作系统",
 			"耗时",
@@ -173,7 +177,6 @@ describe("AuditLogPage", () => {
 			"user-operator",
 			"platform.user.update",
 			"用户管理",
-			"platform-user:user-target",
 			"platform-user",
 			"user-target",
 			"192.168.1.20",

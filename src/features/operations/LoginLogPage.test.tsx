@@ -133,14 +133,13 @@ describe("LoginLogPage", () => {
 		if (!(dialog instanceof HTMLElement)) {
 			throw new Error("Login log details drawer was not rendered.");
 		}
-		for (const section of [
-			"基本信息",
-			"账号与权限",
-			"时间与记录",
-			"请求信息",
-			"设备信息",
-			"技术信息",
-		]) {
+		expect(within(dialog).getAllByRole("table")).toHaveLength(3);
+		for (const duplicate of ["设备", "语言"]) {
+			expect(
+				within(dialog).queryByText(duplicate, { exact: true }),
+			).not.toBeInTheDocument();
+		}
+		for (const section of ["基本信息", "请求信息", "技术信息"]) {
 			expect(within(dialog).getByText(section, { exact: true })).toBeVisible();
 		}
 		for (const value of [

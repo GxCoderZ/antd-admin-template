@@ -254,7 +254,56 @@ type TableDetailEntry = {
 	path: string;
 	table: string;
 	tab?: string;
+	sections: number;
 } & ({ kind: "cell"; cell: number } | { kind: "menu" | "log" | "readonly" });
+
+test("公告详情保留长正文、换行与查询条件", async ({ page }, testInfo) => {
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await page.goto("/login");
+	await page.locator('input[autocomplete="username"]').fill("admin");
+	await page.locator('input[autocomplete="current-password"]').fill("admin");
+	await page.locator('button[type="submit"]').click();
+	await expect(page).toHaveURL(/\/dashboard$/);
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
+	await page.getByRole("button", { name: "新建公告", exact: true }).click();
+	const editor = page.getByRole("dialog");
+	const title = "详情长内容验收";
+	const content = `${"LongUnbrokenContent".repeat(70)}\n第二段保留完整内容和换行。`;
+	await editor.getByPlaceholder("请输入公告标题").fill(title);
+	await editor.getByPlaceholder("请输入公告内容").fill(content);
+	await editor.getByRole("button", { name: /保\s*存/ }).click();
+	await expect(editor).toBeHidden();
+	const query = page.getByPlaceholder("搜索公告标题");
+	await query.fill(title);
+	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await page.getByRole("button", { name: title, exact: true }).click();
+	const dialog = page.getByRole("dialog");
+	await finishDrawerTransition(page);
+
+	for (const width of [390, 768, 1440]) {
+		await page.setViewportSize({ width, height: 900 });
+		await finishTransitions(page, dialog);
+		await expectFitsViewport(page, dialog);
+		const text = dialog.getByText(content, { exact: true });
+		await expect(text).toHaveCSS("white-space", "pre-wrap");
+		expect(await text.textContent()).toBe(content);
+		expect(
+			await dialog
+				.getByTestId("record-details")
+				.evaluate((node) => node.scrollWidth <= node.clientWidth),
+		).toBe(true);
+		await page.screenshot({
+			path: testInfo.outputPath(`long-detail-${width}.png`),
+		});
+	}
+	await page.keyboard.press("Escape");
+	await expect(dialog).toBeHidden();
+	await expect(query).toHaveValue(title);
+	await expect(
+		page.getByRole("button", { name: title, exact: true }),
+	).toBeVisible();
+});
 
 const detailTables: TableDetailEntry[] = [
 	{
@@ -262,23 +311,32 @@ const detailTables: TableDetailEntry[] = [
 		table: "admin-users-table-card",
 		kind: "cell",
 		cell: 1,
+		sections: 3,
 	},
-	{ path: "/access/roles", table: "admin-roles-table-card", kind: "menu" },
+	{
+		path: "/access/roles",
+		table: "admin-roles-table-card",
+		kind: "menu",
+		sections: 2,
+	},
 	{
 		path: "/organization/departments",
 		table: "admin-departments-table-card",
+		sections: 2,
 		kind: "cell",
 		cell: 0,
 	},
 	{
 		path: "/organization/positions",
 		table: "admin-positions-table-card",
+		sections: 2,
 		kind: "cell",
 		cell: 0,
 	},
 	{
 		path: "/system/dictionaries",
 		table: "admin-dictionaries-type-table",
+		sections: 1,
 		kind: "cell",
 		cell: 0,
 		tab: "字典类型",
@@ -286,6 +344,7 @@ const detailTables: TableDetailEntry[] = [
 	{
 		path: "/system/dictionaries",
 		table: "admin-dictionaries-item-table",
+		sections: 2,
 		kind: "cell",
 		cell: 0,
 		tab: "字典项",
@@ -294,22 +353,26 @@ const detailTables: TableDetailEntry[] = [
 		path: "/system/announcements",
 		table: "admin-announcements-table-card",
 		kind: "cell",
+		sections: 1,
 		cell: 1,
 	},
 	{
 		path: "/operations/audit-logs",
 		table: "audit-log-table-card",
 		kind: "log",
+		sections: 3,
 	},
 	{
 		path: "/operations/login-logs",
 		table: "login-log-table-card",
 		kind: "log",
+		sections: 3,
 	},
 	{
 		path: "/system/about",
 		table: "about-production-dependencies",
 		kind: "readonly",
+		sections: 0,
 	},
 ];
 
@@ -428,9 +491,35 @@ for (const entry of detailTables) {
 				await expectFitsViewport(page, dialog);
 				if (width === 390)
 					expect((await dialog.boundingBox())?.width).toBe(390);
-				await expect(
-					dialog.getByText("基本信息", { exact: true }),
-				).toBeVisible();
+				const details = dialog.getByTestId("record-details");
+				await expect(details.getByRole("table")).toHaveCount(entry.sections);
+				if (entry.sections > 1) {
+					await expect(
+						details.getByText("基本信息", { exact: true }),
+					).toBeVisible();
+				} else {
+					await expect(
+						details.getByText("基本信息", { exact: true }),
+					).toHaveCount(0);
+				}
+				const labelWidths = await details
+					.locator(".ant-descriptions-item-label")
+					.evaluateAll((labels) =>
+						labels.map((label) => label.getBoundingClientRect().width),
+					);
+				expect(
+					Math.max(...labelWidths) - Math.min(...labelWidths),
+				).toBeLessThanOrEqual(1);
+				const overflowingFields = await details
+					.locator(
+						".ant-descriptions-item-label, .ant-descriptions-item-content",
+					)
+					.evaluateAll((fields) =>
+						fields
+							.filter((field) => field.scrollWidth > field.clientWidth + 1)
+							.map((field) => field.textContent),
+					);
+				expect(overflowingFields).toEqual([]);
 				expect(
 					await dialog
 						.locator(".ant-drawer-body")

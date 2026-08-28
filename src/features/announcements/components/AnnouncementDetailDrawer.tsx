@@ -1,9 +1,12 @@
-import { Descriptions, Drawer, Flex, Tag, Typography } from "antd";
-import type { DescriptionsProps } from "antd";
+import { Drawer, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
+import {
+	RecordDetails,
+	type RecordDetailSection,
+} from "../../../app/RecordDetails";
 import type { PlatformAnnouncement } from "#src/api/announcements";
 
 const { Paragraph } = Typography;
@@ -19,11 +22,10 @@ export function AnnouncementDetailDrawer({
 }: AnnouncementDetailDrawerProps) {
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
-	const sections: (DescriptionsProps & { key: string })[] = announcement
+	const sections: RecordDetailSection[] = announcement
 		? [
 				{
-					key: "basic",
-					title: t("adminShell.recordDetails.sections.basic"),
+					key: "details",
 					items: [
 						{
 							children: announcement.title,
@@ -43,12 +45,6 @@ export function AnnouncementDetailDrawer({
 							),
 							label: t("adminShell.announcements.fields.status"),
 						},
-					],
-				},
-				{
-					key: "content",
-					title: t("adminShell.recordDetails.sections.content"),
-					items: [
 						{
 							children: (
 								<Paragraph style={{ marginBottom: 0, whiteSpace: "pre-wrap" }}>
@@ -57,12 +53,6 @@ export function AnnouncementDetailDrawer({
 							),
 							label: t("adminShell.announcements.fields.content"),
 						},
-					],
-				},
-				{
-					key: "activity",
-					title: t("adminShell.recordDetails.sections.activity"),
-					items: [
 						{
 							children: formatDateTime(
 								announcement.createdAt,
@@ -94,18 +84,7 @@ export function AnnouncementDetailDrawer({
 			open={announcement !== null}
 			title={t("adminShell.announcements.detailTitle")}
 		>
-			<Flex vertical gap="large">
-				{sections.map(({ key, ...section }) => (
-					<Descriptions
-						key={key}
-						{...section}
-						bordered
-						column={1}
-						size="small"
-						styles={{ content: { overflowWrap: "anywhere" } }}
-					/>
-				))}
-			</Flex>
+			<RecordDetails sections={sections} />
 		</Drawer>
 	);
 }

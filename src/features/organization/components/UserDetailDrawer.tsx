@@ -1,19 +1,12 @@
-import {
-	Alert,
-	Badge,
-	Descriptions,
-	Drawer,
-	Flex,
-	Skeleton,
-	Space,
-	Tag,
-	Typography,
-} from "antd";
-import type { DescriptionsProps } from "antd";
+import { Alert, Badge, Drawer, Skeleton, Space, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
+import {
+	RecordDetails,
+	type RecordDetailSection,
+} from "../../../app/RecordDetails";
 import type { PlatformUser } from "#src/api/users";
 import { getProblemFallback } from "../userProblems";
 
@@ -37,8 +30,7 @@ export function UserDetailDrawer({
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
 	const missingValue = <Text type="secondary">-</Text>;
-
-	const sections: (DescriptionsProps & { key: string })[] = user
+	const sections: RecordDetailSection[] = user
 		? [
 				{
 					key: "basic",
@@ -60,19 +52,30 @@ export function UserDetailDrawer({
 							children: user.phone || missingValue,
 							label: t("adminShell.users.columns.phone"),
 						},
+						{
+							children: (
+								<Badge
+									status={
+										user.status === "active"
+											? "success"
+											: user.status === "locked"
+												? "error"
+												: "default"
+									}
+									text={t(`adminShell.users.statuses.${user.status}`)}
+								/>
+							),
+							label: t("adminShell.users.columns.status"),
+						},
 					],
 				},
 				{
-					key: "organization",
-					title: t("adminShell.recordDetails.sections.organization"),
+					key: "access",
+					title: t("adminShell.recordDetails.sections.access"),
 					items: [
 						{
 							children: user.departmentName ?? "-",
 							label: t("adminShell.users.columns.department"),
-						},
-						{
-							children: user.departmentId ?? missingValue,
-							label: t("adminShell.recordDetails.departmentId"),
 						},
 						{
 							children: user.jobTitle || missingValue,
@@ -90,27 +93,6 @@ export function UserDetailDrawer({
 									missingValue
 								),
 							label: t("adminShell.users.columns.roles"),
-						},
-					],
-				},
-				{
-					key: "access",
-					title: t("adminShell.recordDetails.sections.access"),
-					items: [
-						{
-							children: (
-								<Badge
-									status={
-										user.status === "active"
-											? "success"
-											: user.status === "locked"
-												? "error"
-												: "default"
-									}
-									text={t(`adminShell.users.statuses.${user.status}`)}
-								/>
-							),
-							label: t("adminShell.users.columns.status"),
 						},
 						{
 							children: (
@@ -169,6 +151,10 @@ export function UserDetailDrawer({
 							label: t("adminShell.users.columns.id"),
 						},
 						{
+							children: user.departmentId ?? missingValue,
+							label: t("adminShell.recordDetails.departmentId"),
+						},
+						{
 							children: user.version ?? missingValue,
 							label: t("adminShell.recordDetails.version"),
 						},
@@ -200,18 +186,7 @@ export function UserDetailDrawer({
 			) : loading ? (
 				<Skeleton active paragraph={{ rows: 8 }} />
 			) : (
-				<Flex vertical gap="large">
-					{sections.map(({ key, ...section }) => (
-						<Descriptions
-							key={key}
-							{...section}
-							bordered
-							column={1}
-							size="small"
-							styles={{ content: { overflowWrap: "anywhere" } }}
-						/>
-					))}
-				</Flex>
+				<RecordDetails sections={sections} />
 			)}
 		</Drawer>
 	);

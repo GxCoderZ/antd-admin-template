@@ -381,10 +381,9 @@ describe("DictionariesPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("字典类型详情")).toBeInTheDocument();
+		expect(within(dialog).getAllByRole("table")).toHaveLength(1);
+		expect(within(dialog).queryByText("基本信息")).not.toBeInTheDocument();
 		for (const label of [
-			"基本信息",
-			"业务内容",
-			"时间与记录",
 			"名称",
 			"编码",
 			"状态",
@@ -428,9 +427,9 @@ describe("DictionariesPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("字典项详情")).toBeInTheDocument();
+		expect(within(dialog).getAllByRole("table")).toHaveLength(2);
 		for (const label of [
 			"基本信息",
-			"业务内容",
 			"时间与记录",
 			"标签",
 			"值",

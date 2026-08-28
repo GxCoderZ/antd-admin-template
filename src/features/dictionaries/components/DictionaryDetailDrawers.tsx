@@ -1,5 +1,4 @@
-import { Descriptions, Drawer, Flex, Tag, Typography } from "antd";
-import type { DescriptionsProps } from "antd";
+import { Drawer, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import type {
 	PlatformDictionaryItem,
@@ -7,6 +6,10 @@ import type {
 } from "#src/api/dictionaries";
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
+import {
+	RecordDetails,
+	type RecordDetailSection,
+} from "../../../app/RecordDetails";
 import { getStatusColor } from "./DictionariesPageModel";
 import { DictionaryColorTag } from "./DictionariesPageParts";
 
@@ -21,11 +24,10 @@ export function DictionaryTypeDetailDrawer({
 }: DictionaryTypeDetailDrawerProps) {
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
-	const sections: (DescriptionsProps & { key: string })[] = dictionaryType
+	const sections: RecordDetailSection[] = dictionaryType
 		? [
 				{
-					key: "basic",
-					title: t("adminShell.recordDetails.sections.basic"),
+					key: "details",
 					items: [
 						{
 							children: dictionaryType.name,
@@ -51,24 +53,12 @@ export function DictionaryTypeDetailDrawer({
 							),
 							label: t("adminShell.dictionaries.fields.status"),
 						},
-					],
-				},
-				{
-					key: "content",
-					title: t("adminShell.recordDetails.sections.content"),
-					items: [
 						{
 							children: dictionaryType.description || (
 								<Typography.Text type="secondary">-</Typography.Text>
 							),
 							label: t("adminShell.dictionaries.fields.description"),
 						},
-					],
-				},
-				{
-					key: "activity",
-					title: t("adminShell.recordDetails.sections.activity"),
-					items: [
 						{
 							children: formatDateTime(
 								dictionaryType.createdAt,
@@ -100,18 +90,7 @@ export function DictionaryTypeDetailDrawer({
 			open={dictionaryType !== null}
 			title={t("adminShell.dictionaries.typeDetailTitle")}
 		>
-			<Flex vertical gap="large">
-				{sections.map(({ key, ...section }) => (
-					<Descriptions
-						key={key}
-						{...section}
-						bordered
-						column={1}
-						size="small"
-						styles={{ content: { overflowWrap: "anywhere" } }}
-					/>
-				))}
-			</Flex>
+			<RecordDetails sections={sections} />
 		</Drawer>
 	);
 }
@@ -127,7 +106,7 @@ export function DictionaryItemDetailDrawer({
 }: DictionaryItemDetailDrawerProps) {
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
-	const sections: (DescriptionsProps & { key: string })[] = dictionaryItem
+	const sections: RecordDetailSection[] = dictionaryItem
 		? [
 				{
 					key: "basic",
@@ -165,12 +144,6 @@ export function DictionaryItemDetailDrawer({
 							),
 							label: t("adminShell.dictionaries.fields.status"),
 						},
-					],
-				},
-				{
-					key: "content",
-					title: t("adminShell.recordDetails.sections.content"),
-					items: [
 						{
 							children: dictionaryItem.description || (
 								<Typography.Text type="secondary">-</Typography.Text>
@@ -180,19 +153,13 @@ export function DictionaryItemDetailDrawer({
 					],
 				},
 				{
-					key: "organization",
-					title: t("adminShell.recordDetails.sections.organization"),
+					key: "activity",
+					title: t("adminShell.recordDetails.sections.activity"),
 					items: [
 						{
 							children: dictionaryItem.typeId,
 							label: t("adminShell.dictionaries.typeId"),
 						},
-					],
-				},
-				{
-					key: "activity",
-					title: t("adminShell.recordDetails.sections.activity"),
-					items: [
 						{
 							children: formatDateTime(
 								dictionaryItem.createdAt,
@@ -224,18 +191,7 @@ export function DictionaryItemDetailDrawer({
 			open={dictionaryItem !== null}
 			title={t("adminShell.dictionaries.itemDetailTitle")}
 		>
-			<Flex vertical gap="large">
-				{sections.map(({ key, ...section }) => (
-					<Descriptions
-						key={key}
-						{...section}
-						bordered
-						column={1}
-						size="small"
-						styles={{ content: { overflowWrap: "anywhere" } }}
-					/>
-				))}
-			</Flex>
+			<RecordDetails sections={sections} />
 		</Drawer>
 	);
 }

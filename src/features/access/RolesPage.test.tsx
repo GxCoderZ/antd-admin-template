@@ -190,9 +190,9 @@ describe("RolesPage", () => {
 		).toBeInTheDocument();
 		expect(within(dialog).getByText("operator")).toBeInTheDocument();
 		expect(within(dialog).getByText("查看公告")).toBeInTheDocument();
+		expect(within(dialog).getAllByRole("table")).toHaveLength(2);
 		for (const label of [
 			"基本信息",
-			"账号与权限",
 			"时间与记录",
 			"角色 ID",
 			"角色名称",

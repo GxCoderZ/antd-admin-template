@@ -1,10 +1,13 @@
-import { Descriptions, Drawer, Flex, Space, Tag, Typography } from "antd";
-import type { DescriptionsProps } from "antd";
+import { Drawer, Space, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 import type { PlatformDepartment } from "#src/api/departments";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import {
+	RecordDetails,
+	type RecordDetailSection,
+} from "../../app/RecordDetails";
 
 interface DepartmentDetailDrawerProps {
 	department: PlatformDepartment | undefined;
@@ -17,7 +20,7 @@ export function DepartmentDetailDrawer({
 }: DepartmentDetailDrawerProps) {
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
-	const sections: (DescriptionsProps & { key: string })[] = department
+	const sections: RecordDetailSection[] = department
 		? [
 				{
 					key: "basic",
@@ -49,12 +52,6 @@ export function DepartmentDetailDrawer({
 								</Tag>
 							),
 						},
-					],
-				},
-				{
-					key: "organization",
-					title: t("adminShell.recordDetails.sections.organization"),
-					items: [
 						{
 							label: t("adminShell.departments.parentId"),
 							children: department.parentId ?? "-",
@@ -104,18 +101,7 @@ export function DepartmentDetailDrawer({
 			open={Boolean(department)}
 			title={t("adminShell.departments.detailTitle")}
 		>
-			<Flex vertical gap="large">
-				{sections.map(({ key, ...section }) => (
-					<Descriptions
-						key={key}
-						{...section}
-						bordered
-						column={1}
-						size="small"
-						styles={{ content: { overflowWrap: "anywhere" } }}
-					/>
-				))}
-			</Flex>
+			<RecordDetails sections={sections} />
 		</Drawer>
 	);
 }

@@ -103,9 +103,9 @@ describe("DepartmentsPage", () => {
 		const user = renderDepartmentsPage();
 		await user.click(await screen.findByRole("button", { name: "运营中心" }));
 		const dialog = await screen.findByRole("dialog");
+		expect(within(dialog).getAllByRole("table")).toHaveLength(2);
 		for (const label of [
 			"基本信息",
-			"关联信息",
 			"时间与记录",
 			"记录 ID",
 			"部门名称",

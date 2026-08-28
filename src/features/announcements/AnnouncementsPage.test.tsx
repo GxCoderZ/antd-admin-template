@@ -222,10 +222,9 @@ describe("AnnouncementsPage", () => {
 
 		const dialog = await screen.findByRole("dialog");
 		expect(within(dialog).getByText("公告详情")).toBeInTheDocument();
+		expect(within(dialog).getAllByRole("table")).toHaveLength(1);
+		expect(within(dialog).queryByText("基本信息")).not.toBeInTheDocument();
 		for (const label of [
-			"基本信息",
-			"业务内容",
-			"时间与记录",
 			"公告标题",
 			"发布状态",
 			"公告内容",

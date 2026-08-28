@@ -1,10 +1,13 @@
-import { Descriptions, Drawer, Flex, Tag, Typography } from "antd";
-import type { DescriptionsProps } from "antd";
+import { Drawer, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 import type { PlatformPosition } from "#src/api/positions";
 import { formatDateTime } from "../../app/formatting";
 import { useLocalePreferences } from "../../app/localePreferences";
+import {
+	RecordDetails,
+	type RecordDetailSection,
+} from "../../app/RecordDetails";
 
 interface PositionDetailDrawerProps {
 	position: PlatformPosition | undefined;
@@ -17,7 +20,7 @@ export function PositionDetailDrawer({
 }: PositionDetailDrawerProps) {
 	const { t } = useTranslation();
 	const formatPreferences = useLocalePreferences();
-	const sections: (DescriptionsProps & { key: string })[] = position
+	const sections: RecordDetailSection[] = position
 		? [
 				{
 					key: "basic",
@@ -45,19 +48,9 @@ export function PositionDetailDrawer({
 								</Tag>
 							),
 						},
-					],
-				},
-				{
-					key: "organization",
-					title: t("adminShell.recordDetails.sections.organization"),
-					items: [
 						{
 							label: t("adminShell.positions.fields.department"),
 							children: position.departmentName,
-						},
-						{
-							label: t("adminShell.positions.departmentId"),
-							children: position.departmentId,
 						},
 					],
 				},
@@ -65,6 +58,10 @@ export function PositionDetailDrawer({
 					key: "activity",
 					title: t("adminShell.recordDetails.sections.activity"),
 					items: [
+						{
+							label: t("adminShell.positions.departmentId"),
+							children: position.departmentId,
+						},
 						{
 							label: t("adminShell.recordDetails.createdAt"),
 							children: formatDateTime(position.createdAt, formatPreferences),
@@ -89,18 +86,7 @@ export function PositionDetailDrawer({
 			open={Boolean(position)}
 			title={t("adminShell.positions.detailTitle")}
 		>
-			<Flex vertical gap="large">
-				{sections.map(({ key, ...section }) => (
-					<Descriptions
-						key={key}
-						{...section}
-						bordered
-						column={1}
-						size="small"
-						styles={{ content: { overflowWrap: "anywhere" } }}
-					/>
-				))}
-			</Flex>
+			<RecordDetails sections={sections} />
 		</Drawer>
 	);
 }

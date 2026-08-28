@@ -1,9 +1,12 @@
-import { Descriptions, Drawer, Flex, Space, Tag, Typography } from "antd";
-import type { DescriptionsProps } from "antd";
+import { Drawer, Space, Tag, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { formatDateTime } from "../../../app/formatting";
 import { useLocalePreferences } from "../../../app/localePreferences";
+import {
+	RecordDetails,
+	type RecordDetailSection,
+} from "../../../app/RecordDetails";
 import type { PlatformRole } from "#src/api/roles";
 import { permissionGroups } from "../rolePermissions";
 
@@ -25,7 +28,7 @@ export function RoleDetailDrawer({ onClose, role }: RoleDetailDrawerProps) {
 			]),
 		),
 	);
-	const sections: (DescriptionsProps & { key: string })[] = role
+	const sections: RecordDetailSection[] = role
 		? [
 				{
 					key: "basic",
@@ -53,12 +56,6 @@ export function RoleDetailDrawer({ onClose, role }: RoleDetailDrawerProps) {
 							children: role.memberCount ?? 0,
 							label: t("adminShell.roles.columns.memberCount"),
 						},
-					],
-				},
-				{
-					key: "access",
-					title: t("adminShell.recordDetails.sections.access"),
-					items: [
 						{
 							children:
 								role.permissions.length > 0 ? (
@@ -120,18 +117,7 @@ export function RoleDetailDrawer({ onClose, role }: RoleDetailDrawerProps) {
 				name: role?.displayName ?? "",
 			})}
 		>
-			<Flex vertical gap="large">
-				{sections.map(({ key, ...section }) => (
-					<Descriptions
-						key={key}
-						{...section}
-						bordered
-						column={1}
-						size="small"
-						styles={{ content: { overflowWrap: "anywhere" } }}
-					/>
-				))}
-			</Flex>
+			<RecordDetails sections={sections} />
 		</Drawer>
 	);
 }

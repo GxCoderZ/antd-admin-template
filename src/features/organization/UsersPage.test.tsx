@@ -293,9 +293,9 @@ describe("UsersPage", () => {
 			expect(within(dialog).getByText("admin@example.com")).toBeInTheDocument();
 		});
 		expect(within(dialog).getByText("13800138000")).toBeInTheDocument();
+		expect(within(dialog).getAllByRole("table")).toHaveLength(3);
 		for (const label of [
 			"基本信息",
-			"关联信息",
 			"账号与权限",
 			"时间与记录",
 			"用户 ID",
