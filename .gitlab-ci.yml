@@ -1,10 +1,11 @@
+variables:
+  PLAYWRIGHT_BROWSERS_PATH: $CI_PROJECT_DIR/.cache/ms-playwright
+
 default:
   image: node:24.17.0-bookworm
   interruptible: true
   tags:
     - test
-  variables:
-    PLAYWRIGHT_BROWSERS_PATH: $CI_PROJECT_DIR/.cache/ms-playwright
   cache:
     key:
       files:
