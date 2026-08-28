@@ -117,6 +117,46 @@ async function selectVisibleAnnouncements(
 }
 
 describe("AnnouncementsPage", () => {
+	it("shows a query error and recovers only when the user retries", async () => {
+		mocks.listPlatformAnnouncements.mockRejectedValueOnce(
+			new Error("Load rejected"),
+		);
+		const user = renderAnnouncementsPage();
+		const error = await screen.findByRole("alert");
+		expect(screen.queryByText(announcement.title)).not.toBeInTheDocument();
+		expect(mocks.listPlatformAnnouncements).toHaveBeenCalledTimes(1);
+		await user.click(within(error).getByRole("button"));
+		await screen.findByText(announcement.title);
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+		expect(mocks.listPlatformAnnouncements).toHaveBeenCalledTimes(2);
+	});
+
+	it("shows empty search results and restores records on reset", async () => {
+		const user = renderAnnouncementsPage();
+		await screen.findByText(announcement.title);
+		mocks.listPlatformAnnouncements.mockResolvedValueOnce({
+			items: [],
+			page: 1,
+			pageSize: 20,
+			total: 0,
+		});
+		const search = screen.getByPlaceholderText("搜索公告标题");
+		await user.type(search, "No matching announcement");
+		await user.click(screen.getByRole("button", { name: /查\s*询/ }));
+		await waitFor(() =>
+			expect(screen.queryByText(announcement.title)).not.toBeInTheDocument(),
+		);
+		expect(screen.getByText("当前条件下暂无公告。")).toBeVisible();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: /重\s*置/ }));
+		await screen.findByText(announcement.title);
+		expect(screen.getByPlaceholderText("搜索公告标题")).toHaveValue("");
+		expect(mocks.listPlatformAnnouncements).toHaveBeenLastCalledWith(
+			expect.not.objectContaining({ q: "No matching announcement" }),
+			expect.any(AbortSignal),
+		);
+	});
+
 	it("keeps a failed save editable and retries the same draft", async () => {
 		mocks.createPlatformAnnouncement.mockRejectedValueOnce(
 			new Error("Save rejected"),
@@ -257,9 +297,7 @@ describe("AnnouncementsPage", () => {
 		const user = renderAnnouncementsPage();
 
 		await screen.findByText("系统维护通知");
-		const deleteButton = screen
-			.getAllByRole("button", { name: "删除" })
-			.at(0);
+		const deleteButton = screen.getAllByRole("button", { name: "删除" }).at(0);
 		if (!deleteButton) {
 			throw new Error("Missing delete button");
 		}
@@ -298,7 +336,9 @@ describe("AnnouncementsPage", () => {
 		const user = renderAnnouncementsPage();
 
 		await selectVisibleAnnouncements(user);
-		expect(screen.getByTestId("admin-announcements-batch-toolbar")).toBeVisible();
+		expect(
+			screen.getByTestId("admin-announcements-batch-toolbar"),
+		).toBeVisible();
 		expect(screen.getByText("已选择 2 项")).toBeVisible();
 		expect(screen.getByText("取消选择")).toBeVisible();
 		expect(screen.getAllByText(/已选择\s*2\s*项/)).toHaveLength(1);

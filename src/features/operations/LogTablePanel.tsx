@@ -129,7 +129,13 @@ export function LogDetailsDrawer({
 	title: string;
 }) {
 	return (
-		<Drawer destroyOnHidden onClose={onClose} open={open} title={title}>
+		<Drawer
+			destroyOnHidden
+			onClose={onClose}
+			open={open}
+			size="min(560px, 100vw)"
+			title={title}
+		>
 			{items ? (
 				<Descriptions bordered column={1} items={items} size="small" />
 			) : null}
