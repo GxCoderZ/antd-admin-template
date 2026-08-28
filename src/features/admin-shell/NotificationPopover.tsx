@@ -286,19 +286,20 @@ export function NotificationPopover({
 				styles={{ container: { padding: 0, overflow: "hidden" } }}
 				trigger="click"
 			>
-				<Badge
-					color={token.colorPrimary}
-					dot={hasUnread}
-					offset={[-2, 4]}
-					style={{ display: "inline-flex" }}
-				>
-					<Button
-						aria-label={t("adminShell.notificationCenter.button")}
-						icon={<BellOutlined aria-hidden />}
-						style={triggerStyle}
-						type="text"
-					/>
-				</Badge>
+				<Button
+					aria-label={t("adminShell.notificationCenter.button")}
+					icon={
+						<Badge
+							color={token.colorPrimary}
+							dot={hasUnread}
+							styles={{ root: { display: "inline-flex", fontSize: "inherit" } }}
+						>
+							<BellOutlined aria-hidden />
+						</Badge>
+					}
+					style={triggerStyle}
+					type="text"
+				/>
 			</Popover>
 		</>
 	);

@@ -23,6 +23,80 @@ async function expectFitsViewport(page: Page, surface: Locator) {
 	expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
 }
 
+async function expectNotificationTriggerAlignment(page: Page, unread = true) {
+	const header = page.getByRole("banner");
+	const actions = await header.getByRole("button").evaluateAll((buttons) =>
+		["搜索", "语言", "通知"].map((name) => {
+			const button = buttons.find(
+				(button) => button.getAttribute("aria-label") === name,
+			);
+			const icon = button?.querySelector("svg");
+			if (!button || !icon) throw new Error(`Missing header action: ${name}`);
+			const bounds = button.getBoundingClientRect();
+			const glyph = icon.getBoundingClientRect();
+			return {
+				name,
+				button: {
+					y: bounds.y,
+					top: bounds.top,
+					right: bounds.right,
+					width: bounds.width,
+					height: bounds.height,
+				},
+				icon: {
+					y: glyph.y,
+					top: glyph.top,
+					right: glyph.right,
+					width: glyph.width,
+					height: glyph.height,
+				},
+				unobstructed: button.contains(
+					document.elementFromPoint(
+						bounds.x + bounds.width / 2,
+						bounds.y + bounds.height / 2,
+					),
+				),
+			};
+		}),
+	);
+	const [search, , notification] = actions;
+	if (!search || !notification)
+		throw new Error("Missing notification geometry");
+	for (const action of actions) {
+		expect(action.button.width).toBe(36);
+		expect(action.button.height).toBe(36);
+		expect(action.button.y, JSON.stringify(actions)).toBeCloseTo(
+			search.button.y,
+		);
+		expect(action.icon.width).toBe(search.icon.width);
+		expect(action.icon.y).toBeCloseTo(search.icon.y);
+		expect(action.unobstructed).toBe(true);
+		expect(
+			Math.abs(
+				action.icon.y +
+					action.icon.height / 2 -
+					(action.button.y + action.button.height / 2),
+			),
+		).toBeLessThanOrEqual(1);
+	}
+	const dot = header.locator(".ant-badge-dot");
+	if (!unread) {
+		await expect(dot).toBeHidden();
+		return;
+	}
+	await expect(dot).toBeVisible();
+	const indicator = await dot.boundingBox();
+	if (!indicator) throw new Error("Missing unread indicator geometry");
+	expect(
+		Math.abs(indicator.x + indicator.width / 2 - notification.icon.right),
+	).toBeLessThanOrEqual(1);
+	expect(
+		Math.abs(indicator.y + indicator.height / 2 - notification.icon.top),
+	).toBeLessThanOrEqual(1);
+	expect(indicator.y).toBeGreaterThan(notification.button.top);
+	expect(indicator.x + indicator.width).toBeLessThan(notification.button.right);
+}
+
 async function finishVisualTransitions(page: Page) {
 	await page.evaluate(async () => {
 		// rc-motion activates enter animations across two animation frames.
@@ -105,7 +179,8 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 	const header = page.getByRole("banner");
 	const popover = page.getByTestId("notification-popover");
 	let started = performance.now();
-	await header.getByRole("button", { name: "通知", exact: true }).click();
+	await header.getByRole("button", { name: "通知", exact: true }).focus();
+	await page.keyboard.press("Enter");
 	await popover.getByRole("button", { name: "查看全部消息" }).click();
 	await expect(
 		page.getByRole("heading", { name: "通知中心", exact: true }),
@@ -142,6 +217,7 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 			path: testInfo.outputPath(`notifications-${width}.png`),
 			animations: "disabled",
 		});
+		await expectNotificationTriggerAlignment(page);
 		const firstRow = page.getByTestId(
 			"notification-center-item-notification-1",
 		);
@@ -248,6 +324,7 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 		path: testInfo.outputPath("notifications-dark.png"),
 		animations: "disabled",
 	});
+	await expectNotificationTriggerAlignment(page);
 	await header.getByRole("button", { name: "通知", exact: true }).click();
 	await finishVisualTransitions(page);
 	await page.screenshot({
@@ -267,6 +344,7 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 	await expect(
 		popover.getByRole("button", { name: /^清\s*空$/ }),
 	).toBeDisabled();
+	await expectNotificationTriggerAlignment(page, false);
 
 	const percentile = (values: number[], ratio: number) =>
 		[...values].sort((a, b) => a - b)[Math.ceil(values.length * ratio) - 1];
