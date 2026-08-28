@@ -181,6 +181,15 @@ async function renderTable(entry: (typeof tables)[number]) {
 	const requests = () =>
 		mocks.request.mock.calls.filter(([path]) => path === entry.path);
 	expect(requests()).toHaveLength(1);
+	const submitQuery = async () => {
+		const button = form.getByText(/查\s*询/).closest("button")!;
+		// Query's cache can settle before React clears the native submit button's loading state.
+		await waitFor(() => {
+			expect(button).toBeEnabled();
+			expect(button).not.toHaveClass("ant-btn-loading");
+		});
+		await user.click(button);
+	};
 	const changeDraft = async () => {
 		if (entry.field === "result") {
 			await user.click(form.getAllByRole("combobox")[0]!);
@@ -199,14 +208,22 @@ async function renderTable(entry: (typeof tables)[number]) {
 			});
 		}
 	};
-	return { ...view, form, queryClient, requests, user, changeDraft };
+	return {
+		...view,
+		form,
+		queryClient,
+		requests,
+		user,
+		changeDraft,
+		submitQuery,
+	};
 }
 
 describe.each(tables)("$name reset", (entry) => {
 	it("requests once on the first reset and once after each new submission", async () => {
-		const { form, queryClient, requests } = await renderTable(entry);
+		const { form, queryClient, requests, submitQuery } =
+			await renderTable(entry);
 		const reset = form.getByText(/重\s*置/);
-		const query = form.getByText(/查\s*询/);
 		fireEvent.click(reset);
 		await waitFor(() => expect(requests()).toHaveLength(2));
 		await waitFor(() => expect(queryClient.isFetching()).toBe(0));
@@ -215,7 +232,7 @@ describe.each(tables)("$name reset", (entry) => {
 			fireEvent.click(reset);
 			await waitFor(() => expect(queryClient.isFetching()).toBe(0));
 			expect(requests()).toHaveLength(requestCount);
-			fireEvent.click(query);
+			await submitQuery();
 			await waitFor(() => expect(requests()).toHaveLength(requestCount + 1));
 			await waitFor(() => expect(queryClient.isFetching()).toBe(0));
 			fireEvent.click(reset);
@@ -242,17 +259,16 @@ describe.each(tables)("$name reset", (entry) => {
 	});
 
 	it("resets applied filters once and keeps explicit query and refresh available", async () => {
-		const { form, queryClient, requests, changeDraft } =
+		const { form, queryClient, requests, changeDraft, submitQuery } =
 			await renderTable(entry);
 		await changeDraft();
-		const query = form.getByText(/查\s*询/);
-		fireEvent.click(query);
+		await submitQuery();
 		await waitFor(() => expect(requests()).toHaveLength(2));
 		expect(requests().at(-1)?.[1]?.query).toMatchObject({
 			[entry.field]: entry.field === "result" ? "success" : "test",
 		});
 		await waitFor(() => expect(queryClient.isFetching()).toBe(0));
-		fireEvent.click(query);
+		await submitQuery();
 		await waitFor(() => expect(requests()).toHaveLength(3));
 		await waitFor(() => expect(queryClient.isFetching()).toBe(0));
 		const reset = form.getByText(/重\s*置/);
