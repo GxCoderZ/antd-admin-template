@@ -22,7 +22,6 @@ import {
 	writeMenuTypePreference,
 	writeNavigationModePreference,
 } from "../../app/preferenceStorage";
-import type { ThemeChangeEvent } from "../../app/themeMode";
 import { PlatformLogo } from "../../app/PlatformLogo";
 import { usePlatformBrand } from "../../app/usePlatformBrand";
 import { resolveInitialLanguage } from "../../i18n";
@@ -41,7 +40,7 @@ interface AdminShellPageProps {
 	isDarkMode: boolean;
 	onChangeColorBlindMode: (enabled: boolean) => void;
 	onChangeThemeColor: (nextThemeColor: ThemeColor) => void;
-	onChangeThemeMode: (nextMode: ThemeMode, event?: ThemeChangeEvent) => void;
+	onChangeThemeMode: (nextMode: ThemeMode) => void;
 	onLogout: () => Promise<void>;
 	themeColor: ThemeColor;
 	themeMode: ThemeMode;

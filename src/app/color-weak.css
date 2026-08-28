@@ -1,0 +1,4 @@
+/* Ant Design Pro's official color-weak filter transform. */
+.colorWeak {
+	filter: invert(80%);
+}

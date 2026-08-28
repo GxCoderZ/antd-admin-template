@@ -36,7 +36,7 @@ import type {
 	RefObject,
 	SetStateAction,
 } from "react";
-import { cloneElement, useState } from "react";
+import { cloneElement, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -188,6 +188,11 @@ export function AdminTabsBar({
 			: [...openTabsState.tabKeys, currentPage.key];
 		setOpenTabsState({ routeKey: currentPage.key, tabKeys: openTabKeys });
 	}
+	// A new items reference makes useSortable replace native tab transitions.
+	const sortableTabKeys = useMemo(
+		() => openTabKeys.filter((tabKey) => tabKey !== dashboardPath),
+		[openTabKeys],
+	);
 
 	const activeTabKey =
 		optimisticActiveTab?.originKey === currentPage.key
@@ -496,7 +501,7 @@ export function AdminTabsBar({
 					sensors={sensors}
 				>
 					<SortableContext
-						items={openTabKeys.filter((tabKey) => tabKey !== dashboardPath)}
+						items={sortableTabKeys}
 						strategy={horizontalListSortingStrategy}
 					>
 						<DefaultTabBar {...tabBarProps}>

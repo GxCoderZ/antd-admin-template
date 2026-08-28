@@ -95,7 +95,6 @@ describe("AdminShellHeader", () => {
 			);
 			expect(onChangeThemeMode).toHaveBeenCalledWith(
 				isDarkMode ? "light" : "dark",
-				expect.any(Object),
 			);
 		},
 	);

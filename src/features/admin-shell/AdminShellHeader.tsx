@@ -35,7 +35,6 @@ import type {
 	ThemeColor,
 	ThemeMode,
 } from "../../app/preferenceStorage";
-import type { ThemeChangeEvent } from "../../app/themeMode";
 import {
 	isSupportedLanguageCode,
 	resolveSupportedLanguage,
@@ -76,7 +75,7 @@ interface AdminShellHeaderProps {
 	onChangeMenuType: (menuType: MenuType) => void;
 	onChangeNavigationMode: (mode: NavigationMode) => void;
 	onChangeThemeColor: (themeColor: ThemeColor) => void;
-	onChangeThemeMode: (themeMode: ThemeMode, event?: ThemeChangeEvent) => void;
+	onChangeThemeMode: (themeMode: ThemeMode) => void;
 	onChangeTimeZone: (timeZone: string) => void;
 	onLogout: () => Promise<void>;
 	onNavigate: (path: string) => void;
@@ -275,8 +274,8 @@ export function AdminShellHeader({
 								<MoonOutlined aria-hidden />
 							)
 						}
-						onClick={(event) =>
-							onChangeThemeMode(isDarkMode ? "light" : "dark", event)
+						onClick={() =>
+							onChangeThemeMode(isDarkMode ? "light" : "dark")
 						}
 						style={iconActionStyle}
 						type="text"

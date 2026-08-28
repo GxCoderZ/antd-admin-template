@@ -9,7 +9,6 @@ import { ConfigProvider, theme as antdTheme } from "antd";
 import type { Locale } from "antd/es/locale";
 import type { ComponentType } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 import {
 	createBrowserRouter,
@@ -55,15 +54,9 @@ import {
 } from "./preferenceStorage";
 import { createAppQueryClient } from "./queryClient";
 import { ThemeModeProvider } from "./ThemeModeProvider";
-import {
-	type ThemeChangeEvent,
-	type ThemeModeContextValue,
-	useThemeMode,
-} from "./themeMode";
-import "./theme-transition.css";
+import { type ThemeModeContextValue, useThemeMode } from "./themeMode";
+import "./color-weak.css";
 
-const THEME_REVEAL_DURATION_MS = 450;
-const THEME_REVEAL_EASING = "ease-in-out";
 const antdLocaleLoaders = {
 	"zh-CN": () => import("antd/locale/zh_CN"),
 	"zh-TW": () => import("antd/locale/zh_TW"),
@@ -89,18 +82,6 @@ function useAntdLocale(language: SupportedLanguageCode) {
 	}, [language]);
 
 	return locale;
-}
-
-function getThemeRevealOrigin(event?: ThemeChangeEvent) {
-	const rect =
-		event?.currentTarget instanceof Element
-			? event.currentTarget.getBoundingClientRect()
-			: undefined;
-	const x =
-		event?.clientX || (rect ? rect.left + rect.width / 2 : window.innerWidth);
-	const y = event?.clientY || (rect ? rect.top + rect.height / 2 : 0);
-
-	return { x, y };
 }
 
 function getSystemIsDarkMode() {
@@ -241,75 +222,10 @@ export function App() {
 		return () => document.body.classList.remove("colorWeak");
 	}, [isColorBlindMode]);
 
-	const changeThemeMode = useCallback(
-		(nextMode: ThemeMode, event?: ThemeChangeEvent) => {
-			writeThemeModePreference(nextMode);
-			const prefersReducedMotion =
-				window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ??
-				false;
-			const nextIsDarkMode =
-				nextMode === "system" ? systemIsDarkMode : nextMode === "dark";
-			const nextTheme = nextIsDarkMode ? "dark" : "light";
-
-			if (nextMode === themeMode || nextIsDarkMode === isDarkMode) {
-				document.documentElement.dataset.theme = nextTheme;
-				setThemeMode(nextMode);
-				return;
-			}
-
-			if (
-				!document.startViewTransition ||
-				!document.documentElement.animate ||
-				prefersReducedMotion
-			) {
-				document.documentElement.dataset.theme = nextTheme;
-				setThemeMode(nextMode);
-				return;
-			}
-
-			const { x, y } = getThemeRevealOrigin(event);
-			const endRadius = Math.hypot(
-				Math.max(x, window.innerWidth - x),
-				Math.max(y, window.innerHeight - y),
-			);
-			const transition = document.startViewTransition(() => {
-				flushSync(() => {
-					document.documentElement.dataset.theme = nextTheme;
-					setThemeMode(nextMode);
-				});
-			});
-			const clipPath = nextIsDarkMode
-				? [
-						`circle(0px at ${x}px ${y}px)`,
-						`circle(${endRadius}px at ${x}px ${y}px)`,
-					]
-				: [
-						`circle(${endRadius}px at ${x}px ${y}px)`,
-						`circle(0px at ${x}px ${y}px)`,
-					];
-
-			void transition.ready
-				.then(() => {
-					document.documentElement.animate(
-						{
-							clipPath,
-						},
-						{
-							duration: THEME_REVEAL_DURATION_MS,
-							easing: THEME_REVEAL_EASING,
-							fill: "forwards",
-							pseudoElement: nextIsDarkMode
-								? "::view-transition-new(root)"
-								: "::view-transition-old(root)",
-						},
-					);
-				})
-				.catch(() => {
-					transition.skipTransition();
-				});
-		},
-		[isDarkMode, systemIsDarkMode, themeMode],
-	);
+	const changeThemeMode = useCallback((nextMode: ThemeMode) => {
+		writeThemeModePreference(nextMode);
+		setThemeMode(nextMode);
+	}, []);
 	const changeThemeColor = useCallback((nextThemeColor: ThemeColor) => {
 		writeThemeColorPreference(nextThemeColor);
 		setThemeColor(nextThemeColor);
