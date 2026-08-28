@@ -287,6 +287,12 @@ test("公告详情保留长正文、换行与查询条件", async ({ page }, tes
 		await expectFitsViewport(page, dialog);
 		const text = dialog.getByText(content, { exact: true });
 		await expect(text).toHaveCSS("white-space", "pre-wrap");
+		const labelBox = await dialog
+			.getByText("公告内容", { exact: true })
+			.boundingBox();
+		const contentBox = await text.boundingBox();
+		if (!labelBox || !contentBox) throw new Error("Missing content or label");
+		expect(labelBox.y).toBeLessThanOrEqual(contentBox.y + labelBox.height);
 		expect(await text.textContent()).toBe(content);
 		expect(
 			await dialog

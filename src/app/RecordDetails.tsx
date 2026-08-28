@@ -28,9 +28,10 @@ export function RecordDetails({
 						label: {
 							width: "8em",
 							minWidth: "8em",
+							verticalAlign: "top",
 							overflowWrap: "anywhere",
 						},
-						content: { overflowWrap: "anywhere" },
+						content: { overflowWrap: "anywhere", verticalAlign: "top" },
 					}}
 				/>
 			))}

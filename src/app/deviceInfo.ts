@@ -49,10 +49,6 @@ export function formatDeviceInfo(
 	return `${browser} · ${operatingSystem}`;
 }
 
-export function getPrimaryLanguage(acceptLanguage: string | undefined) {
-	return acceptLanguage?.split(",")[0]?.split(";")[0]?.trim() || undefined;
-}
-
 export function getBrowserTimeZone() {
 	try {
 		return (
