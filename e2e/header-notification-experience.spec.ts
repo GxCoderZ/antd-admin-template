@@ -25,8 +25,9 @@ async function expectFitsViewport(page: Page, surface: Locator) {
 
 async function finishVisualTransitions(page: Page) {
 	await page.evaluate(async () => {
+		// rc-motion activates enter animations across two animation frames.
 		await new Promise<void>((resolve) =>
-			requestAnimationFrame(() => resolve()),
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
 		);
 		await Promise.allSettled(
 			document
@@ -117,10 +118,6 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 		await expect(
 			header.getByRole("button", { name: "通知", exact: true }),
 		).toBeVisible();
-		await page.evaluate(
-			() =>
-				new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
-		);
 		await finishVisualTransitions(page);
 		timings.resize.push(performance.now() - started);
 		expect(
@@ -172,16 +169,22 @@ test("通知与搜索的响应式体验巡检", async ({ page }, testInfo) => {
 		await expect(
 			search.getByRole("menuitem", { name: "用户管理", exact: true }),
 		).toBeVisible();
-		const result = search.getByRole("menuitem", {
-			name: "用户管理",
-			exact: true,
-		});
-		const resultBox = await result.boundingBox();
-		const labelBox = await search
+		const { resultBox, labelBox } = await search
 			.getByTestId("command-palette-result-title-/organization/users")
-			.boundingBox();
-		if (!resultBox || !labelBox)
-			throw new Error("Search result label is missing");
+			.evaluate((label) => {
+				const result = label.closest('[role="menuitem"]');
+				if (!result) throw new Error("Search result is missing");
+				const rowBounds = result.getBoundingClientRect();
+				const labelBounds = label.getBoundingClientRect();
+				return {
+					resultBox: { y: rowBounds.y, height: rowBounds.height },
+					labelBox: {
+						y: labelBounds.y,
+						height: labelBounds.height,
+						width: labelBounds.width,
+					},
+				};
+			});
 		expect(labelBox.y).toBeGreaterThanOrEqual(resultBox.y - 1);
 		expect(labelBox.y + labelBox.height).toBeLessThanOrEqual(
 			resultBox.y + resultBox.height + 1,
