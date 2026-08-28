@@ -250,6 +250,7 @@ export function DepartmentsPage() {
 		querySubmission.submit();
 	};
 	const resetFilters = () => {
+		querySubmission.reset();
 		filterForm.current?.setFieldsValue({ name: "", status: "all" });
 		setDraftFilters(defaultDepartmentFilterValues);
 		setFilters(defaultDepartmentFilterValues);

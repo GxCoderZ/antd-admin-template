@@ -203,7 +203,28 @@ async function renderTable(entry: (typeof tables)[number]) {
 }
 
 describe.each(tables)("$name reset", (entry) => {
-	it("clears an unsubmitted draft without requesting default data again", async () => {
+	it("requests once on the first reset and once after each new submission", async () => {
+		const { form, queryClient, requests } = await renderTable(entry);
+		const reset = form.getByText(/重\s*置/);
+		const query = form.getByText(/查\s*询/);
+		fireEvent.click(reset);
+		await waitFor(() => expect(requests()).toHaveLength(2));
+		await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+		for (const requestCount of [2, 4, 6]) {
+			fireEvent.click(reset);
+			fireEvent.click(reset);
+			await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+			expect(requests()).toHaveLength(requestCount);
+			fireEvent.click(query);
+			await waitFor(() => expect(requests()).toHaveLength(requestCount + 1));
+			await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+			fireEvent.click(reset);
+			await waitFor(() => expect(requests()).toHaveLength(requestCount + 2));
+			await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+		}
+	});
+
+	it("clears an unsubmitted draft and requests only on the first reset", async () => {
 		const { form, queryClient, requests, changeDraft } =
 			await renderTable(entry);
 		await changeDraft();
@@ -211,8 +232,9 @@ describe.each(tables)("$name reset", (entry) => {
 		const reset = form.getByText(/重\s*置/);
 		for (let click = 0; click < 3; click += 1) {
 			fireEvent.click(reset);
+			await waitFor(() => expect(requests()).toHaveLength(2));
 			await waitFor(() => expect(queryClient.isFetching()).toBe(0));
-			expect(requests()).toHaveLength(1);
+			expect(requests()).toHaveLength(2);
 			expect(reset.closest("button")).toBeEnabled();
 		}
 		if (entry.field !== "result")

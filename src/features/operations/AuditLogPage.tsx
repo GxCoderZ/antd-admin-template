@@ -359,6 +359,7 @@ export function AuditLogPage() {
 	};
 
 	const resetFilters = () => {
+		querySubmission.reset();
 		form.current?.resetFields();
 		form.current?.setFieldsValue({
 			action: "",

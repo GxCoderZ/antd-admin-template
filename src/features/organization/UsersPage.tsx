@@ -320,6 +320,7 @@ export function UsersPage() {
 		userQuerySubmission.submit();
 	};
 	const resetUserFilters = () => {
+		userQuerySubmission.reset();
 		setUserDraftFilters(defaultUserFilterValues);
 		setUserFilters(defaultUserFilterValues);
 		setUserTableState((state) => ({

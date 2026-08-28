@@ -103,7 +103,12 @@ test("用户和角色表格点击及连续重置保持内容位置", async ({ pa
 			);
 			await reset.click();
 			const beforeClick = await clickStart;
-			expect(await panel.locator(".ant-spin-spinning").count()).toBe(0);
+			if (attempt === 0) {
+				await expect(panel.locator(".ant-spin-spinning")).toHaveCount(1);
+				await expect(panel.locator(".ant-spin-spinning")).toHaveCount(0);
+			} else {
+				expect(await panel.locator(".ant-spin-spinning").count()).toBe(0);
+			}
 			expect(await scroll.evaluate((element) => element.scrollTop)).toBe(
 				beforeClick.scrollTop,
 			);

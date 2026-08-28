@@ -165,6 +165,7 @@ export function RolesPage() {
 		querySubmission.submit();
 	};
 	const resetRoleFilters = () => {
+		querySubmission.reset();
 		setDraftFilters(defaultRoleFilterValues);
 		setFilters(defaultRoleFilterValues);
 		setTableState((current) => ({

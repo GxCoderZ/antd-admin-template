@@ -296,6 +296,7 @@ export function PositionsPage() {
 		querySubmission.submit();
 	};
 	const resetFilters = () => {
+		querySubmission.reset();
 		filterForm.current?.setFieldsValue({ name: "", code: "", status: "all" });
 		filterForm.current?.setFields([{ name: "departmentId", value: undefined }]);
 		setDraftFilters(defaultPositionFilterValues);

@@ -97,7 +97,7 @@ for (const entry of queries) {
 		const resizeTimes: number[] = [];
 		const interactionTimes: number[] = [];
 		let desktopBox;
-		for (const width of [1440, 768, 390, 1440]) {
+		for (const [index, width] of [1440, 768, 390, 1440].entries()) {
 			const resizing = performance.now();
 			await page.setViewportSize({ width, height: 900 });
 			await finishLayout(form);
@@ -124,9 +124,13 @@ for (const entry of queries) {
 			}
 			const clicking = performance.now();
 			await reset.click();
+			if (index === 0) {
+				await expect(page.locator(".ant-spin-spinning")).toHaveCount(1);
+				await expect(page.locator(".ant-spin-spinning")).toHaveCount(0);
+			}
 			await reset.click();
 			await expect(reset).toBeEnabled();
-			await expect(page.locator(".ant-spin-spinning")).toHaveCount(0);
+			expect(await page.locator(".ant-spin-spinning").count()).toBe(0);
 			interactionTimes.push(performance.now() - clicking);
 			await page.screenshot({
 				path: testInfo.outputPath(`reset-${width}.png`),

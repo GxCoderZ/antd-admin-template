@@ -129,10 +129,16 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 		useState<PlatformDictionaryType | null>(null);
 	const [deletingItem, setDeletingItem] =
 		useState<PlatformDictionaryItem | null>(null);
-	const { revision: typeRevision, submit: submitTypeQuery } =
-		useQuerySubmission();
-	const { revision: itemRevision, submit: submitItemQuery } =
-		useQuerySubmission();
+	const {
+		revision: typeRevision,
+		submit: submitTypeQuery,
+		reset: resetTypeQuery,
+	} = useQuerySubmission();
+	const {
+		revision: itemRevision,
+		submit: submitItemQuery,
+		reset: resetItemQuery,
+	} = useQuerySubmission();
 	const typeQueryParams = useMemo<ListPlatformDictionaryTypesInput>(() => {
 		const q = typeFilters.q?.trim();
 		const params: ListPlatformDictionaryTypesInput = {
@@ -408,6 +414,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			resetTypeTablePage();
 		},
 		onReset: () => {
+			resetTypeQuery();
 			setTypeFilters(defaultTypeFilters);
 			setTypeTableState((current) => ({
 				...current,
@@ -426,6 +433,7 @@ export function DictionariesPage({ canManage = true }: DictionariesPageProps) {
 			resetItemTablePage();
 		},
 		onReset: () => {
+			resetItemQuery();
 			setItemFilters(defaultItemFilters);
 			setItemTableState((current) => ({
 				...current,

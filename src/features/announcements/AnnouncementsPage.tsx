@@ -188,6 +188,7 @@ export function AnnouncementsPage() {
 			resetTablePage();
 		},
 		onReset: () => {
+			querySubmission.reset();
 			setFilters(defaultAnnouncementFilterValues);
 			setTableState((current) => ({
 				...current,

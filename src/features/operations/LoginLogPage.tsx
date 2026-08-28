@@ -325,6 +325,7 @@ export function LoginLogPage() {
 	};
 
 	const resetFilters = () => {
+		querySubmission.reset();
 		form.current?.resetFields();
 		form.current?.setFieldsValue({ dateRange: null, result: "all" });
 		setFilterDraft(defaultLoginFilterDraft);
