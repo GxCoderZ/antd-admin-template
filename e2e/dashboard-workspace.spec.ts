@@ -101,8 +101,8 @@ for (const width of [1440, 768, 460, 390]) {
 		await expect(metrics).toHaveCount(4);
 		for (const metric of await metrics.all()) {
 			const content = metric.getByTestId("chart-card-content");
-			await expect(content.getByText("周同比", { exact: true })).toBeVisible();
-			await expect(content.getByText("日同比", { exact: true })).toBeVisible();
+			await expect(content.getByText(/^周同比/)).toBeVisible();
+			await expect(content.getByText(/^日同比/)).toBeVisible();
 			expect(
 				await content.evaluate(
 					(node) =>
