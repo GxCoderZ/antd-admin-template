@@ -456,12 +456,42 @@ describe("UsersPage", () => {
 		expect(screen.getByRole("columnheader", { name: "岗位" })).toBeVisible();
 	});
 
-	it("shows only important recommended user columns by default", async () => {
+	it("shows the display name before the username in the default columns", async () => {
 		renderUsersPage();
 
 		await screen.findByText("admin");
 
-		for (const column of [
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual([
+			"显示名称",
+			"用户名",
+			"部门",
+			"角色",
+			"状态",
+			"最近登录",
+			"操作",
+		]);
+	});
+
+	it("keeps a saved column order until the user resets column settings", async () => {
+		localStorage.setItem(
+			`${getTableColumnSettingsStorageKey("users")}:pro-table`,
+			JSON.stringify({
+				username: { show: true, order: 0 },
+				displayName: { show: true, order: 1 },
+				department: { show: true, order: 2 },
+				roles: { show: true, order: 3 },
+				status: { show: true, order: 4 },
+				lastLoginAt: { show: true, order: 5 },
+				actions: { show: true, fixed: "right", order: 6 },
+			}),
+		);
+		const user = renderUsersPage();
+		await screen.findByText("admin");
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual([
 			"用户名",
 			"显示名称",
 			"部门",
@@ -469,10 +499,29 @@ describe("UsersPage", () => {
 			"状态",
 			"最近登录",
 			"操作",
-		]) {
-			expect(screen.getByRole("columnheader", { name: column })).toBeVisible();
-		}
-		expect(screen.getAllByRole("columnheader")).toHaveLength(7);
+		]);
+
+		await openUserColumnSettings(user);
+		await user.click(screen.getByText("重置", { exact: true }));
+		const expectedColumns = [
+			"显示名称",
+			"用户名",
+			"部门",
+			"角色",
+			"状态",
+			"最近登录",
+			"操作",
+		];
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(expectedColumns);
+
+		cleanup();
+		renderUsersPage();
+		await screen.findByText("admin");
+		expect(
+			screen.getAllByRole("columnheader").map((header) => header.textContent),
+		).toEqual(expectedColumns);
 	});
 
 	it("persists manually enabled optional user columns", async () => {

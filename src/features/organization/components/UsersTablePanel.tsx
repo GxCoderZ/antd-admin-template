@@ -22,8 +22,8 @@ import {
 import { useUserTableColumns } from "./useUserTableColumns";
 
 const userColumnVisibility: readonly TableColumnConfig[] = [
-	{ key: "username", visibility: "required" },
 	{ key: "displayName", visibility: "recommended" },
+	{ key: "username", visibility: "required" },
 	{ key: "department", visibility: "recommended" },
 	{ key: "jobTitle", visibility: "optional" },
 	{ key: "roles", visibility: "recommended" },

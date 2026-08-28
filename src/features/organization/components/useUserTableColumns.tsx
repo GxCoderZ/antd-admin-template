@@ -77,16 +77,6 @@ export function useUserTableColumns({
 				: null;
 		const dataColumns: ManagementProTableColumn<PlatformUser>[] = [
 			{
-				dataIndex: "username",
-				key: "username",
-				search: false,
-				sortDirections: ["ascend", "descend"],
-				sorter: true,
-				sortOrder: sortOrder("username"),
-				title: t("adminShell.users.columns.username"),
-				width: token.controlHeight * userColumnWidthMultipliers.username,
-			},
-			{
 				dataIndex: "displayName",
 				key: "displayName",
 				search: false,
@@ -108,6 +98,16 @@ export function useUserTableColumns({
 				),
 				title: t("adminShell.users.columns.displayName"),
 				width: token.controlHeight * userColumnWidthMultipliers.displayName,
+			},
+			{
+				dataIndex: "username",
+				key: "username",
+				search: false,
+				sortDirections: ["ascend", "descend"],
+				sorter: true,
+				sortOrder: sortOrder("username"),
+				title: t("adminShell.users.columns.username"),
+				width: token.controlHeight * userColumnWidthMultipliers.username,
 			},
 			{
 				dataIndex: "departmentName",

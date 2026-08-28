@@ -5,9 +5,11 @@ const tables = [
 		path: "/organization/users",
 		id: "admin-users-table-card",
 		detailOnly: ["用户 ID"],
+		required: ["用户名", "操作"],
+		recommended: "显示名称",
 		defaults: [
-			"用户名",
 			"显示名称",
+			"用户名",
 			"部门",
 			"角色",
 			"状态",
