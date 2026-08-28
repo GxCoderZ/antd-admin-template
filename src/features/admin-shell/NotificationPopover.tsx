@@ -27,6 +27,7 @@ import {
 } from "#src/api/notifications";
 import { resolveSupportedLanguage } from "../../i18n";
 import { NotificationAvatar } from "../notifications/NotificationAvatar";
+import { HeaderIconButton } from "./HeaderIconButton";
 import styles from "./NotificationPopover.module.css";
 
 const { Text } = Typography;
@@ -286,7 +287,7 @@ export function NotificationPopover({
 				styles={{ container: { padding: 0, overflow: "hidden" } }}
 				trigger="click"
 			>
-				<Button
+				<HeaderIconButton
 					aria-label={t("adminShell.notificationCenter.button")}
 					icon={
 						<Badge

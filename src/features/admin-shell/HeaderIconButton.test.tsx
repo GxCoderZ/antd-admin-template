@@ -41,17 +41,18 @@ describe("HeaderIconButton", () => {
 
 		fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
 
-		expect(button).toHaveAttribute("data-pressed", "true");
 		expect(button).toHaveAttribute("data-rippling", "true");
+		expect(button).toHaveAttribute("data-ripple-state", "pressed");
 		expect(button).toHaveAttribute("data-ripple-phase", "primary");
 		expect(button).toHaveStyle({
-			"--header-icon-button-ripple-size": "64px",
-			"--header-icon-button-ripple-x": "8px",
-			"--header-icon-button-ripple-y": "10px",
+			"--press-ripple-size": "64px",
+			"--press-ripple-x": "8px",
+			"--press-ripple-y": "10px",
 		});
 
 		fireEvent.pointerUp(button);
-		expect(button).not.toHaveAttribute("data-pressed");
+		expect(button).toHaveAttribute("data-rippling", "true");
+		expect(button).toHaveAttribute("data-ripple-state", "released");
 	});
 
 	it("shows a centered keyboard ripple", () => {
@@ -59,30 +60,55 @@ describe("HeaderIconButton", () => {
 
 		fireEvent.keyDown(button, { key: "Enter" });
 
-		expect(button).toHaveAttribute("data-pressed", "true");
 		expect(button).toHaveAttribute("data-rippling", "true");
 		expect(button).toHaveStyle({
-			"--header-icon-button-ripple-x": "16px",
-			"--header-icon-button-ripple-y": "16px",
+			"--press-ripple-x": "16px",
+			"--press-ripple-y": "16px",
 		});
 
 		fireEvent.keyUp(button, { key: "Enter" });
-		expect(button).not.toHaveAttribute("data-pressed");
+		expect(button).toHaveAttribute("data-rippling", "true");
+		expect(button).toHaveAttribute("data-ripple-state", "released");
 	});
+
+	it("keeps the ripple held across repeated keyboard events", () => {
+		const button = renderButton();
+		fireEvent.keyDown(button, { key: "Enter" });
+		fireEvent.keyDown(button, { key: "Enter", repeat: true });
+		expect(button).toHaveAttribute("data-ripple-phase", "primary");
+		expect(button).toHaveAttribute("data-ripple-state", "pressed");
+		fireEvent.keyUp(button, { key: "Enter" });
+		fireEvent.keyDown(button, { key: "Enter" });
+		expect(button).toHaveAttribute("data-ripple-phase", "alternate");
+		expect(button).toHaveAttribute("data-ripple-state", "pressed");
+	});
+
+	it.each(["pointerCancel", "pointerLeave", "blur"] as const)(
+		"releases the held ripple on %s",
+		(event) => {
+			const button = renderButton();
+			fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
+			fireEvent[event](button);
+			expect(button).toHaveAttribute("data-ripple-state", "released");
+		},
+	);
 
 	it("restarts the ripple when pressed repeatedly before animation ends", () => {
 		const button = renderButton();
 
 		fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
 		expect(button).toHaveAttribute("data-ripple-phase", "primary");
+		fireEvent.pointerUp(button);
+		expect(button).toHaveAttribute("data-ripple-state", "released");
 
 		fireEvent.pointerDown(button, { button: 0, clientX: 12, clientY: 14 });
 
 		expect(button).toHaveAttribute("data-rippling", "true");
+		expect(button).toHaveAttribute("data-ripple-state", "pressed");
 		expect(button).toHaveAttribute("data-ripple-phase", "alternate");
 		expect(button).toHaveStyle({
-			"--header-icon-button-ripple-x": "12px",
-			"--header-icon-button-ripple-y": "14px",
+			"--press-ripple-x": "12px",
+			"--press-ripple-y": "14px",
 		});
 	});
 

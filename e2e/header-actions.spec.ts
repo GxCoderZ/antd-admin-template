@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 async function signIn(page: Page) {
 	await page.goto("/login");
@@ -11,8 +11,145 @@ async function signIn(page: Page) {
 	return performance.now() - started;
 }
 
+async function expectHeldRipple(
+	button: Locator,
+	pseudoElement: string | null = "::after",
+) {
+	const result = await button.evaluate(async (target, pseudoElement) => {
+		const animations = target
+			.getAnimations({ subtree: true })
+			.filter((animation) => animation instanceof CSSAnimation);
+		const [ripple] = animations;
+		if (animations.length !== 1 || !ripple)
+			throw new Error(`Expected one press animation, got ${animations.length}`);
+		await new Promise(requestAnimationFrame);
+		const style = getComputedStyle(target, pseudoElement);
+		const started = {
+			name: ripple.animationName,
+			opacity: Number(style.opacity),
+			display: style.display,
+			playState: ripple.playState,
+		};
+		await ripple.finished;
+		return {
+			started,
+			finished: ripple.playState,
+			opacity: Number(getComputedStyle(target, pseudoElement).opacity),
+			pressOverlay: getComputedStyle(target, "::before").content,
+		};
+	}, pseudoElement);
+	expect(result.started.name).toContain("press-ripple");
+	expect(result.started.opacity).toBeGreaterThan(0);
+	expect(result.started.display).toBe("block");
+	expect(result.started.playState).toBe("running");
+	expect(result.finished).toBe("finished");
+	expect(result.opacity).toBeGreaterThan(0);
+	expect(result.pressOverlay).toBe("none");
+	await expect(button).toHaveAttribute("data-ripple-state", "pressed");
+	if (pseudoElement)
+		await expect(button).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+}
+
+async function expectRippleRelease(button: Locator, removed = false) {
+	const name = await button.evaluate(async (target) => {
+		const fade = target
+			.getAnimations({ subtree: true })
+			.find(
+				(animation) =>
+					animation instanceof CSSAnimation &&
+					animation.animationName.includes("rippleFadeOut"),
+			);
+		if (!(fade instanceof CSSAnimation) || fade.playState !== "running")
+			throw new Error("Missing ripple release animation");
+		await fade.finished;
+		return fade.animationName;
+	});
+	expect(name).toContain("rippleFadeOut");
+	if (removed) await expect(button).toHaveCount(0);
+	else await expect(button).not.toHaveAttribute("data-rippling");
+}
+
 for (const width of [1440, 768, 390]) {
-	test(`顶栏操作区使用 Pro 头像和按钮尺寸（${width}px）`, async ({
+	test(`侧边栏整项水波纹保留选中与导航（${width}px）`, async ({
+		page,
+	}, testInfo) => {
+		const errors: string[] = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		page.on("console", (message) => {
+			if (message.type() === "error") errors.push(message.text());
+		});
+		page.on("response", (response) => {
+			if (response.status() >= 400)
+				errors.push(`${response.status()} ${response.url()}`);
+		});
+		await page.setViewportSize({ width, height: 900 });
+		await signIn(page);
+		if (width === 390)
+			await page.getByRole("button", { name: "打开菜单", exact: true }).click();
+		if (width === 768)
+			await page.getByRole("button", { name: "展开菜单", exact: true }).click();
+		const dashboard = page.getByRole("menuitem", {
+			name: "仪表盘",
+			exact: true,
+		});
+		await dashboard.hover({ position: { x: 4, y: 20 } });
+		const selectedColor = await dashboard.evaluate(
+			(item) => getComputedStyle(item).backgroundColor,
+		);
+		const bounds = await dashboard.boundingBox();
+		await page.mouse.down();
+		const ripple = dashboard.locator('[data-rippling="true"]');
+		await expectHeldRipple(ripple, null);
+		await expect(dashboard).toHaveCSS("background-color", selectedColor);
+		expect(await dashboard.boundingBox()).toEqual(bounds);
+		const clipped = await ripple.evaluate((element) => {
+			const layer = element.parentElement;
+			const item = element.closest('[role="menuitem"]');
+			if (!layer || !item) throw new Error("Missing menu ripple layer");
+			const clip = layer.getBoundingClientRect();
+			const host = item.getBoundingClientRect();
+			return {
+				width: clip.width === host.width,
+				height: clip.height === host.height,
+				overflow: getComputedStyle(layer).overflow,
+				pointerEvents: getComputedStyle(layer).pointerEvents,
+			};
+		});
+		expect(clipped).toEqual({
+			width: true,
+			height: true,
+			overflow: "hidden",
+			pointerEvents: "none",
+		});
+		await page.screenshot({
+			path: testInfo.outputPath(`sidebar-ripple-${width}.png`),
+		});
+		await page.mouse.move(width - 2, 600);
+		await page.mouse.up();
+		await expectRippleRelease(ripple, true);
+
+		const group = page.getByRole("menuitem", { name: "系统管理", exact: true });
+		await group.hover({ position: { x: 4, y: 20 } });
+		await page.mouse.down();
+		const groupRipple = group.locator('[data-rippling="true"]');
+		await expectHeldRipple(groupRipple, null);
+		await expect(group).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+		await page.mouse.up();
+		await expectRippleRelease(groupRipple, true);
+		await expect(group).toHaveAttribute("aria-expanded", "true");
+		await page.getByRole("menuitem", { name: "关于系统", exact: true }).click();
+		await expect(page).toHaveURL(/\/system\/about$/);
+		expect(
+			await page.evaluate(
+				() => document.documentElement.scrollWidth <= innerWidth,
+			),
+		).toBe(true);
+		expect(errors).toEqual([]);
+	});
+}
+
+for (const width of [1440, 768, 390]) {
+	test(`顶栏保留 Pro 尺寸并使用单一项目水波纹（${width}px）`, async ({
 		page,
 	}, testInfo) => {
 		await page.setViewportSize({ height: 900, width });
@@ -70,28 +207,63 @@ for (const width of [1440, 768, 390]) {
 			);
 		});
 		expect(centered).toBe(0);
+
+		for (const name of [...names, "Platform Admin"]) {
+			const button = header.getByRole("button", { name, exact: true });
+			await button.hover();
+			await expect(button).not.toHaveCSS(
+				"background-color",
+				"rgba(0, 0, 0, 0)",
+			);
+			const size = await button.boundingBox();
+			await page.mouse.down();
+			await expectHeldRipple(button);
+			expect(await button.boundingBox()).toEqual(size);
+			// Hold through animation completion, then release outside to avoid activation.
+			await page.mouse.move(0, 0);
+			await page.mouse.up();
+			await expectRippleRelease(button);
+		}
+		const language = header.getByRole("button", { name: "语言", exact: true });
+		await language.focus();
+		await page.keyboard.down("Space");
+		await expectHeldRipple(language);
+		await expect(language).toBeFocused();
+		await expect(language).toHaveCSS("outline-style", "solid");
+		await page.keyboard.down("Space");
+		await expect(language).toHaveAttribute("data-ripple-state", "pressed");
+		await page.keyboard.up("Space");
+		await expectRippleRelease(language);
+
 		const profile = page.getByRole("menuitem", {
 			name: "个人资料",
 			exact: true,
 		});
 		await account.hover();
 		await expect(profile).toBeVisible();
+		const rippleStarts: Animation["startTime"][] = [];
 		for (let click = 0; click < 3; click += 1) {
 			await account.click();
-			// A closing menu is still visible until its finite animation finishes.
-			await page.evaluate(async () => {
-				await Promise.allSettled(
-					document
-						.getAnimations()
-						.filter(
+			await expect(account).toHaveAttribute("data-ripple-state", "released");
+			rippleStarts.push(
+				await account.evaluate(async (button) => {
+					const fade = button
+						.getAnimations({ subtree: true })
+						.find(
 							(animation) =>
-								animation.effect?.getTiming().iterations !== Infinity,
-						)
-						.map((animation) => animation.finished),
-				);
-			});
-			await expect(profile).toBeVisible();
+								animation instanceof CSSAnimation &&
+								animation.animationName.includes("rippleFadeOut"),
+						);
+					if (!fade) throw new Error("Missing ripple for repeated press");
+					await fade.ready;
+					return fade.startTime;
+				}),
+			);
 		}
+		expect(rippleStarts).not.toContain(null);
+		expect(new Set(rippleStarts).size).toBe(3);
+		await expectRippleRelease(account);
+		await expect(profile).toBeVisible();
 		await page.screenshot({
 			path: testInfo.outputPath(`header-menu-${width}.png`),
 			animations: "disabled",
@@ -108,6 +280,16 @@ for (const width of [1440, 768, 390]) {
 				() => document.documentElement.scrollWidth <= innerWidth,
 			),
 		).toBe(true);
+		await page.emulateMedia({ reducedMotion: "reduce" });
+		await language.hover();
+		await page.mouse.down();
+		expect(
+			await language.evaluate(
+				(button) => getComputedStyle(button, "::after").display,
+			),
+		).toBe("none");
+		await page.mouse.move(0, 0);
+		await page.mouse.up();
 	});
 }
 
@@ -133,11 +315,9 @@ test("语言菜单响应式切换不刷新页面并保留原生动画", async ({
 	const resizing: number[] = [];
 	const interactions: number[] = [];
 	const header = page.getByRole("banner");
-	const language = header
-		.getByRole("button")
-		.filter({
-			has: page.getByRole("img", { name: "global", includeHidden: true }),
-		});
+	const language = header.getByRole("button").filter({
+		has: page.getByRole("img", { name: "global", includeHidden: true }),
+	});
 	const languages = [
 		{ width: 1440, code: "en", label: "English", previous: "简体中文" },
 		{ width: 768, code: "fa-IR", label: "فارسی", previous: "English" },

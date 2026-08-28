@@ -1,8 +1,9 @@
-import { Menu, type MenuProps, theme } from "antd";
+import { type MenuProps, theme } from "antd";
 import type { CSSProperties } from "react";
 import { useMemo } from "react";
 
 import styles from "./TwoColumnServiceMenu.module.css";
+import { NavigationMenu } from "./NavigationMenu";
 
 interface TwoColumnServiceMenuProps {
 	items: MenuProps["items"];
@@ -117,7 +118,7 @@ export function TwoColumnServiceMenu({
 	} as CSSProperties;
 
 	return (
-		<Menu
+		<NavigationMenu
 			className={rootGrid ? styles.rootGrid : undefined}
 			data-testid="admin-shell-service-grid-menu"
 			inlineIndent={0}

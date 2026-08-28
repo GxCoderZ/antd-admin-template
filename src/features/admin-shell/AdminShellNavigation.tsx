@@ -37,6 +37,7 @@ import { usePermissionChecker } from "../../app/permissions";
 import type { MenuType, NavigationMode } from "../../app/preferenceStorage";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { HeaderIconButton } from "./HeaderIconButton";
+import { NavigationMenu } from "./NavigationMenu";
 import { TwoColumnServiceMenu } from "./TwoColumnServiceMenu";
 
 const { Header, Sider } = Layout;
@@ -193,7 +194,9 @@ export function AdminShellNavigation({
 
 			items.push({
 				key: node.key,
-				icon: node.iconKey ? <AdminRouteIcon iconKey={node.iconKey} /> : undefined,
+				icon: node.iconKey ? (
+					<AdminRouteIcon iconKey={node.iconKey} />
+				) : undefined,
 				label: t(node.titleKey),
 				children,
 			});
@@ -419,7 +422,7 @@ export function AdminShellNavigation({
 								vertical
 							>
 								{renderSidebarLogo(true)}
-								<Menu
+								<NavigationMenu
 									inlineCollapsed
 									items={topLevelNavigationItems}
 									mode="inline"
@@ -449,7 +452,7 @@ export function AdminShellNavigation({
 								{isSplitServiceGridActive ? (
 									<TwoColumnServiceMenu {...splitSecondaryMenuProps} rootGrid />
 								) : (
-									<Menu
+									<NavigationMenu
 										{...splitSecondaryMenuProps}
 										mode="inline"
 										style={{
@@ -475,7 +478,7 @@ export function AdminShellNavigation({
 					) : (
 						<>
 							{renderSidebarLogo(isSidebarCollapsed)}
-							<Menu
+							<NavigationMenu
 								{...(isSidebarCollapsed
 									? { defaultOpenKeys: [] as string[] }
 									: {
@@ -658,7 +661,7 @@ export function AdminShellNavigation({
 					styles={{ body: { padding: 0 } }}
 					title={shortTitle}
 				>
-					<Menu
+					<NavigationMenu
 						items={navigationItems}
 						mode="inline"
 						onClick={({ key }) => {

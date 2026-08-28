@@ -1,4 +1,11 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import {
+	act,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigProvider } from "antd";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -61,6 +68,21 @@ function renderHeader(onLogout: () => Promise<void>, isDarkMode = false) {
 }
 
 describe("AdminShellHeader", () => {
+	it.each(["搜索", "语言", "切换为深色模式", "测试用户"])(
+		"adds the project ripple to %s without changing its size",
+		(name) => {
+			renderHeader(vi.fn().mockResolvedValue(undefined));
+			const button = screen.getByRole("button", { name });
+			const height = button.style.height;
+			const padding = button.style.padding;
+
+			fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
+			expect(button).toHaveAttribute("data-rippling", "true");
+			expect(button.style.height).toBe(height);
+			expect(button.style.padding).toBe(padding);
+		},
+	);
+
 	it("uses the official 36px action size for every toolbar button", () => {
 		renderHeader(vi.fn().mockResolvedValue(undefined));
 		for (const name of ["搜索", "语言", "切换为深色模式"]) {

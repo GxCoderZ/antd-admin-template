@@ -8,7 +8,6 @@ import {
 	SunOutlined,
 } from "@ant-design/icons";
 import {
-	Button,
 	Dropdown,
 	Flex,
 	Grid,
@@ -46,6 +45,7 @@ import {
 } from "../../i18n";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { CommandPalette } from "./CommandPalette";
+import { HeaderIconButton } from "./HeaderIconButton";
 import { NotificationPopover } from "./NotificationPopover";
 import { SettingsDrawer } from "./SettingsDrawer";
 
@@ -235,7 +235,7 @@ export function AdminShellHeader({
 			{messageContextHolder}
 			<Flex align="center" style={{ flex: "0 0 auto", height: "100%" }}>
 				<Tooltip title={t("adminShell.header.search")}>
-					<Button
+					<HeaderIconButton
 						aria-label={t("adminShell.header.search")}
 						icon={<SearchOutlined aria-hidden />}
 						onClick={() => setCommandPaletteOpen(true)}
@@ -277,16 +277,16 @@ export function AdminShellHeader({
 					placement="bottomRight"
 					styles={{ root: { width: screens.xs ? "100%" : undefined } }}
 				>
-					<Button
+					<HeaderIconButton
 						aria-label={t("language.label")}
 						style={iconActionStyle}
 						type="text"
 					>
 						<GlobalOutlined aria-hidden />
-					</Button>
+					</HeaderIconButton>
 				</Dropdown>
 				<Tooltip title={themeActionLabel}>
-					<Button
+					<HeaderIconButton
 						aria-label={themeActionLabel}
 						icon={
 							isDarkMode ? (
@@ -314,7 +314,7 @@ export function AdminShellHeader({
 					}}
 					placement="bottomRight"
 				>
-					<Button
+					<HeaderIconButton
 						aria-label={currentUsername}
 						style={accountActionStyle}
 						type="text"
@@ -329,7 +329,7 @@ export function AdminShellHeader({
 							/>
 							{showAccountName ? <span>{currentUsername}</span> : null}
 						</Space>
-					</Button>
+					</HeaderIconButton>
 				</Dropdown>
 			</Flex>
 

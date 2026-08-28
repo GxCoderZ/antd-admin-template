@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigProvider, Grid } from "antd";
 import { MemoryRouter } from "react-router";
@@ -10,7 +10,7 @@ import {
 	platformPermissions,
 	type PlatformPermission,
 } from "../../app/permissions";
-import type { NavigationMode } from "../../app/preferenceStorage";
+import type { MenuType, NavigationMode } from "../../app/preferenceStorage";
 import { i18n } from "../../i18n";
 import { AdminShellNavigation } from "./AdminShellNavigation";
 
@@ -25,6 +25,7 @@ function renderNavigation(
 	path: string,
 	permissions: PlatformPermission[] = [platformPermissions.logsRead],
 	navigationMode: NavigationMode = "side",
+	menuType: MenuType = "single",
 ) {
 	const onNavigate = vi.fn();
 	render(
@@ -35,7 +36,7 @@ function renderNavigation(
 						currentPage={getAdminRouteMetadata(path)}
 						headerActions={null}
 						logo={null}
-						menuType="single"
+						menuType={menuType}
 						navigationMode={navigationMode}
 						onNavigate={onNavigate}
 						siteTitle="Admin"
@@ -51,6 +52,56 @@ function renderNavigation(
 }
 
 describe("log navigation", () => {
+	it.each(["single", "twoColumn", "serviceGrid", "splitServiceGrid"] as const)(
+		"supports held and repeated full-item ripples in %s sidebar menus",
+		(menuType) => {
+			renderNavigation(
+				"/organization/users",
+				[platformPermissions.usersRead],
+				"side",
+				menuType,
+			);
+			const item = screen.getByRole("menuitem", {
+				name: "用户管理",
+			});
+			fireEvent.pointerDown(item, { button: 0, clientX: 8, clientY: 10 });
+			const ripple = item.querySelector('[data-rippling="true"]');
+			expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
+			fireEvent.pointerUp(item);
+			expect(ripple).toHaveAttribute("data-ripple-state", "released");
+			fireEvent.pointerDown(item, { button: 0, clientX: 10, clientY: 12 });
+			expect(ripple).toHaveAttribute("data-ripple-phase", "alternate");
+			expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
+			fireEvent.pointerCancel(item);
+			expect(ripple).toHaveAttribute("data-ripple-state", "released");
+		},
+	);
+
+	it("adds the ripple to the complete submenu title, not just its label", () => {
+		renderNavigation("/operations/login-logs");
+		const title = screen.getByRole("menuitem", {
+			name: "日志管理",
+		});
+		fireEvent.pointerDown(title, { button: 0, clientX: 2, clientY: 2 });
+		expect(title.querySelector('[data-rippling="true"]')).toHaveAttribute(
+			"data-ripple-state",
+			"pressed",
+		);
+	});
+
+	it("keeps the new item's ripple held when the previously focused item blurs", () => {
+		renderNavigation("/dashboard");
+		const previous = screen.getByRole("menuitem", { name: "仪表盘" });
+		const next = screen.getByRole("menuitem", { name: "系统管理" });
+		fireEvent.focus(previous);
+		fireEvent.pointerDown(next, { button: 0, clientX: 8, clientY: 10 });
+		fireEvent.blur(previous, { relatedTarget: next });
+		const ripple = next.querySelector('[data-rippling="true"]');
+		expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
+		fireEvent.blur(next, { relatedTarget: document.body });
+		expect(ripple).toHaveAttribute("data-ripple-state", "released");
+	});
+
 	it.each(["side", "mixed"] as const)(
 		"shows a decorative log group icon in %s navigation",
 		(mode) => {

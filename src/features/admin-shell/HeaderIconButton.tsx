@@ -1,54 +1,12 @@
-import { Button, type ButtonProps } from "antd";
-import type {
-	CSSProperties,
-	FocusEvent,
-	KeyboardEvent,
-	PointerEvent,
-} from "react";
-import { forwardRef, useRef, useState } from "react";
+import { Button, ConfigProvider, type ButtonProps } from "antd";
+import type { KeyboardEvent, PointerEvent } from "react";
+import { forwardRef } from "react";
 
-import styles from "./HeaderIconButton.module.css";
-
-interface RippleState {
-	phase: "alternate" | "primary";
-	size: number;
-	x: number;
-	y: number;
-}
-
-type RipplePosition = Omit<RippleState, "phase">;
+import styles from "./PressRipple.module.css";
+import { usePressRipple } from "./usePressRipple";
 
 function mergeClassNames(...classNames: Array<string | undefined>) {
 	return classNames.filter(Boolean).join(" ");
-}
-
-function createCenteredRipple(target: HTMLElement): RipplePosition {
-	const { height, width } = target.getBoundingClientRect();
-	return {
-		size: Math.max(width, height) * 2,
-		x: width / 2,
-		y: height / 2,
-	};
-}
-
-function createPointerRipple(
-	event: PointerEvent<HTMLElement>,
-	target: HTMLElement,
-): RipplePosition {
-	const rect = target.getBoundingClientRect();
-	return {
-		size: Math.max(rect.width, rect.height) * 2,
-		x: event.clientX - rect.left,
-		y: event.clientY - rect.top,
-	};
-}
-
-function rippleStyle(ripple: RippleState): CSSProperties {
-	return {
-		"--header-icon-button-ripple-size": `${ripple.size}px`,
-		"--header-icon-button-ripple-x": `${ripple.x}px`,
-		"--header-icon-button-ripple-y": `${ripple.y}px`,
-	} as CSSProperties;
 }
 
 export const HeaderIconButton = forwardRef<
@@ -73,86 +31,71 @@ export const HeaderIconButton = forwardRef<
 	},
 	ref,
 ) {
-	const [pressed, setPressed] = useState(false);
-	const [ripple, setRipple] = useState<RippleState | null>(null);
-	const ripplePhaseRef = useRef<RippleState["phase"]>("alternate");
 	const isUnavailable = disabled === true || Boolean(loading);
-
-	const showRipple = (nextRipple: RipplePosition) => {
-		if (!isUnavailable) {
-			ripplePhaseRef.current =
-				ripplePhaseRef.current === "primary" ? "alternate" : "primary";
-			setRipple({ ...nextRipple, phase: ripplePhaseRef.current });
-		}
-	};
+	const { rippleProps, showRipple, releaseRipple, finishRipple } =
+		usePressRipple(isUnavailable);
 
 	const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
 		onPointerDown?.(event);
 		if (!event.defaultPrevented && event.button === 0) {
-			setPressed(true);
-			showRipple(createPointerRipple(event, event.currentTarget));
+			showRipple(event.currentTarget, event);
 		}
-	};
-
-	const handlePointerRelease = (event: PointerEvent<HTMLElement>) => {
-		onPointerUp?.(event);
-		setPressed(false);
-	};
-
-	const handlePointerCancel = (event: PointerEvent<HTMLElement>) => {
-		onPointerCancel?.(event);
-		setPressed(false);
-	};
-
-	const handlePointerLeave = (event: PointerEvent<HTMLElement>) => {
-		onPointerLeave?.(event);
-		setPressed(false);
 	};
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		onKeyDown?.(event);
-		if (!event.defaultPrevented && (event.key === "Enter" || event.key === " ")) {
-			setPressed(true);
-			showRipple(createCenteredRipple(event.currentTarget));
+		if (
+			!event.defaultPrevented &&
+			!event.repeat &&
+			(event.key === "Enter" || event.key === " ")
+		) {
+			showRipple(event.currentTarget);
 		}
 	};
 
-	const handleKeyUp = (event: KeyboardEvent<HTMLElement>) => {
-		onKeyUp?.(event);
-		if (event.key === "Enter" || event.key === " ") {
-			setPressed(false);
-		}
-	};
-
-	const handleBlur = (event: FocusEvent<HTMLElement>) => {
-		onBlur?.(event);
-		setPressed(false);
-	};
-
+	// Project enhancement, not Pro's default: ripple replaces the text Button's
+	// active fill. The scoped public token preserves hover, focus and disabled states.
 	return (
-		<Button
-			{...buttonProps}
-			className={mergeClassNames(styles.button, className)}
-			{...(pressed ? { "data-pressed": "true" } : {})}
-			{...(ripple ? { "data-rippling": "true" } : {})}
-			{...(ripple ? { "data-ripple-phase": ripple.phase } : {})}
-			{...(disabled === undefined ? {} : { disabled })}
-			{...(loading === undefined ? {} : { loading })}
-			onAnimationEnd={(event) => {
-				onAnimationEnd?.(event);
-				setRipple(null);
-			}}
-			onBlur={handleBlur}
-			onKeyDown={handleKeyDown}
-			onKeyUp={handleKeyUp}
-			onPointerCancel={handlePointerCancel}
-			onPointerDown={handlePointerDown}
-			onPointerLeave={handlePointerLeave}
-			onPointerUp={handlePointerRelease}
-			ref={ref}
-			style={ripple ? { ...style, ...rippleStyle(ripple) } : style}
+		<ConfigProvider
+			theme={{ components: { Button: { colorFill: "transparent" } } }}
 		>
-			{children}
-		</Button>
+			<Button
+				{...buttonProps}
+				{...rippleProps}
+				className={mergeClassNames(styles.button, className)}
+				{...(disabled === undefined ? {} : { disabled })}
+				{...(loading === undefined ? {} : { loading })}
+				onAnimationEnd={(event) => {
+					onAnimationEnd?.(event);
+					finishRipple(event);
+				}}
+				onBlur={(event) => {
+					onBlur?.(event);
+					releaseRipple();
+				}}
+				onKeyDown={handleKeyDown}
+				onKeyUp={(event) => {
+					onKeyUp?.(event);
+					if (event.key === "Enter" || event.key === " ") releaseRipple();
+				}}
+				onPointerCancel={(event) => {
+					onPointerCancel?.(event);
+					releaseRipple();
+				}}
+				onPointerDown={handlePointerDown}
+				onPointerLeave={(event) => {
+					onPointerLeave?.(event);
+					releaseRipple();
+				}}
+				onPointerUp={(event) => {
+					onPointerUp?.(event);
+					releaseRipple();
+				}}
+				ref={ref}
+				style={{ ...style, ...rippleProps?.style }}
+			>
+				{children}
+			</Button>
+		</ConfigProvider>
 	);
 });

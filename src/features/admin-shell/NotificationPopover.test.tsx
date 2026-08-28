@@ -77,6 +77,10 @@ describe("NotificationPopover", () => {
 		const { user } = renderPopover();
 
 		await user.click(screen.getByRole("button", { name: "通知" }));
+		expect(screen.getByRole("button", { name: "通知" })).toHaveAttribute(
+			"data-rippling",
+			"true",
+		);
 
 		const popover = await screen.findByTestId("notification-popover");
 		expect(within(popover).getByText("账号安全检查")).toBeInTheDocument();
