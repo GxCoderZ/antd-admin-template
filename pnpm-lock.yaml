@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@ant-design/pro-components@3.1.14-2': 6d83758245f1fa090a782613ab8642bb1db02b6b2076733cc5157bab5cddafc9
+
 importers:
 
   .:
@@ -13,7 +16,7 @@ importers:
         version: 6.3.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@ant-design/pro-components':
         specifier: 3.1.14-2
-        version: 3.1.14-2(antd@6.6.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@7.2.0)
+        version: 3.1.14-2(patch_hash=6d83758245f1fa090a782613ab8642bb1db02b6b2076733cc5157bab5cddafc9)(antd@6.6.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@7.2.0)
       '@dnd-kit/core':
         specifier: 6.3.1
         version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -2819,7 +2822,7 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
-  '@ant-design/pro-components@3.1.14-2(antd@6.6.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@7.2.0)':
+  '@ant-design/pro-components@3.1.14-2(patch_hash=6d83758245f1fa090a782613ab8642bb1db02b6b2076733cc5157bab5cddafc9)(antd@6.6.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@7.2.0)':
     dependencies:
       '@ant-design/cssinjs': 2.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@ant-design/cssinjs-utils': 2.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

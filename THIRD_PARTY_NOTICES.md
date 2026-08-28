@@ -12,6 +12,13 @@ Radio for keyboard interaction, scope SVG IDs per instance, and centralize the
 original thumbnail colors in `preferenceStorage.ts`. SVG geometry and the
 upstream thumbnail dimensions, spacing and palette are retained.
 
+`patches/@ant-design__pro-components@3.1.14-2.patch` also modifies the ESM and
+CommonJS builds of the upstream provider and its `useStyle` function. It scopes
+literal theme colors through cssinjs `hashId` and uses stable cache paths,
+replacing the per-mount style-version counter. This fixes theme rules leaking
+across route remounts and repeated toggles accumulating styles. See
+`patches/README.md` for source references and the removal condition.
+
 The MIT License (MIT) Copyright (c) 2023 <copyright holders>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -290,3 +290,210 @@ test("system preference follows OS changes and explicit mode survives reload", a
 	await page.emulateMedia({ colorScheme: "light" });
 	await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
+
+test("Pro table colors follow the current theme after route remounts", async ({
+	page,
+}, testInfo) => {
+	await signIn(page);
+	const header = page.getByRole("banner");
+	await header.getByRole("button", { name: "搜索", exact: true }).click();
+	const search = page.getByRole("dialog", { name: "导航搜索" });
+	await search.getByRole("textbox").fill("用户管理");
+	await search.getByRole("menuitem", { name: "用户管理", exact: true }).click();
+	const users = page.getByTestId("admin-users-table-card");
+	await expect(users.getByRole("cell").first()).toBeVisible();
+	const surfaces = users.locator(".ant-pro-card, .ant-pro-table-search");
+	const readColors = () =>
+		surfaces.evaluateAll((nodes) =>
+			nodes.map((node) => {
+				const style = getComputedStyle(node);
+				return { background: style.backgroundColor, color: style.color };
+			}),
+		);
+	const lightColors = await readColors();
+	expect(lightColors.length).toBeGreaterThan(1);
+	await header.getByRole("button", { name: "切换为深色模式" }).click();
+	await finishVisualTransitions(page);
+	expect(await readColors()).not.toEqual(lightColors);
+	await page.getByRole("tab", { name: "仪表盘", exact: true }).click();
+	await expect(page.getByTestId("dashboard-stat-users")).toBeVisible();
+	await header.getByRole("button", { name: "切换为浅色模式" }).click();
+	await page.getByRole("tab", { name: /用户管理/ }).click();
+	await expect(users.getByRole("cell").first()).toBeVisible();
+	await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+	await finishVisualTransitions(page);
+	await testInfo.attach("table-theme-css-rules", {
+		body: JSON.stringify(
+			await surfaces.first().evaluate((node) => {
+				const matches: { selector: string; background: string }[] = [];
+				function inspect(rules: CSSRuleList) {
+					for (const rule of rules) {
+						if (
+							rule instanceof CSSStyleRule &&
+							rule.style.backgroundColor &&
+							node.matches(rule.selectorText)
+						) {
+							matches.push({
+								selector: rule.selectorText,
+								background: rule.style.backgroundColor,
+							});
+						} else if (rule instanceof CSSGroupingRule) {
+							inspect(rule.cssRules);
+						}
+					}
+				}
+				for (const sheet of document.styleSheets) inspect(sheet.cssRules);
+				return { classes: node.getAttribute("class") ?? "", matches };
+			}),
+			null,
+			2,
+		),
+		contentType: "application/json",
+	});
+	expect(await readColors()).toEqual(lightColors);
+});
+
+test("repeated theme toggles reuse their styles", async ({
+	page,
+}, testInfo) => {
+	await signIn(page);
+	await page.evaluate(() => {
+		history.pushState(null, "", "/organization/users");
+		dispatchEvent(new PopStateEvent("popstate"));
+	});
+	await expect(
+		page.getByTestId("admin-users-table-card").getByRole("cell").first(),
+	).toBeVisible();
+	const toggle = page
+		.getByRole("banner")
+		.getByRole("button", { name: /切换为(深|浅)色模式/ });
+	const styleCounts: number[] = [];
+	for (let cycle = 0; cycle < 8; cycle += 1) {
+		await toggle.click();
+		await nextPaint(page);
+		await toggle.click();
+		await nextPaint(page);
+		styleCounts.push(await page.evaluate(() => document.styleSheets.length));
+	}
+	await testInfo.attach("theme-stylesheet-counts", {
+		body: JSON.stringify(styleCounts),
+		contentType: "application/json",
+	});
+	expect(styleCounts.at(-1)).toBe(styleCounts[1]);
+});
+
+const tableThemeCases = [
+	{ path: "/organization/users", id: "admin-users-table-card" },
+	{ path: "/access/roles", id: "admin-roles-table-card" },
+	{ path: "/organization/departments", id: "admin-departments-table-card" },
+	{ path: "/organization/positions", id: "admin-positions-table-card" },
+	{
+		path: "/system/dictionaries",
+		id: "admin-dictionaries-type-table",
+		tab: "字典类型",
+	},
+	{
+		path: "/system/dictionaries",
+		id: "admin-dictionaries-item-table",
+		tab: "字典项",
+	},
+	{ path: "/system/announcements", id: "admin-announcements-table-card" },
+	{ path: "/operations/audit-logs", id: "audit-log-table-card" },
+	{ path: "/operations/login-logs", id: "login-log-table-card" },
+	{ path: "/system/about", id: "about-production-dependencies" },
+];
+
+for (const table of tableThemeCases) {
+	test(`${table.id} keeps table, query and toolbar colors aligned at every viewport`, async ({
+		page,
+	}, testInfo) => {
+		const errors: string[] = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		page.on("console", (entry) => {
+			if (entry.type() === "error") errors.push(entry.text());
+		});
+		page.on("response", (response) => {
+			if (response.status() >= 400)
+				errors.push(`${response.status()} ${response.url()}`);
+		});
+		await page.setViewportSize({ width: 1440, height: 900 });
+		await signIn(page);
+		await page.evaluate((path) => {
+			history.pushState(null, "", path);
+			dispatchEvent(new PopStateEvent("popstate"));
+		}, table.path);
+		if (table.tab)
+			await page.getByRole("tab", { name: table.tab, exact: true }).click();
+		const panel = page.getByTestId(table.id);
+		await expect(panel.getByRole("cell").first()).toBeVisible();
+		const nativeTable = panel
+			.locator(".ant-table")
+			.or(panel.and(page.locator(".ant-table")));
+		const surfaces = panel
+			.locator(
+				".ant-pro-card, .ant-pro-table-search, .ant-pro-table-list-toolbar-title",
+			)
+			.or(nativeTable);
+		const readColors = () =>
+			surfaces.evaluateAll((nodes) =>
+				nodes.map((node) => {
+					const style = getComputedStyle(node);
+					return { background: style.backgroundColor, color: style.color };
+				}),
+			);
+		const lightColors = await readColors();
+		const toggle = page
+			.getByRole("banner")
+			.getByRole("button", { name: /切换为(深|浅)色模式/ });
+		for (const [index, width] of [1440, 768, 390, 1440].entries()) {
+			await page.setViewportSize({ width, height: 900 });
+			for (const mode of ["dark", "light"]) {
+				await toggle.click();
+				await expect(page.locator("html")).toHaveAttribute("data-theme", mode);
+				await page.mouse.move(width / 2, 400);
+				await finishVisualTransitions(page);
+				const colors = await readColors();
+				if (mode === "light") expect(colors).toEqual(lightColors);
+				else expect(colors).not.toEqual(lightColors);
+				const tableBackground = await nativeTable.evaluate(
+					(node) => getComputedStyle(node).backgroundColor,
+				);
+				const proBackgrounds = await panel
+					.locator(".ant-pro-card, .ant-pro-table-search")
+					.evaluateAll((nodes) =>
+						nodes.map((node) => getComputedStyle(node).backgroundColor),
+					);
+				for (const background of proBackgrounds)
+					expect(background).toBe(tableBackground);
+				expect(
+					await page.evaluate(
+						() => document.documentElement.scrollWidth <= innerWidth,
+					),
+				).toBe(true);
+				if (index < 3)
+					await page.screenshot({
+						path: testInfo.outputPath(`${table.id}-${width}-${mode}.png`),
+					});
+				if (table.id !== "about-production-dependencies") {
+					const settings = panel.getByRole("img", {
+						name: "setting",
+						exact: true,
+					});
+					await settings.click();
+					const popup = page.locator(".ant-popover:visible");
+					await expect(popup.getByRole("tree")).toBeVisible();
+					await finishVisualTransitions(page);
+					const box = await popup.boundingBox();
+					if (!box) throw new Error("Column settings popup is missing");
+					expect(box.x).toBeGreaterThanOrEqual(0);
+					expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
+					expect(box.y).toBeGreaterThanOrEqual(0);
+					expect(box.y + box.height).toBeLessThanOrEqual(901);
+					await settings.click();
+					await expect(popup).toHaveCount(0);
+				}
+			}
+		}
+		expect(errors).toEqual([]);
+	});
+}

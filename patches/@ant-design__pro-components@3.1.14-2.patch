@@ -1,0 +1,248 @@
+diff --git a/es/provider/index.js b/es/provider/index.js
+index b582fed8ae7d5139dda59c83f28d053faf5aadeb..8f3cd3a9ee42a48e3d77fec1395eff10364e2087 100644
+--- a/es/provider/index.js
++++ b/es/provider/index.js
+@@ -191,7 +191,7 @@ const ConfigProviderContainer = props => {
+     ...(proProvideValue.token || {}),
+     proComponentsCls
+   };
+-  const [token, nativeHashId] = useCacheToken(tokenContext.theme, [tokenContext.token, finalToken ?? {}], {
++  const [token, nativeHashId, realToken] = useCacheToken(tokenContext.theme, [tokenContext.token, finalToken ?? {}], {
+     salt,
+     override: finalToken,
+     cssVar: {
+@@ -206,20 +206,9 @@ const ConfigProviderContainer = props => {
+     return true;
+   }, [proProvide.hashed, props.hashed]);
+   const hashId = useMemo(() => {
+-    if (props.hashed === false) {
+-      return '';
+-    }
+-    if (proProvide.hashed === false) return '';
+-    //Fix issue with hashId code
+-    if (isNeedOpenHash() === false) {
+-      return '';
+-    } else if (tokenContext.hashId) {
+-      return tokenContext.hashId;
+-    } else {
+-      // 生产环境或其他环境
+-      return nativeHashId;
+-    }
+-  }, [nativeHashId, proProvide.hashed, props.hashed]);
++    // FormRender and useStyle must share the same token-specific scope in every build mode.
++    return hashed ? `${nativeHashId}-${realToken._tokenKey}` : '';
++  }, [hashed, nativeHashId, realToken._tokenKey]);
+   useEffect(() => {
+     dayjs.locale(locale?.locale || 'zh-cn');
+   }, [locale?.locale]);
+diff --git a/es/provider/useStyle/index.js b/es/provider/useStyle/index.js
+index 21b6c3a3f5df5dca383270c979b218e954e211ba..507c9a7f2707a12e0c1b90b64fe7dbf14a4ce783 100644
+--- a/es/provider/useStyle/index.js
++++ b/es/provider/useStyle/index.js
+@@ -1,7 +1,7 @@
+ import { useStyleRegister } from '@ant-design/cssinjs';
+ import { TinyColor } from '@ctrl/tinycolor';
+ import { ConfigProvider as AntdConfigProvider, theme as antdTheme } from 'antd';
+-import { useContext, useEffect, useMemo, useRef } from 'react';
++import { useContext, useMemo } from 'react';
+ import { ProProvider } from "../index";
+ /**
+  * 把一个颜色设置一下透明度
+@@ -58,16 +58,6 @@ const hashString = input => {
+   }
+   return (hash >>> 0).toString(36);
+ };
+-const getProTokenKey = token => {
+-  try {
+-    // ProProvider exposes finalToken instead of useCacheToken token,
+-    // so build a stable key from Pro token payload directly.
+-    return hashString(JSON.stringify(token));
+-  } catch {
+-    return '';
+-  }
+-};
+-
+ /**
+  * 封装了一下 antd 的 useStyle
+  * @param componentName {string} 组件的名字
+@@ -77,7 +67,8 @@ const getProTokenKey = token => {
+ export function useStyle(componentName, styleFn) {
+   let {
+     token = {},
+-    hashed
++    hashed,
++    hashId: providerHashId
+   } = useContext(ProProvider);
+   const {
+     token: antdToken,
+@@ -101,17 +92,17 @@ export function useStyle(componentName, styleFn) {
+   // Register styles (side effect only in v2)
+   // Keep path sensitive to both antd theme and Pro token updates.
+   const proTokenKey = useMemo(() => {
+-    return getProTokenKey(token);
++    return hashString(JSON.stringify(token));
+   }, [token]);
+
+-  // 让 style path 对 "dark -> light 切回旧 key" 保持单调递增，
+-  // 避免回到历史 key 时触发 antd cssinjs 的样式顺序错乱。
++  // Scope literal Pro colors to their tokens; remounts must not reuse another theme's rules.
++  const styleHashId = hashed ? providerHashId ?? `${hashId || 'pro'}-${proTokenKey}` : '';
+   const styleKey = [hashId, theme.id, token.themeId, proTokenKey].filter(Boolean).join('-');
+-  const styleVersion = useMonotonicVersion(styleKey);
+-  const stylePath = [componentName, styleKey, styleVersion].filter(Boolean);
++  const stylePath = [componentName, styleKey].filter(Boolean);
+   useStyleRegister({
+     theme: theme,
+     token,
++    hashId: styleHashId,
+     path: stylePath,
+     nonce: csp?.nonce,
+     layer: {
+@@ -125,26 +116,6 @@ export function useStyle(componentName, styleFn) {
+      * 下个大版本会从返回值中移除。新代码直接 `return <div className={hashId}>...</div>` 即可。
+      */
+     wrapSSR: node => node,
+-    hashId: hashed ? hashId : ''
++    hashId: styleHashId
+   };
+ }
+-
+-/**
+- * 返回一个只增不减的版本号；每当输入 `key` 变化时递增。
+- *
+- * 为什么不直接在渲染阶段写 ref：React 并发模式下单次提交可能经历多次渲染，
+- * 直接在渲染阶段写 ref 会把版本号推得比预期大。因此这里渲染阶段只读、
+- * 把持久化推迟到 commit 阶段的 `useEffect` 里完成。
+- */
+-function useMonotonicVersion(key) {
+-  const lastKeyRef = useRef('');
+-  const versionRef = useRef(0);
+-  // 渲染阶段：只在 key 变化时临时 +1，便于当次渲染拿到新路径。
+-  if (lastKeyRef.current !== key) {
+-    versionRef.current += 1;
+-  }
+-  useEffect(() => {
+-    lastKeyRef.current = key;
+-  }, [key]);
+-  return versionRef.current;
+-}
+\ No newline at end of file
+diff --git a/lib/provider/index.js b/lib/provider/index.js
+index 5153c21c1af615d5254f581ecb2ac91188c26bae..eba99f36fcd2a3beab7a276860102ace71b91695 100644
+--- a/lib/provider/index.js
++++ b/lib/provider/index.js
+@@ -229,7 +229,7 @@ const ConfigProviderContainer = props => {
+     ...(proProvideValue.token || {}),
+     proComponentsCls
+   };
+-  const [token, nativeHashId] = (0, _cssinjs.useCacheToken)(tokenContext.theme, [tokenContext.token, finalToken ?? {}], {
++  const [token, nativeHashId, realToken] = (0, _cssinjs.useCacheToken)(tokenContext.theme, [tokenContext.token, finalToken ?? {}], {
+     salt,
+     override: finalToken,
+     cssVar: {
+@@ -244,20 +244,9 @@ const ConfigProviderContainer = props => {
+     return true;
+   }, [proProvide.hashed, props.hashed]);
+   const hashId = (0, _react.useMemo)(() => {
+-    if (props.hashed === false) {
+-      return '';
+-    }
+-    if (proProvide.hashed === false) return '';
+-    //Fix issue with hashId code
+-    if (isNeedOpenHash() === false) {
+-      return '';
+-    } else if (tokenContext.hashId) {
+-      return tokenContext.hashId;
+-    } else {
+-      // 生产环境或其他环境
+-      return nativeHashId;
+-    }
+-  }, [nativeHashId, proProvide.hashed, props.hashed]);
++    // FormRender and useStyle must share the same token-specific scope in every build mode.
++    return hashed ? `${nativeHashId}-${realToken._tokenKey}` : '';
++  }, [hashed, nativeHashId, realToken._tokenKey]);
+   (0, _react.useEffect)(() => {
+     _dayjs.default.locale(locale?.locale || 'zh-cn');
+   }, [locale?.locale]);
+diff --git a/lib/provider/useStyle/index.js b/lib/provider/useStyle/index.js
+index f1449f18f1b88ac4aec7c1c42372494ff1fc68c1..e3f0c6d5297bd7974e4a085cec458334327ba16e 100644
+--- a/lib/provider/useStyle/index.js
++++ b/lib/provider/useStyle/index.js
+@@ -69,16 +69,6 @@ const hashString = input => {
+   }
+   return (hash >>> 0).toString(36);
+ };
+-const getProTokenKey = token => {
+-  try {
+-    // ProProvider exposes finalToken instead of useCacheToken token,
+-    // so build a stable key from Pro token payload directly.
+-    return hashString(JSON.stringify(token));
+-  } catch {
+-    return '';
+-  }
+-};
+-
+ /**
+  * 封装了一下 antd 的 useStyle
+  * @param componentName {string} 组件的名字
+@@ -88,7 +78,8 @@ const getProTokenKey = token => {
+ function useStyle(componentName, styleFn) {
+   let {
+     token = {},
+-    hashed
++    hashed,
++    hashId: providerHashId
+   } = (0, _react.useContext)(_index.ProProvider);
+   const {
+     token: antdToken,
+@@ -112,17 +103,17 @@ function useStyle(componentName, styleFn) {
+   // Register styles (side effect only in v2)
+   // Keep path sensitive to both antd theme and Pro token updates.
+   const proTokenKey = (0, _react.useMemo)(() => {
+-    return getProTokenKey(token);
++    return hashString(JSON.stringify(token));
+   }, [token]);
+
+-  // 让 style path 对 "dark -> light 切回旧 key" 保持单调递增，
+-  // 避免回到历史 key 时触发 antd cssinjs 的样式顺序错乱。
++  // Scope literal Pro colors to their tokens; remounts must not reuse another theme's rules.
++  const styleHashId = hashed ? providerHashId ?? `${hashId || 'pro'}-${proTokenKey}` : '';
+   const styleKey = [hashId, theme.id, token.themeId, proTokenKey].filter(Boolean).join('-');
+-  const styleVersion = useMonotonicVersion(styleKey);
+-  const stylePath = [componentName, styleKey, styleVersion].filter(Boolean);
++  const stylePath = [componentName, styleKey].filter(Boolean);
+   (0, _cssinjs.useStyleRegister)({
+     theme: theme,
+     token,
++    hashId: styleHashId,
+     path: stylePath,
+     nonce: csp?.nonce,
+     layer: {
+@@ -136,26 +127,6 @@ function useStyle(componentName, styleFn) {
+      * 下个大版本会从返回值中移除。新代码直接 `return <div className={hashId}>...</div>` 即可。
+      */
+     wrapSSR: node => node,
+-    hashId: hashed ? hashId : ''
++    hashId: styleHashId
+   };
+ }
+-
+-/**
+- * 返回一个只增不减的版本号；每当输入 `key` 变化时递增。
+- *
+- * 为什么不直接在渲染阶段写 ref：React 并发模式下单次提交可能经历多次渲染，
+- * 直接在渲染阶段写 ref 会把版本号推得比预期大。因此这里渲染阶段只读、
+- * 把持久化推迟到 commit 阶段的 `useEffect` 里完成。
+- */
+-function useMonotonicVersion(key) {
+-  const lastKeyRef = (0, _react.useRef)('');
+-  const versionRef = (0, _react.useRef)(0);
+-  // 渲染阶段：只在 key 变化时临时 +1，便于当次渲染拿到新路径。
+-  if (lastKeyRef.current !== key) {
+-    versionRef.current += 1;
+-  }
+-  (0, _react.useEffect)(() => {
+-    lastKeyRef.current = key;
+-  }, [key]);
+-  return versionRef.current;
+-}

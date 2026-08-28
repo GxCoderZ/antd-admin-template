@@ -1,2 +1,4 @@
 allowBuilds:
   esbuild: true
+patchedDependencies:
+  "@ant-design/pro-components@3.1.14-2": patches/@ant-design__pro-components@3.1.14-2.patch
