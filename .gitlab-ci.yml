@@ -47,6 +47,11 @@ e2e_chromium:
     paths:
       - playwright-report/
       - test-results/
+    # The HTML report already contains these attachments; keep visual checks in test-results.
+    exclude:
+      - test-results/**/trace.zip
+      - test-results/**/test-failed-*.png
+      - test-results/**/error-context.md
     expire_in: 7 days
 
 deploy_pages:
