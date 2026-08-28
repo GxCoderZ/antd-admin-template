@@ -10,7 +10,17 @@ for (const width of [1440, 768, 390]) {
 		await page.locator('input[autocomplete="current-password"]').fill("admin");
 		await page.locator('button[type="submit"]').click();
 		await expect(page).toHaveURL(/\/dashboard$/);
-		await page.goto("/system/announcements");
+		if (width < 1440) {
+			await page
+				.getByRole("button", {
+					name: width === 390 ? "打开菜单" : "展开菜单",
+					exact: true,
+				})
+				.click();
+		}
+		await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+		await page.getByRole("menuitem", { name: "公告管理", exact: true }).click();
+		await expect(page).toHaveURL(/\/system\/announcements$/);
 		await page.getByRole("checkbox").nth(1).check();
 		const toolbar = page.getByTestId("admin-announcements-batch-toolbar");
 		await expect(toolbar).toBeVisible();
