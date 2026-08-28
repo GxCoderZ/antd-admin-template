@@ -49,7 +49,6 @@ describe("Dictionary item query", () => {
 		["zh-CN", "关键词", "搜索标签或字典值"],
 		["zh-TW", "關鍵字", "搜尋標籤或字典值"],
 		["en", "Keyword", "Search label or value"],
-		["ko-KR", "키워드", "라벨 또는 값 검색"],
 	])(
 		"uses a concise label and keeps the search hint in %s",
 		async (language, label, placeholder) => {

@@ -876,7 +876,8 @@ export const zhCNTranslation = {
 			batchUnpublish: "批量下线",
 			batchDelete: "批量删除",
 			batchDeleteTitle: "确认批量删除",
-			batchDeleteDescription: "将删除已选择的 {{count}} 条公告，删除后无法恢复。",
+			batchDeleteDescription:
+				"将删除已选择的 {{count}} 条公告，删除后无法恢复。",
 			batchDeleteSuccess: "已删除 {{count}} 条公告。",
 			batchStatusSuccess: "已将 {{count}} 条公告设为{{status}}。",
 			clearSelection: "取消选择",
@@ -1161,7 +1162,11 @@ export const zhCNTranslation = {
 		chinese: "简体中文",
 		traditionalChinese: "繁體中文",
 		english: "English",
-		korean: "한국어",
+		bengali: "বাংলা",
+		persian: "فارسی",
+		indonesian: "Bahasa Indonesia",
+		japanese: "日本語",
+		portuguese: "Português",
 	},
 	theme: {
 		label: "主题模式",

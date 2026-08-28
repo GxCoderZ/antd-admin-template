@@ -1,3 +1,4 @@
+import { createIntl, ProConfigProvider } from "@ant-design/pro-components";
 import {
 	type QueryClient,
 	QueryClientProvider,
@@ -7,6 +8,12 @@ import {
 } from "@tanstack/react-query";
 import { ConfigProvider, theme as antdTheme } from "antd";
 import type { Locale } from "antd/es/locale";
+import "dayjs/locale/bn-bd";
+import "dayjs/locale/fa";
+import "dayjs/locale/id";
+import "dayjs/locale/ja";
+import "dayjs/locale/pt-br";
+import "dayjs/locale/zh-tw";
 import type { ComponentType } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,6 +43,7 @@ import {
 	getSupportedLanguageMetadata,
 	type SupportedLanguageCode,
 } from "../i18n";
+import { bnBDProTranslation } from "../locales/pro-bn-BD";
 import { adminRouteDefinitions } from "./adminRoutes";
 import { ApplicationSkeleton } from "./LoadingSkeletons";
 import { LocalePreferencesProvider } from "./LocalePreferencesProvider";
@@ -57,11 +65,18 @@ import { ThemeModeProvider } from "./ThemeModeProvider";
 import { type ThemeModeContextValue, useThemeMode } from "./themeMode";
 import "./color-weak.css";
 
+// Pro Components has no built-in Bengali locale; use its public intl extension.
+const bnBDIntl = createIntl("bn-BD", bnBDProTranslation);
+
 const antdLocaleLoaders = {
+	"bn-BD": () => import("antd/locale/bn_BD"),
+	"fa-IR": () => import("antd/locale/fa_IR"),
+	"id-ID": () => import("antd/locale/id_ID"),
+	"ja-JP": () => import("antd/locale/ja_JP"),
+	"pt-BR": () => import("antd/locale/pt_BR"),
 	"zh-CN": () => import("antd/locale/zh_CN"),
 	"zh-TW": () => import("antd/locale/zh_TW"),
 	en: () => import("antd/locale/en_US"),
-	"ko-KR": () => import("antd/locale/ko_KR"),
 } satisfies Record<SupportedLanguageCode, () => Promise<{ default: Locale }>>;
 
 function useAntdLocale(language: SupportedLanguageCode) {
@@ -357,7 +372,13 @@ export function App() {
 				<QueryClientProvider client={queryClient}>
 					<PlatformBrandProvider>
 						<ThemeModeProvider value={themeModeValue}>
-							<RouterProvider router={router} />
+							<ProConfigProvider
+								{...(languageMetadata.code === "bn-BD"
+									? { intl: bnBDIntl }
+									: {})}
+							>
+								<RouterProvider router={router} />
+							</ProConfigProvider>
 						</ThemeModeProvider>
 					</PlatformBrandProvider>
 				</QueryClientProvider>

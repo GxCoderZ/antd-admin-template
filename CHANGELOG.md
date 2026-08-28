@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Header Language Menu
+
+- Ported Ant Design Pro's native language button and menu presentation, adapting
+  its locale API to i18next and its colors/spacing to public Ant Design tokens.
+- Removed the custom loading button and controlled dropdown state. Failed
+  resource loads keep the current language; the latest selection wins.
+- Matched the official eight-language menu: Bengali, English, Persian,
+  Indonesian, Japanese, Brazilian Portuguese, Simplified and Traditional Chinese.
+  Added complete app translations, component/date locales and Persian RTL;
+  removed the previous Korean option and its unused translation bundle.
+- Added coverage for pending/failed language loads, rapid choices, native menu
+  transitions, touch input and 1440/768/390px layouts.
+
 ### Table Fields
 
 - Reviewed all ten tables separately. Management lists keep required identity

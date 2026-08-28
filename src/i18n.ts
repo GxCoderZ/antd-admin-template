@@ -10,10 +10,14 @@ import {
 } from "./app/preferenceStorage";
 
 export const supportedLanguages = [
+	{ code: "bn-BD", dir: "ltr", labelKey: "language.bengali" },
+	{ code: "en", dir: "ltr", labelKey: "language.english" },
+	{ code: "fa-IR", dir: "rtl", labelKey: "language.persian" },
+	{ code: "id-ID", dir: "ltr", labelKey: "language.indonesian" },
+	{ code: "ja-JP", dir: "ltr", labelKey: "language.japanese" },
+	{ code: "pt-BR", dir: "ltr", labelKey: "language.portuguese" },
 	{ code: "zh-CN", dir: "ltr", labelKey: "language.chinese" },
 	{ code: "zh-TW", dir: "ltr", labelKey: "language.traditionalChinese" },
-	{ code: "en", dir: "ltr", labelKey: "language.english" },
-	{ code: "ko-KR", dir: "ltr", labelKey: "language.korean" },
 ] as const;
 
 export type { SupportedLanguageCode } from "./app/preferenceStorage";
@@ -35,16 +39,10 @@ function matchSupportedLanguage(
 	) {
 		return "zh-TW";
 	}
-	if (normalizedLanguage?.startsWith("ko")) {
-		return "ko-KR";
-	}
-	if (normalizedLanguage?.startsWith("en")) {
-		return "en";
-	}
-	if (normalizedLanguage?.startsWith("zh")) {
-		return "zh-CN";
-	}
-	return undefined;
+	const baseLanguage = normalizedLanguage?.split("-")[0];
+	return supportedLanguages.find(
+		({ code }) => code.split("-")[0] === baseLanguage,
+	)?.code;
 }
 
 export function resolveSupportedLanguage(
@@ -80,13 +78,21 @@ export function resolveInitialLanguage(
 }
 
 const translationLoaders = {
+	"bn-BD": () =>
+		import("./locales/bn-BD").then((module) => module.bnBDTranslation),
+	"fa-IR": () =>
+		import("./locales/fa-IR").then((module) => module.faIRTranslation),
+	"id-ID": () =>
+		import("./locales/id-ID").then((module) => module.idIDTranslation),
+	"ja-JP": () =>
+		import("./locales/ja-JP").then((module) => module.jaJPTranslation),
+	"pt-BR": () =>
+		import("./locales/pt-BR").then((module) => module.ptBRTranslation),
 	"zh-CN": () =>
 		import("./locales/zh-CN").then((module) => module.zhCNTranslation),
 	"zh-TW": () =>
 		import("./locales/zh-TW").then((module) => module.zhTWTranslation),
 	en: () => import("./locales/en").then((module) => module.enTranslation),
-	"ko-KR": () =>
-		import("./locales/ko-KR").then((module) => module.koKRTranslation),
 } satisfies Record<SupportedLanguageCode, () => Promise<ResourceKey>>;
 
 export async function loadLanguageResources(language: string) {

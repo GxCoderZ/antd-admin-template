@@ -43,7 +43,7 @@ async function finishVisualTransitions(page: Page) {
 test("顶栏快捷入口和搜索历史跨页保留", async ({ page }) => {
 	await signIn(page);
 	const header = page.getByRole("banner");
-	await header.getByRole("button", { name: "语言", exact: true }).click();
+	await header.getByRole("button", { name: "语言", exact: true }).hover();
 	await page.getByRole("menuitem", { name: "English", exact: true }).click();
 	await expect(page.locator("html")).toHaveAttribute("lang", "en");
 	await header
@@ -54,7 +54,7 @@ test("顶栏快捷入口和搜索历史跨页保留", async ({ page }) => {
 		.getByRole("button", { name: "Switch to light mode", exact: true })
 		.click();
 	await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-	await header.getByRole("button", { name: "Language", exact: true }).click();
+	await header.getByRole("button", { name: "Language", exact: true }).hover();
 	await page.getByRole("menuitem", { name: "简体中文", exact: true }).click();
 	await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
 

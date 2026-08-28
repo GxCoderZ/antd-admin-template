@@ -17,7 +17,16 @@ export const preferenceStorageKeys = {
 	userTableDensity: `${APP_PREFERENCE_PREFIX}user-table-density`,
 } as const;
 
-const supportedLanguageCodes = ["zh-CN", "zh-TW", "en", "ko-KR"] as const;
+const supportedLanguageCodes = [
+	"bn-BD",
+	"en",
+	"fa-IR",
+	"id-ID",
+	"ja-JP",
+	"pt-BR",
+	"zh-CN",
+	"zh-TW",
+] as const;
 const themeModes = ["light", "dark", "system"] as const;
 // Original Pro SettingDrawer thumbnail and SVG palette.
 export const settingsPreviewColors = {

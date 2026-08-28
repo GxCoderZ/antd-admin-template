@@ -1,11 +1,12 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigProvider } from "antd";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PermissionProvider } from "../../app/PermissionProvider";
 import { defaultPreferences } from "../../app/preferenceStorage";
 import { i18n } from "../../i18n";
+import * as languageResources from "../../i18n";
 import { AdminShellHeader } from "./AdminShellHeader";
 
 vi.mock("../../app/PlatformUserAvatar", () => ({
@@ -21,12 +22,13 @@ vi.mock("./NotificationPopover", () => ({
 }));
 
 beforeEach(async () => i18n.changeLanguage("zh-CN"));
+afterEach(() => vi.restoreAllMocks());
 
 function renderHeader(onLogout: () => Promise<void>, isDarkMode = false) {
 	const onNavigate = vi.fn();
 	const onChangeThemeMode = vi.fn();
 	render(
-		<ConfigProvider>
+		<ConfigProvider theme={{ token: { motion: false } }}>
 			<PermissionProvider permissions={[]}>
 				<AdminShellHeader
 					currentUserAvatarRevision={0}
@@ -89,11 +91,94 @@ describe("AdminShellHeader", () => {
 
 	it("changes language from the toolbar without opening preferences", async () => {
 		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
-		await user.click(screen.getByRole("button", { name: "语言" }));
+		await user.hover(screen.getByRole("button", { name: "语言" }));
+		expect(
+			await screen.findByRole("menuitem", { name: "简体中文" }),
+		).toHaveAttribute("aria-current", "true");
+		await waitFor(() =>
+			expect(screen.getByText("\u{1F1FA}\u{1F1F8}")).toBeVisible(),
+		);
 		await user.click(await screen.findByRole("menuitem", { name: "English" }));
 		expect(await screen.findByRole("button", { name: "Search" })).toBeVisible();
 		expect(i18n.resolvedLanguage).toBe("en");
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
+
+	it("keeps the language control available without a spinner while resources load", async () => {
+		let finishLoading!: () => void;
+		const pending = new Promise<void>((resolve) => {
+			finishLoading = resolve;
+		});
+		const load = vi
+			.spyOn(languageResources, "loadLanguageResources")
+			.mockReturnValueOnce(pending);
+		const change = vi.spyOn(i18n, "changeLanguage");
+		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
+		await user.hover(screen.getByRole("button", { name: "语言" }));
+		await user.click(await screen.findByRole("menuitem", { name: "English" }));
+
+		expect(load).toHaveBeenCalledWith("en");
+		expect(change).not.toHaveBeenCalled();
+		const button = screen.getByRole("button", { name: "语言" });
+		expect(button).toBeEnabled();
+		expect(within(button).queryByRole("img", { name: "loading" })).toBeNull();
+		await user.hover(button);
+		await waitFor(() =>
+			expect(screen.getByRole("menuitem", { name: "简体中文" })).toBeVisible(),
+		);
+
+		await act(async () => {
+			finishLoading();
+			await pending;
+		});
+		expect(await screen.findByRole("button", { name: "Search" })).toBeVisible();
+	});
+
+	it.each([
+		["zh-TW", "繁體中文"],
+		["zh-CN", "简体中文"],
+	])(
+		"keeps the latest choice %s when an earlier load finishes later",
+		async (code, label) => {
+			let finishLoading!: () => void;
+			const pending = new Promise<void>((resolve) => {
+				finishLoading = resolve;
+			});
+			vi.spyOn(languageResources, "loadLanguageResources").mockReturnValueOnce(
+				pending,
+			);
+			const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
+			await user.hover(screen.getByRole("button", { name: "语言" }));
+			await user.click(
+				await screen.findByRole("menuitem", { name: "English" }),
+			);
+			await user.hover(screen.getByRole("button", { name: "语言" }));
+			const choice = await screen.findByRole("menuitem", { name: label });
+			await waitFor(() => expect(choice).toBeVisible());
+			await user.click(choice);
+			await waitFor(() => expect(i18n.resolvedLanguage).toBe(code));
+
+			await act(async () => {
+				finishLoading();
+				await pending;
+			});
+			expect(i18n.resolvedLanguage).toBe(code);
+		},
+	);
+
+	it("keeps the current language and reports resource loading errors", async () => {
+		vi.spyOn(languageResources, "loadLanguageResources").mockRejectedValueOnce(
+			new Error("language chunk unavailable"),
+		);
+		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
+		await user.hover(screen.getByRole("button", { name: "语言" }));
+		await user.click(await screen.findByRole("menuitem", { name: "English" }));
+
+		await waitFor(() =>
+			expect(screen.getByText("语言切换失败，请重试")).toBeVisible(),
+		);
+		expect(i18n.resolvedLanguage).toBe("zh-CN");
+		expect(screen.getByRole("button", { name: "语言" })).toBeEnabled();
 	});
 
 	it.each([false, true])(

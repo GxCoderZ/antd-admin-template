@@ -1,0 +1,75 @@
+export const bnBDProTranslation = {
+	moneySymbol: "$",
+	deleteThisLine: "এই সারিটি মুছুন",
+	copyThisLine: "এই সারিটি কপি করুন",
+	form: {
+		lightFilter: {
+			more: "আরও",
+			clear: "পরিষ্কার",
+			confirm: "নিশ্চিত করুন",
+			itemUnit: "উপাদান",
+		},
+	},
+	tableForm: {
+		search: "অনুসন্ধান",
+		reset: "রিসেট",
+		submit: "জমা দিন",
+		collapsed: "প্রসারিত করুন",
+		expand: "সংকুচিত করুন",
+		inputPlaceholder: "অনুগ্রহ করে লিখুন",
+		selectPlaceholder: "অনুগ্রহ করে নির্বাচন করুন",
+	},
+	alert: {
+		clear: "পরিষ্কার",
+		selected: "নির্বাচিত",
+		item: "উপাদান",
+	},
+	pagination: {
+		total: {
+			range: " ",
+			total: "/",
+			item: "টি উপাদান",
+		},
+	},
+	tableToolBar: {
+		leftPin: "বাঁ দিকে পিন করুন",
+		rightPin: "ডান দিকে পিন করুন",
+		noPin: "পিন করা হয়নি",
+		leftFixedTitle: "বাঁ দিকে স্থির",
+		rightFixedTitle: "ডান দিকে স্থির",
+		noFixedTitle: "স্থির নয়",
+		reset: "রিসেট",
+		columnDisplay: "কলাম প্রদর্শন",
+		columnSetting: "সারণি সেটিংস",
+		fullScreen: "পূর্ণ পর্দা",
+		exitFullScreen: "পূর্ণ পর্দা থেকে বের হন",
+		reload: "রিফ্রেশ",
+		density: "ঘনত্ব",
+		densityDefault: "ডিফল্ট",
+		densityLarger: "বড়",
+		densityMiddle: "মধ্যম",
+		densitySmall: "সংক্ষিপ্ত",
+	},
+	stepsForm: {
+		next: "পরবর্তী",
+		prev: "পূর্ববর্তী",
+		submit: "সম্পন্ন",
+	},
+	loginForm: {
+		submitText: "লগইন",
+	},
+	editableTable: {
+		onlyOneLineEditor: "শুধু একটি সারি সম্পাদনা করা যাবে",
+		onlyAddOneLine: "শুধু একটি সারি যোগ করা যাবে",
+		action: {
+			save: "সংরক্ষণ",
+			cancel: "বাতিল",
+			delete: "মুছুন",
+			add: "একটি তথ্যের সারি যোগ করুন",
+		},
+	},
+	switch: {
+		open: "চালু",
+		close: "বন্ধ",
+	},
+} as const;

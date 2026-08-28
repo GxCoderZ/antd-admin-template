@@ -1,4 +1,5 @@
 import {
+	CheckOutlined,
 	LogoutOutlined,
 	GlobalOutlined,
 	MoonOutlined,
@@ -17,7 +18,7 @@ import {
 	theme,
 	Tooltip,
 } from "antd";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -33,11 +34,13 @@ import { usePermissionChecker } from "../../app/permissions";
 import type {
 	MenuType,
 	NavigationMode,
+	SupportedLanguageCode,
 	ThemeColor,
 	ThemeMode,
 } from "../../app/preferenceStorage";
 import {
 	isSupportedLanguageCode,
+	loadLanguageResources,
 	resolveSupportedLanguage,
 	supportedLanguages,
 } from "../../i18n";
@@ -45,6 +48,17 @@ import { AdminRouteIcon } from "./AdminRouteIcon";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationPopover } from "./NotificationPopover";
 import { SettingsDrawer } from "./SettingsDrawer";
+
+const languageFlags: Record<SupportedLanguageCode, string> = {
+	"bn-BD": "\u{1F1E7}\u{1F1E9}",
+	"fa-IR": "\u{1F1EE}\u{1F1F7}",
+	"id-ID": "\u{1F1EE}\u{1F1E9}",
+	"ja-JP": "\u{1F1EF}\u{1F1F5}",
+	"pt-BR": "\u{1F1E7}\u{1F1F7}",
+	"zh-CN": "\u{1F1E8}\u{1F1F3}",
+	"zh-TW": "\u{1F1ED}\u{1F1F0}",
+	en: "\u{1F1FA}\u{1F1F8}",
+};
 
 function collectNavigationRouteKeys(nodes: readonly AdminNavigationNode[]) {
 	return nodes.flatMap((node): string[] => [
@@ -115,8 +129,7 @@ export function AdminShellHeader({
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [preferencesOpen, setPreferencesOpen] = useState(false);
 	const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-	const [changingLanguage, setChangingLanguage] = useState(false);
-	const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+	const languageChangeId = useRef(0);
 	const showAccountName = screens.sm === true;
 	// Ported from ant-design/ant-design-pro src/components/RightContent/style.ts.
 	// Public Button styles preserve its dimensions without the upstream !important overrides.
@@ -143,15 +156,21 @@ export function AdminShellHeader({
 	const language = resolveSupportedLanguage(i18n.resolvedLanguage);
 	const themeActionLabel = t(isDarkMode ? "theme.lightMode" : "theme.darkMode");
 	const changeLanguage: MenuProps["onClick"] = ({ key }) => {
-		setLanguageMenuOpen(false);
-		if (!isSupportedLanguageCode(key) || key === language) return;
-		setChangingLanguage(true);
-		void i18n
-			.changeLanguage(key)
-			.catch(() => {
-				void messageApi.error(t("adminShell.header.languageError"));
+		if (!isSupportedLanguageCode(key)) return;
+		const changeId = ++languageChangeId.current;
+		if (key === language) return;
+		// Prepare resources before committing, so the latest choice wins without blocking the button.
+		void loadLanguageResources(key)
+			.then(() => {
+				if (changeId === languageChangeId.current) {
+					return i18n.changeLanguage(key);
+				}
 			})
-			.finally(() => setChangingLanguage(false));
+			.catch(() => {
+				if (changeId === languageChangeId.current) {
+					void messageApi.error(t("adminShell.header.languageError"));
+				}
+			});
 	};
 	const commandPaletteItems = adminRouteDefinitions
 		.filter(
@@ -225,29 +244,46 @@ export function AdminShellHeader({
 					/>
 				</Tooltip>
 				<Dropdown
-					open={languageMenuOpen}
-					onOpenChange={setLanguageMenuOpen}
+					// Corner placement flips by default; the full-width mobile menu also needs shifting.
+					align={{ overflow: { shiftX: true } }}
+					arrow
 					menu={{
 						items: supportedLanguages.map(({ code, labelKey }) => ({
+							"aria-current": code === language ? "true" : undefined,
+							icon:
+								code === language ? (
+									<CheckOutlined
+										aria-hidden
+										style={{ color: token.colorSuccess }}
+									/>
+								) : (
+									<span
+										aria-hidden
+										style={{ display: "inline-block", width: token.fontSize }}
+									/>
+								),
 							key: code,
-							label: t(labelKey),
+							label: (
+								<>
+									<span aria-hidden>{languageFlags[code]}</span> {t(labelKey)}
+								</>
+							),
 						})),
 						onClick: changeLanguage,
-						selectable: true,
 						selectedKeys: [language],
+						// Match Ant Design Pro RightContent/LangDropdown.tsx.
+						style: { minWidth: 180 },
 					}}
-					trigger={["click"]}
 					placement="bottomRight"
+					styles={{ root: { width: screens.xs ? "100%" : undefined } }}
 				>
-					<Tooltip title={languageMenuOpen ? null : t("language.label")}>
-						<Button
-							aria-label={t("language.label")}
-							icon={<GlobalOutlined aria-hidden />}
-							loading={changingLanguage}
-							style={iconActionStyle}
-							type="text"
-						/>
-					</Tooltip>
+					<Button
+						aria-label={t("language.label")}
+						style={iconActionStyle}
+						type="text"
+					>
+						<GlobalOutlined aria-hidden />
+					</Button>
 				</Dropdown>
 				<Tooltip title={themeActionLabel}>
 					<Button
