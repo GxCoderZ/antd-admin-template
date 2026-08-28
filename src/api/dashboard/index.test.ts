@@ -2,17 +2,27 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ApiProblemError } from "../client";
 import { getDashboardStatistics } from "./index";
+import type { DashboardStatistics } from "./types";
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe("dashboard API", () => {
 	it("sends the current time zone and cancellation signal through the shared client", async () => {
-		const data = {
+		const data: DashboardStatistics = {
 			userCount: 0,
+			activeUserCount: 0,
 			roleCount: 0,
+			builtInRoleCount: 0,
 			permissionCount: 10,
+			assignedPermissionCount: 0,
 			todayLoginCount: 0,
 			todayAbnormalLoginCount: 0,
+			metricComparisons: {
+				users: { week: 0.12, day: -0.11 },
+				roles: { week: 0.08, day: 0.02 },
+				permissions: { week: 0.06, day: 0.01 },
+				logins: { week: 0.16, day: -0.04 },
+			},
 			draftAnnouncementCount: 0,
 			recentLogins: [],
 			recentActivities: [],
