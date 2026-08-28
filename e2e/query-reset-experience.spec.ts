@@ -122,16 +122,18 @@ for (const entry of queries) {
 				if (desktopBox) expect(resetBox).toEqual(desktopBox);
 				else desktopBox = resetBox;
 			}
-			const clicking = performance.now();
-			await reset.click();
-			if (index === 0) {
-				await expect(page.locator(".ant-spin-spinning")).toHaveCount(1);
-				await expect(page.locator(".ant-spin-spinning")).toHaveCount(0);
+			// The budget is per interaction, not the combined duration of both clicks.
+			for (const clickIndex of [0, 1]) {
+				const clicking = performance.now();
+				await reset.click();
+				if (index === 0 && clickIndex === 0) {
+					await expect(page.locator(".ant-spin-spinning")).toHaveCount(1);
+					await expect(page.locator(".ant-spin-spinning")).toHaveCount(0);
+				}
+				await expect(reset).toBeEnabled();
+				expect(await page.locator(".ant-spin-spinning").count()).toBe(0);
+				interactionTimes.push(performance.now() - clicking);
 			}
-			await reset.click();
-			await expect(reset).toBeEnabled();
-			expect(await page.locator(".ant-spin-spinning").count()).toBe(0);
-			interactionTimes.push(performance.now() - clicking);
 			await page.screenshot({
 				path: testInfo.outputPath(`reset-${width}.png`),
 			});

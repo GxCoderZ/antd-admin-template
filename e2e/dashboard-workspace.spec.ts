@@ -11,6 +11,23 @@ async function signIn(page: Page) {
 	return performance.now() - started;
 }
 
+for (const timeZone of ["UTC", "Asia/Shanghai"]) {
+	test.describe(`工作台浏览器时区 ${timeZone}`, () => {
+		test.use({ timezoneId: timeZone });
+
+		test("今日登录提示使用浏览器时区", async ({ page }) => {
+			await signIn(page);
+			await page
+				.getByTestId("dashboard-stat-logins")
+				.getByRole("img", { name: "今日登录", exact: true })
+				.focus();
+			await expect(page.getByRole("tooltip")).toContainText(
+				`按 ${timeZone} 统计今日成功登录次数`,
+			);
+		});
+	});
+}
+
 test("工作台指标卡保留英文和深色主题（390px）", async ({ page }, testInfo) => {
 	await page.setViewportSize({ width: 390, height: 1000 });
 	await page.addInitScript(() => {
@@ -68,6 +85,9 @@ for (const width of [1440, 768, 460, 390]) {
 		});
 		await page.setViewportSize({ width, height: 1000 });
 		const openTimes = [await signIn(page)];
+		const timeZone = await page.evaluate(
+			() => Intl.DateTimeFormat().resolvedOptions().timeZone,
+		);
 		const resizeTimes: number[] = [];
 		for (const nextWidth of [1440, 768, 390, width]) {
 			const started = performance.now();
@@ -246,7 +266,7 @@ for (const width of [1440, 768, 460, 390]) {
 			.getByRole("img", { name: "今日登录", exact: true })
 			.focus();
 		await expect(page.getByRole("tooltip")).toContainText(
-			"按 Asia/Shanghai 统计今日成功登录次数",
+			`按 ${timeZone} 统计今日成功登录次数`,
 		);
 		const interactionTimes = [performance.now() - interactionStarted];
 		const users = page.getByTestId("dashboard-stat-users");
