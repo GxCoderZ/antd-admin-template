@@ -210,6 +210,21 @@ describe("RolesPage", () => {
 		}
 	});
 
+	it("opens role details from the role name", async () => {
+		const { user } = renderRolesPage();
+
+		await user.click(
+			await screen.findByRole("button", { name: role.displayName }),
+		);
+
+		const dialog = await screen.findByRole("dialog");
+		expect(
+			within(dialog).getByText("角色详情“运营管理员”"),
+		).toBeInTheDocument();
+		expect(within(dialog).getByText("operator")).toBeInTheDocument();
+		expect(within(dialog).getByText("查看公告")).toBeInTheDocument();
+	});
+
 	it("updates role permissions from the permission drawer", async () => {
 		const { user } = renderRolesPage();
 

@@ -404,6 +404,19 @@ test("角色管理支持查询、分页和标准表格工具", async ({ page }) 
 
 	await page.getByPlaceholder("搜索角色名称或标识").clear();
 	await page.getByRole("button", { name: /查\s*询/ }).click();
+	await page
+		.getByRole("row")
+		.filter({ hasText: "资产审核员" })
+		.getByRole("button", { name: "资产审核员", exact: true })
+		.click();
+	const roleDetailDrawer = page
+		.locator(".ant-drawer")
+		.filter({ hasText: "角色详情“资产审核员”" });
+	await expect(
+		roleDetailDrawer.getByText("asset-reviewer", { exact: true }),
+	).toBeVisible();
+	await page.keyboard.press("Escape");
+	await expect(roleDetailDrawer).toBeHidden();
 	await showTableActions(page);
 	await page
 		.getByRole("row")

@@ -122,6 +122,11 @@ export function RoleTablePanel({
 			{
 				dataIndex: "displayName",
 				key: "displayName",
+				render: (_, role) => (
+					<TableActionButton onClick={() => onView(role)}>
+						{role.displayName}
+					</TableActionButton>
+				),
 				search: false,
 				sortDirections: ["ascend", "descend"],
 				sorter: true,
