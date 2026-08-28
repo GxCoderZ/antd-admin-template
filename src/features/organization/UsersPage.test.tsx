@@ -198,7 +198,7 @@ async function openUserColumnSettings(
 	user: ReturnType<typeof userEvent.setup>,
 ) {
 	await user.click(screen.getByRole("img", { name: "setting" }));
-	await screen.findByRole("checkbox", { name: /用户 ID$/ });
+	await screen.findByRole("checkbox", { name: /用户 ID/ });
 }
 
 describe("UsersPage", () => {
@@ -404,20 +404,20 @@ describe("UsersPage", () => {
 		}
 		for (const column of optionalColumns) {
 			expect(
-				screen.getByRole("checkbox", { name: new RegExp(`${column}$`) }),
+				screen.getByRole("checkbox", { name: new RegExp(column) }),
 			).toBeInTheDocument();
 		}
-		fireEvent.wheel(screen.getByRole("checkbox", { name: /用户 ID$/ }), {
+		fireEvent.wheel(screen.getByRole("checkbox", { name: /用户 ID/ }), {
 			deltaY: 600,
 		});
 		const updatedAtCheckbox = await screen.findByRole("checkbox", {
-			name: /更新时间$/,
+			name: /更新时间/,
 		});
 		expect(updatedAtCheckbox).toBeInTheDocument();
 		fireEvent.wheel(updatedAtCheckbox, { deltaY: -600 });
 
 		const userIdCheckbox = await screen.findByRole("checkbox", {
-			name: /用户 ID$/,
+			name: /用户 ID/,
 		});
 		expect(userIdCheckbox).not.toBeChecked();
 		await user.click(userIdCheckbox);
@@ -448,7 +448,7 @@ describe("UsersPage", () => {
 
 		await screen.findByText("admin");
 		await openUserColumnSettings(user);
-		await user.click(screen.getByRole("checkbox", { name: /用户 ID$/ }));
+		await user.click(screen.getByRole("checkbox", { name: /用户 ID/ }));
 		expect(screen.getByRole("columnheader", { name: "用户 ID" })).toBeVisible();
 
 		cleanup();

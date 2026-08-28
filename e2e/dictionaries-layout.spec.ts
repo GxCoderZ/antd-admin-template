@@ -169,7 +169,7 @@ test("字典标签切换后恢复各自查询草稿与列设置", async ({ page 
 	await typeWorkspace
 		.getByRole("img", { name: "setting", exact: true })
 		.click();
-	await page.getByRole("checkbox", { name: /^(holder )?类型标识$/ }).uncheck();
+	await page.getByRole("checkbox", { name: /类型标识/ }).uncheck();
 	await page.getByRole("tab", { name: "字典项", exact: true }).click();
 	await itemWorkspace.getByRole("textbox").fill("项目草稿");
 	await expect(

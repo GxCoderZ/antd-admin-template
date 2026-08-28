@@ -534,6 +534,9 @@ test("用户管理角色抽屉在 390px 窄屏下不溢出", async ({ page }) =>
 	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
 	await page.getByRole("menuitem", { name: "用户管理", exact: true }).click();
 	await expect(page).toHaveURL(/\/organization\/users$/);
+	await expect(
+		page.getByRole("button", { name: "更多", exact: true }).first(),
+	).toBeVisible();
 	await page
 		.getByPlaceholder("搜索用户名、显示名称、邮箱或手机号")
 		.fill("admin");

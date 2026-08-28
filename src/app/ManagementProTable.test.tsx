@@ -122,7 +122,7 @@ describe("ManagementProTable", () => {
 		expect(screen.getByRole("columnheader", { name: "结果" })).toBeVisible();
 		expect(screen.getByRole("columnheader", { name: "操作" })).toBeVisible();
 		expect(
-			screen.queryByRole("columnheader", { name: /^(holder )?IP 地址$/ }),
+			screen.queryByRole("columnheader", { name: "IP 地址" }),
 		).not.toBeInTheDocument();
 
 		await user.click(screen.getByRole("img", { name: "setting" }));
@@ -133,14 +133,10 @@ describe("ManagementProTable", () => {
 			screen.queryByRole("checkbox", { name: /^(holder )?操作$/ }),
 		).not.toBeInTheDocument();
 		expect(
-			screen.getByRole("checkbox", { name: /^(holder )?IP 地址$/ }),
+			screen.getByRole("checkbox", { name: /IP 地址/ }),
 		).not.toBeChecked();
-		await user.click(
-			screen.getByRole("checkbox", { name: /^(holder )?IP 地址$/ }),
-		);
-		expect(
-			screen.getByRole("columnheader", { name: /^(holder )?IP 地址$/ }),
-		).toBeVisible();
+		await user.click(screen.getByRole("checkbox", { name: /IP 地址/ }));
+		expect(screen.getByRole("columnheader", { name: "IP 地址" })).toBeVisible();
 		expect(
 			screen
 				.getAllByRole("columnheader")
@@ -151,7 +147,7 @@ describe("ManagementProTable", () => {
 		const restoredUser = renderManagementProTable();
 
 		expect(
-			screen.getByRole("columnheader", { name: /^(holder )?IP 地址$/ }),
+			screen.getByRole("columnheader", { name: "IP 地址" }),
 		).toBeVisible();
 		await restoredUser.click(screen.getByRole("img", { name: "setting" }));
 		await restoredUser.click(
