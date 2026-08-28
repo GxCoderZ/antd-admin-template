@@ -1,21 +1,18 @@
-import {
-	BgColorsOutlined,
-	CheckOutlined,
-	MoonOutlined,
-	SunOutlined,
-} from "@ant-design/icons";
+import { CheckOutlined, UndoOutlined } from "@ant-design/icons";
 import {
 	Button,
 	Divider,
 	Drawer,
 	Flex,
+	Grid,
 	Popconfirm,
-	Segmented,
 	Select,
 	Switch,
 	theme,
+	Tooltip,
 	Typography,
 } from "antd";
+import type { CSSProperties, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -28,10 +25,9 @@ import {
 	type ThemeMode,
 	type TimeZone,
 } from "../../app/preferenceStorage";
-import type { ThemeChangeEvent } from "../../app/themeMode";
 import { isSupportedLanguageCode, supportedLanguages } from "../../i18n";
-
-const { Text } = Typography;
+import { SettingsPreviewChoices } from "./SettingsPreviewChoices";
+import styles from "./SettingsDrawer.module.css";
 
 export interface SettingsDrawerProps {
 	isColorBlindMode: boolean;
@@ -45,7 +41,7 @@ export interface SettingsDrawerProps {
 	onChangeMenuType: (menuType: MenuType) => void;
 	onChangeNavigationMode: (navigationMode: NavigationMode) => void;
 	onChangeThemeColor: (themeColor: ThemeColor) => void;
-	onChangeThemeMode: (themeMode: ThemeMode, event?: ThemeChangeEvent) => void;
+	onChangeThemeMode: (themeMode: ThemeMode) => void;
 	onChangeTimeZone: (timeZone: TimeZone) => void;
 	onClose: () => void;
 	onResetPreferences: () => Promise<void> | void;
@@ -53,6 +49,36 @@ export interface SettingsDrawerProps {
 	themeColor: ThemeColor;
 	themeMode: ThemeMode;
 	timeZone: TimeZone;
+}
+
+function SettingsSection({
+	title,
+	children,
+}: {
+	title: string;
+	children: ReactNode;
+}) {
+	return (
+		<section className={styles.section}>
+			<h3 className={styles.sectionTitle}>{title}</h3>
+			{children}
+		</section>
+	);
+}
+
+function SettingsRow({
+	label,
+	children,
+}: {
+	label: string;
+	children: ReactNode;
+}) {
+	return (
+		<Flex align="center" className={styles.row} justify="space-between">
+			<Typography.Text className={styles.rowLabel}>{label}</Typography.Text>
+			{children}
+		</Flex>
+	);
 }
 
 export function SettingsDrawer({
@@ -78,6 +104,16 @@ export function SettingsDrawer({
 }: SettingsDrawerProps) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
+	const screens = Grid.useBreakpoint();
+	const contentStyle: CSSProperties &
+		Record<`--settings-${string}`, string | number> = {
+		"--settings-gap": `${token.marginXS}px`,
+		"--settings-section-gap": `${token.marginSM}px`,
+		"--settings-font-size": `${token.fontSize}px`,
+		"--settings-line-height": token.lineHeight,
+		"--settings-primary": token.colorPrimary,
+		"--settings-heading": token.colorTextHeading,
+	};
 
 	return (
 		<Drawer
@@ -91,155 +127,126 @@ export function SettingsDrawer({
 					}}
 					title={t("preferences.reset.title")}
 				>
-					<Button block>{t("preferences.reset.button")}</Button>
+					<Button block icon={<UndoOutlined aria-hidden />}>
+						{t("preferences.reset.button")}
+					</Button>
 				</Popconfirm>
 			}
 			onClose={onClose}
 			open={open}
-			size={token.screenXS}
+			size={screens.sm ? 300 : "100%"}
 			title={t("preferences.title")}
 		>
-			<Flex gap={token.marginLG} vertical>
-				<Divider>{t("preferences.appearance.title")}</Divider>
-				<Flex gap={token.marginSM} vertical>
-					<Flex gap={token.marginXS} vertical>
-						<Text>{t("preferences.appearance.themeMode")}</Text>
-						<Segmented
-							aria-label={t("preferences.appearance.themeMode")}
-							block
-							onChange={(nextMode) => onChangeThemeMode(nextMode as ThemeMode)}
-							options={[
-								{
-									value: "system",
-									label: t("theme.system"),
-									icon: <BgColorsOutlined aria-hidden />,
-								},
-								{
-									value: "light",
-									label: t("theme.light"),
-									icon: <SunOutlined aria-hidden />,
-								},
-								{
-									value: "dark",
-									label: t("theme.dark"),
-									icon: <MoonOutlined aria-hidden />,
-								},
-							]}
-							value={themeMode}
-						/>
-					</Flex>
-					<Flex gap={token.marginXS} vertical>
-						<Text>{t("preferences.themeColor.title")}</Text>
-						<Flex gap={token.marginXS} wrap>
-							{themeColorOptions.map(({ labelKey, value }) => (
+			<div className={styles.content} style={contentStyle}>
+				<SettingsSection title={t("preferences.appearance.title")}>
+					<SettingsPreviewChoices<ThemeMode>
+						label={t("preferences.appearance.themeMode")}
+						onChange={onChangeThemeMode}
+						options={[
+							{ value: "light", label: t("theme.light") },
+							{ value: "dark", label: t("theme.dark") },
+							{ value: "system", label: t("theme.system") },
+						]}
+						value={themeMode}
+					/>
+				</SettingsSection>
+				<SettingsSection title={t("preferences.themeColor.title")}>
+					<Flex className={styles.swatches} gap={token.marginXS} wrap>
+						{themeColorOptions.map(({ labelKey, value }) => (
+							<Tooltip
+								key={value}
+								title={t(`preferences.themeColor.${labelKey}`)}
+								trigger={["hover", "focus"]}
+							>
 								<Button
 									aria-label={t(`preferences.themeColor.${labelKey}`)}
+									aria-pressed={themeColor === value}
+									className={styles.swatch}
 									icon={
 										themeColor === value ? <CheckOutlined aria-hidden /> : null
 									}
-									key={value}
 									onClick={() => onChangeThemeColor(value)}
-									shape="circle"
 									style={{ backgroundColor: value, color: token.colorWhite }}
+									type="text"
 								/>
-							))}
-						</Flex>
+							</Tooltip>
+						))}
 					</Flex>
-					<Flex align="center" justify="space-between">
-						<Text>{t("preferences.appearance.colorBlindMode")}</Text>
-						<Switch
-							aria-label={t("preferences.appearance.colorBlindMode")}
-							checked={isColorBlindMode}
-							onChange={onChangeColorBlindMode}
-						/>
-					</Flex>
-				</Flex>
+				</SettingsSection>
 
-				<Divider>{t("preferences.navigationLayout.title")}</Divider>
-				<Flex gap={token.marginSM} vertical>
-					<Flex gap={token.marginXS} vertical>
-						<Text>{t("preferences.navigation.mode")}</Text>
-						<Segmented
-							aria-label={t("preferences.navigation.mode")}
-							block
-							onChange={(nextMode) =>
-								onChangeNavigationMode(nextMode as NavigationMode)
-							}
+				<Divider />
+				<SettingsSection title={t("preferences.navigation.mode")}>
+					<SettingsPreviewChoices<NavigationMode>
+						label={t("preferences.navigation.mode")}
+						onChange={onChangeNavigationMode}
+						options={[
+							{ value: "side", label: t("preferences.navigation.side") },
+							{ value: "top", label: t("preferences.navigation.top") },
+							{ value: "mixed", label: t("preferences.navigation.mixed") },
+						]}
+						value={navigationMode}
+					/>
+				</SettingsSection>
+				{navigationMode !== "top" ? (
+					<SettingsSection title={t("preferences.sidebar.menuType")}>
+						<SettingsPreviewChoices<MenuType>
+							label={t("preferences.sidebar.menuType")}
+							onChange={onChangeMenuType}
 							options={[
-								{ value: "side", label: t("preferences.navigation.side") },
-								{ value: "top", label: t("preferences.navigation.top") },
-								{ value: "mixed", label: t("preferences.navigation.mixed") },
+								{ label: t("preferences.sidebar.singleMenu"), value: "single" },
+								{
+									label: t("preferences.sidebar.serviceGridMenu"),
+									value: "serviceGrid",
+								},
+								...(navigationMode === "side"
+									? [
+											{
+												label: t("preferences.sidebar.twoColumnMenu"),
+												value: "twoColumn" as const,
+											},
+											{
+												label: t("preferences.sidebar.splitServiceGridMenu"),
+												value: "splitServiceGrid" as const,
+											},
+										]
+									: []),
 							]}
-							size="large"
-							value={navigationMode}
+							value={menuType}
 						/>
-					</Flex>
-					{navigationMode !== "top" ? (
-						<Flex align="center" justify="space-between">
-							<Text>{t("preferences.sidebar.menuType")}</Text>
-							<Select<MenuType>
-								aria-label={t("preferences.sidebar.menuType")}
-								onChange={onChangeMenuType}
-								options={[
-									{
-										label: t("preferences.sidebar.singleMenu"),
-										value: "single",
-									},
-									{
-										label: t("preferences.sidebar.serviceGridMenu"),
-										value: "serviceGrid",
-									},
-									...(navigationMode === "side"
-										? [
-												{
-													label: t("preferences.sidebar.twoColumnMenu"),
-													value: "twoColumn" as const,
-												},
-												{
-													label: t("preferences.sidebar.splitServiceGridMenu"),
-													value: "splitServiceGrid" as const,
-												},
-											]
-										: []),
-								]}
-								style={{ width: token.controlHeight * 4 }}
-								value={menuType}
-							/>
-						</Flex>
-					) : null}
-					<Flex align="center" justify="space-between">
-						<Text>{t("preferences.content.footer")}</Text>
-						<Switch
-							aria-label={t("preferences.content.footer")}
-							checked={isFooterVisible}
-							onChange={onChangeFooterVisibility}
-						/>
-					</Flex>
-				</Flex>
+					</SettingsSection>
+				) : null}
+				<SettingsRow label={t("preferences.content.footer")}>
+					<Switch
+						aria-label={t("preferences.content.footer")}
+						checked={isFooterVisible}
+						onChange={onChangeFooterVisibility}
+						size="small"
+					/>
+				</SettingsRow>
 
-				<Divider>{t("preferences.languageRegion.title")}</Divider>
-				<Flex gap={token.marginSM} vertical>
-					<Flex align="center" justify="space-between">
-						<Text>{t("preferences.languageRegion.interfaceLanguage")}</Text>
+				<Divider />
+				<SettingsSection title={t("preferences.languageRegion.title")}>
+					<SettingsRow
+						label={t("preferences.languageRegion.interfaceLanguage")}
+					>
 						<Select
 							aria-label={t("preferences.languageRegion.interfaceLanguage")}
+							className={styles.select}
 							onChange={(nextLanguage) => {
-								if (isSupportedLanguageCode(nextLanguage)) {
+								if (isSupportedLanguageCode(nextLanguage))
 									onChangeLanguage(nextLanguage);
-								}
 							}}
 							options={supportedLanguages.map(({ code, labelKey }) => ({
 								label: t(labelKey),
 								value: code,
 							}))}
-							style={{ width: token.controlHeight * 4 }}
 							value={language}
 						/>
-					</Flex>
-					<Flex align="center" justify="space-between">
-						<Text>{t("preferences.languageRegion.timeZone")}</Text>
+					</SettingsRow>
+					<SettingsRow label={t("preferences.languageRegion.timeZone")}>
 						<Select
 							aria-label={t("preferences.languageRegion.timeZone")}
+							className={styles.select}
 							onChange={onChangeTimeZone}
 							optionFilterProp="label"
 							options={supportedTimeZones.map((value) => ({
@@ -247,12 +254,23 @@ export function SettingsDrawer({
 								value,
 							}))}
 							showSearch
-							style={{ width: token.controlHeight * 6 }}
 							value={timeZone}
 						/>
-					</Flex>
-				</Flex>
-			</Flex>
+					</SettingsRow>
+				</SettingsSection>
+
+				<Divider />
+				<SettingsSection title={t("preferences.otherSettings")}>
+					<SettingsRow label={t("preferences.appearance.colorBlindMode")}>
+						<Switch
+							aria-label={t("preferences.appearance.colorBlindMode")}
+							checked={isColorBlindMode}
+							onChange={onChangeColorBlindMode}
+							size="small"
+						/>
+					</SettingsRow>
+				</SettingsSection>
+			</div>
 		</Drawer>
 	);
 }

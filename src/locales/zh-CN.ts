@@ -1161,6 +1161,7 @@ export const zhCNTranslation = {
 	},
 	preferences: {
 		title: "偏好设置",
+		otherSettings: "其他设置",
 		appearance: {
 			title: "外观",
 			themeMode: "主题模式",

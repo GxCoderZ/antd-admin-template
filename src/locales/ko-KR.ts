@@ -1179,6 +1179,7 @@ export const koKRTranslation = {
 	},
 	preferences: {
 		title: "환경 설정",
+		otherSettings: "기타 설정",
 		appearance: {
 			title: "외관",
 			themeMode: "테마 모드",

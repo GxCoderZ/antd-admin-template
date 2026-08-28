@@ -1188,6 +1188,7 @@ export const enTranslation = {
 	},
 	preferences: {
 		title: "Preferences",
+		otherSettings: "Other settings",
 		appearance: {
 			title: "Appearance",
 			themeMode: "Theme mode",

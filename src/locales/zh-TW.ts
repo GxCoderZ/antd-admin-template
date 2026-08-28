@@ -1164,6 +1164,7 @@ export const zhTWTranslation = {
 	},
 	preferences: {
 		title: "偏好設定",
+		otherSettings: "其他設定",
 		appearance: {
 			title: "外觀",
 			themeMode: "主題模式",

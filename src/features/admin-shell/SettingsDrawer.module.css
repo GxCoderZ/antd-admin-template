@@ -1,0 +1,155 @@
+/* Pro SettingDrawer / BlockCheckbox geometry; see THIRD_PARTY_NOTICES.md. */
+.content {
+	min-width: 0;
+}
+
+.section {
+	margin-block-end: var(--settings-section-gap);
+}
+
+.sectionTitle {
+	margin-block: var(--settings-gap);
+	font-size: var(--settings-font-size);
+	line-height: var(--settings-line-height);
+	color: var(--settings-heading);
+}
+
+.row {
+	gap: var(--settings-gap);
+	padding-block: var(--settings-gap);
+}
+
+.rowLabel {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.select {
+	flex: 0 0 160px;
+	width: 160px;
+	max-width: 100%;
+}
+
+.choices {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--settings-preview-gap);
+	min-height: 42px;
+}
+
+.choice {
+	position: relative;
+	flex: 0 0 44px;
+	width: 44px;
+	height: 36px;
+	border-radius: 4px;
+	box-shadow: var(--settings-preview-shadow);
+}
+
+.choice:has(input:focus-visible),
+.swatch:focus-visible {
+	outline: 2px solid var(--settings-primary);
+	outline-offset: 2px;
+}
+
+.preview {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	border-radius: inherit;
+	background: var(--settings-preview-light);
+	pointer-events: none;
+}
+
+.preview::before,
+.preview::after {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-start: 0;
+	content: "";
+}
+
+.preview::before {
+	width: 33%;
+	height: 100%;
+}
+
+.preview::after {
+	width: 100%;
+	height: 25%;
+}
+
+.preview[data-preview="dark"] {
+	background: var(--settings-preview-dark);
+}
+
+.preview[data-preview="dark"]::before {
+	background: var(--settings-preview-dark-sidebar);
+}
+
+.preview[data-preview="dark"]::after {
+	background: var(--settings-preview-dark-header);
+}
+
+.preview[data-preview="side"],
+.preview[data-preview="top"],
+.preview[data-preview="mixed"] {
+	background: var(--settings-preview-content);
+}
+
+.preview[data-preview="side"]::before {
+	z-index: 1;
+	background: var(--settings-preview-navigation);
+}
+
+.preview[data-preview="side"]::after,
+.preview[data-preview="mixed"]::before {
+	background: var(--settings-preview-header);
+}
+
+.preview[data-preview="top"]::after,
+.preview[data-preview="mixed"]::after {
+	background: var(--settings-preview-navigation);
+}
+
+.previewIcon {
+	display: block;
+	color: var(--settings-preview-text);
+	font-size: 56px;
+	line-height: 56px;
+}
+
+.preview[data-preview="system"] .previewIcon {
+	display: grid;
+	place-items: center;
+	height: 100%;
+	font-size: 20px;
+	line-height: 1;
+}
+
+.selectedIcon {
+	position: absolute;
+	z-index: 2;
+	inset-inline-end: 6px;
+	bottom: 4px;
+	color: var(--settings-primary);
+	font-size: 14px;
+	font-weight: bold;
+	pointer-events: none;
+}
+
+.swatches {
+	margin-block-start: 16px;
+	padding-block-start: 8px;
+}
+
+.swatch {
+	flex: 0 0 20px;
+	width: 20px;
+	min-width: 20px;
+	height: 20px;
+	padding: 0;
+	border: 0;
+	border-radius: 2px;
+	font-size: 14px;
+}

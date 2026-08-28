@@ -113,7 +113,7 @@ describe("AdminShellHeader", () => {
 		const drawer = await screen.findByRole("dialog", { name: "偏好设置" });
 		expect(onNavigate).not.toHaveBeenCalled();
 		await user.click(
-			within(drawer).getByText(i18n.t("theme.dark"), { exact: true }),
+			within(drawer).getByRole("radio", { name: i18n.t("theme.dark") }),
 		);
 		expect(onChangeThemeMode).toHaveBeenCalledWith("dark");
 		await user.click(

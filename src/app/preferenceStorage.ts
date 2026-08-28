@@ -19,6 +19,18 @@ export const preferenceStorageKeys = {
 
 const supportedLanguageCodes = ["zh-CN", "zh-TW", "en", "ko-KR"] as const;
 const themeModes = ["light", "dark", "system"] as const;
+// Original Pro SettingDrawer thumbnail and SVG palette.
+export const settingsPreviewColors = {
+	white: "#fff",
+	black: "#000",
+	navigation: "#001529",
+	dark: "rgba(0, 21, 41, 0.85)",
+	darkSidebar: "rgba(0, 0, 0, 0.65)",
+	darkHeader: "rgba(0, 0, 0, 0.85)",
+	canvas: "#F0F2F5",
+	menuItem: "#D7DDE6",
+	divider: "#E6EAF0",
+} as const;
 export const themeColorOptions = [
 	{ labelKey: "blue", value: "#1677ff" },
 	{ labelKey: "red", value: "#f5222d" },

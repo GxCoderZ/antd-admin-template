@@ -108,7 +108,7 @@ for (const width of [1440, 390]) {
 		await expect(drawer).toBeVisible();
 		if (width === 390) await expect(drawer).toHaveCSS("width", "390px");
 		await expect(page).toHaveURL(/\/dashboard$/);
-		await drawer.getByText("深色模式", { exact: true }).click();
+		await drawer.getByRole("radio", { name: "深色模式", exact: true }).check();
 		await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 		await drawer
 			.getByRole("combobox", { name: "界面语言", exact: true })
