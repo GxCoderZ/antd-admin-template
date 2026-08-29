@@ -35,8 +35,20 @@ quality:
 
 e2e_chromium:
   stage: e2e
-  image: mcr.microsoft.com/playwright:v1.62.1-noble
+  variables:
+    PLAYWRIGHT_BROWSERS_PATH: $CI_PROJECT_DIR/.cache/ms-playwright
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+      prefix: playwright
+    paths:
+      - .pnpm-store
+      - .cache/ms-playwright
   script:
+    # This runner times out against Debian's default CDN; USTC is an official mirror.
+    - sed -i 's|http://deb.debian.org|https://mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources
+    - pnpm exec playwright install --with-deps chromium
     - pnpm run test:e2e
   artifacts:
     when: always
