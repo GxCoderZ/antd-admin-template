@@ -36,9 +36,11 @@ function RouteStateProbe({ routeKey }: Readonly<{ routeKey: string }>) {
 }
 
 function TabsHarness({
+	isMobile = false,
 	isReloading = false,
 	onReload = vi.fn(),
 }: {
+	isMobile?: boolean;
 	isReloading?: boolean;
 	onReload?: () => void;
 }) {
@@ -49,6 +51,7 @@ function TabsHarness({
 		<div data-testid="tabs-workspace" ref={workspaceRef}>
 			<AdminTabsBar
 				currentPage={getAdminRouteMetadata(location.pathname)}
+				isMobile={isMobile}
 				isReloading={isReloading}
 				onReload={onReload}
 				workspaceRef={workspaceRef}
@@ -242,6 +245,34 @@ describe("AdminTabsBar", () => {
 		await waitFor(() =>
 			expect(screen.queryByRole("menuitem", { name: "重新加载" })).toBeNull(),
 		);
+	});
+
+	it("keeps mobile tabs fixed without removing the shared more menu", async () => {
+		const onReload = vi.fn();
+		const router = createMemoryRouter(
+			[{ path: "*", element: <TabsHarness isMobile onReload={onReload} /> }],
+			{ initialEntries: ["/organization/users"] },
+		);
+
+		render(
+			<ConfigProvider>
+				<RouterProvider router={router} />
+			</ConfigProvider>,
+		);
+
+		const usersTabNode = screen.getByRole("tab", { name: /用户管理/ }).parentElement;
+		expect(usersTabNode).not.toBeNull();
+		expect(usersTabNode).not.toHaveAttribute("aria-roledescription");
+		fireEvent.contextMenu(usersTabNode!);
+		await waitFor(() =>
+			expect(screen.queryByRole("menuitem", { name: "重新加载" })).toBeNull(),
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "更多标签操作" }));
+		fireEvent.click(
+			await screen.findByRole("menuitem", { name: "重新加载" }),
+		);
+		expect(onReload).toHaveBeenCalledExactlyOnceWith();
 	});
 
 	it("closes the context-menu target and returns to the dashboard", async () => {

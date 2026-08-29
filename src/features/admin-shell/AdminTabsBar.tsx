@@ -51,6 +51,7 @@ import { HeaderIconButton } from "./HeaderIconButton";
 
 interface AdminTabsBarProps {
 	currentPage: AdminRouteMetadata;
+	isMobile: boolean;
 	isReloading?: boolean;
 	onReload: () => void;
 	workspaceRef: RefObject<HTMLDivElement | null>;
@@ -159,6 +160,7 @@ function FixedTabNode({ children, ...tabProps }: Readonly<TabNodeProps>) {
 
 export function AdminTabsBar({
 	currentPage,
+	isMobile,
 	isReloading = false,
 	onReload,
 	workspaceRef,
@@ -193,8 +195,11 @@ export function AdminTabsBar({
 	}
 	// A new items reference makes useSortable replace native tab transitions.
 	const sortableTabKeys = useMemo(
-		() => openTabKeys.filter((tabKey) => tabKey !== dashboardPath),
-		[openTabKeys],
+		() =>
+			isMobile
+				? []
+				: openTabKeys.filter((tabKey) => tabKey !== dashboardPath),
+		[isMobile, openTabKeys],
 	);
 
 	const activeTabKey =
@@ -522,7 +527,7 @@ export function AdminTabsBar({
 							{(node) => {
 								const tabNodeProps = (node as ReactElement<TabNodeProps>).props;
 								const tabKey = String(node.key);
-								return node.key === dashboardPath ? (
+								return node.key === dashboardPath || isMobile ? (
 									<FixedTabNode {...tabNodeProps} key={node.key}>
 										{node}
 									</FixedTabNode>

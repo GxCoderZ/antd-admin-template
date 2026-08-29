@@ -8,6 +8,23 @@ async function signIn(page: Page) {
 	await expect(page).toHaveURL(/\/dashboard$/);
 }
 
+test("mobile tabs omit drag and context-menu interactions", async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 900 });
+	await signIn(page);
+	await page.evaluate(() => {
+		history.pushState(null, "", "/organization/users");
+		dispatchEvent(new PopStateEvent("popstate"));
+	});
+	await expect(page).toHaveURL(/\/organization\/users$/);
+
+	const usersTabNode = page.getByRole("tab", { name: /用户管理/ }).locator("..");
+	await expect(usersTabNode).not.toHaveAttribute("aria-roledescription");
+	await usersTabNode.click({ button: "right" });
+	await expect(
+		page.getByRole("menuitem", { name: "重新加载", exact: true }),
+	).toHaveCount(0);
+});
+
 test("mobile tab fullscreen uses page-level workspace mode", async ({
 	page,
 }, testInfo) => {

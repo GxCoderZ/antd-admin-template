@@ -55,7 +55,10 @@ interface DesktopMenuState {
 }
 
 interface AdminShellNavigationProps {
-	children: (layout: { showSidebarNavigation: boolean }) => ReactNode;
+	children: (layout: {
+		isMobileNavigation: boolean;
+		showSidebarNavigation: boolean;
+	}) => ReactNode;
 	currentPage: AdminRouteMetadata;
 	headerActions: ReactNode;
 	logo: ReactNode;
@@ -677,7 +680,10 @@ export function AdminShellNavigation({
 					/>
 				</Drawer>
 
-				{children({ showSidebarNavigation })}
+				{children({
+					isMobileNavigation: showMobileNavigation,
+					showSidebarNavigation,
+				})}
 			</Layout>
 		</Layout>
 	);

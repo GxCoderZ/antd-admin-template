@@ -190,7 +190,7 @@ export function AdminShellPage({
 			shortTitle={brand.shortTitle}
 			siteTitle={brand.siteTitle}
 		>
-			{({ showSidebarNavigation }) => (
+			{({ isMobileNavigation, showSidebarNavigation }) => (
 				<div
 					data-testid="admin-shell-tab-workspace"
 					ref={tabWorkspaceRef}
@@ -208,6 +208,7 @@ export function AdminShellPage({
 				>
 					<AdminTabsBar
 						currentPage={currentPage}
+						isMobile={isMobileNavigation}
 						isReloading={isReloading}
 						onReload={reloadCurrentPage}
 						workspaceRef={tabWorkspaceRef}
