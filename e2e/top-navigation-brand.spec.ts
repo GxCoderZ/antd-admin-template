@@ -1,5 +1,24 @@
 import { expect, test } from "@playwright/test";
 
+test("侧边导航品牌沿用顶部导航的字号和 Logo 规格", async ({ page }) => {
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await page.goto("/login");
+	await page.locator('input[autocomplete="username"]').fill("admin");
+	await page.locator('input[autocomplete="current-password"]').fill("admin");
+	await page.locator('button[type="submit"]').click();
+	await expect(page).toHaveURL(/\/dashboard$/);
+
+	const brand = page.getByTestId("admin-shell-sidebar-logo");
+	await expect(brand).toBeVisible();
+	await expect(brand.getByText("React Antd Admin", { exact: true })).toHaveCSS(
+		"font-size",
+		"16px",
+	);
+	const logo = await brand.locator("svg, img").first().boundingBox();
+	expect(logo?.width).toBe(32);
+	expect(logo?.height).toBe(32);
+});
+
 test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ page }, testInfo) => {
 	const errors: string[] = [];
 	const timings = {

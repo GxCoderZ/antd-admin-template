@@ -395,6 +395,7 @@ export function AdminShellNavigation({
 						strong
 						title={siteTitle}
 						style={{
+							fontSize: token.fontSizeLG,
 							lineHeight: `${token.controlHeight}px`,
 							whiteSpace: "nowrap",
 						}}
