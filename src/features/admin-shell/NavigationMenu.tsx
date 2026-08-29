@@ -1,6 +1,7 @@
 import { ConfigProvider, Menu, type MenuProps } from "antd";
 import { createPortal } from "react-dom";
 
+import { appAntdCssVar } from "../../app/antdCssVar";
 import styles from "./PressRipple.module.css";
 import { usePressRipple } from "./usePressRipple";
 
@@ -19,6 +20,7 @@ export function NavigationMenu(props: MenuProps) {
 	return (
 		<ConfigProvider
 			theme={{
+				cssVar: appAntdCssVar,
 				components: {
 					Menu: {
 						// Horizontal group titles use itemBorderRadius; popup items have their own token.

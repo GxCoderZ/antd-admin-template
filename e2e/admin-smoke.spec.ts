@@ -47,22 +47,9 @@ test("Fake 登录后可以查看关于系统信息", async ({ page }) => {
 	await expect(page).toHaveURL(/\/system\/about$/);
 
 	await expect(page.getByTestId("about-runtime-service")).toBeVisible();
-	await expect(page.getByTestId("about-production-dependencies")).toHaveClass(
-		/ant-table-medium/,
-	);
 	await expect(
-		page.getByTestId("about-technology-item-GitLab CI/CD"),
-	).toBeVisible();
-	await expect(
-		page.getByTestId("about-technology-item-Cloudflare Pages"),
-	).toBeVisible();
-	await expect(
-		page.getByTestId("about-technology-platform").getByText(/GitHub/),
+		page.getByRole("heading", { name: "技术栈与工程能力" }),
 	).toHaveCount(0);
-	await expect(
-		page.getByTestId("about-technology-item-Playwright"),
-	).toBeVisible();
-	await expect(page.getByTestId("about-technology-item-Knip")).toBeVisible();
 });
 
 test("页面标签支持右键菜单关闭目标标签", async ({ page }) => {
@@ -503,8 +490,7 @@ test("数据表按操作数量展示主要操作或更多菜单", async ({ page 
 	await page.keyboard.press("Escape");
 
 	await page.getByRole("menuitem", { name: "关于系统", exact: true }).click();
-	await page.getByRole("button", { name: "更多", exact: true }).first().click();
-	await expect(page.getByRole("menuitem", { name: "复制包名" })).toBeVisible();
+	await expect(page.getByTestId("about-runtime-service")).toBeVisible();
 });
 
 test("用户管理角色抽屉通过草稿选择统一保存", async ({ page }) => {

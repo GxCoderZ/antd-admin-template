@@ -2,6 +2,7 @@ import { Button, ConfigProvider, type ButtonProps } from "antd";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { forwardRef } from "react";
 
+import { appAntdCssVar } from "../../app/antdCssVar";
 import styles from "./PressRipple.module.css";
 import { usePressRipple } from "./usePressRipple";
 
@@ -57,7 +58,10 @@ export const HeaderIconButton = forwardRef<
 	// active fill. The scoped public token preserves hover, focus and disabled states.
 	return (
 		<ConfigProvider
-			theme={{ components: { Button: { colorFill: "transparent" } } }}
+			theme={{
+				cssVar: appAntdCssVar,
+				components: { Button: { colorFill: "transparent" } },
+			}}
 		>
 			<Button
 				{...buttonProps}

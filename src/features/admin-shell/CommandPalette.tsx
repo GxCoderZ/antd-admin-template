@@ -19,6 +19,7 @@ import {
 	readNavigationSearchHistory,
 	writeNavigationSearchHistory,
 } from "../../app/preferenceStorage";
+import { appAntdCssVar } from "../../app/antdCssVar";
 import styles from "./CommandPalette.module.css";
 
 interface CommandPaletteItem {
@@ -96,6 +97,27 @@ export function CommandPalette({
 		Math.max(filteredItems.length - 1, 0),
 	);
 	const activeItem = filteredItems[activeIndex];
+	const menuTheme = useMemo(
+		() => ({
+			cssVar: appAntdCssVar,
+			components: {
+				Menu: {
+					itemHeight: 56,
+					itemMarginInline: 0,
+					itemMarginBlock: token.marginXS,
+					itemSelectedBg: token.colorPrimary,
+					itemSelectedColor: token.colorTextLightSolid,
+					itemBorderRadius: token.borderRadius,
+				},
+			},
+		}),
+		[
+			token.borderRadius,
+			token.colorPrimary,
+			token.colorTextLightSolid,
+			token.marginXS,
+		],
+	);
 	const closePalette = useCallback(() => {
 		setQuery("");
 		setSelectedIndex(0);
@@ -221,20 +243,7 @@ export function CommandPalette({
 			}
 		>
 			{activeItem ? (
-				<ConfigProvider
-					theme={{
-						components: {
-							Menu: {
-								itemHeight: 56,
-								itemMarginInline: 0,
-								itemMarginBlock: token.marginXS,
-								itemSelectedBg: token.colorPrimary,
-								itemSelectedColor: token.colorTextLightSolid,
-								itemBorderRadius: token.borderRadius,
-							},
-						},
-					}}
-				>
+				<ConfigProvider theme={menuTheme}>
 					<Menu
 						styles={{
 							item: { display: "flex", alignItems: "center" },

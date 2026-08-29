@@ -157,9 +157,8 @@ for (const width of [1440, 768, 460, 390]) {
 				.getByTestId("chart-card-total")
 				.boundingBox())!;
 			expect(totalBox.x - cardBox.x).toBeCloseTo(24, 0);
-			// Native Card's 56px header includes a -1px bottom margin.
-			expect(totalBox.y - cardBox.y).toBeCloseTo(101, 0);
-			expect(cardBox.height).toBeCloseTo(237, 0);
+			expect(totalBox.y - cardBox.y).toBeCloseTo(46, 0);
+			expect(cardBox.height).toBeCloseTo(182, 0);
 		}
 		await expect(entries.getByRole("link")).toHaveCount(5);
 		if (width === 390) {

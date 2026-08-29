@@ -1,7 +1,18 @@
 import { defineFakeRoute } from "vite-plugin-fake-server/client";
 
+import { getSettingsState } from "./settings-state";
 import { notifications } from "./store";
 import { pageValue, resultError, resultSuccess, routeParam } from "./utils";
+
+function emptyNotificationPage(pageSize: number) {
+	return {
+		items: [],
+		page: 1,
+		page_size: pageSize,
+		total: 0,
+		unread_count: 0,
+	};
+}
 
 export default defineFakeRoute([
 	{
@@ -10,6 +21,9 @@ export default defineFakeRoute([
 		response: ({ query }) => {
 			const requestedPage = pageValue(query.page, 1);
 			const pageSize = pageValue(query.page_size, 10);
+			if (!getSettingsState().notifications.inboxEnabled) {
+				return resultSuccess(emptyNotificationPage(pageSize));
+			}
 			const keyword = (routeParam(query.keyword) ?? "").trim().toLowerCase();
 			const unreadOnly = routeParam(query.unread) === "true";
 			const filtered = notifications.filter((notification) => {
@@ -38,6 +52,9 @@ export default defineFakeRoute([
 		method: "delete",
 		url: "/account/notifications",
 		response: () => {
+			if (!getSettingsState().notifications.inboxEnabled) {
+				return resultSuccess({ deleted: 0 });
+			}
 			const deleted = notifications.length;
 			notifications.splice(0, notifications.length);
 			return resultSuccess({ deleted });
@@ -47,6 +64,9 @@ export default defineFakeRoute([
 		method: "patch",
 		url: "/account/notifications/:notificationId/read",
 		response: ({ params }) => {
+			if (!getSettingsState().notifications.inboxEnabled) {
+				return resultError("Notification center is disabled", 404);
+			}
 			const notification = notifications.find(
 				(item) => item.id === routeParam(params.notificationId),
 			);
@@ -59,6 +79,9 @@ export default defineFakeRoute([
 		method: "post",
 		url: "/account/notifications/read-all",
 		response: () => {
+			if (!getSettingsState().notifications.inboxEnabled) {
+				return resultSuccess({ updated: 0 });
+			}
 			const timestamp = new Date().toISOString();
 			let updated = 0;
 			notifications.forEach((notification) => {

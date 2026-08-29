@@ -244,7 +244,6 @@ export const zhTWTranslation = {
 			draftAnnouncementCount: "{{count}} 則公告待發布",
 			noDraftAnnouncements: "暫無待發布公告",
 			maintenanceNotice: "系統維護提示",
-			maintenanceEndsAt: "預計恢復：{{time}}",
 			noMaintenance: "目前未開啟維護模式",
 			activitySummary: "{{actor}} {{action}} {{target}}",
 			activityActions: {
@@ -466,8 +465,6 @@ export const zhTWTranslation = {
 		},
 		about: {
 			description: "查看目前 Fake-only UI 能力與前端技術基線。",
-			stackTitle: "技術棧與工程能力",
-			dependenciesTitle: "前端依賴",
 			runtime: {
 				title: "建置與執行",
 				service: "Fake 服務",
@@ -482,39 +479,6 @@ export const zhTWTranslation = {
 					"local-production": "本機正式建置",
 				},
 				loadError: "無法載入服務資訊",
-			},
-			groups: {
-				frontend: "前端技術棧",
-				fake: "Fake-only 架構與測試",
-				platform: "工程品質與部署",
-			},
-			nameColumn: "依賴",
-			versionColumn: "版本",
-			typeLabel: "類型：{{value}}",
-			versionLabel: "版本：{{value}}",
-			notSelected: "待定（供應商未選擇）",
-			status: {
-				enabled: "已啟用",
-				approved: "已核准",
-				reserved: "邊界預留",
-			},
-			types: {
-				apiClient: "API 用戶端",
-				architecture: "架構能力",
-				build: "建置工具",
-				ci: "CI/CD",
-				componentLibrary: "元件庫",
-				deployment: "部署平台",
-				dependencyAutomation: "依賴自動化",
-				i18n: "國際化",
-				language: "程式語言",
-				mock: "Mock",
-				packageManager: "套件管理",
-				routing: "路由",
-				runtime: "執行環境",
-				serverState: "伺服器狀態與請求快取",
-				testing: "測試工具",
-				webFramework: "前端框架",
 			},
 		},
 		deviceInfo: {
@@ -631,31 +595,16 @@ export const zhTWTranslation = {
 				loginAccess: "登入入口",
 				maintenanceEnabled: "維護模式",
 				maintenanceMessage: "維護提示文案",
-				maintenanceEndsAt: "預計恢復時間",
-				captchaEnabled: "登入驗證碼",
-				passwordMinLength: "密碼最小長度",
-				passwordRequirements: "密碼規則",
-				loginFailureLimit: "登入失敗鎖定次數",
-				lockoutMinutes: "登入失敗鎖定時長",
-				idleTimeoutMinutes: "閒置逾時登出",
-				forceInitialPasswordChange: "首次登入強制改密",
 			},
 			loginAccess: {
 				all: "允許所有人登入",
 				adminOnly: "僅管理員可登入",
 				disabled: "暫停所有人登入",
 			},
-			passwordRequirements: {
-				lowercase: "小寫字母",
-				uppercase: "大寫字母",
-				number: "數字",
-				symbol: "特殊字元",
-			},
+
 			notifications: {
 				announcementsEnabled: "系統公告",
 				inboxEnabled: "站內通知",
-				unreadReminderEnabled: "未讀訊息提醒",
-				retentionDays: "訊息保留天數",
 			},
 			units: {
 				characters: "字元",
@@ -800,10 +749,12 @@ export const zhTWTranslation = {
 				updatedAt: "更新時間",
 				actions: "操作",
 			},
+
 			types: {
 				builtIn: "內建角色",
 				custom: "自訂角色",
 			},
+
 			fields: {
 				displayName: "角色名稱",
 				roleKey: "角色識別碼",

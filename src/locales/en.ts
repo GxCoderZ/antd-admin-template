@@ -248,7 +248,6 @@ export const enTranslation = {
 			draftAnnouncementCount: "Unpublished announcements: {{count}}",
 			noDraftAnnouncements: "No unpublished announcements",
 			maintenanceNotice: "System maintenance",
-			maintenanceEndsAt: "Expected recovery: {{time}}",
 			noMaintenance: "Maintenance mode is not enabled",
 			activitySummary: "{{actor}} {{action}} {{target}}",
 			activityActions: {
@@ -476,8 +475,6 @@ export const enTranslation = {
 		about: {
 			description:
 				"Review the enabled Fake-only UI capabilities and the current frontend technology baseline.",
-			stackTitle: "Technology and engineering capabilities",
-			dependenciesTitle: "Frontend dependencies",
 			runtime: {
 				title: "Build and runtime",
 				service: "Fake service",
@@ -492,39 +489,6 @@ export const enTranslation = {
 					"local-production": "Local production build",
 				},
 				loadError: "Unable to load service information",
-			},
-			groups: {
-				frontend: "Frontend stack",
-				fake: "Fake-only architecture and testing",
-				platform: "Engineering quality and deployment",
-			},
-			nameColumn: "Dependency",
-			versionColumn: "Version",
-			typeLabel: "Type: {{value}}",
-			versionLabel: "Version: {{value}}",
-			notSelected: "Pending (provider not selected)",
-			status: {
-				enabled: "Enabled",
-				approved: "Approved",
-				reserved: "Boundary reserved",
-			},
-			types: {
-				apiClient: "API client",
-				architecture: "Architecture capability",
-				build: "Build tooling",
-				ci: "CI/CD",
-				componentLibrary: "Component library",
-				deployment: "Deployment platform",
-				dependencyAutomation: "Dependency automation",
-				i18n: "Internationalization",
-				language: "Programming language",
-				mock: "Mocking",
-				packageManager: "Package management",
-				routing: "Routing",
-				runtime: "Runtime",
-				serverState: "Server state and request caching",
-				testing: "Testing",
-				webFramework: "Frontend framework",
 			},
 		},
 		deviceInfo: {
@@ -641,31 +605,16 @@ export const enTranslation = {
 				loginAccess: "Login access",
 				maintenanceEnabled: "Maintenance mode",
 				maintenanceMessage: "Maintenance message",
-				maintenanceEndsAt: "Expected recovery time",
-				captchaEnabled: "Login CAPTCHA",
-				passwordMinLength: "Minimum password length",
-				passwordRequirements: "Password requirements",
-				loginFailureLimit: "Failed login limit",
-				lockoutMinutes: "Lockout duration",
-				idleTimeoutMinutes: "Idle sign-out timeout",
-				forceInitialPasswordChange: "Require password change on first login",
 			},
 			loginAccess: {
 				all: "Allow everyone",
 				adminOnly: "Administrators only",
 				disabled: "Pause all logins",
 			},
-			passwordRequirements: {
-				lowercase: "Lowercase letters",
-				uppercase: "Uppercase letters",
-				number: "Numbers",
-				symbol: "Special characters",
-			},
+
 			notifications: {
 				announcementsEnabled: "System announcements",
 				inboxEnabled: "In-app notifications",
-				unreadReminderEnabled: "Unread message reminders",
-				retentionDays: "Message retention",
 			},
 			units: {
 				characters: "characters",
@@ -817,10 +766,12 @@ export const enTranslation = {
 				updatedAt: "Updated at",
 				actions: "Actions",
 			},
+
 			types: {
 				builtIn: "Built-in role",
 				custom: "Custom role",
 			},
+
 			fields: {
 				displayName: "Role name",
 				roleKey: "Role key",

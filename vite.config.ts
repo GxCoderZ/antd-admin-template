@@ -5,11 +5,6 @@ import { vitePluginFakeServer } from "vite-plugin-fake-server";
 
 import packageJson from "./package.json" with { type: "json" };
 
-const installedDependencies = {
-	...packageJson.dependencies,
-	...packageJson.devDependencies,
-};
-
 export default defineConfig(({ mode }) => {
 	const buildMetadata = {
 		builtAt: new Date().toISOString(),
@@ -26,13 +21,7 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		define: {
-			__ADMIN_WEB_DEPENDENCIES__: JSON.stringify(packageJson.dependencies),
 			__BUILD_METADATA__: JSON.stringify(buildMetadata),
-			__INSTALLED_DEPENDENCIES__: JSON.stringify(installedDependencies),
-			__WORKSPACE_TOOL_VERSIONS__: JSON.stringify({
-				node: packageJson.engines.node,
-				pnpm: packageJson.packageManager.replace("pnpm@", ""),
-			}),
 		},
 		plugins: [
 			react(),

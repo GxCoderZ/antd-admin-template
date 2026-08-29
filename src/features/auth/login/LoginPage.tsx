@@ -69,6 +69,9 @@ export function LoginPage({
 			if (loginMutation.error.status === 429) {
 				return t("login.rateLimited");
 			}
+			if (loginMutation.error.status === 403) {
+				return loginMutation.error.message;
+			}
 		}
 
 		return t("login.failed");

@@ -254,7 +254,6 @@ export function DashboardActivityPanels({
 }) {
 	const { t } = useTranslation();
 	const { token } = theme.useToken();
-	const preferences = useLocalePreferences();
 	const can = usePermissionChecker();
 	const canReadLogs = can(platformPermissions.logsRead);
 	const canReadAnnouncements = can(platformPermissions.announcementsRead);
@@ -390,24 +389,9 @@ export function DashboardActivityPanels({
 								/>
 							}
 							description={
-								security.maintenanceEnabled ? (
-									<Flex vertical gap={token.marginXXS}>
-										<span>{security.maintenanceMessage}</span>
-										{security.maintenanceEndsAt && (
-											<span>
-												{t("adminShell.dashboard.maintenanceEndsAt", {
-													time: formatDateTime(
-														security.maintenanceEndsAt,
-														preferences,
-														{ timeStyle: "short" },
-													),
-												})}
-											</span>
-										)}
-									</Flex>
-								) : (
-									t("adminShell.dashboard.noMaintenance")
-								)
+								security.maintenanceEnabled
+									? security.maintenanceMessage
+									: t("adminShell.dashboard.noMaintenance")
 							}
 							action={
 								can(platformPermissions.settingsManage) ? (

@@ -93,20 +93,10 @@ const settings: PlatformSettings = {
 		loginAccess: "all",
 		maintenanceEnabled: false,
 		maintenanceMessage: "系统维护中，请稍后再试。",
-		maintenanceEndsAt: null,
-		captchaEnabled: false,
-		passwordMinLength: 8,
-		passwordRequirements: ["lowercase", "number"],
-		loginFailureLimit: 5,
-		lockoutMinutes: 15,
-		idleTimeoutMinutes: 30,
-		forceInitialPasswordChange: false,
 	},
 	notifications: {
 		announcementsEnabled: true,
 		inboxEnabled: true,
-		unreadReminderEnabled: true,
-		retentionDays: 90,
 	},
 	version: 1,
 };
@@ -202,6 +192,11 @@ describe("dashboard workspace", () => {
 			expect(field.getByText(value, { exact: true })).toBeVisible();
 			expect(card.queryByText("统计范围")).not.toBeInTheDocument();
 		}
+		expect(
+			within(screen.getByTestId("dashboard-stat-users")).getAllByText(
+				"用户总数",
+			),
+		).toHaveLength(1);
 		const users = within(screen.getByTestId("dashboard-stat-users"));
 		expect(users.getByRole("img", { name: "caret-up" })).toBeVisible();
 		expect(users.getByRole("img", { name: "caret-down" })).toBeVisible();
@@ -293,13 +288,11 @@ describe("dashboard workspace", () => {
 				...settings.security,
 				maintenanceEnabled: true,
 				maintenanceMessage: "预览维护提示",
-				maintenanceEndsAt: "2026-08-29T00:00:00.000Z",
 			},
 			notifications: { ...settings.notifications, announcementsEnabled: false },
 		});
 		renderDashboard();
 		expect(await screen.findByText("预览维护提示")).toBeVisible();
-		expect(screen.getByText(/预计恢复/)).toHaveTextContent("2026");
 		expect(screen.getByText("系统公告已关闭")).toBeVisible();
 		expect(screen.queryByText("预览版本更新")).not.toBeInTheDocument();
 	});

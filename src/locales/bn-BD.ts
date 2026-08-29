@@ -242,7 +242,6 @@ export const bnBDTranslation = {
 			draftAnnouncementCount: "অপ্রকাশিত ঘোষণা: {{count}}",
 			noDraftAnnouncements: "কোনো অপ্রকাশিত ঘোষণা নেই",
 			maintenanceNotice: "সিস্টেম রক্ষণাবেক্ষণ",
-			maintenanceEndsAt: "প্রত্যাশিত পুনরুদ্ধার: {{time}}",
 			noMaintenance: "রক্ষণাবেক্ষণ মোড সক্রিয় নয়",
 			activitySummary: "{{actor}} {{action}} {{target}}",
 			activityActions: {
@@ -471,8 +470,6 @@ export const bnBDTranslation = {
 		about: {
 			description:
 				"সক্রিয় Fake-only UI সক্ষমতা এবং বর্তমান ফ্রন্টএন্ড প্রযুক্তি ভিত্তি দেখুন।",
-			stackTitle: "প্রযুক্তি ও প্রকৌশল সক্ষমতা",
-			dependenciesTitle: "ফ্রন্টএন্ড নির্ভরতা",
 			runtime: {
 				title: "বিল্ড ও রানটাইম",
 				service: "Fake পরিষেবা",
@@ -487,39 +484,6 @@ export const bnBDTranslation = {
 					"local-production": "স্থানীয় প্রোডাকশন বিল্ড",
 				},
 				loadError: "পরিষেবার তথ্য লোড করা যায়নি",
-			},
-			groups: {
-				frontend: "ফ্রন্টএন্ড স্ট্যাক",
-				fake: "Fake-only স্থাপত্য ও পরীক্ষা",
-				platform: "প্রকৌশল গুণমান ও ডিপ্লয়মেন্ট",
-			},
-			nameColumn: "নির্ভরতা",
-			versionColumn: "সংস্করণ",
-			typeLabel: "ধরন: {{value}}",
-			versionLabel: "সংস্করণ: {{value}}",
-			notSelected: "অপেক্ষমাণ (প্রদানকারী নির্বাচিত নয়)",
-			status: {
-				enabled: "সক্রিয়",
-				approved: "অনুমোদিত",
-				reserved: "সীমানা সংরক্ষিত",
-			},
-			types: {
-				apiClient: "API ক্লায়েন্ট",
-				architecture: "স্থাপত্য সক্ষমতা",
-				build: "বিল্ড টুলিং",
-				ci: "CI/CD",
-				componentLibrary: "কম্পোনেন্ট লাইব্রেরি",
-				deployment: "ডিপ্লয়মেন্ট প্ল্যাটফর্ম",
-				dependencyAutomation: "নির্ভরতা স্বয়ংক্রিয়করণ",
-				i18n: "আন্তর্জাতিকীকরণ",
-				language: "প্রোগ্রামিং ভাষা",
-				mock: "মকিং",
-				packageManager: "প্যাকেজ ব্যবস্থাপনা",
-				routing: "রাউটিং",
-				runtime: "রানটাইম",
-				serverState: "সার্ভার অবস্থা ও অনুরোধ ক্যাশিং",
-				testing: "পরীক্ষা",
-				webFramework: "ফ্রন্টএন্ড ফ্রেমওয়ার্ক",
 			},
 		},
 		deviceInfo: {
@@ -629,31 +593,16 @@ export const bnBDTranslation = {
 				loginAccess: "সাইন-ইন প্রবেশাধিকার",
 				maintenanceEnabled: "রক্ষণাবেক্ষণ মোড",
 				maintenanceMessage: "রক্ষণাবেক্ষণ বার্তা",
-				maintenanceEndsAt: "প্রত্যাশিত পুনরুদ্ধারের সময়",
-				captchaEnabled: "সাইন-ইন CAPTCHA",
-				passwordMinLength: "পাসওয়ার্ডের ন্যূনতম দৈর্ঘ্য",
-				passwordRequirements: "পাসওয়ার্ডের শর্ত",
-				loginFailureLimit: "ব্যর্থ সাইন-ইন সীমা",
-				lockoutMinutes: "লকআউটের স্থায়িত্ব",
-				idleTimeoutMinutes: "নিষ্ক্রিয় সাইন-আউট সময়সীমা",
-				forceInitialPasswordChange: "প্রথম সাইন-ইনে পাসওয়ার্ড পরিবর্তন আবশ্যক",
 			},
 			loginAccess: {
 				all: "সকলকে অনুমতি দিন",
 				adminOnly: "শুধু প্রশাসক",
 				disabled: "সব সাইন-ইন স্থগিত করুন",
 			},
-			passwordRequirements: {
-				lowercase: "ছোট হাতের অক্ষর",
-				uppercase: "বড় হাতের অক্ষর",
-				number: "সংখ্যা",
-				symbol: "বিশেষ অক্ষর",
-			},
+
 			notifications: {
 				announcementsEnabled: "সিস্টেম ঘোষণা",
 				inboxEnabled: "অ্যাপের ভেতরের বিজ্ঞপ্তি",
-				unreadReminderEnabled: "অপঠিত বার্তা স্মারক",
-				retentionDays: "বার্তা সংরক্ষণের সময়",
 			},
 			units: {
 				characters: "অক্ষর",
@@ -799,7 +748,11 @@ export const bnBDTranslation = {
 				updatedAt: "হালনাগাদের সময়",
 				actions: "কাজ",
 			},
-			types: { builtIn: "অন্তর্নির্মিত ভূমিকা", custom: "কাস্টম ভূমিকা" },
+			types: {
+				builtIn: "অন্তর্নির্মিত ভূমিকা",
+				custom: "কাস্টম ভূমিকা",
+			},
+
 			fields: { displayName: "ভূমিকার নাম", roleKey: "ভূমিকা কী" },
 			placeholders: {
 				displayName: "ভূমিকার নাম লিখুন",

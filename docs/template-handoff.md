@@ -1,6 +1,6 @@
 # AntD Admin Template 交接指南
 
-本文面向从母版创建或维护子项目的程序员。当前版本以 `package.json` 和锁文件为准；本文不引入新的业务示例、菜单或升级脚手架。
+本文面向从母版创建或维护子项目的程序员。当前版本、技术栈、依赖清单、Node.js 与 pnpm 要求均以 `package.json` 和锁文件为准；本文不另建容易过期的版本表，也不引入新的业务示例、菜单或升级脚手架。
 
 ## 1. 核心层与可裁剪领域
 
@@ -85,6 +85,8 @@ pnpm init:template -- --project-name warehouse-console --display-name "仓储控
 ## 6. 边界、验证与验收
 
 这是 Fake-only 纯前端母版：开发和生产预览都启用 Fake Server，构建产物可离线演示。禁止真实 API 地址、后端代理、数据库、真实认证/Session/CSRF、服务端 RBAC、SSR、微前端和具体产品业务；前端权限只控制显隐，不是安全边界。
+
+工程能力保持在现有包管理事实内：React、TypeScript、Vite、React Router、Ant Design、TanStack Query、i18next、Fake Server、Vitest、Testing Library、Playwright、ESLint、Prettier、dependency-cruiser、Knip、Renovate 等是否启用及具体版本均读取 `package.json` 与 `pnpm-lock.yaml`，不要在页面或文档中维护第二份依赖版本清单。
 
 源码、配置或依赖修改后运行：
 

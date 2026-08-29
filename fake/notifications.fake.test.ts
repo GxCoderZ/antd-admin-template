@@ -4,6 +4,8 @@ import type { PlatformNotification } from "../src/api/notifications";
 import { announcements, notifications } from "./store";
 import notificationRoutes from "./notifications.fake";
 import { findFakeRoute } from "./route-helpers";
+import { resetSettingsState } from "./settings-state";
+import settingsRoutes from "./settings.fake";
 
 function findRoute(method: string, url: string) {
 	return findFakeRoute(notificationRoutes, method, url);
@@ -17,6 +19,7 @@ afterEach(() => {
 		notifications.length,
 		...structuredClone(initialNotifications),
 	);
+	resetSettingsState();
 });
 
 describe("Fake notification center", () => {
@@ -94,5 +97,55 @@ describe("Fake notification center", () => {
 		expect(
 			list({ query: { unread: "true", page: "2", page_size: "10" } }),
 		).toMatchObject({ data: { page: 1, total: 0, items: [] } });
+	});
+
+	it("hides inbox data while preserving messages for re-enabled previews", () => {
+		const list = findRoute("get", "/account/notifications");
+		const markAllRead = findRoute("post", "/account/notifications/read-all");
+		const updateSettings = findFakeRoute(
+			settingsRoutes,
+			"patch",
+			"/platform/settings",
+		);
+		const readSettings = findFakeRoute(
+			settingsRoutes,
+			"get",
+			"/platform/settings",
+		);
+		const current = readSettings({}) as {
+			data: { notifications: { inboxEnabled: boolean }; version: number };
+		};
+		const { version, ...currentValues } = current.data;
+
+		updateSettings({
+			body: {
+				...currentValues,
+				notifications: { ...current.data.notifications, inboxEnabled: false },
+				expectedVersion: version,
+			},
+		});
+		expect(list({ query: { unread: "true" } })).toMatchObject({
+			data: { items: [], total: 0, unread_count: 0 },
+		});
+		expect(markAllRead({})).toMatchObject({ data: { updated: 0 } });
+
+		const disabled = readSettings({}) as typeof current;
+		const { version: disabledVersion, ...disabledValues } = disabled.data;
+		updateSettings({
+			body: {
+				...disabledValues,
+				notifications: {
+					...disabled.data.notifications,
+					inboxEnabled: true,
+				},
+				expectedVersion: disabledVersion,
+			},
+		});
+		expect(list({ query: { unread: "true" } })).toMatchObject({
+			data: {
+				unread_count: initialNotifications.filter((item) => !item.readAt)
+					.length,
+			},
+		});
 	});
 });

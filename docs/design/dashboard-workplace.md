@@ -19,7 +19,7 @@ Ant Design Pro, MIT license, commit
   four columns at `xl`, two at `sm` through `lg`, and one at `xs`.
 - [ChartCard](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/ChartCard/index.tsx)
   and [styles](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/ChartCard/index.style.ts):
-  ported title bar, body meta/action/total, fixed content region and footer divider
+  ported body meta/action/total, fixed content region and footer divider
   into `ChartCard.tsx` and `ChartCard.module.css`. This replaces the earlier basic
   Card + Statistic implementation, which was not the screenshot's component.
 - [Field](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/Field/index.tsx)
@@ -46,8 +46,7 @@ than copying framework internals or upstream application dependencies.
   scoped to the dashboard to match the captured reference exactly.
 - Activity Card body padding is zero, as in upstream Workplace; rows own the
   upstream 16px vertical / 24px horizontal padding and 32px avatar placement.
-- ChartCard retains the source's title in both the native title bar and the body
-  meta row, as explicitly requested in the screenshot. Body padding is
+- ChartCard renders the title only in the Pro-style body meta row. Body padding is
   `20px 24px 8px`, total typography is `30px/38px`, content height is 46px, and
   the footer has 9px top padding and the theme's 1px separator.
 - Source styles are translated to existing CSS Modules and `--raa-*` tokens;

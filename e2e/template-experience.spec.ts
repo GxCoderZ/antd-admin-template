@@ -255,7 +255,7 @@ type TableDetailEntry = {
 	table: string;
 	tab?: string;
 	sections: number;
-} & ({ kind: "cell"; cell: number } | { kind: "menu" | "log" | "readonly" });
+} & ({ kind: "cell"; cell: number } | { kind: "menu" | "log" });
 
 test("公告详情保留长正文、换行与查询条件", async ({ page }, testInfo) => {
 	await page.setViewportSize({ width: 1440, height: 900 });
@@ -374,12 +374,6 @@ const detailTables: TableDetailEntry[] = [
 		kind: "log",
 		sections: 3,
 	},
-	{
-		path: "/system/about",
-		table: "about-production-dependencies",
-		kind: "readonly",
-		sections: 0,
-	},
 ];
 
 for (const entry of detailTables) {
@@ -465,96 +459,74 @@ for (const entry of detailTables) {
 			started = performance.now();
 			const workflowStarted = started;
 			await page.keyboard.press("Enter");
-			if (entry.kind === "readonly") {
-				const menu = page
-					.getByRole("menu")
-					.filter({ has: page.getByRole("menuitem", { name: "复制包名" }) });
-				await expect(menu).toBeVisible();
-				await finishDropdownTransition(page, menu);
-				interactionTimes.push(performance.now() - started);
-				await expectFitsViewport(page, menu);
-				await page.keyboard.press("Escape");
-				await expect(menu).toBeHidden();
-			} else {
-				if (entry.kind === "menu") {
-					const viewDetails = page.getByRole("menuitem", {
-						name: "查看详情",
-						exact: true,
-					});
-					await expect(viewDetails).toBeVisible();
-					await finishDropdownTransition(page, viewDetails);
-					interactionTimes.push(performance.now() - started);
-					started = performance.now();
-					await viewDetails.click();
-				}
-				await finishDrawerTransition(page);
-				const dialog = page.getByRole("dialog");
-				await expect(dialog).toBeInViewport({ ratio: 1 });
-				await finishTransitions(page, dialog);
-				interactionTimes.push(performance.now() - started);
-				if (entry.kind === "menu")
-					workflowTimes.push(performance.now() - workflowStarted);
-				await expectFitsViewport(page, dialog);
-				if (width === 390)
-					expect((await dialog.boundingBox())?.width).toBe(390);
-				const details = dialog.getByTestId("record-details");
-				await expect(details.getByRole("table")).toHaveCount(entry.sections);
-				if (entry.sections > 1) {
-					await expect(
-						details.getByText("基本信息", { exact: true }),
-					).toBeVisible();
-				} else {
-					await expect(
-						details.getByText("基本信息", { exact: true }),
-					).toHaveCount(0);
-				}
-				const labelWidths = await details
-					.locator(".ant-descriptions-item-label")
-					.evaluateAll((labels) =>
-						labels.map((label) => label.getBoundingClientRect().width),
-					);
-				expect(
-					Math.max(...labelWidths) - Math.min(...labelWidths),
-				).toBeLessThanOrEqual(1);
-				const overflowingFields = await details
-					.locator(
-						".ant-descriptions-item-label, .ant-descriptions-item-content",
-					)
-					.evaluateAll((fields) =>
-						fields
-							.filter((field) => field.scrollWidth > field.clientWidth + 1)
-							.map((field) => field.textContent),
-					);
-				expect(overflowingFields).toEqual([]);
-				expect(
-					await dialog
-						.locator(".ant-drawer-body")
-						.evaluate((node) => node.scrollWidth <= node.clientWidth),
-				).toBe(true);
-				await page.keyboard.press("Tab");
-				expect(
-					await dialog.evaluate((node) =>
-						node.contains(document.activeElement),
-					),
-				).toBe(true);
-				await page.screenshot({
-					path: testInfo.outputPath(`detail-${width}.png`),
-					animations: "disabled",
+			if (entry.kind === "menu") {
+				const viewDetails = page.getByRole("menuitem", {
+					name: "查看详情",
+					exact: true,
 				});
-				await dialog
-					.locator(".ant-descriptions")
-					.last()
-					.scrollIntoViewIfNeeded();
-				await expect(
-					dialog.locator(".ant-descriptions").last(),
-				).toBeInViewport();
-				await page.screenshot({
-					path: testInfo.outputPath(`detail-records-${width}.png`),
-					animations: "disabled",
-				});
-				await page.keyboard.press("Escape");
-				await expect(dialog).toBeHidden();
+				await expect(viewDetails).toBeVisible();
+				await finishDropdownTransition(page, viewDetails);
+				interactionTimes.push(performance.now() - started);
+				started = performance.now();
+				await viewDetails.click();
 			}
+			await finishDrawerTransition(page);
+			const dialog = page.getByRole("dialog");
+			await expect(dialog).toBeInViewport({ ratio: 1 });
+			await finishTransitions(page, dialog);
+			interactionTimes.push(performance.now() - started);
+			if (entry.kind === "menu")
+				workflowTimes.push(performance.now() - workflowStarted);
+			await expectFitsViewport(page, dialog);
+			if (width === 390) expect((await dialog.boundingBox())?.width).toBe(390);
+			const details = dialog.getByTestId("record-details");
+			await expect(details.getByRole("table")).toHaveCount(entry.sections);
+			if (entry.sections > 1) {
+				await expect(
+					details.getByText("基本信息", { exact: true }),
+				).toBeVisible();
+			} else {
+				await expect(
+					details.getByText("基本信息", { exact: true }),
+				).toHaveCount(0);
+			}
+			const labelWidths = await details
+				.locator(".ant-descriptions-item-label")
+				.evaluateAll((labels) =>
+					labels.map((label) => label.getBoundingClientRect().width),
+				);
+			expect(
+				Math.max(...labelWidths) - Math.min(...labelWidths),
+			).toBeLessThanOrEqual(1);
+			const overflowingFields = await details
+				.locator(".ant-descriptions-item-label, .ant-descriptions-item-content")
+				.evaluateAll((fields) =>
+					fields
+						.filter((field) => field.scrollWidth > field.clientWidth + 1)
+						.map((field) => field.textContent),
+				);
+			expect(overflowingFields).toEqual([]);
+			expect(
+				await dialog
+					.locator(".ant-drawer-body")
+					.evaluate((node) => node.scrollWidth <= node.clientWidth),
+			).toBe(true);
+			await page.keyboard.press("Tab");
+			expect(
+				await dialog.evaluate((node) => node.contains(document.activeElement)),
+			).toBe(true);
+			await page.screenshot({
+				path: testInfo.outputPath(`detail-${width}.png`),
+				animations: "disabled",
+			});
+			await dialog.locator(".ant-descriptions").last().scrollIntoViewIfNeeded();
+			await expect(dialog.locator(".ant-descriptions").last()).toBeInViewport();
+			await page.screenshot({
+				path: testInfo.outputPath(`detail-records-${width}.png`),
+				animations: "disabled",
+			});
+			await page.keyboard.press("Escape");
+			await expect(dialog).toBeHidden();
 			await finishTransitions(page);
 			await page.mouse.move(0, 0);
 			await page.screenshot({

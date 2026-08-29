@@ -1,22 +1,5 @@
-import {
-	passwordRequirements,
-	platformSettingsLimits as limits,
-} from "#src/api/settings";
-import {
-	Checkbox,
-	ConfigProvider,
-	DatePicker,
-	Form,
-	Input,
-	InputNumber,
-	Select,
-	Switch,
-	theme,
-} from "antd";
-import dayjs, { type Dayjs } from "dayjs";
-import "dayjs/locale/zh-cn";
-import "dayjs/locale/zh-tw";
-import "dayjs/locale/ko";
+import { platformSettingsLimits as limits } from "#src/api/settings";
+import { Form, Input, Select, Switch } from "antd";
 import { useTranslation } from "react-i18next";
 
 import { SystemLogoInput } from "./SystemLogoInput";
@@ -80,7 +63,6 @@ export function GeneralSettingsFields({
 
 export function SecuritySettingsFields({ disabled }: { disabled: boolean }) {
 	const { t } = useTranslation();
-	const { token } = theme.useToken();
 	const form = Form.useFormInstance();
 	const maintenanceEnabled: unknown = Form.useWatch(
 		["security", "maintenanceEnabled"],
@@ -127,112 +109,6 @@ export function SecuritySettingsFields({ disabled }: { disabled: boolean }) {
 					maxLength={limits.maintenanceMessage}
 				/>
 			</Form.Item>
-			<ConfigProvider
-				theme={{
-					components: { DatePicker: { timeColumnWidth: token.controlHeight } },
-				}}
-			>
-				<Form.Item
-					getValueFromEvent={(value: Dayjs | null) =>
-						value ? value.toISOString() : null
-					}
-					getValueProps={(value: string | null) => ({
-						value: value ? dayjs(value) : null,
-					})}
-					label={t("adminShell.platformSettings.security.maintenanceEndsAt")}
-					name={["security", "maintenanceEndsAt"]}
-				>
-					<DatePicker
-						disabled={disabled || !maintenanceEnabled}
-						format="YYYY-MM-DD HH:mm"
-						popupAlign={{
-							overflow: { adjustX: true, adjustY: true, shiftX: true },
-						}}
-						showTime
-						style={{ width: "100%" }}
-					/>
-				</Form.Item>
-			</ConfigProvider>
-			<Form.Item
-				label={t("adminShell.platformSettings.security.captchaEnabled")}
-				name={["security", "captchaEnabled"]}
-				valuePropName="checked"
-			>
-				<Switch />
-			</Form.Item>
-			<Form.Item
-				label={t("adminShell.platformSettings.security.passwordMinLength")}
-				name={["security", "passwordMinLength"]}
-				rules={[
-					{
-						required: true,
-						type: "integer",
-						...limits.passwordMinLength,
-						message: t(
-							"adminShell.platformSettings.validation.number",
-							limits.passwordMinLength,
-						),
-					},
-				]}
-			>
-				<InputNumber
-					{...limits.passwordMinLength}
-					suffix={t("adminShell.platformSettings.units.characters")}
-					style={{ width: "100%" }}
-				/>
-			</Form.Item>
-			<Form.Item
-				label={t("adminShell.platformSettings.security.passwordRequirements")}
-				name={["security", "passwordRequirements"]}
-			>
-				<Checkbox.Group
-					options={passwordRequirements.map((value) => ({
-						value,
-						label: t(
-							`adminShell.platformSettings.passwordRequirements.${value}`,
-						),
-					}))}
-				/>
-			</Form.Item>
-			{(
-				["loginFailureLimit", "lockoutMinutes", "idleTimeoutMinutes"] as const
-			).map((name) => (
-				<Form.Item
-					key={name}
-					label={t(`adminShell.platformSettings.security.${name}`)}
-					name={["security", name]}
-					rules={[
-						{
-							required: true,
-							type: "integer",
-							...limits[name],
-							message: t(
-								"adminShell.platformSettings.validation.number",
-								limits[name],
-							),
-						},
-					]}
-				>
-					<InputNumber
-						{...limits[name]}
-						suffix={t(
-							name === "loginFailureLimit"
-								? "adminShell.platformSettings.units.attempts"
-								: "adminShell.platformSettings.units.minutes",
-						)}
-						style={{ width: "100%" }}
-					/>
-				</Form.Item>
-			))}
-			<Form.Item
-				label={t(
-					"adminShell.platformSettings.security.forceInitialPasswordChange",
-				)}
-				name={["security", "forceInitialPasswordChange"]}
-				valuePropName="checked"
-			>
-				<Switch />
-			</Form.Item>
 		</>
 	);
 }
@@ -243,54 +119,18 @@ export function NotificationSettingsFields({
 	disabled: boolean;
 }) {
 	const { t } = useTranslation();
-	const form = Form.useFormInstance();
-	const inboxEnabled: unknown = Form.useWatch(
-		["notifications", "inboxEnabled"],
-		form,
-	);
 	return (
 		<>
-			{(
-				[
-					"announcementsEnabled",
-					"inboxEnabled",
-					"unreadReminderEnabled",
-				] as const
-			).map((name) => (
+			{(["announcementsEnabled", "inboxEnabled"] as const).map((name) => (
 				<Form.Item
 					key={name}
 					label={t(`adminShell.platformSettings.notifications.${name}`)}
 					name={["notifications", name]}
 					valuePropName="checked"
 				>
-					<Switch
-						disabled={
-							disabled || (name === "unreadReminderEnabled" && !inboxEnabled)
-						}
-					/>
+					<Switch disabled={disabled} />
 				</Form.Item>
 			))}
-			<Form.Item
-				label={t("adminShell.platformSettings.notifications.retentionDays")}
-				name={["notifications", "retentionDays"]}
-				rules={[
-					{
-						required: true,
-						type: "integer",
-						...limits.retentionDays,
-						message: t(
-							"adminShell.platformSettings.validation.number",
-							limits.retentionDays,
-						),
-					},
-				]}
-			>
-				<InputNumber
-					{...limits.retentionDays}
-					suffix={t("adminShell.platformSettings.units.days")}
-					style={{ width: "100%" }}
-				/>
-			</Form.Item>
 		</>
 	);
 }

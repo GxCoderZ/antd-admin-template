@@ -244,7 +244,6 @@ export const zhCNTranslation = {
 			draftAnnouncementCount: "{{count}} 条公告待发布",
 			noDraftAnnouncements: "暂无待发布公告",
 			maintenanceNotice: "系统维护提示",
-			maintenanceEndsAt: "预计恢复：{{time}}",
 			noMaintenance: "当前未开启维护模式",
 			activitySummary: "{{actor}} {{action}} {{target}}",
 			activityActions: {
@@ -466,8 +465,6 @@ export const zhCNTranslation = {
 		},
 		about: {
 			description: "查看当前 Fake-only UI 能力与前端技术基线。",
-			stackTitle: "技术栈与工程能力",
-			dependenciesTitle: "前端依赖",
 			runtime: {
 				title: "构建与运行",
 				service: "Fake 服务",
@@ -482,39 +479,6 @@ export const zhCNTranslation = {
 					"local-production": "本地生产构建",
 				},
 				loadError: "无法加载服务信息",
-			},
-			groups: {
-				frontend: "前端技术栈",
-				fake: "Fake-only 架构与测试",
-				platform: "工程质量与部署",
-			},
-			nameColumn: "依赖",
-			versionColumn: "版本",
-			typeLabel: "类型：{{value}}",
-			versionLabel: "版本：{{value}}",
-			notSelected: "待定（供应商未选择）",
-			status: {
-				enabled: "已启用",
-				approved: "已批准",
-				reserved: "边界预留",
-			},
-			types: {
-				apiClient: "API 客户端",
-				architecture: "架构能力",
-				build: "构建工具",
-				ci: "CI/CD",
-				componentLibrary: "组件库",
-				deployment: "部署平台",
-				dependencyAutomation: "依赖自动化",
-				i18n: "国际化",
-				language: "编程语言",
-				mock: "Mock",
-				packageManager: "包管理",
-				routing: "路由",
-				runtime: "运行时",
-				serverState: "服务端状态与请求缓存",
-				testing: "测试工具",
-				webFramework: "前端框架",
 			},
 		},
 		deviceInfo: {
@@ -631,31 +595,16 @@ export const zhCNTranslation = {
 				loginAccess: "登录入口",
 				maintenanceEnabled: "维护模式",
 				maintenanceMessage: "维护提示文案",
-				maintenanceEndsAt: "预计恢复时间",
-				captchaEnabled: "登录验证码",
-				passwordMinLength: "密码最小长度",
-				passwordRequirements: "密码规则",
-				loginFailureLimit: "登录失败锁定次数",
-				lockoutMinutes: "登录失败锁定时长",
-				idleTimeoutMinutes: "空闲超时退出",
-				forceInitialPasswordChange: "首次登录强制改密",
 			},
 			loginAccess: {
 				all: "允许所有人登录",
 				adminOnly: "仅管理员可登录",
 				disabled: "暂停所有人登录",
 			},
-			passwordRequirements: {
-				lowercase: "小写字母",
-				uppercase: "大写字母",
-				number: "数字",
-				symbol: "特殊字符",
-			},
+
 			notifications: {
 				announcementsEnabled: "系统公告",
 				inboxEnabled: "站内通知",
-				unreadReminderEnabled: "未读消息提醒",
-				retentionDays: "消息保留天数",
 			},
 			units: {
 				characters: "字符",
@@ -800,10 +749,12 @@ export const zhCNTranslation = {
 				updatedAt: "更新时间",
 				actions: "操作",
 			},
+
 			types: {
 				builtIn: "内置角色",
 				custom: "自定义角色",
 			},
+
 			fields: {
 				displayName: "角色名称",
 				roleKey: "角色标识",

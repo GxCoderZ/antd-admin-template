@@ -45,6 +45,7 @@ import {
 } from "../i18n";
 import { bnBDProTranslation } from "../locales/pro-bn-BD";
 import { adminRouteDefinitions } from "./adminRoutes";
+import { appAntdCssVar } from "./antdCssVar";
 import { ApplicationSkeleton } from "./LoadingSkeletons";
 import { LocalePreferencesProvider } from "./LocalePreferencesProvider";
 import { PermissionProvider } from "./PermissionProvider";
@@ -67,6 +68,18 @@ import "./color-weak.css";
 
 // Pro Components has no built-in Bengali locale; use its public intl extension.
 const bnBDIntl = createIntl("bn-BD", bnBDProTranslation);
+const proLightStyleMarkers = [
+	"rgb(255,255,255)",
+	"rgba(0,0,0",
+	"#fff",
+	"#ffffff",
+] as const;
+const proDarkStyleMarkers = [
+	"rgb(20,20,20)",
+	"rgba(255,255,255",
+	"#141414",
+	"#1d1d1d",
+] as const;
 
 const antdLocaleLoaders = {
 	"bn-BD": () => import("antd/locale/bn_BD"),
@@ -97,6 +110,30 @@ function useAntdLocale(language: SupportedLanguageCode) {
 	}, [language]);
 
 	return locale;
+}
+
+function removeStaleProThemeStyles(isDarkMode: boolean) {
+	const staleMarkers = isDarkMode ? proLightStyleMarkers : proDarkStyleMarkers;
+	const proStyles = Array.from(
+		document.querySelectorAll<HTMLStyleElement>("style[data-css-hash]"),
+	).filter((style) => style.textContent?.includes("ant-pro-"));
+	for (const style of proStyles) {
+		const cssText = style.textContent;
+		if (cssText && staleMarkers.some((marker) => cssText.includes(marker))) {
+			style.remove();
+		}
+	}
+	const latestByComponent = new Map<string, HTMLStyleElement>();
+	for (const style of proStyles) {
+		if (!style.isConnected) continue;
+		const component = style.textContent?.match(/\.ant-pro-[\w-]+/)?.[0];
+		if (component) latestByComponent.set(component, style);
+	}
+	for (const style of proStyles) {
+		if (!style.isConnected) continue;
+		const component = style.textContent?.match(/\.ant-pro-[\w-]+/)?.[0];
+		if (component && latestByComponent.get(component) !== style) style.remove();
+	}
 }
 
 function getSystemIsDarkMode() {
@@ -231,6 +268,8 @@ export function App() {
 
 	useEffect(() => {
 		document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
+		removeStaleProThemeStyles(isDarkMode);
+		queueMicrotask(() => removeStaleProThemeStyles(isDarkMode));
 	}, [isDarkMode]);
 
 	useEffect(() => {
@@ -352,27 +391,32 @@ export function App() {
 			themeMode,
 		],
 	);
+	const antdThemeConfig = useMemo(
+		() => ({
+			algorithm: isDarkMode
+				? antdTheme.darkAlgorithm
+				: antdTheme.defaultAlgorithm,
+			cssVar: appAntdCssVar,
+			token: {
+				borderRadius: 8,
+				colorPrimary: themeColor,
+			},
+		}),
+		[isDarkMode, themeColor],
+	);
 
 	return (
 		<ConfigProvider
 			direction={languageMetadata.dir}
 			{...(antdLocale ? { locale: antdLocale } : {})}
-			theme={{
-				algorithm: isDarkMode
-					? antdTheme.darkAlgorithm
-					: antdTheme.defaultAlgorithm,
-				cssVar: { prefix: "raa" },
-				token: {
-					borderRadius: 8,
-					colorPrimary: themeColor,
-				},
-			}}
+			theme={antdThemeConfig}
 		>
 			<LocalePreferencesProvider value={localePreferences}>
 				<QueryClientProvider client={queryClient}>
 					<PlatformBrandProvider>
 						<ThemeModeProvider value={themeModeValue}>
 							<ProConfigProvider
+								dark={isDarkMode}
 								{...(languageMetadata.code === "bn-BD"
 									? { intl: bnBDIntl }
 									: {})}

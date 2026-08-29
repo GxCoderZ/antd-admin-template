@@ -1,5 +1,55 @@
 import { writeFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import type { PlatformSettings } from "../src/api/settings/types";
+
+interface SettingsEnvelope {
+	code: number;
+	msg: string;
+	data: PlatformSettings;
+}
+
+async function readSettingsSnapshot(page: Page) {
+	const payload = await page.evaluate(async () => {
+		const response = await fetch("/api/platform/settings");
+		if (!response.ok) throw new Error("Failed to read settings snapshot");
+		return (await response.json()) as SettingsEnvelope;
+	});
+	return payload.data;
+}
+
+async function restoreSettingsSnapshot(page: Page, snapshot: PlatformSettings) {
+	const current = await readSettingsSnapshot(page);
+	await page.evaluate(
+		async ({ snapshot, version }) => {
+			const response = await fetch("/api/platform/settings", {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					general: snapshot.general,
+					security: snapshot.security,
+					notifications: snapshot.notifications,
+					expectedVersion: version,
+				}),
+			});
+			if (!response.ok) throw new Error("Failed to restore settings snapshot");
+		},
+		{
+			snapshot,
+			version: current.version,
+		},
+	);
+	expect(
+		await readSettingsSnapshot(page).then((restored) => ({
+			general: restored.general,
+			security: restored.security,
+			notifications: restored.notifications,
+		})),
+	).toEqual({
+		general: snapshot.general,
+		security: snapshot.security,
+		notifications: snapshot.notifications,
+	});
+}
 
 async function navigate(page: Page, path: string) {
 	await page.evaluate((next) => {
@@ -31,6 +81,19 @@ async function uploadLogo(page: Page, dataUrl: string) {
 	await expect(
 		page.getByRole("img", { name: "Logo", exact: true }),
 	).toHaveAttribute("src", dataUrl);
+}
+
+function currentSettingsSection(page: Page) {
+	return page.locator("form section:not([hidden])");
+}
+
+async function clickCurrentSettingsSave(page: Page) {
+	const save = currentSettingsSection(page).getByRole("button", {
+		name: "保存",
+		exact: true,
+	});
+	await expect(save).toBeVisible();
+	await save.click();
 }
 
 async function finishSettingsLayout(form: Locator) {
@@ -162,7 +225,7 @@ test("system settings uses integrated tabs and adapts across widths", async ({
 		await title.fill("设置页草稿");
 		for (const [section, label] of [
 			["登录与安全", "登录入口"],
-			["通知与公告", "消息保留天数"],
+			["通知与公告", "站内通知"],
 			["基础信息", "系统名称"],
 		] as const) {
 			started = performance.now();
@@ -186,12 +249,14 @@ test("system settings uses integrated tabs and adapts across widths", async ({
 				path: testInfo.outputPath(`settings-${section}-${width}.png`),
 			});
 		}
-		const save = page.getByRole("button", { name: /保.*存/ });
+		const save = currentSettingsSection(page).getByRole("button", {
+			name: /保.*存/,
+		});
 		await save.scrollIntoViewIfNeeded();
 		await expect(save).toBeInViewport({ ratio: 1 });
 		await save.click({ trial: true });
 	}
-	await page.getByRole("button", { name: /保.*存/ }).click();
+	await clickCurrentSettingsSave(page);
 	await expect(page.getByText("系统设置已保存", { exact: true })).toBeVisible();
 	const report = {
 		open: summarizeSettingsTimings(openTimes),
@@ -227,41 +292,7 @@ for (const width of [1440, 390]) {
 		await signIn(page);
 		await navigate(page, "/system/settings");
 		await expect(page.getByLabel("系统名称", { exact: true })).toBeVisible();
-		const original = new Map<string, string>();
-		for (const label of [
-			"系统名称",
-			"系统简称",
-			"浏览器标题",
-			"版权信息",
-			"维护提示文案",
-			"密码最小长度",
-			"消息保留天数",
-		]) {
-			original.set(
-				label,
-				await page.getByLabel(label, { exact: true }).inputValue(),
-			);
-		}
-		const maintenance = await page
-			.getByLabel("维护模式", { exact: true })
-			.isChecked();
-		const inbox = await page
-			.getByLabel("站内通知", { exact: true })
-			.isChecked();
-		const reminder = await page
-			.getByLabel("未读消息提醒", { exact: true })
-			.isChecked();
-		const logoImage = page.getByRole("img", { name: "Logo", exact: true });
-		const originalLogo = (await logoImage.count())
-			? await logoImage.getAttribute("src")
-			: null;
-		const restoreFields = async (labels: string[]) => {
-			for (const label of labels) {
-				const value = original.get(label);
-				if (value === undefined) throw new Error("Missing original " + label);
-				await page.getByLabel(label, { exact: true }).fill(value);
-			}
-		};
+		const originalSettings = await readSettingsSnapshot(page);
 
 		try {
 			await expect(
@@ -294,25 +325,12 @@ for (const width of [1440, 390]) {
 			await page
 				.getByLabel("维护提示文案", { exact: true })
 				.fill("演示维护提示");
-			await page.getByLabel("预计恢复时间", { exact: true }).click();
-			const datePopup = page.locator(".ant-picker-dropdown:visible");
-			await expect(datePopup).toBeVisible();
-			const popupBounds = await datePopup.boundingBox();
-			expect(popupBounds).not.toBeNull();
-			if (!popupBounds) throw new Error("Missing date popup bounds");
-			expect(popupBounds.x).toBeGreaterThanOrEqual(0);
-			expect(popupBounds.x + popupBounds.width).toBeLessThanOrEqual(width);
-			await page.screenshot({
-				path: testInfo.outputPath(`settings-date-${width}.png`),
-				animations: "disabled",
-			});
-			await page.keyboard.press("Escape");
-			await page.getByLabel("密码最小长度", { exact: true }).fill("12");
 			await page.screenshot({
 				path: testInfo.outputPath(`settings-security-${width}.png`),
 				animations: "disabled",
 			});
 			await page
+				.locator("form section:not([hidden])")
 				.getByRole("button", { name: /保.*存/ })
 				.scrollIntoViewIfNeeded();
 			await page.screenshot({
@@ -321,13 +339,11 @@ for (const width of [1440, 390]) {
 			});
 			await page.getByRole("tab", { name: "通知与公告", exact: true }).click();
 			await setSwitch(page, "站内通知", true);
-			await page.getByLabel("消息保留天数", { exact: true }).fill("30");
-			await setSwitch(page, "未读消息提醒", false);
 			await page.screenshot({
 				path: testInfo.outputPath(`settings-notifications-${width}.png`),
 				animations: "disabled",
 			});
-			await page.getByRole("button", { name: /保.*存/ }).click();
+			await clickCurrentSettingsSave(page);
 			await expect(
 				page.getByText("系统设置已保存", { exact: true }),
 			).toBeVisible();
@@ -349,9 +365,6 @@ for (const width of [1440, 390]) {
 			}
 			await navigate(page, "/dashboard");
 			await navigate(page, "/system/settings?section=security");
-			await expect(
-				page.getByLabel("密码最小长度", { exact: true }),
-			).toHaveValue("12");
 			await expect(
 				page.getByRole("switch", { name: "维护模式", exact: true }),
 			).toBeChecked();
@@ -393,7 +406,7 @@ for (const width of [1440, 390]) {
 				const longCopyright = "版权".repeat(64);
 				await page.getByLabel("系统名称", { exact: true }).fill(longName);
 				await page.getByLabel("版权信息", { exact: true }).fill(longCopyright);
-				await page.getByRole("button", { name: /保.*存/ }).click();
+				await clickCurrentSettingsSave(page);
 				await expect(
 					page.getByText("系统设置已保存", { exact: true }),
 				).toBeVisible();
@@ -423,32 +436,7 @@ for (const width of [1440, 390]) {
 			}
 			expect(errors).toEqual([]);
 		} finally {
-			if (new URL(page.url()).pathname === "/login") await signIn(page);
-			await page.keyboard.press("Escape");
-			await navigate(page, "/system/settings");
-			await restoreFields(["系统名称", "系统简称", "浏览器标题", "版权信息"]);
-			if (originalLogo) await uploadLogo(page, originalLogo);
-			else if (
-				await page
-					.getByRole("button", { name: "恢复默认", exact: true })
-					.count()
-			)
-				await page
-					.getByRole("button", { name: "恢复默认", exact: true })
-					.click();
-			await page.getByRole("tab", { name: "登录与安全", exact: true }).click();
-			await setSwitch(page, "维护模式", true);
-			await restoreFields(["维护提示文案", "密码最小长度"]);
-			await setSwitch(page, "维护模式", maintenance);
-			await page.getByRole("tab", { name: "通知与公告", exact: true }).click();
-			await setSwitch(page, "站内通知", true);
-			await setSwitch(page, "未读消息提醒", reminder);
-			await setSwitch(page, "站内通知", inbox);
-			await restoreFields(["消息保留天数"]);
-			await page.getByRole("button", { name: /保.*存/ }).click();
-			await expect(
-				page.getByText("系统设置已保存", { exact: true }),
-			).toBeVisible();
+			await restoreSettingsSnapshot(page, originalSettings);
 		}
 	});
 }

@@ -42,20 +42,10 @@ const settings: PlatformSettings = {
 		loginAccess: "all",
 		maintenanceEnabled: false,
 		maintenanceMessage: "Maintenance in progress",
-		maintenanceEndsAt: null,
-		captchaEnabled: false,
-		passwordMinLength: 8,
-		passwordRequirements: ["lowercase", "number"],
-		loginFailureLimit: 5,
-		lockoutMinutes: 15,
-		idleTimeoutMinutes: 30,
-		forceInitialPasswordChange: false,
 	},
 	notifications: {
 		announcementsEnabled: true,
 		inboxEnabled: true,
-		unreadReminderEnabled: true,
-		retentionDays: 90,
 	},
 	version: 1,
 };
@@ -195,7 +185,7 @@ describe("PlatformSettingsPage", () => {
 		expect(screen.getByTestId("location-search")).toHaveTextContent(
 			"/system/settings?section=notifications",
 		);
-		await user.click(screen.getByRole("switch", { name: "未读消息提醒" }));
+		await user.click(screen.getByRole("switch", { name: "系统公告" }));
 		await user.click(screen.getByRole("tab", { name: "基础信息" }));
 		expect(screen.getByTestId("location-search")).toHaveTextContent(
 			"/system/settings",
@@ -210,7 +200,7 @@ describe("PlatformSettingsPage", () => {
 					security: settings.security,
 					notifications: {
 						...settings.notifications,
-						unreadReminderEnabled: false,
+						announcementsEnabled: false,
 					},
 				}),
 				expect.anything(),
@@ -243,9 +233,11 @@ describe("PlatformSettingsPage", () => {
 		await user.click(toggle);
 		await user.clear(screen.getByLabelText("维护提示文案"));
 		await user.click(screen.getByRole("button", { name: /保.*存/ }));
-		expect(
-			await screen.findByText("请输入 1 至 200 个字符。", { exact: true }),
-		).toBeVisible();
+		await waitFor(() =>
+			expect(
+				screen.getByText("请输入 1 至 200 个字符。", { exact: true }),
+			).toBeVisible(),
+		);
 		expect(updatePlatformSettings).not.toHaveBeenCalled();
 	});
 
@@ -294,5 +286,18 @@ describe("PlatformSettingsPage", () => {
 		).not.toBeInTheDocument();
 		await user.click(screen.getByRole("tab", { name: "登录与安全" }));
 		expect(screen.getByRole("switch", { name: "维护模式" })).toBeDisabled();
+	});
+
+	it("omits policy-only settings that have no preview consumers", async () => {
+		renderSettings("/system/settings?section=security");
+		await screen.findByLabelText("登录入口");
+		expect(screen.queryByLabelText("登录验证码")).not.toBeInTheDocument();
+		expect(screen.queryByLabelText("密码最小长度")).not.toBeInTheDocument();
+		expect(screen.queryByLabelText("登录失败锁定次数")).not.toBeInTheDocument();
+		await userEvent.click(screen.getByRole("tab", { name: "通知与公告" }));
+		expect(screen.getByLabelText("系统公告")).toBeVisible();
+		expect(screen.getByLabelText("站内通知")).toBeVisible();
+		expect(screen.queryByLabelText("未读消息提醒")).not.toBeInTheDocument();
+		expect(screen.queryByLabelText("消息保留天数")).not.toBeInTheDocument();
 	});
 });

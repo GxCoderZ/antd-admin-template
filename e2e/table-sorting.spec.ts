@@ -212,7 +212,6 @@ test("non-sortable tables do not select a default sort", async ({ page }) => {
 	await signIn(page);
 	for (const table of [
 		{ path: "/organization/departments", id: "admin-departments-table-card" },
-		{ path: "/system/about", id: "about-production-dependencies" },
 	]) {
 		await openRoute(page, table.path);
 		const panel = page.getByTestId(table.id);

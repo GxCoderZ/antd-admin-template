@@ -86,7 +86,8 @@ export const jaJPTranslation = {
 			forbiddenDescription:
 				"申し訳ありませんが、このページにアクセスする権限がありません。",
 			notFoundTitle: "404",
-			notFoundDescription: "申し訳ありませんが、アクセスしたページは存在しません。",
+			notFoundDescription:
+				"申し訳ありませんが、アクセスしたページは存在しません。",
 			serverErrorTitle: "500",
 			serverErrorDescription: "申し訳ありません。問題が発生しました。",
 			backHome: "ホームに戻る",
@@ -98,7 +99,8 @@ export const jaJPTranslation = {
 		account: {
 			section: "アカウント",
 			retry: "再試行",
-			requestErrorFallback: "リクエストに失敗しました。後でもう一度お試しください。",
+			requestErrorFallback:
+				"リクエストに失敗しました。後でもう一度お試しください。",
 			profile: {
 				title: "プロフィール",
 				description:
@@ -174,7 +176,8 @@ export const jaJPTranslation = {
 					newPasswordLength:
 						"新しいパスワードは 12～1024 文字で入力してください",
 					confirmNewPassword: "新しいパスワードを確認",
-					confirmNewPasswordRequired: "新しいパスワードをもう一度入力してください",
+					confirmNewPasswordRequired:
+						"新しいパスワードをもう一度入力してください",
 					newPasswordMismatch: "新しいパスワードが一致しません",
 					changePassword: "パスワードを変更",
 					modifyPassword: "アカウントパスワードを変更",
@@ -197,7 +200,8 @@ export const jaJPTranslation = {
 					userMessageDescription:
 						"他のユーザーからのメッセージがアプリ内で配信されます",
 					systemMessage: "システムメッセージ",
-					systemMessageDescription: "システムメッセージがアプリ内で配信されます",
+					systemMessageDescription:
+						"システムメッセージがアプリ内で配信されます",
 					todoTask: "To Do タスク",
 					todoTaskDescription: "To Do タスクがアプリ内で配信されます",
 					on: "オン",
@@ -248,11 +252,13 @@ export const jaJPTranslation = {
 			draftAnnouncementCount: "未公開のお知らせ: {{count}}",
 			noDraftAnnouncements: "未公開のお知らせはありません",
 			maintenanceNotice: "システムメンテナンス",
-			maintenanceEndsAt: "復旧予定: {{time}}",
 			noMaintenance: "メンテナンスモードは有効ではありません",
 			activitySummary: "{{actor}} {{action}} {{target}}",
 			activityActions: {
-				user: { update: "ユーザーを更新しました", create: "ユーザーを作成しました" },
+				user: {
+					update: "ユーザーを更新しました",
+					create: "ユーザーを作成しました",
+				},
 				role: { permission: { update: "ロール権限を更新しました:" } },
 				settings: { update: "設定を更新しました:" },
 			},
@@ -269,8 +275,7 @@ export const jaJPTranslation = {
 			editTitle: "部門を編集",
 			delete: "削除",
 			deleteTitle: "部門を削除",
-			deleteDescription:
-				"部門「{{name}}」は削除すると復元できません。",
+			deleteDescription: "部門「{{name}}」は削除すると復元できません。",
 			confirmDelete: "削除",
 			enable: "有効化",
 			disable: "無効化",
@@ -314,8 +319,7 @@ export const jaJPTranslation = {
 			errors: {
 				save: "部門の保存に失敗しました",
 				delete: "部門の削除に失敗しました",
-				deleteProtected:
-					"先に子部門、役職、またはメンバーを削除してください",
+				deleteProtected: "先に子部門、役職、またはメンバーを削除してください",
 				fallback: "Request failed. Please try again.",
 			},
 		},
@@ -329,8 +333,7 @@ export const jaJPTranslation = {
 			editTitle: "役職を編集",
 			delete: "削除",
 			deleteTitle: "役職を削除",
-			deleteDescription:
-				"役職「{{name}}」は削除すると復元できません。",
+			deleteDescription: "役職「{{name}}」は削除すると復元できません。",
 			confirmDelete: "削除",
 			enable: "有効化",
 			disable: "無効化",
@@ -403,8 +406,7 @@ export const jaJPTranslation = {
 			deleteTypeDescription:
 				"タイプ「{{name}}」とその項目は削除すると復元できません。",
 			deleteItemTitle: "辞書項目を削除",
-			deleteItemDescription:
-				"項目「{{label}}」は削除すると復元できません。",
+			deleteItemDescription: "項目「{{label}}」は削除すると復元できません。",
 			confirmDelete: "削除",
 			enable: "有効化",
 			disable: "無効化",
@@ -476,8 +478,6 @@ export const jaJPTranslation = {
 		about: {
 			description:
 				"Review the enabled Fake-only UI capabilities and the current frontend technology baseline.",
-			stackTitle: "Technology and engineering capabilities",
-			dependenciesTitle: "Frontend dependencies",
 			runtime: {
 				title: "Build and runtime",
 				service: "Fake service",
@@ -492,39 +492,6 @@ export const jaJPTranslation = {
 					"local-production": "Local production build",
 				},
 				loadError: "Unable to load service information",
-			},
-			groups: {
-				frontend: "Frontend stack",
-				fake: "Fake-only architecture and testing",
-				platform: "Engineering quality and deployment",
-			},
-			nameColumn: "Dependency",
-			versionColumn: "Version",
-			typeLabel: "Type: {{value}}",
-			versionLabel: "Version: {{value}}",
-			notSelected: "Pending (provider not selected)",
-			status: {
-				enabled: "有効",
-				approved: "Approved",
-				reserved: "Boundary reserved",
-			},
-			types: {
-				apiClient: "API client",
-				architecture: "Architecture capability",
-				build: "Build tooling",
-				ci: "CI/CD",
-				componentLibrary: "Component library",
-				deployment: "Deployment platform",
-				dependencyAutomation: "Dependency automation",
-				i18n: "Internationalization",
-				language: "Programming language",
-				mock: "Mocking",
-				packageManager: "Package management",
-				routing: "Routing",
-				runtime: "Runtime",
-				serverState: "Server state and request caching",
-				testing: "Testing",
-				webFramework: "Frontend framework",
 			},
 		},
 		deviceInfo: {
@@ -641,31 +608,16 @@ export const jaJPTranslation = {
 				loginAccess: "Login access",
 				maintenanceEnabled: "メンテナンスモード",
 				maintenanceMessage: "Maintenance message",
-				maintenanceEndsAt: "Expected recovery time",
-				captchaEnabled: "Login CAPTCHA",
-				passwordMinLength: "Minimum password length",
-				passwordRequirements: "Password requirements",
-				loginFailureLimit: "Failed login limit",
-				lockoutMinutes: "Lockout duration",
-				idleTimeoutMinutes: "Idle sign-out timeout",
-				forceInitialPasswordChange: "Require password change on first login",
 			},
 			loginAccess: {
 				all: "Allow everyone",
 				adminOnly: "Administrators only",
 				disabled: "Pause all logins",
 			},
-			passwordRequirements: {
-				lowercase: "Lowercase letters",
-				uppercase: "Uppercase letters",
-				number: "Numbers",
-				symbol: "Special characters",
-			},
+
 			notifications: {
 				announcementsEnabled: "System announcements",
 				inboxEnabled: "In-app notifications",
-				unreadReminderEnabled: "Unread message reminders",
-				retentionDays: "Message retention",
 			},
 			units: {
 				characters: "characters",
@@ -817,10 +769,12 @@ export const jaJPTranslation = {
 				updatedAt: "更新日時",
 				actions: "操作",
 			},
+
 			types: {
 				builtIn: "Built-in role",
 				custom: "Custom role",
 			},
+
 			fields: {
 				displayName: "Role name",
 				roleKey: "Role key",

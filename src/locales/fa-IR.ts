@@ -242,7 +242,6 @@ export const faIRTranslation = {
 			draftAnnouncementCount: "اعلان‌های منتشرنشده: {{count}}",
 			noDraftAnnouncements: "اعلان منتشرنشده‌ای وجود ندارد",
 			maintenanceNotice: "نگه‌داری سیستم",
-			maintenanceEndsAt: "بازیابی مورد انتظار: {{time}}",
 			noMaintenance: "حالت نگه‌داری فعال نیست",
 			activitySummary: "{{actor}} {{action}} {{target}}",
 			activityActions: {
@@ -466,8 +465,6 @@ export const faIRTranslation = {
 		about: {
 			description:
 				"قابلیت‌های فعال رابط کاربری فقط‌ساختگی و پایهٔ فناوری فعلی فرانت‌اند را بررسی کنید.",
-			stackTitle: "قابلیت‌های فناوری و مهندسی",
-			dependenciesTitle: "وابستگی‌های فرانت‌اند",
 			runtime: {
 				title: "ساخت و زمان اجرا",
 				service: "سرویس ساختگی",
@@ -482,35 +479,6 @@ export const faIRTranslation = {
 					"local-production": "ساخت تولید محلی",
 				},
 				loadError: "بارگیری اطلاعات سرویس ممکن نیست",
-			},
-			groups: {
-				frontend: "پشتهٔ فرانت‌اند",
-				fake: "معماری و آزمون فقط‌ساختگی",
-				platform: "کیفیت مهندسی و استقرار",
-			},
-			nameColumn: "وابستگی",
-			versionColumn: "نسخه",
-			typeLabel: "نوع: {{value}}",
-			versionLabel: "نسخه: {{value}}",
-			notSelected: "در انتظار (ارائه‌دهنده انتخاب نشده است)",
-			status: { enabled: "فعال", approved: "تأییدشده", reserved: "مرز محفوظ" },
-			types: {
-				apiClient: "کلاینت API",
-				architecture: "قابلیت معماری",
-				build: "ابزار ساخت",
-				ci: "CI/CD",
-				componentLibrary: "کتابخانهٔ مؤلفه",
-				deployment: "پلتفرم استقرار",
-				dependencyAutomation: "خودکارسازی وابستگی",
-				i18n: "بین‌المللی‌سازی",
-				language: "زبان برنامه‌نویسی",
-				mock: "شبیه‌سازی",
-				packageManager: "مدیریت بسته",
-				routing: "مسیریابی",
-				runtime: "زمان اجرا",
-				serverState: "وضعیت سرور و ذخیرهٔ درخواست",
-				testing: "آزمون",
-				webFramework: "چارچوب فرانت‌اند",
 			},
 		},
 		deviceInfo: {
@@ -620,31 +588,16 @@ export const faIRTranslation = {
 				loginAccess: "دسترسی ورود",
 				maintenanceEnabled: "حالت نگه‌داری",
 				maintenanceMessage: "پیام نگه‌داری",
-				maintenanceEndsAt: "زمان بازیابی مورد انتظار",
-				captchaEnabled: "CAPTCHA ورود",
-				passwordMinLength: "حداقل طول گذرواژه",
-				passwordRequirements: "الزامات گذرواژه",
-				loginFailureLimit: "حد تلاش ناموفق ورود",
-				lockoutMinutes: "مدت قفل",
-				idleTimeoutMinutes: "مهلت خروج در بیکاری",
-				forceInitialPasswordChange: "نیاز به تغییر گذرواژه در ورود نخست",
 			},
 			loginAccess: {
 				all: "اجازه به همه",
 				adminOnly: "فقط مدیران",
 				disabled: "توقف همهٔ ورودها",
 			},
-			passwordRequirements: {
-				lowercase: "حروف کوچک",
-				uppercase: "حروف بزرگ",
-				number: "اعداد",
-				symbol: "نویسه‌های ویژه",
-			},
+
 			notifications: {
 				announcementsEnabled: "اعلان‌های سیستم",
 				inboxEnabled: "اعلان‌های درون‌برنامه",
-				unreadReminderEnabled: "یادآور پیام‌های خوانده‌نشده",
-				retentionDays: "نگه‌داری پیام",
 			},
 			units: {
 				characters: "نویسه",
@@ -788,7 +741,11 @@ export const faIRTranslation = {
 				updatedAt: "تاریخ به‌روزرسانی",
 				actions: "عملیات",
 			},
-			types: { builtIn: "نقش داخلی", custom: "نقش سفارشی" },
+			types: {
+				builtIn: "نقش داخلی",
+				custom: "نقش سفارشی",
+			},
+
 			fields: { displayName: "نام نقش", roleKey: "کلید نقش" },
 			placeholders: {
 				displayName: "نام نقش را وارد کنید",

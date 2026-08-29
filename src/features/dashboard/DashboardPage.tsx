@@ -16,6 +16,7 @@ import {
 	platformPermissions,
 	usePermissionChecker,
 } from "../../app/permissions";
+import { appAntdCssVar } from "../../app/antdCssVar";
 import { DashboardOverview } from "./components/DashboardOverview";
 import { DashboardQuickEntries } from "./components/DashboardQuickEntries";
 import { DashboardActivityPanels } from "./components/DashboardActivityPanels";
@@ -82,6 +83,7 @@ export function DashboardPage() {
 	return (
 		<ConfigProvider
 			theme={{
+				cssVar: appAntdCssVar,
 				components: {
 					Card: {
 						// Match Pro's Card defaults without changing the application theme.

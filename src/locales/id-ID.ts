@@ -1,7 +1,8 @@
 export const idIDTranslation = {
 	discardChanges: {
 		title: "Buang perubahan yang belum disimpan?",
-		description: "Perubahan yang belum disimpan akan hilang saat Anda menutup editor ini.",
+		description:
+			"Perubahan yang belum disimpan akan hilang saat Anda menutup editor ini.",
 		keepEditing: "Lanjutkan mengedit",
 		discard: "Buang perubahan",
 	},
@@ -10,7 +11,7 @@ export const idIDTranslation = {
 	},
 	dangerConfirmation: {
 		impactTitle: "Dampak",
-		instruction: "Masukkan \"{{name}}\" untuk mengonfirmasi tindakan ini.",
+		instruction: 'Masukkan "{{name}}" untuk mengonfirmasi tindakan ini.',
 		inputLabel: "Nama target konfirmasi",
 		placeholder: "Masukkan nama lengkap",
 	},
@@ -100,7 +101,8 @@ export const idIDTranslation = {
 			requestErrorFallback: "Permintaan gagal. Coba lagi nanti.",
 			profile: {
 				title: "Profil",
-				description: "Tinjau the saat ini account nama pengguna, email, tampilan nama, dan roles.",
+				description:
+					"Tinjau the saat ini account nama pengguna, email, tampilan nama, dan roles.",
 				loadError: "Tidak dapat to memuat account profile",
 				username: "Nama pengguna",
 				email: "Email",
@@ -169,7 +171,8 @@ export const idIDTranslation = {
 					currentPasswordRequired: "Masukkan the saat ini kata sandi",
 					newPassword: "Baru kata sandi",
 					newPasswordRequired: "Masukkan a new kata sandi",
-					newPasswordLength: "Kata sandi baru harus terdiri dari 12 hingga 1024 karakter",
+					newPasswordLength:
+						"Kata sandi baru harus terdiri dari 12 hingga 1024 karakter",
 					confirmNewPassword: "Konfirmasi new kata sandi",
 					confirmNewPasswordRequired: "Masukkan the new kata sandi lagi",
 					newPasswordMismatch: "Kata sandi baru tidak cocok",
@@ -191,7 +194,8 @@ export const idIDTranslation = {
 				},
 				notification: {
 					userMessage: "Pengguna pesan",
-					userMessageDescription: "Pesan dari pengguna lain akan dikirim dalam aplikasi",
+					userMessageDescription:
+						"Pesan dari pengguna lain akan dikirim dalam aplikasi",
 					systemMessage: "Sistem pesan",
 					systemMessageDescription: "Pesan sistem akan dikirim dalam aplikasi",
 					todoTask: "To-do tasks",
@@ -244,7 +248,6 @@ export const idIDTranslation = {
 			draftAnnouncementCount: "Unpublished announcements: {{count}}",
 			noDraftAnnouncements: "Tidak ada pengumuman yang belum diterbitkan",
 			maintenanceNotice: "Sistem maintenance",
-			maintenanceEndsAt: "Perkiraan pemulihan: {{time}}",
 			noMaintenance: "Mode pemeliharaan tidak diaktifkan",
 			activitySummary: "{{actor}} {{action}} {{target}}",
 			activityActions: {
@@ -274,7 +277,8 @@ export const idIDTranslation = {
 			editTitle: "Edit departemen",
 			delete: "Hapus",
 			deleteTitle: "Hapus departemen",
-			deleteDescription: "Departemen “{{name}}” tidak dapat dipulihkan setelah dihapus.",
+			deleteDescription:
+				"Departemen “{{name}}” tidak dapat dipulihkan setelah dihapus.",
 			confirmDelete: "Hapus",
 			enable: "Aktifkan",
 			disable: "Nonaktifkan",
@@ -324,7 +328,8 @@ export const idIDTranslation = {
 			errors: {
 				save: "Gagal to save departemen",
 				delete: "Gagal to delete departemen",
-				deleteProtected: "Hapus child departments, positions, atau anggota pertama",
+				deleteProtected:
+					"Hapus child departments, positions, atau anggota pertama",
 				fallback: "Permintaan gagal. Silakan coba lagi.",
 			},
 		},
@@ -338,7 +343,8 @@ export const idIDTranslation = {
 			editTitle: "Edit position",
 			delete: "Hapus",
 			deleteTitle: "Hapus position",
-			deleteDescription: "Posisi “{{name}}” tidak dapat dipulihkan setelah dihapus.",
+			deleteDescription:
+				"Posisi “{{name}}” tidak dapat dipulihkan setelah dihapus.",
 			confirmDelete: "Hapus",
 			enable: "Aktifkan",
 			disable: "Nonaktifkan",
@@ -411,9 +417,11 @@ export const idIDTranslation = {
 			edit: "Edit",
 			delete: "Hapus",
 			deleteTypeTitle: "Hapus dictionary type",
-			deleteTypeDescription: "Tipe “{{name}}” dan itemnya tidak dapat dipulihkan setelah dihapus.",
+			deleteTypeDescription:
+				"Tipe “{{name}}” dan itemnya tidak dapat dipulihkan setelah dihapus.",
 			deleteItemTitle: "Hapus dictionary item",
-			deleteItemDescription: "Item “{{label}}” tidak dapat dipulihkan setelah dihapus.",
+			deleteItemDescription:
+				"Item “{{label}}” tidak dapat dipulihkan setelah dihapus.",
 			confirmDelete: "Hapus",
 			enable: "Aktifkan",
 			disable: "Nonaktifkan",
@@ -489,9 +497,8 @@ export const idIDTranslation = {
 			},
 		},
 		about: {
-			description: "Tinjau the enabled Fake-saja UI capabilities dan the saat ini frontend technology baseline.",
-			stackTitle: "Technology dan engineering capabilities",
-			dependenciesTitle: "Frontend dependencies",
+			description:
+				"Tinjau the enabled Fake-saja UI capabilities dan the saat ini frontend technology baseline.",
 			runtime: {
 				title: "Build dan runtime",
 				service: "Fake layanan",
@@ -506,39 +513,6 @@ export const idIDTranslation = {
 					"local-production": "Lokal produksi build",
 				},
 				loadError: "Tidak dapat memuat informasi layanan",
-			},
-			groups: {
-				frontend: "Frontend stack",
-				fake: "Fake-saja architecture dan pengujian",
-				platform: "Engineering quality dan deployment",
-			},
-			nameColumn: "Dependensi",
-			versionColumn: "Version",
-			typeLabel: "Tipe: {{value}}",
-			versionLabel: "Version: {{value}}",
-			notSelected: "Menunggu (penyedia belum dipilih)",
-			status: {
-				enabled: "Diaktifkan",
-				approved: "Disetujui",
-				reserved: "Batas dicadangkan",
-			},
-			types: {
-				apiClient: "API klien",
-				architecture: "Arsitektur capability",
-				build: "Build alat",
-				ci: "CI/CD",
-				componentLibrary: "Komponen pustaka",
-				deployment: "Penerapan platform",
-				dependencyAutomation: "Dependensi automation",
-				i18n: "Internasionalisasi",
-				language: "Pemrograman bahasa",
-				mock: "Mock",
-				packageManager: "Paket manajemen",
-				routing: "Perutean",
-				runtime: "Runtime",
-				serverState: "Server status dan request caching",
-				testing: "Testing",
-				webFramework: "Frontend kerangka kerja",
 			},
 		},
 		deviceInfo: {
@@ -655,31 +629,16 @@ export const idIDTranslation = {
 				loginAccess: "Masuk akses",
 				maintenanceEnabled: "Pemeliharaan mode",
 				maintenanceMessage: "Pemeliharaan pesan",
-				maintenanceEndsAt: "Perkiraan pemulihan time",
-				captchaEnabled: "Masuk CAPTCHA",
-				passwordMinLength: "Minimum kata sandi panjang",
-				passwordRequirements: "Kata sandi persyaratan",
-				loginFailureLimit: "Gagal masuk batas",
-				lockoutMinutes: "Penguncian durasi",
-				idleTimeoutMinutes: "Diam sign-out batas waktu",
-				forceInitialPasswordChange: "Wajibkan kata sandi change on pertama masuk",
 			},
 			loginAccess: {
 				all: "Izinkan semua orang",
 				adminOnly: "Administrator saja",
 				disabled: "Jeda all logins",
 			},
-			passwordRequirements: {
-				lowercase: "Huruf kecil huruf",
-				uppercase: "Huruf besar huruf",
-				number: "Angka",
-				symbol: "Khusus karakter",
-			},
+
 			notifications: {
 				announcementsEnabled: "Sistem announcements",
 				inboxEnabled: "In-app notifications",
-				unreadReminderEnabled: "Unread pesan reminders",
-				retentionDays: "Message retention",
 			},
 			units: {
 				characters: "karakter",
@@ -691,7 +650,8 @@ export const idIDTranslation = {
 				upload: "Unggah logo",
 				reset: "Pulihkan default",
 				invalid: "Pilih gambar PNG, JPEG, atau WebP berukuran maksimal 1 MB.",
-				readError: "Tidak dapat membaca gambar. Pilih gambar yang valid lalu coba lagi.",
+				readError:
+					"Tidak dapat membaca gambar. Pilih gambar yang valid lalu coba lagi.",
 			},
 			save: "Simpan",
 			saved: "Sistem pengaturan disimpan",
@@ -716,15 +676,18 @@ export const idIDTranslation = {
 			delete: "Hapus",
 			rename: "Edit",
 			view: "Lihat detail",
-			renameTitle: "Edit peran \"{{nama}}\"",
-			detailTitle: "Peran detail \"{{nama}}\"",
+			renameTitle: 'Edit peran "{{nama}}"',
+			detailTitle: 'Peran detail "{{nama}}"',
 			configurePermissions: "Configure izin",
-			permissionDrawerTitle: "Configure izin untuk \"{{nama}}\"",
+			permissionDrawerTitle: 'Configure izin untuk "{{nama}}"',
 			save: "Simpan",
-			builtInDeleteReason: "Peran administrator super bawaan tidak dapat dihapus.",
+			builtInDeleteReason:
+				"Peran administrator super bawaan tidak dapat dihapus.",
 			cancel: "Batal",
-			deleteMemberDescription: "Anggota ditetapkan to this peran: {{count}}. Menghapus it will remove those assignments.",
-			deleteDescription: "Menghapus peran \"{{nama}}\" tidak dapat be dibatalkan.",
+			deleteMemberDescription:
+				"Anggota ditetapkan to this peran: {{count}}. Menghapus it will remove those assignments.",
+			deleteDescription:
+				'Menghapus peran "{{nama}}" tidak dapat be dibatalkan.',
 			confirmDelete: "Hapus",
 			deleteTitle: "Hapus peran",
 			retry: "Coba lagi",
@@ -734,7 +697,8 @@ export const idIDTranslation = {
 				root: "Platform izin",
 				saved: "Permissions disimpan",
 				saveFailed: "Permissions tidak sepenuhnya disimpan",
-				saveFailedDescription: "Saved {{disimpan}} perubahan; {{gagal}} gagal. Belum disimpan pilihan are kept. Please retry.",
+				saveFailedDescription:
+					"Saved {{disimpan}} perubahan; {{gagal}} gagal. Belum disimpan pilihan are kept. Please retry.",
 				notConfigured: "Not dikonfigurasi",
 				expandAll: "Perluas all",
 				collapseAll: "Ciutkan all",
@@ -772,7 +736,8 @@ export const idIDTranslation = {
 				items: {
 					announcementsRead: {
 						name: "Baca announcements",
-						description: "Lihat announcements, content, dan publication status.",
+						description:
+							"Lihat announcements, content, dan publication status.",
 					},
 					announcementsManage: {
 						name: "Kelola announcements",
@@ -788,11 +753,13 @@ export const idIDTranslation = {
 					},
 					dictionariesManage: {
 						name: "Kelola dictionaries",
-						description: "Kelola dictionary types, items, dan tampilan attributes.",
+						description:
+							"Kelola dictionary types, items, dan tampilan attributes.",
 					},
 					rolesManage: {
 						name: "Kelola roles",
-						description: "Buat atau delete roles, configure izin, dan tetapkan pengguna roles.",
+						description:
+							"Buat atau delete roles, configure izin, dan tetapkan pengguna roles.",
 					},
 					usersRead: {
 						name: "Baca users",
@@ -808,7 +775,8 @@ export const idIDTranslation = {
 					},
 					settingsManage: {
 						name: "Kelola pengaturan",
-						description: "Perbarui the situs judul dan lain platform-level pengaturan.",
+						description:
+							"Perbarui the situs judul dan lain platform-level pengaturan.",
 					},
 				},
 			},
@@ -823,10 +791,12 @@ export const idIDTranslation = {
 				updatedAt: "Updated pada",
 				actions: "Tindakan",
 			},
+
 			types: {
 				builtIn: "Bawaan peran",
 				custom: "Kustom peran",
 			},
+
 			fields: {
 				displayName: "Peran nama",
 				roleKey: "Peran kunci",
@@ -843,7 +813,8 @@ export const idIDTranslation = {
 				conflict: "The peran operation berkonflik dengan yang ada data",
 				fallback: "Permintaan gagal. Coba lagi nanti.",
 				permissionForbidden: "Tidak dapat to berikan this permission",
-				permissionForbiddenDescription: "You tidak dapat berikan a permission that Anda account does tidak miliki.",
+				permissionForbiddenDescription:
+					"You tidak dapat berikan a permission that Anda account does tidak miliki.",
 			},
 		},
 		notificationCenter: {
@@ -851,7 +822,8 @@ export const idIDTranslation = {
 			receivedAt: "Received",
 			clear: "Hapus",
 			clearConfirmTitle: "Hapus semua notifikasi?",
-			clearConfirmContent: "Semua notifications untuk this account will be removed. This tidak dapat be dibatalkan dan will tidak delete announcements.",
+			clearConfirmContent:
+				"Semua notifications untuk this account will be removed. This tidak dapat be dibatalkan dan will tidak delete announcements.",
 			clearSuccess: "Notifikasi dihapus",
 			clearError: "Tidak dapat menghapus notifikasi. Silakan coba lagi.",
 			cancel: "Batal",
@@ -894,7 +866,8 @@ export const idIDTranslation = {
 			batchUnpublish: "Unpublish dipilih",
 			batchDelete: "Hapus dipilih",
 			batchDeleteTitle: "Hapus dipilih announcements",
-			batchDeleteDescription: "Menghapus {{count}} pengumuman yang dipilih tidak dapat dibatalkan.",
+			batchDeleteDescription:
+				"Menghapus {{count}} pengumuman yang dipilih tidak dapat dibatalkan.",
 			batchDeleteSuccess: "{{count}} pengumuman dihapus.",
 			batchStatusSuccess: "Atur {{count}} pengumuman menjadi {{status}}.",
 			clearSelection: "Hapus selection",
@@ -903,7 +876,8 @@ export const idIDTranslation = {
 			save: "Simpan",
 			confirmDelete: "Hapus",
 			deleteTitle: "Hapus announcement",
-			deleteDescription: "Menghapus pengumuman \"{{title}}\" tidak dapat dibatalkan.",
+			deleteDescription:
+				'Menghapus pengumuman "{{title}}" tidak dapat dibatalkan.',
 			retry: "Coba lagi",
 			empty: "Tidak ada pengumuman yang sesuai dengan filter saat ini.",
 			paginationTotal: "{{start}}-{{end}} dari {{total}}",
@@ -942,8 +916,10 @@ export const idIDTranslation = {
 				actions: "Tindakan",
 			},
 			validation: {
-				titleLength: "Masukkan judul pengumuman sepanjang 1 hingga 100 karakter.",
-				contentLength: "Masukkan isi pengumuman sepanjang 1 hingga 2.000 karakter.",
+				titleLength:
+					"Masukkan judul pengumuman sepanjang 1 hingga 100 karakter.",
+				contentLength:
+					"Masukkan isi pengumuman sepanjang 1 hingga 2.000 karakter.",
 			},
 			errors: {
 				load: "Tidak dapat to memuat announcements",
@@ -981,7 +957,8 @@ export const idIDTranslation = {
 				placeholders: {
 					displayName: "Masukkan a tampilan nama",
 					email: "Masukkan an email alamat",
-					password: "Masukkan an initial kata sandi of pada minimal 12 karakter",
+					password:
+						"Masukkan an initial kata sandi of pada minimal 12 karakter",
 					username: "Masukkan a nama pengguna",
 				},
 				validation: {
@@ -995,7 +972,8 @@ export const idIDTranslation = {
 			},
 			editForm: {
 				cancel: "Batal",
-				disableImpact: "Semua sesi aktif pengguna ini akan segera dibatalkan dan pengguna tidak dapat lagi masuk.",
+				disableImpact:
+					"Semua sesi aktif pengguna ini akan segera dibatalkan dan pengguna tidak dapat lagi masuk.",
 				submit: "Simpan",
 				title: "Edit {{nama}}",
 			},
@@ -1003,12 +981,14 @@ export const idIDTranslation = {
 				cancel: "Batal",
 				confirm: "Hapus",
 				error: "Tidak dapat to delete pengguna",
-				impact: "Pengguna tidak dapat lagi masuk. Akun dan penetapan perannya akan dihapus permanen.",
+				impact:
+					"Pengguna tidak dapat lagi masuk. Akun dan penetapan perannya akan dihapus permanen.",
 				title: "Hapus pengguna",
 			},
 			resetPasswordForm: {
 				cancel: "Batal",
-				impact: "Semua aktif sesi untuk this pengguna will be dibatalkan segera. The pengguna must gunakan the new kata sandi to sign in.",
+				impact:
+					"Semua aktif sesi untuk this pengguna will be dibatalkan segera. The pengguna must gunakan the new kata sandi to sign in.",
 				password: "Baru kata sandi",
 				placeholder: "Masukkan a new kata sandi of pada minimal 12 karakter",
 				submit: "Atur ulang",
@@ -1019,9 +999,12 @@ export const idIDTranslation = {
 				copy: "Salin",
 				copyPassword: "Salin the sekali pakai kata sandi",
 				done: "Done",
-				mustChangePassword: "Pengguna harus mengganti kata sandi ini saat masuk berikutnya dan semua sesinya telah dibatalkan.",
-				passwordChanged: "Kata sandi telah diperbarui dan semua sesi pengguna telah dibatalkan.",
-				passwordHint: "Bagikan kepada pengguna melalui saluran aman. Kata sandi ini tidak akan ditampilkan lagi setelah dialog ditutup.",
+				mustChangePassword:
+					"Pengguna harus mengganti kata sandi ini saat masuk berikutnya dan semua sesinya telah dibatalkan.",
+				passwordChanged:
+					"Kata sandi telah diperbarui dan semua sesi pengguna telah dibatalkan.",
+				passwordHint:
+					"Bagikan kepada pengguna melalui saluran aman. Kata sandi ini tidak akan ditampilkan lagi setelah dialog ditutup.",
 				passwordLabel: "One-time kata sandi",
 				success: "Kata sandi reset",
 				title: "Kata sandi reset hasil untuk {{nama}}",
@@ -1066,7 +1049,8 @@ export const idIDTranslation = {
 				disabled: "Dinonaktifkan",
 				empty: "Tidak ada roles",
 				highPrivilege: "High privilege",
-				highPrivilegeRisk: "Mencakup izin pengguna, peran, atau pengaturan sistem berdampak tinggi. Tetapkan dengan hati-hati.",
+				highPrivilegeRisk:
+					"Mencakup izin pengguna, peran, atau pengaturan sistem berdampak tinggi. Tetapkan dengan hati-hati.",
 				loadError: "Tidak dapat to memuat pengguna roles",
 				loadRolesError: "Tidak dapat to memuat peran daftar",
 				manageHint: "Adjust the draft, then save once.",
@@ -1078,13 +1062,15 @@ export const idIDTranslation = {
 				removedTitle: "Removed roles",
 				reset: "Atur ulang",
 				save: "Simpan",
-				saveHint: "Peran perubahan take effect setelah saving. Name confirmation is tidak required.",
+				saveHint:
+					"Peran perubahan take effect setelah saving. Name confirmation is tidak required.",
 				selectorLabel: "Peran selection",
 				selectorPlaceholder: "Cari peran nama atau kunci",
 				title: "{{nama}} roles",
 				unsaved: "Belum disimpan perubahan",
 				errors: {
-					conflict: "The pengguna peran operation berkonflik dengan yang ada data",
+					conflict:
+						"The pengguna peran operation berkonflik dengan yang ada data",
 					invalid: "The pengguna peran request is invalid",
 				},
 			},
@@ -1132,7 +1118,8 @@ export const idIDTranslation = {
 		tabs: {
 			label: "Halaman tab",
 			draggableDescription: "Dapat diseret page tab",
-			dragInstructions: "Tekan Spasi untuk mengambil tab, gunakan tombol panah kiri dan kanan untuk memindahkannya, tekan Spasi lagi untuk meletakkannya, atau tekan Escape untuk membatalkan.",
+			dragInstructions:
+				"Tekan Spasi untuk mengambil tab, gunakan tombol panah kiri dan kanan untuk memindahkannya, tekan Spasi lagi untuk meletakkannya, atau tekan Escape untuk membatalkan.",
 			dragStart: "Diambil ke atas {{judul}}.",
 			dragOver: "Memindahkan {{activeTitle}} to the position of {{overTitle}}.",
 			dragEnd: "Memindahkan {{activeTitle}} to the position of {{overTitle}}.",
@@ -1160,7 +1147,8 @@ export const idIDTranslation = {
 		remember: "Ingat me",
 		forgot: "Lupa kata sandi?",
 		submit: "Sign in",
-		invalidCredentials: "The nama pengguna, email, atau kata sandi is incorrect.",
+		invalidCredentials:
+			"The nama pengguna, email, atau kata sandi is incorrect.",
 		rateLimited: "Terlalu banyak percobaan masuk. Silakan coba lagi nanti.",
 		failed: "Sign-in is temporarily unavailable. Please try lagi later.",
 		authorizedOnly: "Hanya pengguna berwenang",
@@ -1168,7 +1156,8 @@ export const idIDTranslation = {
 	},
 	forgotPassword: {
 		title: "Lupa kata sandi",
-		contactAdministrator: "Hubungi administrator untuk mengatur ulang kata sandi Anda. Administrator dapat mengaturnya ulang dari halaman Pengguna.",
+		contactAdministrator:
+			"Hubungi administrator untuk mengatur ulang kata sandi Anda. Administrator dapat mengaturnya ulang dari halaman Pengguna.",
 		backToLogin: "Back to sign in",
 	},
 	language: {

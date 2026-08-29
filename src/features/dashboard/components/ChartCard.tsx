@@ -24,7 +24,6 @@ export function ChartCard({
 }: ChartCardProps) {
 	return (
 		<Card
-			title={title}
 			loading={loading}
 			styles={{ body: { padding: "20px 24px 8px 24px" } }}
 			{...cardProps}

@@ -1,5 +1,4 @@
 import {
-	passwordRequirements,
 	platformSettingsLimits as limits,
 	type UpdatePlatformSettingsInput,
 } from "../src/api/settings";
@@ -16,12 +15,12 @@ function text(value: unknown, max: number, required = true) {
 	);
 }
 
-function integer(value: unknown, range: { min: number; max: number }) {
+function exactKeys(value: Record<string, unknown>, keys: readonly string[]) {
+	const allowed = new Set(keys);
+	const actualKeys = Object.keys(value);
 	return (
-		typeof value === "number" &&
-		Number.isInteger(value) &&
-		value >= range.min &&
-		value <= range.max
+		actualKeys.length === keys.length &&
+		actualKeys.every((key) => allowed.has(key))
 	);
 }
 
@@ -49,6 +48,25 @@ export function isSettingsUpdate(
 	if (!record(general) || !record(security) || !record(notifications))
 		return false;
 	return (
+		exactKeys(value, [
+			"expectedVersion",
+			"general",
+			"security",
+			"notifications",
+		]) &&
+		exactKeys(general, [
+			"siteTitle",
+			"shortTitle",
+			"logoDataUrl",
+			"browserTitle",
+			"copyright",
+		]) &&
+		exactKeys(security, [
+			"loginAccess",
+			"maintenanceEnabled",
+			"maintenanceMessage",
+		]) &&
+		exactKeys(notifications, ["announcementsEnabled", "inboxEnabled"]) &&
 		text(general.siteTitle, limits.siteTitle) &&
 		text(general.shortTitle, limits.shortTitle) &&
 		logo(general.logoDataUrl) &&
@@ -62,25 +80,7 @@ export function isSettingsUpdate(
 			limits.maintenanceMessage,
 			security.maintenanceEnabled,
 		) &&
-		(security.maintenanceEndsAt === null ||
-			(typeof security.maintenanceEndsAt === "string" &&
-				/^\d{4}-\d{2}-\d{2}T/.test(security.maintenanceEndsAt) &&
-				Number.isFinite(Date.parse(security.maintenanceEndsAt)))) &&
-		typeof security.captchaEnabled === "boolean" &&
-		integer(security.passwordMinLength, limits.passwordMinLength) &&
-		Array.isArray(security.passwordRequirements) &&
-		security.passwordRequirements.every((item: unknown) =>
-			passwordRequirements.some((requirement) => requirement === item),
-		) &&
-		new Set(security.passwordRequirements).size ===
-			security.passwordRequirements.length &&
-		integer(security.loginFailureLimit, limits.loginFailureLimit) &&
-		integer(security.lockoutMinutes, limits.lockoutMinutes) &&
-		integer(security.idleTimeoutMinutes, limits.idleTimeoutMinutes) &&
-		typeof security.forceInitialPasswordChange === "boolean" &&
 		typeof notifications.announcementsEnabled === "boolean" &&
-		typeof notifications.inboxEnabled === "boolean" &&
-		typeof notifications.unreadReminderEnabled === "boolean" &&
-		integer(notifications.retentionDays, limits.retentionDays)
+		typeof notifications.inboxEnabled === "boolean"
 	);
 }

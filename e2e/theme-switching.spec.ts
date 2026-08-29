@@ -400,7 +400,6 @@ const tableThemeCases = [
 	{ path: "/system/announcements", id: "admin-announcements-table-card" },
 	{ path: "/operations/audit-logs", id: "audit-log-table-card" },
 	{ path: "/operations/login-logs", id: "login-log-table-card" },
-	{ path: "/system/about", id: "about-production-dependencies" },
 ];
 
 for (const table of tableThemeCases) {
@@ -474,24 +473,22 @@ for (const table of tableThemeCases) {
 					await page.screenshot({
 						path: testInfo.outputPath(`${table.id}-${width}-${mode}.png`),
 					});
-				if (table.id !== "about-production-dependencies") {
-					const settings = panel.getByRole("img", {
-						name: "setting",
-						exact: true,
-					});
-					await settings.click();
-					const popup = page.locator(".ant-popover:visible");
-					await expect(popup.getByRole("tree")).toBeVisible();
-					await finishVisualTransitions(page);
-					const box = await popup.boundingBox();
-					if (!box) throw new Error("Column settings popup is missing");
-					expect(box.x).toBeGreaterThanOrEqual(0);
-					expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
-					expect(box.y).toBeGreaterThanOrEqual(0);
-					expect(box.y + box.height).toBeLessThanOrEqual(901);
-					await settings.click();
-					await expect(popup).toHaveCount(0);
-				}
+				const settings = panel.getByRole("img", {
+					name: "setting",
+					exact: true,
+				});
+				await settings.click();
+				const popup = page.locator(".ant-popover:visible");
+				await expect(popup.getByRole("tree")).toBeVisible();
+				await finishVisualTransitions(page);
+				const box = await popup.boundingBox();
+				if (!box) throw new Error("Column settings popup is missing");
+				expect(box.x).toBeGreaterThanOrEqual(0);
+				expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
+				expect(box.y).toBeGreaterThanOrEqual(0);
+				expect(box.y + box.height).toBeLessThanOrEqual(901);
+				await settings.click();
+				await expect(popup).toHaveCount(0);
 			}
 		}
 		expect(errors).toEqual([]);

@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import * as systemApi from "#src/api/system";
@@ -52,7 +51,7 @@ describe("AboutSystemPage", () => {
 		).toBeInTheDocument();
 	});
 
-	it("reports the actual build, deployment, and enabled stack", async () => {
+	it("reports only the concise build and runtime information", async () => {
 		vi.spyOn(systemApi, "getSystemInfo").mockResolvedValue({
 			builtAt: "2026-08-25T10:00:00.000Z",
 			commitSha: "93376d3f00ab",
@@ -64,63 +63,13 @@ describe("AboutSystemPage", () => {
 		renderAboutSystemPage();
 
 		const runtime = within(screen.getByTestId("about-runtime-service"));
-		const platform = within(screen.getByTestId("about-technology-platform"));
 		expect(await runtime.findByText("Cloudflare Pages")).toBeVisible();
 		expect(screen.getByText("93376d3f")).toBeVisible();
-		expect(platform.getByText("GitLab CI/CD")).toBeVisible();
 		expect(
-			platform.getByText("Cloudflare Pages", { exact: true }),
-		).toBeVisible();
-		expect(platform.queryByText(/GitHub/)).not.toBeInTheDocument();
-		expect(screen.getByText(/服务端状态与请求缓存/)).toBeVisible();
-		expect(screen.queryByText("Zustand")).not.toBeInTheDocument();
-		expect(screen.queryByText("Ant Design Plots")).not.toBeInTheDocument();
-	});
-
-	it("offers dependency copy actions from the standard more menu", async () => {
-		const user = userEvent.setup();
-		vi.spyOn(systemApi, "getSystemInfo").mockResolvedValue({
-			builtAt: "2026-08-25T10:00:00.000Z",
-			commitSha: "93376d3f00ab",
-			environment: "cloudflare-pages",
-			service: "antd-admin-template-fake-ui",
-			version: "0.1.0",
-		});
-
-		renderAboutSystemPage();
-
-		const moreButtons = await screen.findAllByRole("button", { name: "更多" });
-		const table = within(screen.getByTestId("about-production-dependencies"));
-		expect(
-			table
-				.getAllByRole("columnheader")
-				.map((header) => header.textContent?.trim()),
-		).toEqual(["依赖", "版本", "操作"]);
-		expect(
-			table
-				.getAllByRole("row")
-				.slice(1)
-				.map((row) =>
-					within(row)
-						.getAllByRole("cell")
-						.slice(0, 2)
-						.map((cell) => cell.textContent),
-				),
-		).toEqual(
-			Object.entries(__ADMIN_WEB_DEPENDENCIES__).sort(([left], [right]) =>
-				left.localeCompare(right),
-			),
-		);
-		expect(table.queryByRole("checkbox")).not.toBeInTheDocument();
-		expect(
-			table.queryByRole("button", { name: "查看详情" }),
+			screen.queryByRole("heading", { name: "技术栈与工程能力" }),
 		).not.toBeInTheDocument();
-		await user.click(moreButtons[0]!);
 		expect(
-			screen.getByRole("menuitem", { name: "复制包名" }),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("menuitem", { name: "复制版本" }),
-		).toBeInTheDocument();
+			screen.queryByTestId("about-production-dependencies"),
+		).not.toBeInTheDocument();
 	});
 });
