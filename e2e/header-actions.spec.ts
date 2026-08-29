@@ -69,6 +69,18 @@ async function expectRippleRelease(button: Locator, removed = false) {
 	else await expect(button).not.toHaveAttribute("data-rippling");
 }
 
+async function expectMenuRippleCorners(item: Locator, rounded: boolean) {
+	const radius = await item
+		.locator('[data-rippling="true"]')
+		.evaluate((ripple) => {
+			const clip = ripple.parentElement;
+			if (!clip) throw new Error("Missing menu ripple clipping layer");
+			return getComputedStyle(clip).borderRadius;
+		});
+	if (rounded) expect(Number.parseFloat(radius)).toBeGreaterThan(0);
+	else expect(radius).toBe("0px");
+}
+
 for (const width of [1440, 768, 390]) {
 	test(`侧边栏整项水波纹保留选中与导航（${width}px）`, async ({
 		page,
@@ -100,6 +112,7 @@ for (const width of [1440, 768, 390]) {
 		await page.mouse.down();
 		const ripple = dashboard.locator('[data-rippling="true"]');
 		await expectHeldRipple(ripple, null);
+		await expectMenuRippleCorners(dashboard, true);
 		await expect(dashboard).toHaveCSS("background-color", selectedColor);
 		expect(await dashboard.boundingBox()).toEqual(bounds);
 		const clipped = await ripple.evaluate((element) => {
@@ -190,6 +203,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	await page.mouse.down();
 	const ripple = dashboard.locator('[data-rippling="true"]');
 	await expectHeldRipple(ripple, null);
+	await expectMenuRippleCorners(dashboard, false);
 	expect(await dashboard.boundingBox()).toEqual(bounds);
 	expect(
 		await dashboard.evaluate((item) => ({
@@ -245,6 +259,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 		await page.mouse.down();
 		const itemRipple = item.locator('[data-rippling="true"]');
 		await expectHeldRipple(itemRipple, null);
+		await expectMenuRippleCorners(item, item !== system);
 		await expect(item).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 		await page.screenshot({
 			path: testInfo.outputPath(
@@ -278,6 +293,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 		await page.mouse.down();
 		const itemRipple = item.locator('[data-rippling="true"]');
 		await expectHeldRipple(itemRipple, null);
+		await expectMenuRippleCorners(item, true);
 		await page.mouse.up();
 		await expectRippleRelease(itemRipple, true);
 	}

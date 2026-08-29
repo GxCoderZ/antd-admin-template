@@ -21,6 +21,10 @@ export function NavigationMenu(props: MenuProps) {
 			theme={{
 				components: {
 					Menu: {
+						// Horizontal group titles use itemBorderRadius; popup items have their own token.
+						...(props.mode === "horizontal"
+							? { itemBorderRadius: 0, horizontalItemBorderRadius: 0 }
+							: {}),
 						itemActiveBg: "transparent",
 						dangerItemActiveBg: "transparent",
 					},
