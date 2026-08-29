@@ -78,7 +78,9 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 			await new Promise(requestAnimationFrame);
 			await Promise.allSettled(
 				tooltips
-					.flatMap((tooltip) => tooltip.getAnimations({ subtree: true }))
+					.flatMap((tooltip) =>
+						(tooltip.parentElement ?? tooltip).getAnimations({ subtree: true }),
+					)
 					.map((animation) => animation.finished),
 			);
 		});

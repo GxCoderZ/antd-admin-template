@@ -135,8 +135,6 @@ export function SettingsDrawer({
 			onClose={onClose}
 			open={open}
 			size={screens.sm ? 300 : "100%"}
-			// AntD releases body scroll lock before its leaving panel is removed.
-			styles={{ root: { overflow: "hidden" } }}
 			title={t("preferences.title")}
 		>
 			<div className={styles.content} style={contentStyle}>
