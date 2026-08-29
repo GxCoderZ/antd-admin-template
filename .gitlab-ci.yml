@@ -1,6 +1,3 @@
-variables:
-  PLAYWRIGHT_BROWSERS_PATH: $CI_PROJECT_DIR/.cache/ms-playwright
-
 default:
   image: node:24.17.0-bookworm
   interruptible: true
@@ -12,7 +9,6 @@ default:
         - pnpm-lock.yaml
     paths:
       - .pnpm-store
-      - .cache/ms-playwright
   before_script:
     - corepack enable
     - pnpm config set store-dir .pnpm-store
@@ -39,8 +35,8 @@ quality:
 
 e2e_chromium:
   stage: e2e
+  image: mcr.microsoft.com/playwright:v1.62.1-noble
   script:
-    - pnpm exec playwright install --with-deps chromium
     - pnpm run test:e2e
   artifacts:
     when: always
