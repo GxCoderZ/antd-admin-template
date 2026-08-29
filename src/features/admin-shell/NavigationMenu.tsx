@@ -1,4 +1,10 @@
-import { ConfigProvider, Menu, type MenuProps, type MenuRef } from "antd";
+import {
+	ConfigProvider,
+	Menu,
+	theme,
+	type MenuProps,
+	type MenuRef,
+} from "antd";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
 
@@ -19,20 +25,23 @@ function getRippleTarget(
 	)
 		return null;
 
-	const parent = item.parentElement;
-	if (
-		alignHorizontalRoot &&
-		item.closest('[role="menu"]') === rootMenu &&
-		parent instanceof HTMLElement &&
-		parent.getAttribute("role") === "none"
-	)
-		return parent;
+	if (alignHorizontalRoot && item.closest('[role="menu"]') === rootMenu) {
+		const parent = item.parentElement;
+		return {
+			element:
+				parent instanceof HTMLElement && parent.getAttribute("role") === "none"
+					? parent
+					: item,
+			squareClip: true,
+		};
+	}
 
-	return item;
+	return { element: item, squareClip: false };
 }
 
 export function NavigationMenu(props: MenuProps) {
 	const menuRef = useRef<MenuRef>(null);
+	const { token } = theme.useToken();
 	const { ripple, rippleProps, showRipple, releaseRipple, finishRipple } =
 		usePressRipple(props.disabled);
 	const resolveRippleTarget = (target: EventTarget | null) =>
@@ -47,12 +56,9 @@ export function NavigationMenu(props: MenuProps) {
 				cssVar: appAntdCssVar,
 				components: {
 					Menu: {
-						// Horizontal group titles use itemBorderRadius; popup items have their own token.
-						...(props.mode === "horizontal"
-							? { itemBorderRadius: 0, horizontalItemBorderRadius: 0 }
-							: {}),
 						itemActiveBg: "transparent",
 						dangerItemActiveBg: "transparent",
+						horizontalItemBorderRadius: token.borderRadius,
 					},
 				},
 			}}
@@ -64,7 +70,7 @@ export function NavigationMenu(props: MenuProps) {
 					props.onPointerDownCapture?.(event);
 					const target = resolveRippleTarget(event.target);
 					if (target && !event.defaultPrevented && event.button === 0)
-						showRipple(target, event);
+						showRipple(target.element, event, target.squareClip);
 				}}
 				onPointerUpCapture={(event) => {
 					props.onPointerUpCapture?.(event);
@@ -92,7 +98,7 @@ export function NavigationMenu(props: MenuProps) {
 						!event.repeat &&
 						(event.key === "Enter" || event.key === " ")
 					)
-						showRipple(target);
+						showRipple(target.element, undefined, target.squareClip);
 				}}
 				onKeyUpCapture={(event) => {
 					props.onKeyUpCapture?.(event);
@@ -106,7 +112,10 @@ export function NavigationMenu(props: MenuProps) {
 			{/* Menu owns its selection pseudo-element; the project ripple uses a separate, non-interactive child. */}
 			{ripple
 				? createPortal(
-						<span aria-hidden className={styles.menuRipple}>
+						<span
+							aria-hidden
+							className={`${styles.menuRipple}${ripple.squareClip ? ` ${styles.squareMenuRipple}` : ""}`}
+						>
 							<span
 								{...rippleProps}
 								className={styles.ripple}

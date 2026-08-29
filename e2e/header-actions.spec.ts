@@ -206,8 +206,10 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	});
 	const selection = await dashboard.evaluate((item) => ({
 		background: getComputedStyle(item).backgroundColor,
+		borderRadius: getComputedStyle(item).borderRadius,
 		underline: getComputedStyle(item, "::after").borderBottom,
 	}));
+	expect(Number.parseFloat(selection.borderRadius)).toBeGreaterThan(0);
 	expect(selection.underline).toContain("2px solid");
 	const bounds = await dashboard.boundingBox();
 	await dashboard.hover({ position: { x: 4, y: 20 } });
@@ -216,11 +218,14 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	const ripple = dashboard.locator('[data-rippling="true"]');
 	await expectHeldRipple(ripple, null);
 	await expectMenuRippleCorners(ripple, false);
-	expect(await getMenuRippleBounds(ripple)).toEqual(await dashboard.boundingBox());
+	expect(await getMenuRippleBounds(ripple)).toEqual(
+		await dashboard.boundingBox(),
+	);
 	expect(await dashboard.boundingBox()).toEqual(bounds);
 	expect(
 		await dashboard.evaluate((item) => ({
 			background: getComputedStyle(item).backgroundColor,
+			borderRadius: getComputedStyle(item).borderRadius,
 			underline: getComputedStyle(item, "::after").borderBottom,
 		})),
 	).toEqual(selection);

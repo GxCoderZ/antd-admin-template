@@ -5,6 +5,7 @@ import styles from "./PressRipple.module.css";
 
 interface RippleState {
 	phase: "alternate" | "primary";
+	squareClip: boolean;
 	state: "pressed" | "released";
 	target: HTMLElement;
 	size: number;
@@ -18,12 +19,14 @@ export function usePressRipple(disabled = false) {
 	const showRipple = (
 		target: HTMLElement,
 		pointer?: { clientX: number; clientY: number },
+		squareClip = false,
 	) => {
 		if (disabled) return;
 		const rect = target.getBoundingClientRect();
 		phase.current = phase.current === "primary" ? "alternate" : "primary";
 		setRipple({
 			phase: phase.current,
+			squareClip,
 			state: "pressed",
 			target,
 			size: Math.max(rect.width, rect.height) * 2,
