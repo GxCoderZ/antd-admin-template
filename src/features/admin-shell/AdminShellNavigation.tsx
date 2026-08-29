@@ -62,6 +62,7 @@ interface AdminShellNavigationProps {
 	menuType: MenuType;
 	navigationMode: NavigationMode;
 	onNavigate: (path: string) => void;
+	sidebarLogo: ReactNode;
 	siteTitle: string;
 	shortTitle: string;
 }
@@ -74,6 +75,7 @@ export function AdminShellNavigation({
 	menuType,
 	navigationMode,
 	onNavigate,
+	sidebarLogo,
 	siteTitle,
 	shortTitle,
 }: AdminShellNavigationProps) {
@@ -388,7 +390,7 @@ export function AdminShellNavigation({
 					paddingInline: compact ? token.paddingSM : token.paddingLG,
 				}}
 			>
-				{logo}
+				{sidebarLogo}
 				{compact ? null : (
 					<Text
 						ellipsis
@@ -396,7 +398,7 @@ export function AdminShellNavigation({
 						title={siteTitle}
 						style={{
 							fontSize: token.fontSizeLG,
-							lineHeight: `${token.controlHeight}px`,
+							lineHeight: "22px",
 							whiteSpace: "nowrap",
 						}}
 					>

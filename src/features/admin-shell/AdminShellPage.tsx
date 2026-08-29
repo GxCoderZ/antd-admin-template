@@ -31,6 +31,7 @@ import { AdminTabsBar } from "./AdminTabsBar";
 import "./AdminShellPage.css";
 
 const { Content, Footer } = Layout;
+const proSidebarBrandLogoSize = 22;
 
 interface AdminShellPageProps {
 	currentUserAvatarRevision: number;
@@ -180,6 +181,12 @@ export function AdminShellPage({
 			logo={<PlatformLogo size={token.controlHeight} src={brand.logoDataUrl} />}
 			navigationMode={navigationMode}
 			onNavigate={openRouteTab}
+			sidebarLogo={
+				<PlatformLogo
+					size={proSidebarBrandLogoSize}
+					src={brand.logoDataUrl}
+				/>
+			}
 			shortTitle={brand.shortTitle}
 			siteTitle={brand.siteTitle}
 		>

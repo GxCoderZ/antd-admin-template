@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("侧边导航品牌沿用顶部导航的字号和 Logo 规格", async ({ page }) => {
+test("侧边导航品牌沿用 Pro 侧边栏字号和 Logo 规格", async ({ page }) => {
 	await page.setViewportSize({ width: 1440, height: 900 });
 	await page.goto("/login");
 	await page.locator('input[autocomplete="username"]').fill("admin");
@@ -14,9 +14,13 @@ test("侧边导航品牌沿用顶部导航的字号和 Logo 规格", async ({ pa
 		"font-size",
 		"16px",
 	);
+	await expect(brand.getByText("React Antd Admin", { exact: true })).toHaveCSS(
+		"line-height",
+		"22px",
+	);
 	const logo = await brand.locator("svg, img").first().boundingBox();
-	expect(logo?.width).toBe(32);
-	expect(logo?.height).toBe(32);
+	expect(logo?.width).toBe(22);
+	expect(logo?.height).toBe(22);
 });
 
 test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ page }, testInfo) => {

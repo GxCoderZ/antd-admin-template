@@ -39,6 +39,7 @@ function renderNavigation(
 						menuType={menuType}
 						navigationMode={navigationMode}
 						onNavigate={onNavigate}
+						sidebarLogo={null}
 						siteTitle="React Antd Admin"
 						shortTitle="Admin"
 					>
