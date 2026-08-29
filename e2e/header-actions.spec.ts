@@ -69,16 +69,28 @@ async function expectRippleRelease(button: Locator, removed = false) {
 	else await expect(button).not.toHaveAttribute("data-rippling");
 }
 
-async function expectMenuRippleCorners(item: Locator, rounded: boolean) {
-	const radius = await item
-		.locator('[data-rippling="true"]')
-		.evaluate((ripple) => {
-			const clip = ripple.parentElement;
-			if (!clip) throw new Error("Missing menu ripple clipping layer");
-			return getComputedStyle(clip).borderRadius;
-		});
+async function expectMenuRippleCorners(ripple: Locator, rounded: boolean) {
+	const radius = await ripple.evaluate((element) => {
+		const clip = element.parentElement;
+		if (!clip) throw new Error("Missing menu ripple clipping layer");
+		return getComputedStyle(clip).borderRadius;
+	});
 	if (rounded) expect(Number.parseFloat(radius)).toBeGreaterThan(0);
 	else expect(radius).toBe("0px");
+}
+
+async function getMenuRippleBounds(ripple: Locator) {
+	return ripple.evaluate((element) => {
+		const clip = element.parentElement;
+		if (!clip) throw new Error("Missing menu ripple clipping layer");
+		const bounds = clip.getBoundingClientRect();
+		return {
+			height: bounds.height,
+			width: bounds.width,
+			x: bounds.x,
+			y: bounds.y,
+		};
+	});
 }
 
 for (const width of [1440, 768, 390]) {
@@ -112,7 +124,7 @@ for (const width of [1440, 768, 390]) {
 		await page.mouse.down();
 		const ripple = dashboard.locator('[data-rippling="true"]');
 		await expectHeldRipple(ripple, null);
-		await expectMenuRippleCorners(dashboard, true);
+		await expectMenuRippleCorners(ripple, true);
 		await expect(dashboard).toHaveCSS("background-color", selectedColor);
 		expect(await dashboard.boundingBox()).toEqual(bounds);
 		const clipped = await ripple.evaluate((element) => {
@@ -203,7 +215,8 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	await page.mouse.down();
 	const ripple = dashboard.locator('[data-rippling="true"]');
 	await expectHeldRipple(ripple, null);
-	await expectMenuRippleCorners(dashboard, false);
+	await expectMenuRippleCorners(ripple, false);
+	expect(await getMenuRippleBounds(ripple)).toEqual(await dashboard.boundingBox());
 	expect(await dashboard.boundingBox()).toEqual(bounds);
 	expect(
 		await dashboard.evaluate((item) => ({
@@ -257,9 +270,13 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	for (const item of [system, users]) {
 		await item.hover({ position: { x: 4, y: 20 } });
 		await page.mouse.down();
-		const itemRipple = item.locator('[data-rippling="true"]');
+		const itemRipple = page.locator('[data-rippling="true"]');
 		await expectHeldRipple(itemRipple, null);
-		await expectMenuRippleCorners(item, item !== system);
+		await expectMenuRippleCorners(itemRipple, item !== system);
+		if (item === system)
+			expect(await getMenuRippleBounds(itemRipple)).toEqual(
+				await item.locator("..").boundingBox(),
+			);
 		await expect(item).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 		await page.screenshot({
 			path: testInfo.outputPath(
@@ -293,7 +310,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 		await page.mouse.down();
 		const itemRipple = item.locator('[data-rippling="true"]');
 		await expectHeldRipple(itemRipple, null);
-		await expectMenuRippleCorners(item, true);
+		await expectMenuRippleCorners(itemRipple, true);
 		await page.mouse.up();
 		await expectRippleRelease(itemRipple, true);
 	}

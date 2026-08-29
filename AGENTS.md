@@ -131,7 +131,7 @@
 - 标准控件和图标使用 Ant Design、`@ant-design/icons`；禁止手写复刻 Button、Table、Form、Drawer、Modal、Tabs、Result、Skeleton、Upload、通知。
 - 用户指定 Ant Design/Pro 参考页时，保持其信息结构、间距、加载和交互，只适配本项目版本、国际化、Fake API、主题、响应式。`@ant-design/pro-components` 能准确承载时直接复用。
 - 尺寸、颜色、圆角、边框、阴影优先使用 Theme Token 和组件默认值。领域样式留在领域内；跨页面规则归应用层。
-- 顶栏头像入口保持 44px，搜索、语言、主题、通知入口保持 36×36px。顶栏入口、侧栏、横向导航及展开子菜单的水波纹是项目增强，不是 Ant Design Pro 默认效果；统一使用 `usePressRipple` 和 `PressRipple.module.css`，导航复用 `NavigationMenu`。横向一级菜单统一直角，展开子菜单保留组件圆角。按下触发、长按保持、松开淡出、连续点击重新触发，悬停展开不触发；禁止叠加旧按压底色，保留原生导航、焦点、选中高亮、下划线和禁用状态。
+- 顶栏头像入口保持 44px，搜索、语言、主题、通知入口保持 36×36px。顶栏入口、侧栏、横向导航及展开子菜单的水波纹是项目增强，不是 Ant Design Pro 默认效果；统一使用 `usePressRipple` 和 `PressRipple.module.css`，导航复用 `NavigationMenu`。横向一级菜单统一直角，水波纹覆盖包含左右内边距的完整一级项；展开子菜单保留组件圆角。按下触发、长按保持、松开淡出、连续点击重新触发，悬停展开不触发；禁止叠加旧按压底色，保留原生导航、焦点、选中高亮、下划线和禁用状态。
 - 数据管理页默认使用完整内容区宽度；表单、详情、设置页保持可读宽度。
 - PageContainer 内容区四周使用 `token.paddingLG`；通过公开 Token 配置，壳层不得重复添加 padding。
 - 独立表格页在路由声明 `contentLayout: "table"`，由壳层统一提供四周 `token.paddingLG`；Card、Drawer、Modal 内嵌表格沿用容器间距，不重复添加页面 padding。

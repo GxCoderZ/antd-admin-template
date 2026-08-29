@@ -1,22 +1,46 @@
-import { ConfigProvider, Menu, type MenuProps } from "antd";
+import { ConfigProvider, Menu, type MenuProps, type MenuRef } from "antd";
+import { useRef } from "react";
 import { createPortal } from "react-dom";
 
 import { appAntdCssVar } from "../../app/antdCssVar";
 import styles from "./PressRipple.module.css";
 import { usePressRipple } from "./usePressRipple";
 
-function getRippleTarget(target: EventTarget | null) {
+function getRippleTarget(
+	target: EventTarget | null,
+	rootMenu: HTMLUListElement | null,
+	alignHorizontalRoot: boolean,
+) {
 	const item =
 		target instanceof Element ? target.closest('[role="menuitem"]') : null;
-	return item instanceof HTMLElement &&
-		item.getAttribute("aria-disabled") !== "true"
-		? item
-		: null;
+	if (
+		!(item instanceof HTMLElement) ||
+		item.getAttribute("aria-disabled") === "true"
+	)
+		return null;
+
+	const parent = item.parentElement;
+	if (
+		alignHorizontalRoot &&
+		item.closest('[role="menu"]') === rootMenu &&
+		parent instanceof HTMLElement &&
+		parent.getAttribute("role") === "none"
+	)
+		return parent;
+
+	return item;
 }
 
 export function NavigationMenu(props: MenuProps) {
+	const menuRef = useRef<MenuRef>(null);
 	const { ripple, rippleProps, showRipple, releaseRipple, finishRipple } =
 		usePressRipple(props.disabled);
+	const resolveRippleTarget = (target: EventTarget | null) =>
+		getRippleTarget(
+			target,
+			menuRef.current?.menu?.list ?? null,
+			props.mode === "horizontal",
+		);
 	return (
 		<ConfigProvider
 			theme={{
@@ -35,9 +59,10 @@ export function NavigationMenu(props: MenuProps) {
 		>
 			<Menu
 				{...props}
+				ref={menuRef}
 				onPointerDownCapture={(event) => {
 					props.onPointerDownCapture?.(event);
-					const target = getRippleTarget(event.target);
+					const target = resolveRippleTarget(event.target);
 					if (target && !event.defaultPrevented && event.button === 0)
 						showRipple(target, event);
 				}}
@@ -60,7 +85,7 @@ export function NavigationMenu(props: MenuProps) {
 				}}
 				onKeyDownCapture={(event) => {
 					props.onKeyDownCapture?.(event);
-					const target = getRippleTarget(event.target);
+					const target = resolveRippleTarget(event.target);
 					if (
 						target &&
 						!event.defaultPrevented &&
