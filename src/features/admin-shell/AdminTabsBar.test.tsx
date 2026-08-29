@@ -189,7 +189,7 @@ describe("AdminTabsBar", () => {
 		});
 	});
 
-	it("toggles the workspace fullscreen fallback when native fullscreen is unavailable", () => {
+	it("toggles workspace fullscreen without entering native browser fullscreen", () => {
 		const router = createMemoryRouter(
 			[{ path: "*", element: <TabsHarness /> }],
 			{ initialEntries: ["/dashboard"] },
@@ -202,16 +202,20 @@ describe("AdminTabsBar", () => {
 		);
 
 		const workspace = screen.getByTestId("tabs-workspace");
+		const requestFullscreen = vi.fn(() => Promise.resolve());
+		Object.defineProperty(workspace, "requestFullscreen", {
+			configurable: true,
+			value: requestFullscreen,
+		});
 		const fullscreen = screen.getByRole("button", { name: "全屏" });
 		fireEvent.click(fullscreen);
 		expect(workspace).toHaveAttribute(
-			"data-admin-shell-fullscreen-fallback",
+			"data-admin-shell-fullscreen",
 			"true",
 		);
+		expect(requestFullscreen).not.toHaveBeenCalled();
 		fireEvent.click(fullscreen);
-		expect(workspace).not.toHaveAttribute(
-			"data-admin-shell-fullscreen-fallback",
-		);
+		expect(workspace).not.toHaveAttribute("data-admin-shell-fullscreen");
 	});
 
 	it("keeps the dashboard tab fixed without close, drag, or context actions", async () => {

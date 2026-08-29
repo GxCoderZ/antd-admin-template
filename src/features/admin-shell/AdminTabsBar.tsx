@@ -182,8 +182,7 @@ export function AdminTabsBar({
 	}));
 	const [optimisticActiveTab, setOptimisticActiveTab] =
 		useState<OptimisticActiveTabState | null>(null);
-	const [fullscreenFallbackActive, setFullscreenFallbackActive] =
-		useState(false);
+	const [fullscreenActive, setFullscreenActive] = useState(false);
 	let openTabKeys = openTabsState.tabKeys;
 
 	if (openTabsState.routeKey !== currentPage.key) {
@@ -260,41 +259,20 @@ export function AdminTabsBar({
 		const workspace = workspaceRef.current;
 		if (!workspace) return;
 
-		if (fullscreenFallbackActive) {
-			workspace.setAttribute("data-admin-shell-fullscreen-fallback", "true");
+		if (fullscreenActive) {
+			workspace.setAttribute("data-admin-shell-fullscreen", "true");
 		} else {
-			workspace.removeAttribute("data-admin-shell-fullscreen-fallback");
+			workspace.removeAttribute("data-admin-shell-fullscreen");
 		}
 
 		return () => {
-			workspace.removeAttribute("data-admin-shell-fullscreen-fallback");
+			workspace.removeAttribute("data-admin-shell-fullscreen");
 		};
-	}, [fullscreenFallbackActive, workspaceRef]);
-
-	const enableFullscreenFallback = () => setFullscreenFallbackActive(true);
+	}, [fullscreenActive, workspaceRef]);
 
 	const toggleFullscreen = () => {
-		if (document.fullscreenElement) {
-			const exitFullscreen = document.exitFullscreen?.bind(document);
-			if (exitFullscreen) void exitFullscreen().catch(enableFullscreenFallback);
-			return;
-		}
-
-		if (fullscreenFallbackActive) {
-			setFullscreenFallbackActive(false);
-			return;
-		}
-
-		const workspace = workspaceRef.current;
-		if (!workspace) return;
-
-		const requestFullscreen = workspace.requestFullscreen?.bind(workspace);
-		if (document.fullscreenEnabled === false || !requestFullscreen) {
-			enableFullscreenFallback();
-			return;
-		}
-
-		void requestFullscreen().catch(enableFullscreenFallback);
+		if (!workspaceRef.current) return;
+		setFullscreenActive((active) => !active);
 	};
 
 	const closeLeftTabs = (targetKey: string) => {

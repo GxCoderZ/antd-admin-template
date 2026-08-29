@@ -6,7 +6,7 @@
 	padding-bottom: 66px;
 }
 
-[data-admin-shell-fullscreen-fallback="true"] {
+[data-admin-shell-fullscreen="true"] {
 	height: 100dvh;
 	inset: 0;
 	position: fixed;

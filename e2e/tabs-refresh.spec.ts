@@ -8,7 +8,7 @@ async function signIn(page: Page) {
 	await expect(page).toHaveURL(/\/dashboard$/);
 }
 
-test("mobile tab fullscreen falls back when native fullscreen is unavailable", async ({
+test("mobile tab fullscreen uses page-level workspace mode", async ({
 	page,
 }, testInfo) => {
 	const errors: string[] = [];
@@ -17,13 +17,13 @@ test("mobile tab fullscreen falls back when native fullscreen is unavailable", a
 		if (entry.type() === "error") errors.push(entry.text());
 	});
 	await page.addInitScript(() => {
-		Object.defineProperty(Document.prototype, "fullscreenEnabled", {
-			configurable: true,
-			get: () => false,
-		});
+		window.sessionStorage.setItem("native-fullscreen-requested", "false");
 		Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
 			configurable: true,
-			value: undefined,
+			value() {
+				window.sessionStorage.setItem("native-fullscreen-requested", "true");
+				return Promise.resolve();
+			},
 		});
 	});
 	await page.setViewportSize({ width: 390, height: 900 });
@@ -31,24 +31,22 @@ test("mobile tab fullscreen falls back when native fullscreen is unavailable", a
 
 	const workspace = page.getByTestId("admin-shell-tab-workspace");
 	await page.getByRole("button", { name: "全屏", exact: true }).click();
-	await expect(workspace).toHaveAttribute(
-		"data-admin-shell-fullscreen-fallback",
-		"true",
-	);
+	await expect(workspace).toHaveAttribute("data-admin-shell-fullscreen", "true");
+	await expect
+		.poll(() => page.evaluate(() => sessionStorage.getItem("native-fullscreen-requested")))
+		.toBe("false");
 	const fullscreenBox = await workspace.boundingBox();
 	expect(fullscreenBox?.x).toBe(0);
 	expect(fullscreenBox?.y).toBe(0);
 	expect(fullscreenBox?.width).toBe(390);
 	expect(fullscreenBox?.height).toBe(900);
 	await page.screenshot({
-		path: testInfo.outputPath("mobile-tab-fullscreen-fallback.png"),
+		path: testInfo.outputPath("mobile-tab-page-fullscreen.png"),
 		animations: "disabled",
 	});
 
 	await page.getByRole("button", { name: "全屏", exact: true }).click();
-	await expect(workspace).not.toHaveAttribute(
-		"data-admin-shell-fullscreen-fallback",
-	);
+	await expect(workspace).not.toHaveAttribute("data-admin-shell-fullscreen");
 	expect(errors).toEqual([]);
 });
 
