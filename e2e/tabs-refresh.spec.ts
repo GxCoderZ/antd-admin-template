@@ -8,6 +8,50 @@ async function signIn(page: Page) {
 	await expect(page).toHaveURL(/\/dashboard$/);
 }
 
+test("mobile tab fullscreen falls back when native fullscreen is unavailable", async ({
+	page,
+}, testInfo) => {
+	const errors: string[] = [];
+	page.on("pageerror", (error) => errors.push(error.message));
+	page.on("console", (entry) => {
+		if (entry.type() === "error") errors.push(entry.text());
+	});
+	await page.addInitScript(() => {
+		Object.defineProperty(Document.prototype, "fullscreenEnabled", {
+			configurable: true,
+			get: () => false,
+		});
+		Object.defineProperty(HTMLElement.prototype, "requestFullscreen", {
+			configurable: true,
+			value: undefined,
+		});
+	});
+	await page.setViewportSize({ width: 390, height: 900 });
+	await signIn(page);
+
+	const workspace = page.getByTestId("admin-shell-tab-workspace");
+	await page.getByRole("button", { name: "全屏", exact: true }).click();
+	await expect(workspace).toHaveAttribute(
+		"data-admin-shell-fullscreen-fallback",
+		"true",
+	);
+	const fullscreenBox = await workspace.boundingBox();
+	expect(fullscreenBox?.x).toBe(0);
+	expect(fullscreenBox?.y).toBe(0);
+	expect(fullscreenBox?.width).toBe(390);
+	expect(fullscreenBox?.height).toBe(900);
+	await page.screenshot({
+		path: testInfo.outputPath("mobile-tab-fullscreen-fallback.png"),
+		animations: "disabled",
+	});
+
+	await page.getByRole("button", { name: "全屏", exact: true }).click();
+	await expect(workspace).not.toHaveAttribute(
+		"data-admin-shell-fullscreen-fallback",
+	);
+	expect(errors).toEqual([]);
+});
+
 test("tab refresh re-fetches the current page without losing query state or reloading the app", async ({
 	page,
 }, testInfo) => {

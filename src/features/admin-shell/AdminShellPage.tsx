@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Flex, Layout, theme } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigate, useNavigation } from "react-router";
 
@@ -195,6 +195,7 @@ export function AdminShellPage({
 					data-testid="admin-shell-tab-workspace"
 					ref={tabWorkspaceRef}
 					style={{
+						"--admin-shell-fullscreen-z-index": token.zIndexPopupBase,
 						background: token.colorBgLayout,
 						display: "flex",
 						flex: "1 1 auto",
@@ -203,7 +204,7 @@ export function AdminShellPage({
 						minWidth: 0,
 						overflow: "hidden",
 						width: "100%",
-					}}
+					} as CSSProperties}
 				>
 					<AdminTabsBar
 						currentPage={currentPage}

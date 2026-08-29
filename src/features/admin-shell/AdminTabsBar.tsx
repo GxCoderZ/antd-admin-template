@@ -36,7 +36,7 @@ import type {
 	RefObject,
 	SetStateAction,
 } from "react";
-import { cloneElement, useMemo, useState } from "react";
+import { cloneElement, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
@@ -182,6 +182,8 @@ export function AdminTabsBar({
 	}));
 	const [optimisticActiveTab, setOptimisticActiveTab] =
 		useState<OptimisticActiveTabState | null>(null);
+	const [fullscreenFallbackActive, setFullscreenFallbackActive] =
+		useState(false);
 	let openTabKeys = openTabsState.tabKeys;
 
 	if (openTabsState.routeKey !== currentPage.key) {
@@ -254,13 +256,45 @@ export function AdminTabsBar({
 		}
 	};
 
+	useEffect(() => {
+		const workspace = workspaceRef.current;
+		if (!workspace) return;
+
+		if (fullscreenFallbackActive) {
+			workspace.setAttribute("data-admin-shell-fullscreen-fallback", "true");
+		} else {
+			workspace.removeAttribute("data-admin-shell-fullscreen-fallback");
+		}
+
+		return () => {
+			workspace.removeAttribute("data-admin-shell-fullscreen-fallback");
+		};
+	}, [fullscreenFallbackActive, workspaceRef]);
+
+	const enableFullscreenFallback = () => setFullscreenFallbackActive(true);
+
 	const toggleFullscreen = () => {
 		if (document.fullscreenElement) {
-			void document.exitFullscreen?.();
+			const exitFullscreen = document.exitFullscreen?.bind(document);
+			if (exitFullscreen) void exitFullscreen().catch(enableFullscreenFallback);
 			return;
 		}
 
-		void workspaceRef.current?.requestFullscreen?.();
+		if (fullscreenFallbackActive) {
+			setFullscreenFallbackActive(false);
+			return;
+		}
+
+		const workspace = workspaceRef.current;
+		if (!workspace) return;
+
+		const requestFullscreen = workspace.requestFullscreen?.bind(workspace);
+		if (document.fullscreenEnabled === false || !requestFullscreen) {
+			enableFullscreenFallback();
+			return;
+		}
+
+		void requestFullscreen().catch(enableFullscreenFallback);
 	};
 
 	const closeLeftTabs = (targetKey: string) => {

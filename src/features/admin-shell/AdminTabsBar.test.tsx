@@ -46,7 +46,7 @@ function TabsHarness({
 	const workspaceRef = createRef<HTMLDivElement>();
 
 	return (
-		<div ref={workspaceRef}>
+		<div data-testid="tabs-workspace" ref={workspaceRef}>
 			<AdminTabsBar
 				currentPage={getAdminRouteMetadata(location.pathname)}
 				isReloading={isReloading}
@@ -187,6 +187,31 @@ describe("AdminTabsBar", () => {
 			height: "40px",
 			minHeight: "40px",
 		});
+	});
+
+	it("toggles the workspace fullscreen fallback when native fullscreen is unavailable", () => {
+		const router = createMemoryRouter(
+			[{ path: "*", element: <TabsHarness /> }],
+			{ initialEntries: ["/dashboard"] },
+		);
+
+		render(
+			<ConfigProvider>
+				<RouterProvider router={router} />
+			</ConfigProvider>,
+		);
+
+		const workspace = screen.getByTestId("tabs-workspace");
+		const fullscreen = screen.getByRole("button", { name: "全屏" });
+		fireEvent.click(fullscreen);
+		expect(workspace).toHaveAttribute(
+			"data-admin-shell-fullscreen-fallback",
+			"true",
+		);
+		fireEvent.click(fullscreen);
+		expect(workspace).not.toHaveAttribute(
+			"data-admin-shell-fullscreen-fallback",
+		);
 	});
 
 	it("keeps the dashboard tab fixed without close, drag, or context actions", async () => {

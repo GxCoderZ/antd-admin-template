@@ -5,3 +5,10 @@
 .admin-shell-scroll-content:has([data-admin-shell-footer-bar="true"]) {
 	padding-bottom: 66px;
 }
+
+[data-admin-shell-fullscreen-fallback="true"] {
+	height: 100dvh;
+	inset: 0;
+	position: fixed;
+	z-index: var(--admin-shell-fullscreen-z-index);
+}
