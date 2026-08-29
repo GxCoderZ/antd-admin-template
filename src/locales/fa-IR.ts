@@ -220,8 +220,6 @@ export const faIRTranslation = {
 			noPermissionData: "دادهٔ نمای کلی برای این حساب در دسترس نیست",
 			loadError: "داشبورد بارگیری نشد",
 			retry: "بارگیری مجدد",
-			quickEntryTitle: "دسترسی سریع",
-			operationLogs: "گزارش‌های عملیات",
 			recentActivityTitle: "فعالیت اخیر",
 			recentLogins: "ورودهای اخیر",
 			recentOperations: "عملیات اخیر",

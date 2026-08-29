@@ -8,7 +8,7 @@ import {
 	within,
 } from "@testing-library/react";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { MemoryRouter } from "react-router";
 
 import type { DashboardStatistics } from "#src/api/dashboard";
 import type { PlatformSettings } from "#src/api/settings";
@@ -128,13 +128,7 @@ function renderDashboard(
 				<PermissionProvider permissions={permissions}>
 					<QueryClientProvider client={client}>
 						<MemoryRouter>
-							<Routes>
-								<Route path="/" element={<DashboardPage />} />
-								<Route
-									path="/system/dictionaries"
-									element={<h1>字典目的页</h1>}
-								/>
-							</Routes>
+							<DashboardPage />
 						</MemoryRouter>
 					</QueryClientProvider>
 				</PermissionProvider>
@@ -202,7 +196,7 @@ describe("dashboard workspace", () => {
 		expect(users.getByRole("img", { name: "caret-down" })).toBeVisible();
 	});
 
-	it("shows the four core metrics and five quick entries, with recent logins and operations", async () => {
+	it("shows the four core metrics with recent logins and operations", async () => {
 		renderDashboard();
 		expect(await screen.findByTestId("dashboard-stat-users")).toBeVisible();
 		for (const [key, value] of Object.entries({
@@ -215,16 +209,9 @@ describe("dashboard workspace", () => {
 				String(value),
 			);
 		}
-		const entries = within(screen.getByRole("region", { name: "快捷入口" }));
-		for (const name of [
-			"用户管理",
-			"角色管理",
-			"字典管理",
-			"系统设置",
-			"操作日志",
-		]) {
-			expect(entries.getByRole("link", { name })).toBeVisible();
-		}
+		expect(
+			screen.queryByRole("region", { name: "快捷入口" }),
+		).not.toBeInTheDocument();
 		expect(screen.getByText("preview.admin")).toBeVisible();
 		fireEvent.click(screen.getByRole("tab", { name: "最近操作" }));
 		expect(
@@ -239,13 +226,9 @@ describe("dashboard workspace", () => {
 			"Asia/Shanghai",
 			expect.any(AbortSignal),
 		);
-		fireEvent.click(entries.getByRole("link", { name: "字典管理" }));
-		expect(
-			await screen.findByRole("heading", { name: "字典目的页" }),
-		).toBeVisible();
 	});
 
-	it("hides unauthorized metrics, quick entries, logs and draft reminders", async () => {
+	it("hides unauthorized metrics, logs and draft reminders", async () => {
 		renderDashboard([
 			platformPermissions.usersRead,
 			platformPermissions.announcementsRead,
@@ -262,20 +245,15 @@ describe("dashboard workspace", () => {
 			screen.queryByTestId("dashboard-stat-logins"),
 		).not.toBeInTheDocument();
 		expect(
-			within(screen.getByRole("region", { name: "快捷入口" })).getAllByRole(
-				"link",
-			),
-		).toHaveLength(1);
-		expect(
 			screen.queryByRole("tab", { name: "最近登录" }),
 		).not.toBeInTheDocument();
 		expect(screen.queryByText("3 条公告待发布")).not.toBeInTheDocument();
 		expect(screen.getByText("预览版本更新")).toBeVisible();
 	});
 
-	it("keeps authorized entries and maintenance reminders without statistics permission", async () => {
-		renderDashboard([platformPermissions.dictionariesManage]);
-		expect(await screen.findByRole("link", { name: "字典管理" })).toBeVisible();
+	it("keeps maintenance reminders without statistics permission", async () => {
+		renderDashboard([]);
+		await screen.findByText("当前未开启维护模式");
 		expect(screen.getByText("当前未开启维护模式")).toBeVisible();
 		expect(screen.getByText("暂无可查看的概览数据")).toBeVisible();
 		expect(mocks.getStatistics).not.toHaveBeenCalled();

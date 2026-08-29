@@ -220,8 +220,6 @@ export const bnBDTranslation = {
 			noPermissionData: "এই অ্যাকাউন্টের জন্য কোনো সারসংক্ষেপ তথ্য নেই",
 			loadError: "ড্যাশবোর্ড লোড করা যায়নি",
 			retry: "পুনরায় লোড",
-			quickEntryTitle: "দ্রুত প্রবেশ",
-			operationLogs: "অপারেশন লগ",
 			recentActivityTitle: "সাম্প্রতিক কার্যকলাপ",
 			recentLogins: "সাম্প্রতিক সাইন-ইন",
 			recentOperations: "সাম্প্রতিক কার্যক্রম",

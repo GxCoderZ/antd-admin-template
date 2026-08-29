@@ -222,8 +222,6 @@ export const zhTWTranslation = {
 			noPermissionData: "暫無可查看的概覽資料",
 			loadError: "儀表板載入失敗",
 			retry: "重新載入",
-			quickEntryTitle: "快速入口",
-			operationLogs: "操作日誌",
 			recentActivityTitle: "最近動態",
 			recentLogins: "最近登入",
 			recentOperations: "最近操作",

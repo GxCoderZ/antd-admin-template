@@ -18,7 +18,6 @@ import {
 } from "../../app/permissions";
 import { appAntdCssVar } from "../../app/antdCssVar";
 import { DashboardOverview } from "./components/DashboardOverview";
-import { DashboardQuickEntries } from "./components/DashboardQuickEntries";
 import { DashboardActivityPanels } from "./components/DashboardActivityPanels";
 
 export function DashboardPage() {
@@ -98,7 +97,6 @@ export function DashboardPage() {
 				<DashboardOverview
 					statistics={hasStatistics ? statisticsQuery.data : undefined}
 				/>
-				<DashboardQuickEntries />
 				<DashboardActivityPanels
 					statistics={hasStatistics ? statisticsQuery.data : undefined}
 					settings={settingsQuery.data}

@@ -222,8 +222,6 @@ export const zhCNTranslation = {
 			noPermissionData: "暂无可查看的概览数据",
 			loadError: "仪表盘加载失败",
 			retry: "重新加载",
-			quickEntryTitle: "快捷入口",
-			operationLogs: "操作日志",
 			recentActivityTitle: "最近动态",
 			recentLogins: "最近登录",
 			recentOperations: "最近操作",

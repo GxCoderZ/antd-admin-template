@@ -230,8 +230,6 @@ export const jaJPTranslation = {
 			noPermissionData: "このアカウントで利用可能な概要データはありません",
 			loadError: "ダッシュボードを読み込めませんでした",
 			retry: "再読み込み",
-			quickEntryTitle: "クイックアクセス",
-			operationLogs: "操作ログ",
 			recentActivityTitle: "最近のアクティビティ",
 			recentLogins: "最近のサインイン",
 			recentOperations: "最近の操作",

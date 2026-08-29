@@ -228,8 +228,6 @@ export const ptBRTranslation = {
 			noPermissionData: "No overview data available for this account",
 			loadError: "Não foi possível carregar o painel",
 			retry: "Recarregar",
-			quickEntryTitle: "Acesso rápido",
-			operationLogs: "Operation logs",
 			recentActivityTitle: "Recent activity",
 			recentLogins: "Recent sign-ins",
 			recentOperations: "Recent operations",

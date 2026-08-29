@@ -226,8 +226,6 @@ export const idIDTranslation = {
 			noPermissionData: "Tidak ada ringkasan data tersedia untuk this account",
 			loadError: "Dasbor tidak dapat dimuat",
 			retry: "Reload",
-			quickEntryTitle: "Cepat akses",
-			operationLogs: "Operasi log",
 			recentActivityTitle: "Terbaru activity",
 			recentLogins: "Terbaru sign-ins",
 			recentOperations: "Terbaru operations",

@@ -226,8 +226,6 @@ export const enTranslation = {
 			noPermissionData: "No overview data available for this account",
 			loadError: "Dashboard could not be loaded",
 			retry: "Reload",
-			quickEntryTitle: "Quick access",
-			operationLogs: "Operation logs",
 			recentActivityTitle: "Recent activity",
 			recentLogins: "Recent sign-ins",
 			recentOperations: "Recent operations",

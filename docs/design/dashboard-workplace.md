@@ -11,10 +11,7 @@ Ant Design Pro, MIT license, commit
 
 - [Workplace](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/workplace/index.tsx):
   native Card title/body separation, 24px spacing, responsive 16:8 columns,
-  activity rows, and quick navigation.
-- [EditableLinkGroup](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/workplace/components/EditableLinkGroup/index.style.ts):
-  copied four-column inline links and 13px row spacing; only route content and
-  the project CSS variable prefix are substituted.
+  and activity rows.
 - [Analysis overview](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/IntroduceRow.tsx):
   four columns at `xl`, two at `sm` through `lg`, and one at `xs`.
 - [ChartCard](https://github.com/ant-design/ant-design-pro/blob/adfd44085738ca953573a13322c1ba84aca8b9e3/src/pages/dashboard/analysis/components/Charts/ChartCard/index.tsx)
@@ -31,14 +28,14 @@ Ant Design Pro, MIT license, commit
   red-6/green-6 colors and the source color variants. IntroduceRow supplies the
   16px comparison gap and 8px value spacing. Source HEAD was rechecked on 2026-08-29.
 
-`DashboardOverview`, `DashboardQuickEntries`, and `DashboardActivityPanels` adapt
+`DashboardOverview` and `DashboardActivityPanels` adapt
 these layout patterns to the installed Ant Design version and theme tokens.
 Native Card, Tabs, Button, Badge, and icon components are reused rather
 than copying framework internals or upstream application dependencies.
 
 ## Intentional Adaptations
 
-- Order: system status, four metrics, quick entries, activity and notices.
+- Order: four metrics, followed directly by activity, notices and reminders.
 - Card outer frames use the upstream native borderless Card, including its
   8px radius, 56px title bar, 24px body padding, and three-part light shadow.
   The installed Ant Design version has a heavier default shadow and the app
@@ -65,9 +62,7 @@ than copying framework internals or upstream application dependencies.
   chain; locale-aware formatting shows the absolute percentage beside the arrow.
 - Information tooltips retain hover and also support keyboard focus through the
   public AntD trigger API; no custom open-state or timing logic is introduced.
-- Mobile metrics use the source's single-column layout. Navigation keeps the upstream link grouping
-  above Ant Design's `sm` breakpoint and uses two columns below it so localized
-  labels remain readable; its Card frame is unchanged.
+- Mobile metrics use the source's single-column layout.
 - Existing application fonts, language, timezone, theme, and permissions remain
   authoritative. No external font or avatar requests are added.
 - Ant Design 6 List is deprecated, so activity uses semantic lists and native
