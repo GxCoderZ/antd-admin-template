@@ -48,7 +48,7 @@ e2e_chromium:
   script:
     # This runner times out against Debian's default CDN; USTC is an official mirror.
     - sed -i 's|http://deb.debian.org|https://mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources
-    - pnpm exec playwright install --with-deps chromium
+    - pnpm exec playwright install --with-deps --only-shell chromium
     - pnpm run test:e2e
   artifacts:
     when: always
