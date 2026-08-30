@@ -238,6 +238,7 @@ export const zhTWTranslation = {
 			viewLogins: "查看登入日誌",
 			viewOperations: "查看操作日誌",
 			viewAnnouncements: "查看公告",
+			allAnnouncements: "全部公告",
 			viewMaintenance: "維護設定",
 			remindersTitle: "輕量提醒",
 			abnormalLogins: "異常登入提醒",

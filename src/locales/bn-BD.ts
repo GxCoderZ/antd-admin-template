@@ -237,6 +237,7 @@ export const bnBDTranslation = {
 			viewLogins: "সাইন-ইন লগ দেখুন",
 			viewOperations: "অপারেশন লগ দেখুন",
 			viewAnnouncements: "ঘোষণা দেখুন",
+			allAnnouncements: "সব ঘোষণা",
 			viewMaintenance: "রক্ষণাবেক্ষণ সেটিংস",
 			remindersTitle: "স্মারক",
 			abnormalLogins: "সাইন-ইন সতর্কতা",

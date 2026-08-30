@@ -184,6 +184,18 @@ describe("dashboard workspace", () => {
 		).toBeVisible();
 	});
 
+	it("shows a visible all-announcements link with read permission only", async () => {
+		renderDashboard([platformPermissions.announcementsRead]);
+		const announcements = within(
+			await screen.findByRole("region", { name: "最新公告" }),
+		);
+		const link = announcements.getByRole("link", { name: "全部公告" });
+		expect(link).toHaveTextContent("全部公告");
+		expect(link).toHaveAttribute("href", "/system/announcements");
+		expect(announcements.queryByRole("button")).not.toBeInTheDocument();
+		expect(announcements.queryByRole("img")).not.toBeInTheDocument();
+	});
+
 	it("shows the Pro weekly and daily comparisons with numeric footer values", async () => {
 		renderDashboard();
 		await screen.findByTestId("dashboard-stat-users");
@@ -280,6 +292,12 @@ describe("dashboard workspace", () => {
 		expect(screen.getByText("当前未开启维护模式")).toBeVisible();
 		expect(screen.getByText("暂无可查看的概览数据")).toBeVisible();
 		expect(mocks.getStatistics).not.toHaveBeenCalled();
+		expect(
+			screen.queryByRole("region", { name: "最新公告" }),
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("link", { name: "全部公告" }),
+		).not.toBeInTheDocument();
 	});
 
 	it("keeps maintenance details and respects the announcement switch", async () => {

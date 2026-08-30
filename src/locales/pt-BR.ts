@@ -245,6 +245,7 @@ export const ptBRTranslation = {
 			viewLogins: "View sign-in logs",
 			viewOperations: "View operation logs",
 			viewAnnouncements: "View announcements",
+			allAnnouncements: "Todos os avisos",
 			viewMaintenance: "Maintenance settings",
 			remindersTitle: "Reminders",
 			abnormalLogins: "Sign-in alerts",

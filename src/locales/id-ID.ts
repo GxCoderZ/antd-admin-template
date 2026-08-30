@@ -243,6 +243,7 @@ export const idIDTranslation = {
 			viewLogins: "Lihat sign-in log",
 			viewOperations: "Lihat operation log",
 			viewAnnouncements: "Lihat announcements",
+			allAnnouncements: "Lihat semua",
 			viewMaintenance: "Pemeliharaan pengaturan",
 			remindersTitle: "Pengingat",
 			abnormalLogins: "Sign-in peringatan",

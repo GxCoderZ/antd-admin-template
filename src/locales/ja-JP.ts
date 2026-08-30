@@ -246,6 +246,7 @@ export const jaJPTranslation = {
 			viewLogins: "サインインログを表示",
 			viewOperations: "操作ログを表示",
 			viewAnnouncements: "お知らせを表示",
+			allAnnouncements: "すべてのお知らせ",
 			viewMaintenance: "メンテナンス設定",
 			remindersTitle: "リマインダー",
 			abnormalLogins: "サインインアラート",

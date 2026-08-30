@@ -237,6 +237,7 @@ export const faIRTranslation = {
 			viewLogins: "مشاهدهٔ گزارش‌های ورود",
 			viewOperations: "مشاهدهٔ گزارش‌های عملیات",
 			viewAnnouncements: "مشاهدهٔ اعلان‌ها",
+			allAnnouncements: "همهٔ اعلان‌ها",
 			viewMaintenance: "تنظیمات نگه‌داری",
 			remindersTitle: "یادآورها",
 			abnormalLogins: "هشدارهای ورود",

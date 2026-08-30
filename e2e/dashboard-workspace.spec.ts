@@ -66,6 +66,21 @@ test("工作台指标卡保留英文和深色主题（390px）", async ({ page }
 		path: testInfo.outputPath("dashboard-en-dark-390-metric.png"),
 		animations: "disabled",
 	});
+	const announcements = page.getByRole("region", {
+		name: "Latest announcements",
+	});
+	await expect(
+		announcements.getByRole("link", { name: "All notices", exact: true }),
+	).toHaveAttribute("href", "/system/announcements");
+	await expect(announcements).toHaveCSS("background-color", "rgb(20, 20, 20)");
+	expect(
+		await announcements
+			.getByText("Latest announcements", { exact: true })
+			.evaluate((node) => node.scrollWidth <= node.clientWidth),
+	).toBe(true);
+	await announcements.screenshot({
+		path: testInfo.outputPath("dashboard-en-dark-390-announcements.png"),
+	});
 });
 
 for (const width of [1440, 768, 460, 390]) {
@@ -88,6 +103,10 @@ for (const width of [1440, 768, 460, 390]) {
 		const timeZone = await page.evaluate(
 			() => Intl.DateTimeFormat().resolvedOptions().timeZone,
 		);
+		const chartCanvas = page
+			.getByRole("region", { name: "近 7 天登录趋势" })
+			.locator("canvas");
+		await expect(chartCanvas).toBeVisible();
 		const resizeTimes: number[] = [];
 		for (const nextWidth of [1440, 768, 390, width]) {
 			const started = performance.now();
@@ -106,6 +125,17 @@ for (const width of [1440, 768, 460, 390]) {
 						.map((animation) => animation.finished),
 				);
 			});
+			await expect
+				.poll(() =>
+					chartCanvas.evaluate((node) => {
+						if (!(node instanceof HTMLCanvasElement))
+							throw new Error("Missing chart canvas");
+						const figure = node.closest('[role="img"]');
+						if (!figure) throw new Error("Missing chart figure");
+						return Math.abs(node.width / devicePixelRatio - figure.clientWidth);
+					}),
+				)
+				.toBeLessThan(2);
 			resizeTimes.push(performance.now() - started);
 			expect(
 				await page.evaluate(
@@ -115,6 +145,38 @@ for (const width of [1440, 768, 460, 390]) {
 		}
 		const activity = page.getByRole("region", { name: "最近动态" });
 		const announcements = page.getByRole("region", { name: "最新公告" });
+		const allAnnouncements = announcements.getByRole("link", {
+			name: "全部公告",
+			exact: true,
+		});
+		await expect(allAnnouncements).toHaveText("全部公告");
+		await expect(allAnnouncements).toHaveCSS("font-size", "14px");
+		await expect(allAnnouncements).toHaveCSS("color", "rgb(22, 119, 255)");
+		await expect(allAnnouncements).toHaveCSS("border-width", "0px");
+		await expect(announcements.getByRole("button")).toHaveCount(0);
+		const noticeBox = await announcements.boundingBox();
+		const titleBox = await announcements
+			.getByText("最新公告", { exact: true })
+			.boundingBox();
+		const linkBox = await allAnnouncements.boundingBox();
+		const firstNoticeBox = await announcements
+			.getByRole("listitem")
+			.first()
+			.boundingBox();
+		if (!noticeBox || !titleBox || !linkBox || !firstNoticeBox)
+			throw new Error("Missing announcements card bounds");
+		expect(titleBox.x - noticeBox.x).toBeCloseTo(24, 0);
+		expect(
+			noticeBox.x + noticeBox.width - linkBox.x - linkBox.width,
+		).toBeCloseTo(24, 0);
+		// Native Card overlaps its 56px header separator by one pixel.
+		expect(firstNoticeBox.y - noticeBox.y).toBeCloseTo(55, 0);
+		// Inline link glyph bounds can differ from the centered title by a fraction of a pixel.
+		expect(
+			Math.abs(
+				titleBox.y + titleBox.height / 2 - linkBox.y - linkBox.height / 2,
+			),
+		).toBeLessThan(1);
 		const metrics = page.getByTestId(/^dashboard-stat-/);
 		await expect(metrics).toHaveCount(4);
 		for (const metric of await metrics.all()) {
@@ -282,6 +344,21 @@ for (const width of [1440, 768, 460, 390]) {
 		await expect(
 			users.getByRole("img", { name: "caret-down", exact: true }),
 		).toHaveCSS("color", "rgb(82, 196, 26)");
+		await announcements.screenshot({
+			path: testInfo.outputPath(`dashboard-${width}-announcements.png`),
+		});
+		await allAnnouncements.focus();
+		await expect(allAnnouncements).toBeFocused();
+		const announcementNavigationStarted = performance.now();
+		await allAnnouncements.press("Enter");
+		await expect(page).toHaveURL("/system/announcements");
+		await expect(
+			page.getByTestId("admin-announcements-table-card"),
+		).toBeVisible();
+		interactionTimes.push(performance.now() - announcementNavigationStarted);
+		await page.goBack();
+		await expect(page).toHaveURL("/dashboard");
+		await expect(allAnnouncements).toBeVisible();
 		const summarize = (samples: number[]) => {
 			const sorted = samples.toSorted((a, b) => a - b);
 			return {
@@ -295,6 +372,7 @@ for (const width of [1440, 768, 460, 390]) {
 			resize: summarize(resizeTimes),
 			interaction: summarize(interactionTimes),
 		};
+		console.log("dashboard-experience", width, JSON.stringify(metricsReport));
 		await testInfo.attach("dashboard-experience-metrics", {
 			body: JSON.stringify(metricsReport),
 			contentType: "application/json",
@@ -320,5 +398,43 @@ for (const width of [1440, 768, 460, 390]) {
 			page.getByRole("tab", { name: "登录与安全", exact: true }),
 		).toHaveAttribute("aria-selected", "true");
 		expect(errors).toEqual([]);
+	});
+}
+
+for (const [language, title] of [
+	["zh-TW", "最新公告"],
+	["ja-JP", "最新のお知らせ"],
+	["bn-BD", "সর্বশেষ ঘোষণা"],
+	["fa-IR", "تازه‌ترین اعلان‌ها"],
+	["id-ID", "Terakhir announcements"],
+	["pt-BR", "Latest announcements"],
+] as const) {
+	test(`公告卡片窄屏文案完整显示 (${language})`, async ({ page }, testInfo) => {
+		await page.setViewportSize({ width: 390, height: 1000 });
+		await page.addInitScript((language) => {
+			localStorage.setItem("react-antd-admin.preference.language", language);
+		}, language);
+		await signIn(page);
+		const announcements = page.getByRole("region", {
+			name: title,
+			exact: true,
+		});
+		await announcements.screenshot({
+			path: testInfo.outputPath(`announcements-${language}-390.png`),
+		});
+		await expect(announcements.getByRole("link")).toHaveAttribute(
+			"href",
+			"/system/announcements",
+		);
+		expect(
+			await announcements
+				.getByText(title, { exact: true })
+				.evaluate((node) => node.scrollWidth <= node.clientWidth),
+		).toBe(true);
+		expect(
+			await page.evaluate(
+				() => document.documentElement.scrollWidth <= innerWidth,
+			),
+		).toBe(true);
 	});
 }

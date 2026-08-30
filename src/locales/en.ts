@@ -243,6 +243,7 @@ export const enTranslation = {
 			viewLogins: "View sign-in logs",
 			viewOperations: "View operation logs",
 			viewAnnouncements: "View announcements",
+			allAnnouncements: "All notices",
 			viewMaintenance: "Maintenance settings",
 			remindersTitle: "Reminders",
 			abnormalLogins: "Sign-in alerts",

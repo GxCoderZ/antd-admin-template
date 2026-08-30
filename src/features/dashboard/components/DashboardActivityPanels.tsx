@@ -22,7 +22,7 @@ import {
 } from "antd";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import type { DashboardStatistics } from "#src/api/dashboard";
 import type { PlatformSettings } from "#src/api/settings";
@@ -270,23 +270,14 @@ export function DashboardActivityPanels({
 					{canReadAnnouncements && statistics && (
 						<Card
 							role="region"
-							aria-labelledby="dashboard-announcements-title"
+							aria-label={t("adminShell.dashboard.latestAnnouncements")}
 							variant="borderless"
 							styles={{ body: { padding: 0 } }}
-							title={
-								<Title
-									level={5}
-									id="dashboard-announcements-title"
-									style={{ margin: 0 }}
-								>
-									{t("adminShell.dashboard.latestAnnouncements")}
-								</Title>
-							}
+							title={t("adminShell.dashboard.latestAnnouncements")}
 							extra={
-								<DashboardLink
-									label={t("adminShell.dashboard.viewAnnouncements")}
-									path="/system/announcements"
-								/>
+								<Link to="/system/announcements">
+									{t("adminShell.dashboard.allAnnouncements")}
+								</Link>
 							}
 						>
 							{!settings.notifications.announcementsEnabled ? (

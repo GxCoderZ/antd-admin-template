@@ -211,3 +211,46 @@ successful targeted recheck; it is not reported as a fresh single-run 75/75.
 Historical result: passed
 
 final result: blocked
+
+## Latest Announcements Card (2026-08-31)
+
+The sections above are historical records. This pass covers only the latest
+announcements Card header and frame, not a new acceptance of every earlier task.
+
+### Target And Evidence
+
+- Source image: `C:/Users/ADMINI~1/AppData/Local/Temp/codex-clipboard-ef4b44b9-b2fa-44dd-a907-b8e32b4f9322.png` (743x363 pixels).
+- Source code: [Pro Workplace](https://github.com/ant-design/ant-design-pro/blob/master/src/pages/dashboard/workplace/index.tsx), the project Card with native `title`, `variant="borderless"` and an `extra` Link.
+- Owner: `src/features/dashboard/components/DashboardActivityPanels.tsx`.
+- Implementation: `http://127.0.0.1:3003/dashboard`; automated acceptance uses a fresh production build on port 4173 with Fake admin login.
+- Captures: `test-results/dashboard-workspace-工作台布局和动态面板（WIDTHpx）-chromium/dashboard-WIDTH-announcements.png`, for 1440, 768, 460 and 390px viewports at 1000px height, device scale factor 1.
+- English dark capture: `test-results/dashboard-workspace-工作台指标卡保留英文和深色主题（390px）-chromium/dashboard-en-dark-390-announcements.png`.
+- Six further 390px captures cover the remaining supported languages. Source and local desktop/mobile Card captures were opened together for direct comparison, without stretching either image.
+- The source is a wider project grid. This change intentionally retains the existing right-column width and announcement list; only the outer Card and header composition are matched. Element captures exclude the surrounding shadow area, which is checked through computed styles and full-page captures.
+
+### Findings And Fixes
+
+1. P2: the arrow-only extra action differed from the source's visible text link. Replaced this Card's `DashboardLink` usage with React Router Link and localized "All notices" / "全部公告" copy. Other dashboard arrows remain unchanged.
+2. P2: the custom Typography title differed from the source's native Card heading. Removed that wrapper and retained an accessible named region.
+3. P2: the first English and Indonesian action labels truncated the adjacent title at 390px. Shortened only the new action translations; fresh captures and title-width assertions pass in all eight languages.
+
+No actionable P0/P1/P2 difference remains in the scoped Card/header comparison.
+
+### Fidelity Surfaces
+
+- Typography: native 16px/600 Card title and 14px text link, normal letter spacing. Existing application fonts and platform rasterization remain; no global font replacement or pixel-identical font claim.
+- Layout: existing 8px Card radius and Pro shadow, 56px native header with its built-in 1px separator overlap, 24px left/right header padding. Title and link remain centered without custom positional CSS.
+- Tokens: theme-native surface, separator and link color; Chinese light and English dark are readable. No hardcoded production colors or internal AntD class overrides added.
+- Assets: no image or illustration belongs to the requested header/frame; no substitute assets were created. Project logos from the reference's unrelated grid are not copied into the announcement list.
+- Content: latest announcements and their existing Fake rows are preserved. The visible action opens the existing announcement-management route; permission and disabled-announcement behavior remain owned by the existing panel.
+
+### Verification
+
+- New unit regression failed against the former arrow button, then passed. All 392 unit tests pass, including authorized and hidden announcement states.
+- Typecheck, lint, circular-dependency check, unused-code check and production build pass. Existing build chunk-size warnings remain; no dependency was added.
+- Focused browser suite: 13/13 pass, including keyboard activation, return navigation, responsive restoration, themes and all supported languages.
+- Focused timing across the four viewport cases: page-open samples 682-1123ms; resize p50 325-409ms and p95 434-472ms; interaction p50 356-359ms and p95 361-377ms. No page overflow, page errors or failed requests were observed by the dashboard checks.
+- Full cross-route browser regression: all 170 tests pass in one fresh-build run (13.9 minutes), with no retries. Dashboard page-open samples are 1087-1121ms; resize p50 326-406ms and p95 435-484ms; interaction p50 357-362ms and p95 361-378ms, all within the project thresholds.
+- Changed production paths contain no new timers, retry loops, copied state, style overrides or duplicate implementation. The old arrow action and custom title wrapper were removed only from this Card.
+
+final result: passed

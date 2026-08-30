@@ -39,7 +39,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-## Ant Design Pro Dashboard Chart
+## Ant Design Pro Dashboard Components
 
 `src/features/dashboard/components/DashboardLoginTrend.tsx` and its lazy-loaded
 `LoginTrendChart.tsx` adapt the Card and Line chart configuration from
@@ -50,6 +50,12 @@ The port retains the line chart, axis configuration and centered legend, with
 the chart height reduced from 400px to 320px for a compact seven-day trend.
 Shop tabs, conversion rings and the time slider are omitted. Data, text and
 theme colors use this template's Fake API, translations and Ant Design tokens.
+
+The announcements Card in `DashboardActivityPanels.tsx` follows the Workplace
+project Card's native title and `extra` Link composition:
+https://github.com/ant-design/ant-design-pro/blob/master/src/pages/dashboard/workplace/index.tsx
+It retains the Card container and header presentation while using this
+template's announcement list, translations, permissions and route.
 
 MIT License
 
