@@ -96,6 +96,19 @@ afterEach(() => {
 	clearStoredPreferences();
 });
 
+describe("App deployment base path", () => {
+	it("renders routes below the configured Vite base URL", async () => {
+		window.history.replaceState(null, "", "/antd-admin-template/login");
+
+		render(<App basename="/antd-admin-template/" />);
+
+		expect(
+			await screen.findByRole("button", { name: "Toggle theme" }),
+		).toBeVisible();
+		expect(window.location.pathname).toBe("/antd-admin-template/login");
+	});
+});
+
 describe("App header identity", () => {
 	beforeEach(() => {
 		window.history.replaceState(null, "", "/dashboard");

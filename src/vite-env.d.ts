@@ -3,7 +3,11 @@
 declare const __BUILD_METADATA__: Readonly<{
 	builtAt: string;
 	commitSha: string;
-	environment: "cloudflare-pages" | "local-development" | "local-production";
+	environment:
+		| "cloudflare-pages"
+		| "github-pages"
+		| "local-development"
+		| "local-production";
 	version: string;
 }>;
 

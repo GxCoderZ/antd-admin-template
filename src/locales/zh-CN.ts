@@ -473,6 +473,7 @@ export const zhCNTranslation = {
 				localCommit: "本地工作区",
 				environments: {
 					"cloudflare-pages": "Cloudflare Pages",
+					"github-pages": "GitHub Pages",
 					"local-development": "本地开发",
 					"local-production": "本地生产构建",
 				},

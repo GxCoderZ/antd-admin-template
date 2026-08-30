@@ -507,6 +507,7 @@ export const idIDTranslation = {
 				localCommit: "Lokal workspace",
 				environments: {
 					"cloudflare-pages": "Cloudflare Pages",
+					"github-pages": "GitHub Pages",
 					"local-development": "Lokal pengembangan",
 					"local-production": "Lokal produksi build",
 				},

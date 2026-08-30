@@ -231,7 +231,11 @@ function AuthenticatedAdminShellRoute() {
 	);
 }
 
-export function App() {
+export function App({
+	basename = import.meta.env.BASE_URL,
+}: {
+	basename?: string;
+} = {}) {
 	const { i18n } = useTranslation();
 	const [isColorBlindMode, setIsColorBlindMode] = useState(
 		readColorBlindModePreference,
@@ -297,48 +301,51 @@ export function App() {
 	}, []);
 	const router = useMemo(
 		() =>
-			createBrowserRouter([
-				{
-					path: "/",
-					element: <Navigate replace to="/dashboard" />,
-				},
-				{
-					element: <AuthenticatedAdminShellRoute />,
-					ErrorBoundary: ShellRouteErrorPage,
-					HydrateFallback: ApplicationSkeleton,
-					children: [
-						...adminRouteDefinitions.map((route) => ({
-							handle: route,
-							lazy: route.lazy,
-							path: route.key,
-							ErrorBoundary: ShellRouteErrorPage,
-						})),
-						{
-							path: "*",
-							Component: ShellNotFoundPage,
-						},
-					],
-				},
-				{
-					path: "/login",
-					element: (
-						<ThemeModeRoute
-							Page={LoginPage}
-							selectProps={selectAuthThemeProps}
-						/>
-					),
-				},
-				{
-					path: "/forgot-password",
-					element: (
-						<ThemeModeRoute
-							Page={ForgotPasswordPage}
-							selectProps={selectAuthThemeProps}
-						/>
-					),
-				},
-			]),
-		[],
+			createBrowserRouter(
+				[
+					{
+						path: "/",
+						element: <Navigate replace to="/dashboard" />,
+					},
+					{
+						element: <AuthenticatedAdminShellRoute />,
+						ErrorBoundary: ShellRouteErrorPage,
+						HydrateFallback: ApplicationSkeleton,
+						children: [
+							...adminRouteDefinitions.map((route) => ({
+								handle: route,
+								lazy: route.lazy,
+								path: route.key,
+								ErrorBoundary: ShellRouteErrorPage,
+							})),
+							{
+								path: "*",
+								Component: ShellNotFoundPage,
+							},
+						],
+					},
+					{
+						path: "/login",
+						element: (
+							<ThemeModeRoute
+								Page={LoginPage}
+								selectProps={selectAuthThemeProps}
+							/>
+						),
+					},
+					{
+						path: "/forgot-password",
+						element: (
+							<ThemeModeRoute
+								Page={ForgotPasswordPage}
+								selectProps={selectAuthThemeProps}
+							/>
+						),
+					},
+				],
+				{ basename },
+			),
+		[basename],
 	);
 	const [queryClient] = useState(() =>
 		createAppQueryClient({

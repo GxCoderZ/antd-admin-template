@@ -6,12 +6,20 @@ import { vitePluginFakeServer } from "vite-plugin-fake-server";
 import packageJson from "./package.json" with { type: "json" };
 
 export default defineConfig(({ mode }) => {
+	const isGithubPages = process.env.GITHUB_PAGES === "true";
+	const githubPagesBasePath = isGithubPages
+		? process.env.GITHUB_PAGES_BASE_PATH?.replace(/^\/+|\/+$/g, "")
+		: undefined;
 	const buildMetadata = {
 		builtAt: new Date().toISOString(),
 		commitSha:
-			process.env.CF_PAGES_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA ?? "local",
-		environment:
-			process.env.CF_PAGES === "1"
+			process.env.GITHUB_SHA ??
+			process.env.CF_PAGES_COMMIT_SHA ??
+			process.env.GIT_COMMIT_SHA ??
+			"local",
+		environment: isGithubPages
+			? "github-pages"
+			: process.env.CF_PAGES === "1"
 				? "cloudflare-pages"
 				: mode === "production"
 					? "local-production"
@@ -20,6 +28,7 @@ export default defineConfig(({ mode }) => {
 	};
 
 	return {
+		base: githubPagesBasePath ? `/${githubPagesBasePath}/` : "/",
 		define: {
 			__BUILD_METADATA__: JSON.stringify(buildMetadata),
 		},

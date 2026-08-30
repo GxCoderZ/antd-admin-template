@@ -473,6 +473,7 @@ export const zhTWTranslation = {
 				localCommit: "本機工作區",
 				environments: {
 					"cloudflare-pages": "Cloudflare Pages",
+					"github-pages": "GitHub Pages",
 					"local-development": "本機開發",
 					"local-production": "本機正式建置",
 				},

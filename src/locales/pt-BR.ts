@@ -485,6 +485,7 @@ export const ptBRTranslation = {
 				localCommit: "Local workspace",
 				environments: {
 					"cloudflare-pages": "Cloudflare Pages",
+					"github-pages": "GitHub Pages",
 					"local-development": "Local development",
 					"local-production": "Local production build",
 				},

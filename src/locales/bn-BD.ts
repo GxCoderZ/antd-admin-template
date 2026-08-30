@@ -478,6 +478,7 @@ export const bnBDTranslation = {
 				localCommit: "স্থানীয় কর্মক্ষেত্র",
 				environments: {
 					"cloudflare-pages": "Cloudflare Pages",
+					"github-pages": "GitHub Pages",
 					"local-development": "স্থানীয় উন্নয়ন",
 					"local-production": "স্থানীয় প্রোডাকশন বিল্ড",
 				},

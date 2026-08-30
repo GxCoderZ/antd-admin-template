@@ -473,6 +473,7 @@ export const faIRTranslation = {
 				localCommit: "فضای کاری محلی",
 				environments: {
 					"cloudflare-pages": "صفحات Cloudflare",
+					"github-pages": "GitHub Pages",
 					"local-development": "توسعهٔ محلی",
 					"local-production": "ساخت تولید محلی",
 				},
