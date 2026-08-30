@@ -1059,7 +1059,6 @@ export const idIDTranslation = {
 					"Mencakup izin pengguna, peran, atau pengaturan sistem berdampak tinggi. Tetapkan dengan hati-hati.",
 				loadError: "Tidak dapat to memuat pengguna roles",
 				loadRolesError: "Tidak dapat to memuat peran daftar",
-				manageHint: "Adjust the draft, then save once.",
 				noChange: "None",
 				noPermissionSummary: "Tidak ada izin yang dikonfigurasi.",
 				noUnsaved: "Tidak ada perubahan yang belum disimpan",
@@ -1068,8 +1067,6 @@ export const idIDTranslation = {
 				removedTitle: "Removed roles",
 				reset: "Atur ulang",
 				save: "Simpan",
-				saveHint:
-					"Peran perubahan take effect setelah saving. Name confirmation is tidak required.",
 				selectorLabel: "Peran selection",
 				selectorPlaceholder: "Cari peran nama atau kunci",
 				title: "{{nama}} roles",

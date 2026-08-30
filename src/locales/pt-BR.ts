@@ -1029,7 +1029,6 @@ export const ptBRTranslation = {
 					"Includes high-impact user, role, or system settings permissions. Assign with care.",
 				loadError: "Unable to load user roles",
 				loadRolesError: "Unable to load role list",
-				manageHint: "Adjust the draft, then save once.",
 				noChange: "None",
 				noPermissionSummary: "No permissions configured.",
 				noUnsaved: "No unsaved changes",
@@ -1038,8 +1037,6 @@ export const ptBRTranslation = {
 				removedTitle: "Removed roles",
 				reset: "Redefinir",
 				save: "Salvar",
-				saveHint:
-					"Role changes take effect after saving. Name confirmation is not required.",
 				selectorLabel: "Role selection",
 				selectorPlaceholder: "Search role name or key",
 				title: "{{name}} roles",

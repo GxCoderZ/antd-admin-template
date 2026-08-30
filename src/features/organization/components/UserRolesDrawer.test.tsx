@@ -134,6 +134,28 @@ describe("UserRolesDrawer", () => {
 		expectTextVisible("旧审计员");
 	});
 
+	it("shows one unchanged status and reveals the diff only after changing the draft", async () => {
+		const { onSaveRoles, user } = renderDrawer({ userRoles: [roles[0]!] });
+		const drawer = await screen.findByRole("dialog", { name: "admin 的角色" });
+		const content = within(drawer);
+
+		expect(content.getByText("暂无未保存变更")).toBeVisible();
+		expect(content.queryByText("保存变更")).not.toBeInTheDocument();
+		expect(content.queryByText("调整草稿后统一保存。")).not.toBeInTheDocument();
+		expect(content.queryByRole("alert")).not.toBeInTheDocument();
+		expect(content.getByRole("button", { name: /保\s*存/ })).toBeDisabled();
+
+		await user.click(content.getByRole("combobox", { name: "角色选择" }));
+		await user.click(await screen.findByRole("option", { name: /运营管理员/ }));
+		expect(content.getByText("新增角色")).toBeVisible();
+		expect(content.getByText("有未保存变更")).toBeVisible();
+		await user.keyboard("{Escape}");
+		await user.click(content.getByRole("button", { name: /重\s*置/ }));
+		expect(content.queryByText("保存变更")).not.toBeInTheDocument();
+		expect(content.getByText("暂无未保存变更")).toBeVisible();
+		expect(onSaveRoles).not.toHaveBeenCalled();
+	});
+
 	it("keeps disabled assigned roles visible, blocks newly selecting them, and saves the draft diff", async () => {
 		const { onSaveRoles, user } = renderDrawer({
 			userRoles: [roles[0]!],

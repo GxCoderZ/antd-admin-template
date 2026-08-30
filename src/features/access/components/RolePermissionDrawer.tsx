@@ -260,17 +260,8 @@ export function RolePermissionDrawer({
 						type="search"
 						value={searchValue}
 					/>
-					<Flex
-						align="center"
-						gap={token.marginXS}
-						justify="space-between"
-						wrap
-					>
-						<Flex
-							gap={token.marginXS}
-							style={{ flex: "1 1 260px", minWidth: 0 }}
-							wrap
-						>
+					<Flex gap={token.marginXS} vertical>
+						<Flex gap={token.marginXS} wrap>
 							<Button
 								aria-label={t("adminShell.roles.permissions.expandAll")}
 								onClick={() => setExpandedKeys(permissionBranchNodeKeys)}
@@ -298,12 +289,7 @@ export function RolePermissionDrawer({
 								{t("adminShell.roles.permissions.clear")}
 							</Button>
 						</Flex>
-						<Flex
-							align="center"
-							gap={token.marginXS}
-							style={{ flex: "1 1 220px", minWidth: 0 }}
-							wrap
-						>
+						<Flex align="center" gap={token.marginXS} wrap>
 							{someGranted ? (
 								<Text>{selectedCountText}</Text>
 							) : (

@@ -138,13 +138,11 @@ export function UserRolesDrawer({
 			destroyOnHidden
 			size="min(560px, 100vw)"
 			extra={
-				<Text type="secondary">
-					{t(
-						canManageRoles
-							? "adminShell.users.roles.manageHint"
-							: "adminShell.users.roles.readOnlyHint",
-					)}
-				</Text>
+				!canManageRoles ? (
+					<Text type="secondary">
+						{t("adminShell.users.roles.readOnlyHint")}
+					</Text>
+				) : null
 			}
 			footer={
 				canManageRoles ? (
@@ -300,20 +298,17 @@ export function UserRolesDrawer({
 							value={draftRoleIds}
 							virtual={false}
 						/>
-						<Alert
-							description={t("adminShell.users.roles.saveHint")}
-							showIcon
-							type="info"
-						/>
-						<Flex gap={token.marginXS} vertical>
-							<Text strong>{t("adminShell.users.roles.diffTitle")}</Text>
+						{hasDraftChanges ? (
 							<Flex gap={token.marginXS} vertical>
-								<Text>{t("adminShell.users.roles.addedTitle")}</Text>
-								{renderRoleTags(addedRoles)}
-								<Text>{t("adminShell.users.roles.removedTitle")}</Text>
-								{renderRoleTags(removedRoles)}
+								<Text strong>{t("adminShell.users.roles.diffTitle")}</Text>
+								<Flex gap={token.marginXS} vertical>
+									<Text>{t("adminShell.users.roles.addedTitle")}</Text>
+									{renderRoleTags(addedRoles)}
+									<Text>{t("adminShell.users.roles.removedTitle")}</Text>
+									{renderRoleTags(removedRoles)}
+								</Flex>
 							</Flex>
-						</Flex>
+						) : null}
 					</Flex>
 				) : null}
 			</Flex>
