@@ -111,6 +111,7 @@
 - 主题原始十六进制颜色只允许集中在 `src/app/preferenceStorage.ts`。
 - `src/app/preferenceStorage.ts` 和 `src/app/routeSessionState.ts` 的可选浏览器存储不可用时可降级；catch 必须调用各自的命名降级函数。
 - `src/features/admin-shell/TwoColumnServiceMenu.module.css` 可用最窄的 `:global(ul[role="menu"])` 布局 Ant Design 生成的二级菜单 DOM。
+- `patches/@rc-component__trigger@3.10.1.patch` 修复上游触摸抑制标记未随真实鼠标输入清理的问题；只在原责任层根据鼠标 PointerEvent 清理既有标记，保留触摸后的合成鼠标事件抑制。公开组件 API 无法控制此内部标记，禁止各页面再加同类监听；升级后无补丁通过 `e2e/popup-input-modes.spec.ts` 时删除此补丁及登记。
 - JSON Schema URL、SVG namespace，以及 Playwright/Vite 的本地预览 URL 不属于 API host。
 
 新增例外必须同时满足：上游或公开 API 无法控制、范围位于责任层、代码旁说明原因、行为有测试，并把具体文件和用途加入本节。未登记的例外一律不允许。

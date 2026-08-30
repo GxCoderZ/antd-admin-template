@@ -1,0 +1,52 @@
+diff --git a/es/index.js b/es/index.js
+index b14e0c30992cf97c8471b8a53e7004bfea67ee77..ece375a8559d42bcd55d4bee3ceef3669ab67fd9 100644
+--- a/es/index.js
++++ b/es/index.js
+@@ -335,7 +335,7 @@ export function generateTrigger(PortalComponent = Portal) {
+      */
+     function wrapperAction(eventName, nextOpen, delay, callback, ignoreCheck) {
+       cloneProps[eventName] = (event, ...args) => {
+-        if (!ignoreCheck || !ignoreCheck()) {
++        if (!ignoreCheck || !ignoreCheck(event)) {
+           callback?.(event);
+           triggerOpen(nextOpen, delay);
+         }
+@@ -389,7 +389,11 @@ export function generateTrigger(PortalComponent = Portal) {
+     const hoverToHide = hideActions.has('hover');
+     let onPopupMouseEnter;
+     let onPopupMouseLeave;
+-    const ignoreMouseTrigger = () => {
++    const ignoreMouseTrigger = event => {
++      // Real mouse input ends touch suppression; synthetic mouse events after a tap do not.
++      if (event.pointerType === 'mouse') {
++        touchedRef.current = false;
++      }
+       return touchedRef.current;
+     };
+     if (hoverToShow) {
+diff --git a/lib/index.js b/lib/index.js
+index 1727a7fbfb68de729d5937aebbdc96ae809dbb95..944a3f13896b3af26c1af6ddeede5886cb9fef17 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -348,7 +348,7 @@ function generateTrigger(PortalComponent = _portal.default) {
+      */
+     function wrapperAction(eventName, nextOpen, delay, callback, ignoreCheck) {
+       cloneProps[eventName] = (event, ...args) => {
+-        if (!ignoreCheck || !ignoreCheck()) {
++        if (!ignoreCheck || !ignoreCheck(event)) {
+           callback?.(event);
+           triggerOpen(nextOpen, delay);
+         }
+@@ -402,7 +402,11 @@ function generateTrigger(PortalComponent = _portal.default) {
+     const hoverToHide = hideActions.has('hover');
+     let onPopupMouseEnter;
+     let onPopupMouseLeave;
+-    const ignoreMouseTrigger = () => {
++    const ignoreMouseTrigger = event => {
++      // Real mouse input ends touch suppression; synthetic mouse events after a tap do not.
++      if (event.pointerType === 'mouse') {
++        touchedRef.current = false;
++      }
+       return touchedRef.current;
+     };
+     if (hoverToShow) {
