@@ -313,6 +313,7 @@ export function AdminShellHeader({
 						selectedKeys: [],
 					}}
 					placement="bottomRight"
+					trigger={["click"]}
 				>
 					<HeaderIconButton
 						aria-label={currentUsername}

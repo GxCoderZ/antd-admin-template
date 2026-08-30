@@ -225,7 +225,7 @@ describe("AdminShellHeader", () => {
 		const { onChangeThemeMode, onNavigate, user } = renderHeader(
 			vi.fn().mockResolvedValue(undefined),
 		);
-		await user.hover(screen.getByRole("button", { name: "测试用户" }));
+		await user.click(screen.getByRole("button", { name: "测试用户" }));
 		expect(
 			await screen.findByRole("menuitem", { name: "账号设置" }),
 		).toBeInTheDocument();
@@ -251,18 +251,28 @@ describe("AdminShellHeader", () => {
 		const onLogout = vi.fn().mockRejectedValue(new Error("logout failed"));
 		const { user } = renderHeader(onLogout);
 
-		await user.hover(screen.getByRole("button", { name: "测试用户" }));
+		await user.click(screen.getByRole("button", { name: "测试用户" }));
 		await user.click(await screen.findByRole("menuitem", { name: "退出" }));
 
 		expect(onLogout).toHaveBeenCalledOnce();
 		expect(await screen.findByText("退出失败，请重试")).toBeInTheDocument();
 	});
 
-	it("opens the account menu on hover and navigates to the profile", async () => {
+	it("opens the account menu from a click without requiring hover", async () => {
+		renderHeader(vi.fn().mockResolvedValue(undefined));
+
+		fireEvent.click(screen.getByRole("button", { name: "测试用户" }));
+
+		expect(
+			await screen.findByRole("menuitem", { name: "个人资料" }),
+		).toBeInTheDocument();
+	});
+
+	it("opens the account menu on click and navigates to the profile", async () => {
 		const { onNavigate, user } = renderHeader(
 			vi.fn().mockResolvedValue(undefined),
 		);
-		await user.hover(screen.getByRole("button", { name: "测试用户" }));
+		await user.click(screen.getByRole("button", { name: "测试用户" }));
 		await user.click(await screen.findByRole("menuitem", { name: "个人资料" }));
 		expect(onNavigate).toHaveBeenCalledWith("/account/profile");
 	});

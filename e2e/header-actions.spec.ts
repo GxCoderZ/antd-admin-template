@@ -419,8 +419,6 @@ for (const width of [1440, 768, 390]) {
 			name: "个人资料",
 			exact: true,
 		});
-		await account.hover();
-		await expect(profile).toBeVisible();
 		const rippleStarts: Animation["startTime"][] = [];
 		for (let click = 0; click < 3; click += 1) {
 			await account.click();
@@ -439,6 +437,8 @@ for (const width of [1440, 768, 390]) {
 					return fade.startTime;
 				}),
 			);
+			if (click % 2 === 0) await expect(profile).toBeVisible();
+			else await expect(profile).not.toBeVisible();
 		}
 		expect(rippleStarts).not.toContain(null);
 		expect(new Set(rippleStarts).size).toBe(3);
@@ -448,11 +448,11 @@ for (const width of [1440, 768, 390]) {
 			path: testInfo.outputPath(`header-menu-${width}.png`),
 			animations: "disabled",
 		});
-		await page.getByTestId("admin-shell-page-content").hover({
+		await page.getByTestId("admin-shell-page-content").click({
 			position: { x: 4, y: 4 },
 		});
 		await expect(profile).not.toBeVisible();
-		await account.hover();
+		await account.click();
 		await profile.click();
 		await expect(page).toHaveURL(/\/account\/profile$/);
 		expect(
@@ -737,5 +737,28 @@ test.describe("触摸屏顶栏菜单", () => {
 			position: { x: 8, y: 8 },
 		});
 		await expect(profile).not.toBeVisible();
+	});
+
+	test("手机菜单关闭后切回桌面可立即点击打开", async ({ page }) => {
+		await signIn(page);
+		const account = page.getByRole("banner").getByRole("button", {
+			name: "Platform Admin",
+			exact: true,
+		});
+		const profile = page.getByRole("menuitem", {
+			name: "个人资料",
+			exact: true,
+		});
+
+		await account.tap();
+		await expect(profile).toBeVisible();
+		await page.getByTestId("admin-shell-page-content").tap({
+			position: { x: 8, y: 8 },
+		});
+		await expect(profile).not.toBeVisible();
+
+		await page.setViewportSize({ height: 900, width: 1440 });
+		await account.click();
+		await expect(profile).toBeVisible();
 	});
 });
