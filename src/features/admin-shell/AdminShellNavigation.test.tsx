@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigProvider, Grid } from "antd";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getAdminRouteMetadata } from "../../app/adminRoutes";
@@ -21,6 +21,11 @@ beforeEach(async () => {
 
 afterEach(() => vi.restoreAllMocks());
 
+function NavigationLocation() {
+	const location = useLocation();
+	return <output aria-label="Current route">{location.pathname}</output>;
+}
+
 function renderNavigation(
 	path: string,
 	permissions: PlatformPermission[] = [platformPermissions.logsRead],
@@ -29,7 +34,7 @@ function renderNavigation(
 ) {
 	const onNavigate = vi.fn();
 	render(
-		<MemoryRouter>
+		<MemoryRouter initialEntries={[path]}>
 			<ConfigProvider theme={{ token: { motion: false } }}>
 				<PermissionProvider permissions={permissions}>
 					<AdminShellNavigation
@@ -43,7 +48,7 @@ function renderNavigation(
 						siteTitle="React Antd Admin"
 						shortTitle="Admin"
 					>
-						{() => null}
+						{() => <NavigationLocation />}
 					</AdminShellNavigation>
 				</PermissionProvider>
 			</ConfigProvider>
@@ -53,6 +58,69 @@ function renderNavigation(
 }
 
 describe("log navigation", () => {
+	it.each([
+		["side", "single", "/system/about"],
+		["side", "twoColumn", "/system/about"],
+		["side", "serviceGrid", "/system/about"],
+		["side", "splitServiceGrid", "/system/about"],
+		["top", "single", "/system/about"],
+		["mixed", "single", "/system/about"],
+		["mixed", "single", "/operations/login-logs"],
+	] as const)(
+		"shares one held and repeatable brand ripple in %s %s at %s",
+		async (mode, menuType, path) => {
+			const { user } = renderNavigation(
+				path,
+				[platformPermissions.logsRead],
+				mode,
+				menuType,
+			);
+			const brand = screen.getByRole("link", { name: "仪表盘" });
+			fireEvent.pointerEnter(brand);
+			fireEvent.pointerDown(brand, { button: 2 });
+			expect(brand).not.toHaveAttribute("data-rippling");
+			const target = brand.firstElementChild ?? brand;
+			fireEvent.pointerDown(target, { button: 0, clientX: 8, clientY: 10 });
+			expect(brand).toHaveAttribute("data-ripple-state", "pressed");
+			expect(brand).toHaveAttribute("data-ripple-phase", "primary");
+			expect(brand.querySelector("[data-rippling]")).toBeNull();
+			fireEvent.pointerUp(target);
+			expect(brand).toHaveAttribute("data-ripple-state", "released");
+			fireEvent.pointerDown(target, { button: 0, clientX: 12, clientY: 14 });
+			expect(brand).toHaveAttribute("data-ripple-phase", "alternate");
+			expect(brand).toHaveAttribute("data-ripple-state", "pressed");
+			fireEvent.pointerCancel(brand);
+			expect(brand).toHaveAttribute("data-ripple-state", "released");
+			await user.click(brand);
+			expect(screen.getByLabelText("Current route")).toHaveTextContent(
+				"/dashboard",
+			);
+		},
+	);
+
+	it("uses native link keyboard activation and releases the brand ripple on blur", async () => {
+		const { user } = renderNavigation("/system/about");
+		const brand = screen.getByRole("link", { name: "仪表盘" });
+		brand.focus();
+		fireEvent.keyDown(brand, { key: " " });
+		expect(brand).not.toHaveAttribute("data-rippling");
+		await user.keyboard("{Enter>}");
+		expect(brand).toHaveAttribute("data-ripple-state", "pressed");
+		expect(screen.getByLabelText("Current route")).toHaveTextContent(
+			"/dashboard",
+		);
+		fireEvent.keyDown(brand, { key: "Enter", repeat: true });
+		expect(brand).toHaveAttribute("data-ripple-phase", "primary");
+		await user.keyboard("{/Enter}");
+		expect(brand).toHaveAttribute("data-ripple-state", "released");
+		fireEvent.pointerDown(brand, { button: 0 });
+		fireEvent.pointerLeave(brand);
+		expect(brand).toHaveAttribute("data-ripple-state", "released");
+		fireEvent.pointerDown(brand, { button: 0 });
+		fireEvent.blur(brand);
+		expect(brand).toHaveAttribute("data-ripple-state", "released");
+	});
+
 	it.each(["仪表盘", "系统管理", "关于系统"])(
 		"keeps the first-level %s icon in the two-column menu",
 		(title) => {

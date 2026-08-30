@@ -3,7 +3,6 @@ import {
 	MenuUnfoldOutlined,
 	SettingOutlined,
 } from "@ant-design/icons";
-import { TopNavHeader } from "@ant-design/pro-components";
 import {
 	Breadcrumb,
 	Drawer,
@@ -17,7 +16,6 @@ import {
 import type { CSSProperties, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link as RouterLink } from "react-router";
 
 import {
 	aboutPath,
@@ -37,12 +35,14 @@ import { usePermissionChecker } from "../../app/permissions";
 import type { MenuType, NavigationMode } from "../../app/preferenceStorage";
 import { AdminRouteIcon } from "./AdminRouteIcon";
 import { HeaderIconButton } from "./HeaderIconButton";
+import { NavigationBrandLink } from "./NavigationBrandLink";
 import { NavigationMenu } from "./NavigationMenu";
 import { TwoColumnServiceMenu } from "./TwoColumnServiceMenu";
 
 const { Header, Sider } = Layout;
 const { Text } = Typography;
 const proTopBrandTitleGap = 6;
+const proTopMenuPadding = 6;
 const collapsibleSidebarRootKeys: readonly string[] =
 	adminCollapsibleSidebarGroupKeys;
 
@@ -374,15 +374,12 @@ export function AdminShellNavigation({
 		/>
 	);
 	const renderSidebarLogo = (compact: boolean) => (
-		<RouterLink
+		<NavigationBrandLink
 			aria-label={t(dashboardRoute.titleKey)}
 			style={{
-				color: "inherit",
 				display: "block",
-				textDecoration: "none",
 				width: "100%",
 			}}
-			to={dashboardPath}
 		>
 			<Flex
 				align="center"
@@ -412,7 +409,7 @@ export function AdminShellNavigation({
 					</Text>
 				)}
 			</Flex>
-		</RouterLink>
+		</NavigationBrandLink>
 	);
 
 	return (
@@ -620,24 +617,47 @@ export function AdminShellNavigation({
 							/>
 						) : null}
 						{showTopNavigation && !showSidebarNavigation ? (
-							<TopNavHeader
-								headerContentRender={() => topNavigationMenu}
-								menuHeaderRender={(brandLogo, brandTitle) => (
-									<RouterLink
-										aria-label={t(dashboardRoute.titleKey)}
-										style={{ color: "inherit", textDecoration: "none" }}
-										to={dashboardPath}
+							<Flex style={{ height: "100%", minWidth: 0, width: "100%" }}>
+								{/* Keep Pro's geometry, but let the link own the full brand hit area. */}
+								<NavigationBrandLink
+									aria-label={t(dashboardRoute.titleKey)}
+									style={{
+										alignItems: "center",
+										display: "flex",
+										flex: "0 0 auto",
+										gap: proTopBrandTitleGap,
+										height: "100%",
+										paddingInlineStart: token.padding,
+										paddingInlineEnd: proTopMenuPadding,
+									}}
+								>
+									{logo}
+									<Typography.Title
+										level={1}
+										style={{
+											color: token.colorText,
+											fontSize: token.fontSizeLG,
+											lineHeight: "24px",
+											margin: 0,
+											whiteSpace: "nowrap",
+										}}
 									>
-										{brandLogo}
-										{brandTitle}
-									</RouterLink>
-								)}
-								layout="top"
-								logo={logo}
-								matchMenuKeys={[currentPage.key]}
-								style={{ minWidth: 0 }}
-								title={siteTitle}
-							/>
+										{siteTitle}
+									</Typography.Title>
+								</NavigationBrandLink>
+								<Flex
+									align="center"
+									style={{
+										flex: "1 1 auto",
+										lineHeight: `${Math.max(shellHeaderHeight - proTopMenuPadding * 2, token.controlHeightLG)}px`,
+										minWidth: 0,
+										paddingBlock: proTopMenuPadding,
+										paddingInlineEnd: proTopMenuPadding,
+									}}
+								>
+									{topNavigationMenu}
+								</Flex>
+							</Flex>
 						) : null}
 						{showTopNavigation && showSidebarNavigation
 							? topNavigationMenu

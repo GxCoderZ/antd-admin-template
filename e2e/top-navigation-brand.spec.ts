@@ -1,4 +1,50 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
+
+async function expectHeldBrandRipple(brand: Locator) {
+	const state = await brand.evaluate(async (element) => {
+		const animations = element.getAnimations({ subtree: true });
+		const [animation] = animations;
+		if (animations.length !== 1 || !(animation instanceof CSSAnimation))
+			throw new Error("Expected one brand ripple animation");
+		const running = animation.playState;
+		await animation.finished;
+		const ripple = getComputedStyle(element, "::after");
+		return {
+			name: animation.animationName,
+			running,
+			held: element.getAttribute("data-ripple-state"),
+			opacity: Number(ripple.opacity),
+			radius: ripple.borderRadius,
+			background: getComputedStyle(element).backgroundColor,
+			shadow: getComputedStyle(element).boxShadow,
+			overlay: getComputedStyle(element, "::before").content,
+		};
+	});
+	expect(state.name).toContain("press-ripple");
+	expect(state.running).toBe("running");
+	expect(state.held).toBe("pressed");
+	expect(state.opacity).toBeGreaterThan(0);
+	expect(state.radius).toBe("50%");
+	expect(state.background).toBe("rgba(0, 0, 0, 0)");
+	expect(state.shadow).toBe("none");
+	expect(state.overlay).toBe("none");
+}
+
+async function expectBrandRippleRelease(brand: Locator) {
+	await brand.evaluate(async (element) => {
+		const fade = element
+			.getAnimations({ subtree: true })
+			.find(
+				(animation) =>
+					animation instanceof CSSAnimation &&
+					animation.animationName.includes("rippleFadeOut"),
+			);
+		if (!fade || fade.playState !== "running")
+			throw new Error("Missing brand ripple fade animation");
+		await fade.finished;
+	});
+	await expect(brand).not.toHaveAttribute("data-rippling");
+}
 
 test("侧边导航品牌沿用统一的字号、Logo 和对齐规格", async ({
 	page,
@@ -33,6 +79,27 @@ test("侧边导航品牌沿用统一的字号、Logo 和对齐规格", async ({
 	await page.screenshot({
 		path: testInfo.outputPath("sidebar-brand.png"),
 	});
+	const link = page.getByRole("link", { name: "仪表盘", exact: true });
+	const bounds = await link.boundingBox();
+	expect(bounds?.x).toBe(0);
+	expect(bounds?.y).toBe(0);
+	expect(bounds?.height).toBe(56);
+	expect(bounds).toEqual(await brand.boundingBox());
+	for (const target of [
+		brand.locator("svg, img").first(),
+		brand.getByTitle("React Antd Admin"),
+	]) {
+		await target.hover();
+		await expect(link).not.toHaveAttribute("data-rippling");
+		await page.mouse.down();
+		await expectHeldBrandRipple(link);
+		expect(await link.boundingBox()).toEqual(bounds);
+		await page.screenshot({
+			path: testInfo.outputPath("sidebar-brand-held.png"),
+		});
+		await page.mouse.up();
+		await expectBrandRippleRelease(link);
+	}
 });
 
 test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ page }, testInfo) => {
@@ -174,6 +241,35 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 			expect(titleBox?.x).toBe(44);
 			expect(titleBox?.y).toBe(15.5);
 		}
+		if (width >= 768) {
+			const activeBrand = page.getByRole("link", {
+				name: "仪表盘",
+				exact: true,
+			});
+			const bounds = await activeBrand.boundingBox();
+			expect(bounds?.x).toBe(0);
+			expect(bounds?.y).toBe(0);
+			expect(bounds?.height).toBe(width >= 992 ? 55 : 56);
+			await activeBrand.hover({ position: { x: 2, y: 2 } });
+			started = performance.now();
+			await page.mouse.down();
+			await expect(activeBrand).toHaveAttribute("data-ripple-state", "pressed");
+			timings.interaction.push(performance.now() - started);
+			await expectHeldBrandRipple(activeBrand);
+			expect(await activeBrand.boundingBox()).toEqual(bounds);
+			await page.screenshot({
+				path: testInfo.outputPath(`brand-held-${width}.png`),
+			});
+			await page.mouse.up();
+			await expectBrandRippleRelease(activeBrand);
+		} else {
+			await expect(
+				page.getByRole("link", { name: "仪表盘", exact: true }),
+			).toHaveCount(0);
+			await expect(
+				page.getByTestId("admin-shell-mobile-title"),
+			).not.toHaveAttribute("data-rippling");
+		}
 		await page.screenshot({
 			path: testInfo.outputPath(`top-brand-${width}.png`),
 			animations: "disabled",
@@ -203,6 +299,44 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 	await expect(page).toHaveURL(/\/dashboard$/);
 	timings.interaction.push(performance.now() - started);
 	await expect(title).toBeVisible();
+	const starts: Animation["startTime"][] = [];
+	for (let click = 0; click < 3; click += 1) {
+		await title.click();
+		starts.push(
+			await brand.evaluate(async (element) => {
+				const fade = element
+					.getAnimations({ subtree: true })
+					.find(
+						(animation) =>
+							animation instanceof CSSAnimation &&
+							animation.animationName.includes("rippleFadeOut"),
+					);
+				if (!fade) throw new Error("Missing repeated brand ripple");
+				await fade.ready;
+				return fade.startTime;
+			}),
+		);
+	}
+	expect(starts).not.toContain(null);
+	expect(new Set(starts).size).toBe(3);
+	await expectBrandRippleRelease(brand);
+	await brand.focus();
+	await page.keyboard.down("Enter");
+	await expectHeldBrandRipple(brand);
+	await expect(brand).toBeFocused();
+	await expect(brand).not.toHaveCSS("outline-style", "none");
+	await page.keyboard.up("Enter");
+	await expectBrandRippleRelease(brand);
+	await page.emulateMedia({ reducedMotion: "reduce" });
+	await brand.hover();
+	await page.mouse.down();
+	expect(
+		await brand.evaluate(
+			(element) => getComputedStyle(element, "::after").display,
+		),
+	).toBe("none");
+	await page.mouse.up();
+	await page.emulateMedia({ reducedMotion: "no-preference" });
 	await header
 		.getByRole("button", { name: "Platform Admin", exact: true })
 		.click();
