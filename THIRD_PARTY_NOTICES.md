@@ -46,7 +46,8 @@ SOFTWARE.
 Ant Design Pro's `OfflineData.tsx`:
 https://github.com/ant-design/ant-design-pro/blob/master/src/pages/dashboard/analysis/components/OfflineData.tsx
 
-The port retains the 400px line chart, axis configuration and centered legend.
+The port retains the line chart, axis configuration and centered legend, with
+the chart height reduced from 400px to 320px for a compact seven-day trend.
 Shop tabs, conversion rings and the time slider are omitted. Data, text and
 theme colors use this template's Fake API, translations and Ant Design tokens.
 

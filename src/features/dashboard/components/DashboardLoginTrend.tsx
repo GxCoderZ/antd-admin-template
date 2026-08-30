@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import type { DashboardStatistics } from "#src/api/dashboard";
 
-const chartHeight = 400;
+const chartHeight = 320;
 const LoginTrendChart = lazy(() => import("./LoginTrendChart"));
 
 // Adapted from Ant Design Pro's analysis/OfflineData.tsx; see THIRD_PARTY_NOTICES.md.

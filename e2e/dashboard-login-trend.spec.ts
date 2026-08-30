@@ -98,6 +98,7 @@ for (const language of ["zh-CN", "en"]) {
 			resizing.push(performance.now() - started);
 			const pixels = await linePixels(canvas);
 			expect(pixels.red).toBeGreaterThan(30);
+			await expect(canvas).toHaveCSS("height", "320px");
 			expect(
 				await page.evaluate(
 					() => document.documentElement.scrollWidth <= innerWidth,
