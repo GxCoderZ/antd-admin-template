@@ -207,6 +207,12 @@ export const faIRTranslation = {
 			permissionCount: "گره‌های مجوز",
 			todayLoginCount: "ورودهای امروز",
 			todayLoginHint: "ورودهای موفق امروز در {{timeZone}}",
+			loginTrend: "روند ورود در ۷ روز گذشته",
+			trendTotal: "کل ورودها",
+			trendAbnormal: "ورودهای غیرعادی",
+			trendDaySummary:
+				"{{date}}: مجموع {{total}} ورود، {{abnormal}} ورود غیرعادی",
+			emptyLoginTrend: "در ۷ روز گذشته ورودی ثبت نشده است",
 			userSummary: "همهٔ حساب‌های پلتفرم",
 			roleSummary: "همهٔ نقش‌های دسترسی",
 			permissionSummary: "مجوزهای ثبت‌شده",

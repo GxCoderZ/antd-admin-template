@@ -82,7 +82,7 @@ describe("Fake dashboard workspace", () => {
 				.map((item) => item.id),
 		);
 		expect(data).not.toHaveProperty("todos");
-		expect(data).not.toHaveProperty("loginTrend");
+		expect(data).toHaveProperty("loginTrend");
 	});
 
 	it("counts today's successful and abnormal logins in the requested time zone, excluding future events", () => {
@@ -136,6 +136,81 @@ describe("Fake dashboard workspace", () => {
 		expect(statistics("UTC")).toMatchObject({
 			todayLoginCount: 1,
 			todayAbnormalLoginCount: 1,
+		});
+	});
+
+	it("groups the last seven calendar days, fills gaps and ignores old or future logins", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-08-28T01:00:00.000Z"));
+		const seed = initialLogins[0]!;
+		loginLogs.splice(
+			0,
+			loginLogs.length,
+			{ ...seed, createdAt: "2026-08-21T15:59:59.000Z", result: "success" },
+			{ ...seed, createdAt: "2026-08-21T16:00:00.000Z", result: "success" },
+			{ ...seed, createdAt: "2026-08-26T16:00:00.000Z", result: "invalid" },
+			{ ...seed, createdAt: "2026-08-27T16:00:00.000Z", result: "success" },
+			{ ...seed, createdAt: "2026-08-28T00:30:00.000Z", result: "limited" },
+			{ ...seed, createdAt: "2026-08-28T02:00:00.000Z", result: "success" },
+		);
+		expect(statistics()).toMatchObject({
+			loginTrend: [
+				{ date: "2026-08-22", totalCount: 1, abnormalCount: 0 },
+				{ date: "2026-08-23", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-24", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-25", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-26", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-27", totalCount: 1, abnormalCount: 1 },
+				{ date: "2026-08-28", totalCount: 2, abnormalCount: 1 },
+			],
+		});
+		expect(statistics("UTC")).toMatchObject({
+			loginTrend: [
+				{ date: "2026-08-22", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-23", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-24", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-25", totalCount: 0, abnormalCount: 0 },
+				{ date: "2026-08-26", totalCount: 1, abnormalCount: 1 },
+				{ date: "2026-08-27", totalCount: 1, abnormalCount: 0 },
+				{ date: "2026-08-28", totalCount: 1, abnormalCount: 1 },
+			],
+		});
+	});
+
+	it("keeps seven distinct calendar dates across daylight saving and reflects new logins", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date("2026-11-03T12:00:00.000Z"));
+		loginLogs.splice(0);
+		expect(statistics("America/New_York")).toMatchObject({
+			loginTrend: [
+				"2026-10-28",
+				"2026-10-29",
+				"2026-10-30",
+				"2026-10-31",
+				"2026-11-01",
+				"2026-11-02",
+				"2026-11-03",
+			].map((date) => ({ date, totalCount: 0, abnormalCount: 0 })),
+		});
+		loginLogs.push({
+			...initialLogins[0]!,
+			result: "success",
+			createdAt: new Date().toISOString(),
+		});
+		expect(statistics("America/New_York")).toMatchObject({
+			loginTrend: [
+				"2026-10-28",
+				"2026-10-29",
+				"2026-10-30",
+				"2026-10-31",
+				"2026-11-01",
+				"2026-11-02",
+				"2026-11-03",
+			].map((date) => ({
+				date,
+				totalCount: date === "2026-11-03" ? 1 : 0,
+				abnormalCount: 0,
+			})),
 		});
 	});
 

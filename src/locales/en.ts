@@ -213,6 +213,12 @@ export const enTranslation = {
 			permissionCount: "Permission nodes",
 			todayLoginCount: "Today's sign-ins",
 			todayLoginHint: "Successful sign-ins today in {{timeZone}}",
+			loginTrend: "Login trend, last 7 days",
+			trendTotal: "Total logins",
+			trendAbnormal: "Abnormal logins",
+			trendDaySummary:
+				"{{date}}: {{total}} total logins, {{abnormal}} abnormal",
+			emptyLoginTrend: "No logins in the last 7 days",
 			userSummary: "All platform accounts",
 			roleSummary: "All access roles",
 			permissionSummary: "Registered permissions",

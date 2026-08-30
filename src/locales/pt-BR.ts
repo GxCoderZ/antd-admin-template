@@ -215,6 +215,12 @@ export const ptBRTranslation = {
 			permissionCount: "Permission nodes",
 			todayLoginCount: "Today's sign-ins",
 			todayLoginHint: "Successful sign-ins today in {{timeZone}}",
+			loginTrend: "Logins nos últimos 7 dias",
+			trendTotal: "Total de logins",
+			trendAbnormal: "Logins anormais",
+			trendDaySummary:
+				"{{date}}: {{total}} logins no total, {{abnormal}} anormais",
+			emptyLoginTrend: "Nenhum login nos últimos 7 dias",
 			userSummary: "All platform accounts",
 			roleSummary: "All access roles",
 			permissionSummary: "Registered permissions",

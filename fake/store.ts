@@ -726,7 +726,8 @@ export const loginLogs: PlatformLoginLog[] = Array.from(
 			acceptLanguage: index % 2 === 0 ? "zh-CN" : "en-US",
 			timeZone: index % 3 === 2 ? "Asia/Singapore" : "Asia/Shanghai",
 			durationMs: 48 + ((index * 23) % 620),
-			createdAt: iso(index * 37),
+			// Spread the existing samples across a week for login trend and filter demos.
+			createdAt: iso(index * index * 4),
 		};
 	},
 );

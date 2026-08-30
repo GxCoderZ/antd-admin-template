@@ -159,15 +159,9 @@ for (const width of [1440, 768, 460, 390]) {
 			expect(totalBox.y - cardBox.y).toBeCloseTo(46, 0);
 			expect(cardBox.height).toBeCloseTo(182, 0);
 		}
-		await expect(
-			page.getByRole("region", { name: "快捷入口" }),
-		).toHaveCount(0);
+		await expect(page.getByRole("region", { name: "快捷入口" })).toHaveCount(0);
 		await expect(page.getByRole("region", { name: "系统概览" })).toHaveCount(0);
-		for (const region of [
-			activity,
-			announcements,
-			...(await metrics.all()),
-		]) {
+		for (const region of [activity, announcements, ...(await metrics.all())]) {
 			await expect(region).toHaveCSS("background-color", "rgb(255, 255, 255)");
 			await expect(region).toHaveCSS("border-top-left-radius", "8px");
 			await expect(region).toHaveCSS("border-bottom-right-radius", "8px");
@@ -176,7 +170,9 @@ for (const width of [1440, 768, 460, 390]) {
 				"rgba(0, 0, 0, 0.03) 0px 1px 2px 0px, rgba(0, 0, 0, 0.02) 0px 1px 6px -1px, rgba(0, 0, 0, 0.02) 0px 2px 4px 0px",
 			);
 		}
-		await expect(page.getByText("登录趋势", { exact: true })).toHaveCount(0);
+		await expect(
+			page.getByRole("region", { name: "近 7 天登录趋势" }),
+		).toBeVisible();
 		await expect(page.getByRole("checkbox")).toHaveCount(0);
 
 		const boxes = await metrics.evaluateAll((nodes) =>

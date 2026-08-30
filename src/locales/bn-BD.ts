@@ -207,6 +207,12 @@ export const bnBDTranslation = {
 			permissionCount: "অনুমতি নোড",
 			todayLoginCount: "আজকের সাইন-ইন",
 			todayLoginHint: "আজ {{timeZone}}-এ সফল সাইন-ইন",
+			loginTrend: "গত ৭ দিনের লগইন",
+			trendTotal: "মোট লগইন",
+			trendAbnormal: "অস্বাভাবিক লগইন",
+			trendDaySummary:
+				"{{date}}: মোট {{total}}টি লগইন, {{abnormal}}টি অস্বাভাবিক",
+			emptyLoginTrend: "গত ৭ দিনে কোনো লগইন নেই",
 			userSummary: "সব প্ল্যাটফর্ম অ্যাকাউন্ট",
 			roleSummary: "সব প্রবেশাধিকার ভূমিকা",
 			permissionSummary: "নিবন্ধিত অনুমতি",

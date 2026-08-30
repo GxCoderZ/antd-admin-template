@@ -9,6 +9,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("dashboard API", () => {
 	it("sends the current time zone and cancellation signal through the shared client", async () => {
 		const data: DashboardStatistics = {
+			loginTrend: [{ date: "2026-08-28", totalCount: 2, abnormalCount: 1 }],
 			userCount: 0,
 			activeUserCount: 0,
 			roleCount: 0,

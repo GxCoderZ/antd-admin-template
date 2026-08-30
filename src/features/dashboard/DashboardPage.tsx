@@ -19,6 +19,7 @@ import {
 import { appAntdCssVar } from "../../app/antdCssVar";
 import { DashboardOverview } from "./components/DashboardOverview";
 import { DashboardActivityPanels } from "./components/DashboardActivityPanels";
+import { DashboardLoginTrend } from "./components/DashboardLoginTrend";
 
 export function DashboardPage() {
 	const { t } = useTranslation();
@@ -97,6 +98,9 @@ export function DashboardPage() {
 				<DashboardOverview
 					statistics={hasStatistics ? statisticsQuery.data : undefined}
 				/>
+				{can(platformPermissions.logsRead) && statisticsQuery.data && (
+					<DashboardLoginTrend days={statisticsQuery.data.loginTrend} />
+				)}
 				<DashboardActivityPanels
 					statistics={hasStatistics ? statisticsQuery.data : undefined}
 					settings={settingsQuery.data}

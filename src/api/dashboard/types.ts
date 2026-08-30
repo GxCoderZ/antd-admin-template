@@ -11,6 +11,7 @@ interface DashboardRecentActivity {
 }
 
 export interface DashboardStatistics {
+	loginTrend: { date: string; totalCount: number; abnormalCount: number }[];
 	activeUserCount: number;
 	assignedPermissionCount: number;
 	builtInRoleCount: number;

@@ -16,6 +16,25 @@ function getDashboardStatisticsSnapshot(
 ): DashboardStatistics {
 	const now = new Date();
 	const today = dayFormat.format(now);
+	// Advance calendar dates in UTC; the buckets themselves use the requested zone.
+	const loginTrend = Array.from({ length: 7 }, (_, index) => {
+		const date = new Date(`${today}T00:00:00.000Z`);
+		date.setUTCDate(date.getUTCDate() - 6 + index);
+		return {
+			date: date.toISOString().slice(0, 10),
+			totalCount: 0,
+			abnormalCount: 0,
+		};
+	});
+	const days = new Map(loginTrend.map((day) => [day.date, day]));
+	for (const log of loginLogs) {
+		const date = new Date(log.createdAt);
+		if (date > now) continue;
+		const day = days.get(dayFormat.format(date));
+		if (!day) continue;
+		day.totalCount += 1;
+		if (log.result !== "success") day.abnormalCount += 1;
+	}
 	const todayLogins = loginLogs.filter(({ createdAt }) => {
 		const date = new Date(createdAt);
 		return date <= now && dayFormat.format(date) === today;
@@ -28,6 +47,7 @@ function getDashboardStatisticsSnapshot(
 				targetId);
 
 	return {
+		loginTrend,
 		userCount: users.length,
 		activeUserCount: users.filter((user) => user.status === "active").length,
 		roleCount: roles.length,

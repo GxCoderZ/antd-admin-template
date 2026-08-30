@@ -213,6 +213,12 @@ export const idIDTranslation = {
 			permissionCount: "Izin node",
 			todayLoginCount: "Masuk hari ini",
 			todayLoginHint: "Berhasil sign-ins today in {{timeZone}}",
+			loginTrend: "Tren login 7 hari terakhir",
+			trendTotal: "Total login",
+			trendAbnormal: "Login tidak normal",
+			trendDaySummary:
+				"{{date}}: total {{total}} login, {{abnormal}} tidak normal",
+			emptyLoginTrend: "Tidak ada login dalam 7 hari terakhir",
 			userSummary: "Semua platform accounts",
 			roleSummary: "Semua akses roles",
 			permissionSummary: "Terdaftar izin",

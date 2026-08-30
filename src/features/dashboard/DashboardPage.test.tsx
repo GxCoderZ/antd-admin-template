@@ -14,6 +14,8 @@ import type { DashboardStatistics } from "#src/api/dashboard";
 import type { PlatformSettings } from "#src/api/settings";
 import { LocalePreferencesProvider } from "../../app/LocalePreferencesProvider";
 import { PermissionProvider } from "../../app/PermissionProvider";
+import { ThemeModeProvider } from "../../app/ThemeModeProvider";
+import { defaultPreferences } from "../../app/preferenceStorage";
 import {
 	platformPermissions,
 	type PlatformPermission,
@@ -25,6 +27,9 @@ const mocks = vi.hoisted(() => ({
 	getStatistics: vi.fn(),
 	getSettings: vi.fn(),
 	getSystemInfo: vi.fn(),
+}));
+vi.mock("@ant-design/plots", () => ({
+	Line: () => <div data-testid="login-line" />,
 }));
 vi.mock("#src/api/dashboard", () => ({
 	dashboardStatisticsQueryKey: ["dashboard-statistics"],
@@ -40,6 +45,7 @@ vi.mock("#src/api/system", () => ({
 }));
 
 const statistics: DashboardStatistics = {
+	loginTrend: [{ date: "2026-08-28", totalCount: 20, abnormalCount: 2 }],
 	userCount: 32,
 	activeUserCount: 28,
 	roleCount: 8,
@@ -116,23 +122,35 @@ function renderDashboard(
 ) {
 	return render(
 		<ConfigProvider>
-			<LocalePreferencesProvider
+			<ThemeModeProvider
 				value={{
-					currency: "CNY",
-					language: "zh-CN",
-					onChangeCurrency: vi.fn(),
-					onChangeTimeZone: vi.fn(),
-					timeZone: "Asia/Shanghai",
+					isColorBlindMode: false,
+					isDarkMode: false,
+					themeMode: "light",
+					themeColor: defaultPreferences.themeColor,
+					onChangeColorBlindMode: vi.fn(),
+					onChangeThemeColor: vi.fn(),
+					onChangeThemeMode: vi.fn(),
 				}}
 			>
-				<PermissionProvider permissions={permissions}>
-					<QueryClientProvider client={client}>
-						<MemoryRouter>
-							<DashboardPage />
-						</MemoryRouter>
-					</QueryClientProvider>
-				</PermissionProvider>
-			</LocalePreferencesProvider>
+				<LocalePreferencesProvider
+					value={{
+						currency: "CNY",
+						language: "zh-CN",
+						onChangeCurrency: vi.fn(),
+						onChangeTimeZone: vi.fn(),
+						timeZone: "Asia/Shanghai",
+					}}
+				>
+					<PermissionProvider permissions={permissions}>
+						<QueryClientProvider client={client}>
+							<MemoryRouter>
+								<DashboardPage />
+							</MemoryRouter>
+						</QueryClientProvider>
+					</PermissionProvider>
+				</LocalePreferencesProvider>
+			</ThemeModeProvider>
 		</ConfigProvider>,
 	);
 }
@@ -220,7 +238,9 @@ describe("dashboard workspace", () => {
 		expect(screen.getByText("预览版本更新")).toBeVisible();
 		expect(screen.getByText("今日 2 次登录异常")).toBeVisible();
 		expect(screen.getByText("3 条公告待发布")).toBeVisible();
-		expect(screen.queryByText("登录趋势")).not.toBeInTheDocument();
+		expect(
+			screen.getByRole("region", { name: "近 7 天登录趋势" }),
+		).toBeVisible();
 		expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
 		expect(mocks.getStatistics).toHaveBeenCalledWith(
 			"Asia/Shanghai",
@@ -248,6 +268,9 @@ describe("dashboard workspace", () => {
 			screen.queryByRole("tab", { name: "最近登录" }),
 		).not.toBeInTheDocument();
 		expect(screen.queryByText("3 条公告待发布")).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("region", { name: "近 7 天登录趋势" }),
+		).not.toBeInTheDocument();
 		expect(screen.getByText("预览版本更新")).toBeVisible();
 	});
 
@@ -279,6 +302,7 @@ describe("dashboard workspace", () => {
 		mocks.getStatistics.mockResolvedValue({
 			...statistics,
 			todayLoginCount: 0,
+			loginTrend: [{ date: "2026-08-28", totalCount: 0, abnormalCount: 0 }],
 			todayAbnormalLoginCount: 0,
 			draftAnnouncementCount: 0,
 			recentLogins: [],
@@ -289,6 +313,8 @@ describe("dashboard workspace", () => {
 		expect(await screen.findByText("暂无登录记录")).toBeVisible();
 		expect(screen.getByText("暂无已发布公告")).toBeVisible();
 		expect(screen.getByText("今日暂无登录异常")).toBeVisible();
+		expect(screen.getByText("近 7 天暂无登录记录")).toBeVisible();
+		expect(screen.queryByTestId("login-line")).not.toBeInTheDocument();
 		expect(screen.getByText("暂无待发布公告")).toBeVisible();
 		expect(
 			within(screen.getByTestId("dashboard-stat-logins")).getAllByText("0", {
