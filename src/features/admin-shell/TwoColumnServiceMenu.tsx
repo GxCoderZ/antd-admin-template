@@ -38,35 +38,29 @@ function appendClassName(
 function markTwoColumnLayout(
 	items: NonNullable<MenuProps["items"]>,
 	contentInset: number,
-	arrowStep: number,
 	isGridChild = false,
-	depth = 0,
 ): NonNullable<MenuProps["items"]> {
 	return items.map((item) => {
 		if (!item || typeof item !== "object" || item.type === "divider") {
 			return item;
 		}
+		const icon = !isGridChild && "icon" in item ? item.icon : undefined;
 
 		if (!hasChildArray(item)) {
 			return {
 				...item,
-				icon: undefined,
+				icon,
 				style: {
 					...item.style,
-					paddingInlineStart: contentInset,
+					paddingInlineStart: icon ? 0 : contentInset,
 				},
 			};
 		}
 
 		const containsPages = item.children.length > 0;
-		const hasIcon = "icon" in item && Boolean(item.icon);
-		const submenuStyle = {
-			...item.style,
-			"--service-grid-arrow-offset": `${depth * arrowStep}px`,
-		} as CSSProperties;
-
 		return {
 			...item,
+			icon,
 			className: appendClassName(
 				item.className,
 				appendClassName(
@@ -74,19 +68,12 @@ function markTwoColumnLayout(
 					isGridChild && containsPages ? styles.fullWidthSubmenu : undefined,
 				),
 			),
-			children: markTwoColumnLayout(
-				item.children,
-				contentInset,
-				arrowStep,
-				true,
-				depth + 1,
-			),
-			label: hasIcon ? (
+			children: markTwoColumnLayout(item.children, contentInset, true),
+			label: icon ? (
 				item.label
 			) : (
 				<span className={styles.titleLabel}>{item.label}</span>
 			),
-			style: submenuStyle,
 		};
 	});
 }
@@ -101,17 +88,10 @@ export function TwoColumnServiceMenu({
 }: TwoColumnServiceMenuProps) {
 	const { token } = theme.useToken();
 	const twoColumnItems = useMemo(
-		() =>
-			markTwoColumnLayout(
-				items ?? [],
-				token.paddingLG,
-				token.padding,
-				rootGrid,
-			),
-		[items, rootGrid, token.padding, token.paddingLG],
+		() => markTwoColumnLayout(items ?? [], token.paddingLG, rootGrid),
+		[items, rootGrid, token.paddingLG],
 	);
 	const menuStyle = {
-		"--service-grid-arrow-base": `${token.padding}px`,
 		"--service-grid-content-inset": `${token.paddingLG}px`,
 		background: token.colorBgContainer,
 		borderInlineEnd: 0,
@@ -129,6 +109,7 @@ export function TwoColumnServiceMenu({
 			openKeys={openKeys}
 			selectedKeys={selectedKeys}
 			style={menuStyle}
+			styles={{ itemIcon: { marginInlineStart: token.paddingLG } }}
 		/>
 	);
 }

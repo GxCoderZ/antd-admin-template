@@ -53,6 +53,50 @@ function renderNavigation(
 }
 
 describe("log navigation", () => {
+	it.each(["仪表盘", "系统管理", "关于系统"])(
+		"keeps the first-level %s icon in the two-column menu",
+		(title) => {
+			renderNavigation(
+				"/operations/login-logs",
+				[platformPermissions.logsRead],
+				"side",
+				"serviceGrid",
+			);
+			const item = screen.getByRole("menuitem", { name: title });
+			expect(within(item).getByRole("img", { hidden: true })).toBeVisible();
+		},
+	);
+
+	it.each([
+		["side", "serviceGrid"],
+		["mixed", "serviceGrid"],
+		["side", "splitServiceGrid"],
+	] as const)(
+		"omits second-level and deeper icons in %s %s menus without losing navigation",
+		async (mode, menuType) => {
+			const { user, onNavigate } = renderNavigation(
+				"/operations/login-logs",
+				[platformPermissions.logsRead, platformPermissions.usersRead],
+				mode,
+				menuType,
+			);
+			const menu = within(screen.getByTestId("admin-shell-service-grid-menu"));
+			for (const title of ["用户管理", "日志管理", "登录日志", "操作审计"]) {
+				const item = menu.getByRole("menuitem", { name: title });
+				expect(item).toBeVisible();
+				expect(within(item).queryByRole("img", { hidden: true })).toBeNull();
+			}
+			expect(menu.getByRole("menuitem", { name: "日志管理" })).toHaveAttribute(
+				"aria-expanded",
+				"true",
+			);
+			await user.click(menu.getByRole("menuitem", { name: "操作审计" }));
+			expect(onNavigate).toHaveBeenCalledExactlyOnceWith(
+				"/operations/audit-logs",
+			);
+		},
+	);
+
 	it.each(["top", "mixed"] as const)(
 		"shows the complete site title beside the logo in %s navigation",
 		(mode) => {
