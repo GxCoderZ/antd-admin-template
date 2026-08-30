@@ -31,7 +31,7 @@ import { AdminTabsBar } from "./AdminTabsBar";
 import "./AdminShellPage.css";
 
 const { Content, Footer } = Layout;
-const proSidebarBrandLogoSize = 22;
+const navigationBrandLogoSize = 22;
 
 interface AdminShellPageProps {
 	currentUserAvatarRevision: number;
@@ -64,6 +64,9 @@ export function AdminShellPage({
 	const { i18n } = useTranslation();
 	const { token } = theme.useToken();
 	const brand = usePlatformBrand();
+	const navigationLogo = (
+		<PlatformLogo size={navigationBrandLogoSize} src={brand.logoDataUrl} />
+	);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const navigation = useNavigation();
@@ -178,15 +181,10 @@ export function AdminShellPage({
 				/>
 			}
 			menuType={menuType}
-			logo={<PlatformLogo size={token.controlHeight} src={brand.logoDataUrl} />}
+			logo={navigationLogo}
 			navigationMode={navigationMode}
 			onNavigate={openRouteTab}
-			sidebarLogo={
-				<PlatformLogo
-					size={proSidebarBrandLogoSize}
-					src={brand.logoDataUrl}
-				/>
-			}
+			sidebarLogo={navigationLogo}
 			shortTitle={brand.shortTitle}
 			siteTitle={brand.siteTitle}
 		>

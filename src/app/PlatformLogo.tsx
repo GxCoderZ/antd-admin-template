@@ -12,10 +12,13 @@ export function PlatformLogo({
 	return src ? (
 		<img
 			alt=""
-			height={size}
 			src={src}
-			style={{ flex: "0 0 auto", objectFit: "contain" }}
-			width={size}
+			style={{
+				flex: "0 0 auto",
+				height: size,
+				objectFit: "contain",
+				width: size,
+			}}
 		/>
 	) : (
 		<AntDesignOutlined

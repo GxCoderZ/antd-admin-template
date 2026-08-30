@@ -42,6 +42,7 @@ import { TwoColumnServiceMenu } from "./TwoColumnServiceMenu";
 
 const { Header, Sider } = Layout;
 const { Text } = Typography;
+const proTopBrandTitleGap = 6;
 const collapsibleSidebarRootKeys: readonly string[] =
 	adminCollapsibleSidebarGroupKeys;
 
@@ -91,6 +92,7 @@ export function AdminShellNavigation({
 	const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
 	const [mobileOpenKeys, setMobileOpenKeys] = useState<string[]>([]);
 	const shellHeaderHeight = token.controlHeightLG + token.margin;
+	const headerDivider = `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`;
 	const navigationTriggerStyle: CSSProperties = {
 		flex: "0 0 auto",
 		fontSize: token.fontSizeLG,
@@ -385,12 +387,13 @@ export function AdminShellNavigation({
 			<Flex
 				align="center"
 				data-testid="admin-shell-sidebar-logo"
-				gap={token.marginXS}
+				gap={proTopBrandTitleGap}
 				justify={compact ? "center" : "flex-start"}
 				style={{
+					borderBottom: headerDivider,
 					height: shellHeaderHeight,
 					overflow: "hidden",
-					paddingInline: compact ? token.paddingSM : token.paddingLG,
+					paddingInline: compact ? token.paddingSM : token.padding,
 				}}
 			>
 				{sidebarLogo}
@@ -401,7 +404,7 @@ export function AdminShellNavigation({
 						title={siteTitle}
 						style={{
 							fontSize: token.fontSizeLG,
-							lineHeight: "22px",
+							lineHeight: "24px",
 							whiteSpace: "nowrap",
 						}}
 					>
@@ -550,7 +553,7 @@ export function AdminShellNavigation({
 					style={{
 						alignItems: "center",
 						background: token.colorBgContainer,
-						borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+						borderBottom: headerDivider,
 						display: "flex",
 						gap: token.marginXS,
 						height: shellHeaderHeight,

@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("侧边导航品牌沿用 Pro 侧边栏字号和 Logo 规格", async ({ page }) => {
+test("侧边导航品牌沿用统一的字号、Logo 和对齐规格", async ({
+	page,
+}, testInfo) => {
 	await page.setViewportSize({ width: 1440, height: 900 });
 	await page.goto("/login");
 	await page.locator('input[autocomplete="username"]').fill("admin");
@@ -16,11 +18,21 @@ test("侧边导航品牌沿用 Pro 侧边栏字号和 Logo 规格", async ({ pag
 	);
 	await expect(brand.getByText("React Antd Admin", { exact: true })).toHaveCSS(
 		"line-height",
-		"22px",
+		"24px",
 	);
 	const logo = await brand.locator("svg, img").first().boundingBox();
 	expect(logo?.width).toBe(22);
 	expect(logo?.height).toBe(22);
+	expect(logo?.x).toBe(16);
+	expect(logo?.y).toBe(16.5);
+	const title = await brand
+		.getByTitle("React Antd Admin", { exact: true })
+		.boundingBox();
+	expect(title?.x).toBe(44);
+	expect(title?.y).toBe(15.5);
+	await page.screenshot({
+		path: testInfo.outputPath("sidebar-brand.png"),
+	});
 });
 
 test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ page }, testInfo) => {
@@ -152,9 +164,15 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 				unobstructed: true,
 			});
 			await expect(title).toHaveCSS("font-size", "16px");
+			await expect(title).toHaveCSS("line-height", "24px");
 			const logo = await brand.locator("svg, img").first().boundingBox();
-			expect(logo?.width).toBe(32);
-			expect(logo?.height).toBe(32);
+			expect(logo?.width).toBe(22);
+			expect(logo?.height).toBe(22);
+			expect(logo?.x).toBe(16);
+			expect(logo?.y).toBe(16.5);
+			const titleBox = await title.boundingBox();
+			expect(titleBox?.x).toBe(44);
+			expect(titleBox?.y).toBe(15.5);
 		}
 		await page.screenshot({
 			path: testInfo.outputPath(`top-brand-${width}.png`),
@@ -185,6 +203,41 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 	await expect(page).toHaveURL(/\/dashboard$/);
 	timings.interaction.push(performance.now() - started);
 	await expect(title).toBeVisible();
+	await header
+		.getByRole("button", { name: "Platform Admin", exact: true })
+		.click();
+	await page.getByRole("menuitem", { name: "偏好设置", exact: true }).click();
+	for (const mode of ["侧边菜单", "顶部菜单", "侧边菜单", "顶部菜单"]) {
+		started = performance.now();
+		await preferences.getByRole("radio", { name: mode, exact: true }).check();
+		const navigationBrand =
+			mode === "顶部菜单"
+				? brand
+				: page.getByTestId("admin-shell-sidebar-logo");
+		await expect(navigationBrand).toBeVisible();
+		const logo = await navigationBrand
+			.locator("svg, img")
+			.first()
+			.boundingBox();
+		expect(logo?.width).toBe(22);
+		expect(logo?.height).toBe(22);
+		expect(logo?.x).toBe(16);
+		expect(logo?.y).toBe(16.5);
+		const titleBox = await (
+			mode === "顶部菜单"
+				? navigationBrand.getByRole("heading", {
+						name: "React Antd Admin",
+						exact: true,
+					})
+				: navigationBrand.getByTitle("React Antd Admin", { exact: true })
+		).boundingBox();
+		expect(titleBox?.x).toBe(44);
+		expect(titleBox?.y).toBe(15.5);
+		await expect(header).toHaveCSS("height", "56px");
+		timings.interaction.push(performance.now() - started);
+	}
+	await preferences.getByRole("button", { name: "关闭", exact: true }).click();
+	await expect(preferences).toBeHidden();
 
 	const percentile = (values: number[], ratio: number) =>
 		[...values].sort((a, b) => a - b)[Math.ceil(values.length * ratio) - 1];
@@ -207,4 +260,81 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 	expect(report.resize?.p95).toBeLessThan(700);
 	expect(Math.max(...timings.interaction)).toBeLessThan(1000);
 	expect(report.interaction?.p95).toBeLessThan(800);
+});
+
+test("自定义 Logo 在侧边和顶部导航保持相同尺寸与比例", async ({
+	page,
+}, testInfo) => {
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await page.goto("/login");
+	await page.locator('input[autocomplete="username"]').fill("admin");
+	await page.locator('input[autocomplete="current-password"]').fill("admin");
+	await page.locator('button[type="submit"]').click();
+	await expect(page).toHaveURL(/\/dashboard$/);
+	await page.getByRole("menuitem", { name: "系统管理", exact: true }).click();
+	await page.getByRole("menuitem", { name: "系统设置", exact: true }).click();
+	await expect(page).toHaveURL(/\/system\/settings$/);
+	const image = await page.evaluate(() => {
+		const canvas = document.createElement("canvas");
+		canvas.width = 48;
+		canvas.height = 32;
+		const context = canvas.getContext("2d");
+		if (!context) throw new Error("Canvas is unavailable");
+		context.fillStyle = "steelblue";
+		context.fillRect(0, 0, 48, 32);
+		return canvas.toDataURL("image/png").split(",")[1];
+	});
+	if (!image) throw new Error("Missing logo image");
+	await page.locator('input[type="file"]').setInputFiles({
+		name: "navigation-logo.png",
+		mimeType: "image/png",
+		buffer: Buffer.from(image, "base64"),
+	});
+	await page.getByRole("button", { name: "保存", exact: true }).click();
+	await expect(page.getByText("系统设置已保存", { exact: true })).toBeVisible();
+	const header = page.getByRole("banner");
+	for (const mode of ["侧边菜单", "顶部菜单", "混合菜单", "顶部菜单"]) {
+		await header
+			.getByRole("button", { name: "Platform Admin", exact: true })
+			.click();
+		await page.getByRole("menuitem", { name: "偏好设置", exact: true }).click();
+		const preferences = page.getByRole("dialog", {
+			name: "偏好设置",
+			exact: true,
+		});
+		await preferences.getByRole("radio", { name: mode, exact: true }).check();
+		await preferences
+			.getByRole("button", { name: "关闭", exact: true })
+			.click();
+		await expect(preferences).toBeHidden();
+		const brand =
+			mode === "顶部菜单"
+				? header.getByRole("link", { name: "仪表盘", exact: true })
+				: page.getByTestId("admin-shell-sidebar-logo");
+		const logo = brand.locator("img");
+		await expect(logo).toBeVisible();
+		await expect(logo).toHaveCSS("width", "22px");
+		await expect(logo).toHaveCSS("height", "22px");
+		await expect(logo).toHaveCSS("object-fit", "contain");
+		const logoBox = await logo.boundingBox();
+		expect(logoBox?.x).toBe(16);
+		expect(logoBox?.y).toBe(16.5);
+		const titleBox = await (
+			mode === "顶部菜单"
+				? brand.getByRole("heading", { name: "React Antd Admin", exact: true })
+				: brand.getByTitle("React Antd Admin", { exact: true })
+		).boundingBox();
+		expect(titleBox?.x).toBe(44);
+		expect(titleBox?.y).toBe(15.5);
+		expect(
+			await logo.evaluate((element: HTMLImageElement) => ({
+				loaded: element.complete,
+				width: element.naturalWidth,
+				height: element.naturalHeight,
+			})),
+		).toEqual({ loaded: true, width: 48, height: 32 });
+		await page.screenshot({
+			path: testInfo.outputPath(`custom-logo-${mode}.png`),
+		});
+	}
 });
