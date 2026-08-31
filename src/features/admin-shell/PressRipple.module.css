@@ -1,7 +1,14 @@
 .button {
+	--header-icon-hover-background: transparent;
 	line-height: 1;
 	overflow: hidden;
 	position: relative;
+}
+
+@media (hover: hover) {
+	.button {
+		--header-icon-hover-background: var(--raa-color-fill-tertiary);
+	}
 }
 
 .menuRipple {

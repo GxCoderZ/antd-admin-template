@@ -55,12 +55,21 @@ export const HeaderIconButton = forwardRef<
 	};
 
 	// Project enhancement, not Pro's default: ripple replaces the text Button's
-	// active fill. The scoped public token preserves hover, focus and disabled states.
+	// active fill; CSS enables hover fill only for hover-capable input devices.
 	return (
 		<ConfigProvider
 			theme={{
-				cssVar: appAntdCssVar,
-				components: { Button: { colorFill: "transparent" } },
+				// A distinct scope prevents the global Button tokens from replacing these.
+				cssVar: {
+					...appAntdCssVar,
+					key: `${appAntdCssVar.key}-header-icon`,
+				},
+				components: {
+					Button: {
+						colorFill: "transparent",
+						textHoverBg: "var(--header-icon-hover-background)",
+					},
+				},
 			}}
 		>
 			<Button
