@@ -618,27 +618,31 @@ export function AdminShellNavigation({
 						) : null}
 						{showTopNavigation && !showSidebarNavigation ? (
 							<Flex style={{ height: "100%", minWidth: 0, width: "100%" }}>
-								{/* Keep Pro's geometry, but let the link own the full brand hit area. */}
+								{/* Share the sidebar width so both layouts start navigation at the same edge. */}
 								<NavigationBrandLink
 									aria-label={t(dashboardRoute.titleKey)}
 									style={{
 										alignItems: "center",
 										display: "flex",
-										flex: "0 0 auto",
+										flex: `0 0 ${sidebarWidth}px`,
 										gap: proTopBrandTitleGap,
 										height: "100%",
-										paddingInlineStart: token.padding,
-										paddingInlineEnd: proTopMenuPadding,
+										minWidth: 0,
+										paddingInline: token.padding,
 									}}
 								>
 									{logo}
 									<Typography.Title
 										level={1}
+										title={siteTitle}
 										style={{
 											color: token.colorText,
 											fontSize: token.fontSizeLG,
 											lineHeight: "24px",
 											margin: 0,
+											minWidth: 0,
+											overflow: "hidden",
+											textOverflow: "ellipsis",
 											whiteSpace: "nowrap",
 										}}
 									>

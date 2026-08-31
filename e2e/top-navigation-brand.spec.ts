@@ -135,6 +135,10 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 	const header = page.getByRole("banner");
 	await expect(header).toBeVisible();
 	timings.open.push(performance.now() - started);
+	const sidebarTrigger = await page
+		.getByTestId("admin-shell-sidebar-toggle")
+		.boundingBox();
+	if (!sidebarTrigger) throw new Error("Missing expanded sidebar trigger");
 	await header
 		.getByRole("button", { name: "Platform Admin", exact: true })
 		.click();
@@ -163,9 +167,20 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 		if (width >= 992) {
 			await expect(title).toBeVisible();
 			await expect(brand).toHaveText("React Antd Admin");
-			await expect(
-				page.getByTestId("admin-shell-top-navigation"),
-			).toBeVisible();
+			const navigation = page.getByTestId("admin-shell-top-navigation");
+			await expect(navigation).toBeVisible();
+			const brandBox = await brand.boundingBox();
+			const navigationBox = await navigation.boundingBox();
+			if (!brandBox || !navigationBox)
+				throw new Error("Missing top navigation geometry");
+			expect(
+				brandBox.width,
+				"Brand area matches expanded sidebar width",
+			).toBeCloseTo(sidebarTrigger.x, 1);
+			expect(
+				navigationBox.x,
+				"Navigation starts at the sidebar trigger area",
+			).toBeCloseTo(sidebarTrigger.x, 1);
 		} else {
 			await expect(page.getByTestId("admin-shell-top-navigation")).toHaveCount(
 				0,
