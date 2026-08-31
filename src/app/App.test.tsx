@@ -102,10 +102,12 @@ describe("App deployment base path", () => {
 
 		render(<App basename="/antd-admin-template/" />);
 
-		expect(
-			await screen.findByRole("button", { name: "Toggle theme" }),
-		).toBeVisible();
+		await waitFor(() => {
+			expect(screen.getByRole("button", { name: "Toggle theme" })).toBeVisible();
+		});
 		expect(window.location.pathname).toBe("/antd-admin-template/login");
+		fireEvent.click(screen.getByRole("button", { name: "Toggle theme" }));
+		expect(screen.getByLabelText("Resolved theme")).toHaveTextContent("dark");
 	});
 });
 
