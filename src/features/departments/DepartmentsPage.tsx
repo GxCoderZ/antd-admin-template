@@ -64,6 +64,22 @@ interface DepartmentFilterValues {
 	status: "all" | PlatformDepartmentStatus;
 }
 
+interface DepartmentTableRow extends Omit<PlatformDepartment, "children"> {
+	children?: DepartmentTableRow[];
+}
+
+function toDepartmentTableRows(
+	departments: PlatformDepartment[],
+): DepartmentTableRow[] {
+	return departments.map(({ children, ...department }) => ({
+		...department,
+		// Table treats even an empty children array as an expandable tree node.
+		...(children.length > 0
+			? { children: toDepartmentTableRows(children) }
+			: {}),
+	}));
+}
+
 const defaultDepartmentFilterValues: DepartmentFilterValues = { status: "all" };
 const formId = "department-form";
 const departmentsRouteKey = "/organization/departments";
@@ -88,7 +104,7 @@ function flattenDepartments(
 }
 
 function toDepartmentInput(
-	department: PlatformDepartment,
+	department: DepartmentTableRow,
 	status = department.status,
 ): CreatePlatformDepartmentInput {
 	return {
@@ -124,15 +140,15 @@ export function DepartmentsPage() {
 		stateKey: "query-expanded",
 	});
 	const [editingDepartment, setEditingDepartment] =
-		useState<PlatformDepartment | null>(null);
+		useState<DepartmentTableRow | null>(null);
 	const [creatingRoot, setCreatingRoot] = useState(false);
 	const [viewingDepartmentId, setViewingDepartmentId] = useState<string | null>(
 		null,
 	);
 	const [parentDepartment, setParentDepartment] =
-		useState<PlatformDepartment | null>(null);
+		useState<DepartmentTableRow | null>(null);
 	const [deletingDepartment, setDeletingDepartment] =
-		useState<PlatformDepartment | null>(null);
+		useState<DepartmentTableRow | null>(null);
 	const querySubmission = useQuerySubmission();
 	const queryParams = useMemo(() => {
 		const name = filters.name?.trim();
@@ -156,6 +172,10 @@ export function DepartmentsPage() {
 				label: `${"　".repeat(department.level)}${department.name}`,
 				value: department.id,
 			})),
+		[departmentsQuery.data],
+	);
+	const tableDepartments = useMemo(
+		() => toDepartmentTableRows(departmentsQuery.data ?? []),
 		[departmentsQuery.data],
 	);
 	const refreshDepartments = () =>
@@ -185,7 +205,7 @@ export function DepartmentsPage() {
 		},
 	});
 	const toggleMutation = useMutation({
-		mutationFn: (department: PlatformDepartment) =>
+		mutationFn: (department: DepartmentTableRow) =>
 			updatePlatformDepartment({
 				departmentId: department.id,
 				input: toDepartmentInput(
@@ -255,7 +275,7 @@ export function DepartmentsPage() {
 		setDraftFilters(defaultDepartmentFilterValues);
 		setFilters(defaultDepartmentFilterValues);
 	};
-	const columns = useMemo<ProColumns<PlatformDepartment>[]>(
+	const columns = useMemo<ProColumns<DepartmentTableRow>[]>(
 		() => [
 			{
 				dataIndex: "name",
@@ -454,13 +474,13 @@ export function DepartmentsPage() {
 				)}
 				onClose={() => setViewingDepartmentId(null)}
 			/>
-			<LogTablePanel<PlatformDepartment, DepartmentFilterValues>
+			<LogTablePanel<DepartmentTableRow, DepartmentFilterValues>
 				columnSettingsStorageKey={getTableColumnSettingsStorageKey(
 					"departments",
 				)}
 				columnVisibility={departmentColumnVisibility}
 				columns={columns}
-				dataSource={departmentsQuery.data ?? []}
+				dataSource={tableDepartments}
 				emptyText={t("adminShell.departments.empty", {
 					defaultValue: "暂无部门",
 				})}

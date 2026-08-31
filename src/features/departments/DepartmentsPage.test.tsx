@@ -91,6 +91,56 @@ function renderDepartmentsPage() {
 }
 
 describe("DepartmentsPage", () => {
+	it.each([0, 5])(
+		"only expands departments with children, regardless of %i members",
+		async (memberCount) => {
+			mocks.listPlatformDepartments.mockResolvedValue([
+				{ ...department, memberCount: 0 },
+				{
+					...department,
+					children: [],
+					id: "dept-leaf",
+					name: "独立部门",
+					memberCount,
+				},
+			]);
+			const user = renderDepartmentsPage();
+			const parent = (await screen.findByText("运营中心")).closest("tr");
+			const leaf = screen.getByText("独立部门").closest("tr");
+			if (!parent || !leaf) throw new Error("Missing department rows");
+			expect(
+				within(leaf).queryByRole("button", { name: "展开行" }),
+			).not.toBeInTheDocument();
+			await user.click(within(parent).getByRole("button", { name: "展开行" }));
+			const child = (await screen.findByText("内容运营组")).closest("tr");
+			if (!child) throw new Error("Missing child department row");
+			expect(
+				within(child).queryByRole("button", { name: "展开行" }),
+			).not.toBeInTheDocument();
+			expect(
+				within(parent).getByRole("button", { name: "关闭行" }),
+			).toHaveAttribute("aria-expanded", "true");
+		},
+	);
+
+	it("removes the expand button when the last child disappears after reload", async () => {
+		const user = renderDepartmentsPage();
+		const parent = (await screen.findByText("运营中心")).closest("tr");
+		if (!parent) throw new Error("Missing parent department row");
+		await user.click(within(parent).getByRole("button", { name: "展开行" }));
+		await screen.findByText("内容运营组");
+		mocks.listPlatformDepartments.mockResolvedValue([
+			{ ...department, children: [] },
+		]);
+		await user.click(screen.getByRole("img", { name: "reload" }));
+		await waitFor(() =>
+			expect(screen.queryByText("内容运营组")).not.toBeInTheDocument(),
+		);
+		expect(
+			within(parent).queryByRole("button", { name: /展开行|关闭行/ }),
+		).not.toBeInTheDocument();
+	});
+
 	it("orders department comparison fields before status", async () => {
 		renderDepartmentsPage();
 		await screen.findByText("运营中心");
