@@ -75,6 +75,8 @@ const commandPaletteRouteKeys = new Set([
 	),
 ]);
 
+type HeaderMenu = "language" | "notifications" | "account";
+
 interface AdminShellHeaderProps {
 	currentUserAvatarRevision: number;
 	currentUserId: string;
@@ -129,6 +131,12 @@ export function AdminShellHeader({
 	const [messageApi, messageContextHolder] = message.useMessage();
 	const [preferencesOpen, setPreferencesOpen] = useState(false);
 	const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+	const [openMenu, setOpenMenu] = useState<HeaderMenu | null>(null);
+	const changeMenuOpen = (menu: HeaderMenu, nextOpen: boolean) => {
+		setOpenMenu((current) =>
+			nextOpen ? menu : current === menu ? null : current,
+		);
+	};
 	const languageChangeId = useRef(0);
 	const showAccountName = screens.sm === true;
 	// Ported from ant-design/ant-design-pro src/components/RightContent/style.ts.
@@ -275,15 +283,22 @@ export function AdminShellHeader({
 						style: { minWidth: 180 },
 					}}
 					placement="bottomRight"
+					onOpenChange={(nextOpen) => changeMenuOpen("language", nextOpen)}
+					open={openMenu === "language"}
 					styles={{ root: { width: screens.xs ? "100%" : undefined } }}
+					trigger={["click"]}
 				>
-					<HeaderIconButton
-						aria-label={t("language.label")}
-						style={iconActionStyle}
-						type="text"
-					>
-						<GlobalOutlined aria-hidden />
-					</HeaderIconButton>
+					<Tooltip title={openMenu === "language" ? null : t("language.label")}>
+						<HeaderIconButton
+							aria-expanded={openMenu === "language"}
+							aria-haspopup="menu"
+							aria-label={t("language.label")}
+							style={iconActionStyle}
+							type="text"
+						>
+							<GlobalOutlined aria-hidden />
+						</HeaderIconButton>
+					</Tooltip>
 				</Dropdown>
 				<Tooltip title={themeActionLabel}>
 					<HeaderIconButton
@@ -302,6 +317,8 @@ export function AdminShellHeader({
 				</Tooltip>
 				<NotificationPopover
 					onNavigate={onNavigate}
+					onOpenChange={(nextOpen) => changeMenuOpen("notifications", nextOpen)}
+					open={openMenu === "notifications"}
 					timeZone={timeZone}
 					triggerStyle={iconActionStyle}
 				/>
@@ -313,24 +330,30 @@ export function AdminShellHeader({
 						selectedKeys: [],
 					}}
 					placement="bottomRight"
+					onOpenChange={(nextOpen) => changeMenuOpen("account", nextOpen)}
+					open={openMenu === "account"}
 					trigger={["click"]}
 				>
-					<HeaderIconButton
-						aria-label={currentUsername}
-						style={accountActionStyle}
-						type="text"
-					>
-						<Space size={token.marginXS}>
-							<PlatformUserAvatar
-								displayName={currentUsername}
-								fallback="icon"
-								revision={currentUserAvatarRevision}
-								size={28}
-								userId={currentUserId}
-							/>
-							{showAccountName ? <span>{currentUsername}</span> : null}
-						</Space>
-					</HeaderIconButton>
+					<Tooltip title={openMenu === "account" ? null : currentUsername}>
+						<HeaderIconButton
+							aria-expanded={openMenu === "account"}
+							aria-haspopup="menu"
+							aria-label={currentUsername}
+							style={accountActionStyle}
+							type="text"
+						>
+							<Space size={token.marginXS}>
+								<PlatformUserAvatar
+									displayName={currentUsername}
+									fallback="icon"
+									revision={currentUserAvatarRevision}
+									size={28}
+									userId={currentUserId}
+								/>
+								{showAccountName ? <span>{currentUsername}</span> : null}
+							</Space>
+						</HeaderIconButton>
+					</Tooltip>
 				</Dropdown>
 			</Flex>
 

@@ -111,9 +111,70 @@ describe("AdminShellHeader", () => {
 		}
 	});
 
+	it.each([
+		["语言", "English"],
+		["测试用户", "个人资料"],
+	])(
+		"toggles %s only on click and closes on Escape or outside click",
+		async (name, item) => {
+			const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
+			const button = screen.getByRole("button", { name });
+			await user.hover(button);
+			await waitFor(() =>
+				expect(screen.getByRole("tooltip", { name })).toBeVisible(),
+			);
+			expect(
+				screen.queryByRole("menuitem", { name: item }),
+			).not.toBeInTheDocument();
+			await user.click(button);
+			await waitFor(() =>
+				expect(screen.getByRole("menuitem", { name: item })).toBeVisible(),
+			);
+			await user.click(button);
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("menuitem", { name: item }),
+				).not.toBeInTheDocument(),
+			);
+			await user.click(button);
+			await screen.findByRole("menuitem", { name: item });
+			fireEvent.keyDown(window, { key: "Escape", keyCode: 27 });
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("menuitem", { name: item }),
+				).not.toBeInTheDocument(),
+			);
+			await user.click(button);
+			await screen.findByRole("menuitem", { name: item });
+			await user.click(document.body);
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("menuitem", { name: item }),
+				).not.toBeInTheDocument(),
+			);
+		},
+	);
+
+	it("keeps only the latest keyboard-opened header menu visible", async () => {
+		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
+		screen.getByRole("button", { name: "语言" }).focus();
+		await user.keyboard("{Enter}");
+		await waitFor(() =>
+			expect(screen.getByRole("menuitem", { name: "English" })).toBeVisible(),
+		);
+		screen.getByRole("button", { name: "测试用户" }).focus();
+		await user.keyboard("{Enter}");
+		await waitFor(() => {
+			expect(screen.getByRole("menuitem", { name: "个人资料" })).toBeVisible();
+			expect(
+				screen.queryByRole("menuitem", { name: "English" }),
+			).not.toBeInTheDocument();
+		});
+	});
+
 	it("changes language from the toolbar without opening preferences", async () => {
 		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
-		await user.hover(screen.getByRole("button", { name: "语言" }));
+		await user.click(screen.getByRole("button", { name: "语言" }));
 		expect(
 			await screen.findByRole("menuitem", { name: "简体中文" }),
 		).toHaveAttribute("aria-current", "true");
@@ -136,7 +197,7 @@ describe("AdminShellHeader", () => {
 			.mockReturnValueOnce(pending);
 		const change = vi.spyOn(i18n, "changeLanguage");
 		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
-		await user.hover(screen.getByRole("button", { name: "语言" }));
+		await user.click(screen.getByRole("button", { name: "语言" }));
 		await user.click(await screen.findByRole("menuitem", { name: "English" }));
 
 		expect(load).toHaveBeenCalledWith("en");
@@ -144,7 +205,7 @@ describe("AdminShellHeader", () => {
 		const button = screen.getByRole("button", { name: "语言" });
 		expect(button).toBeEnabled();
 		expect(within(button).queryByRole("img", { name: "loading" })).toBeNull();
-		await user.hover(button);
+		await user.click(button);
 		await waitFor(() =>
 			expect(screen.getByRole("menuitem", { name: "简体中文" })).toBeVisible(),
 		);
@@ -170,11 +231,11 @@ describe("AdminShellHeader", () => {
 				pending,
 			);
 			const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
-			await user.hover(screen.getByRole("button", { name: "语言" }));
+			await user.click(screen.getByRole("button", { name: "语言" }));
 			await user.click(
 				await screen.findByRole("menuitem", { name: "English" }),
 			);
-			await user.hover(screen.getByRole("button", { name: "语言" }));
+			await user.click(screen.getByRole("button", { name: "语言" }));
 			const choice = await screen.findByRole("menuitem", { name: label });
 			await waitFor(() => expect(choice).toBeVisible());
 			await user.click(choice);
@@ -193,7 +254,7 @@ describe("AdminShellHeader", () => {
 			new Error("language chunk unavailable"),
 		);
 		const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
-		await user.hover(screen.getByRole("button", { name: "语言" }));
+		await user.click(screen.getByRole("button", { name: "语言" }));
 		await user.click(await screen.findByRole("menuitem", { name: "English" }));
 
 		await waitFor(() =>

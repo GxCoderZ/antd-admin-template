@@ -523,7 +523,7 @@ test("语言菜单响应式切换不刷新页面并保留原生动画", async ({
 		resizing.push(performance.now() - started);
 
 		started = performance.now();
-		await language.hover();
+		await language.click();
 		const menu = page.getByRole("menu").filter({
 			has: page.getByRole("menuitem", { name: "English", exact: true }),
 		});

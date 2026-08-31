@@ -15,7 +15,7 @@ import {
 	Tooltip,
 	Typography,
 } from "antd";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -35,12 +35,16 @@ const previewPageSize = 6;
 
 interface NotificationPopoverProps {
 	onNavigate: (path: string) => void;
+	onOpenChange: (open: boolean) => void;
+	open: boolean;
 	timeZone: string;
 	triggerStyle?: CSSProperties;
 }
 
 export function NotificationPopover({
 	onNavigate,
+	onOpenChange,
+	open,
 	timeZone,
 	triggerStyle,
 }: NotificationPopoverProps) {
@@ -49,8 +53,15 @@ export function NotificationPopover({
 	const screens = Grid.useBreakpoint();
 	const queryClient = useQueryClient();
 	const [messageApi, messageContextHolder] = message.useMessage();
-	const [open, setOpen] = useState(false);
 	const [clearOpen, setClearOpen] = useState(false);
+	const contentRef = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLAnchorElement | HTMLButtonElement>(null);
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (!nextOpen && contentRef.current?.contains(document.activeElement)) {
+			triggerRef.current?.focus();
+		}
+		onOpenChange(nextOpen);
+	};
 	const query = useQuery({
 		queryFn: ({ signal }) =>
 			listPlatformNotifications({ page: 1, pageSize: previewPageSize }, signal),
@@ -94,6 +105,7 @@ export function NotificationPopover({
 	const content = (
 		<Flex
 			data-testid="notification-popover"
+			ref={contentRef}
 			vertical
 			style={{ width: `min(384px, calc(100vw - ${token.margin * 2}px))` }}
 		>
@@ -241,7 +253,7 @@ export function NotificationPopover({
 					disabled={!query.isSuccess || query.data.total === 0 || busy}
 					loading={clearMutation.isPending}
 					onClick={() => {
-						setOpen(false);
+						onOpenChange(false);
 						setClearOpen(true);
 					}}
 					type="text"
@@ -250,7 +262,7 @@ export function NotificationPopover({
 				</Button>
 				<Button
 					onClick={() => {
-						setOpen(false);
+						onOpenChange(false);
 						onNavigate("/account/notifications");
 					}}
 					type="primary"
@@ -281,26 +293,34 @@ export function NotificationPopover({
 				arrow={false}
 				content={content}
 				destroyOnHidden
-				onOpenChange={setOpen}
+				onOpenChange={handleOpenChange}
 				open={open}
 				placement={screens.sm === true ? "bottomRight" : "bottom"}
 				styles={{ container: { padding: 0, overflow: "hidden" } }}
 				trigger="click"
 			>
-				<HeaderIconButton
-					aria-label={t("adminShell.notificationCenter.button")}
-					icon={
-						<Badge
-							color={token.colorPrimary}
-							dot={hasUnread}
-							styles={{ root: { display: "inline-flex", fontSize: "inherit" } }}
-						>
-							<BellOutlined aria-hidden />
-						</Badge>
-					}
-					style={triggerStyle}
-					type="text"
-				/>
+				<Tooltip
+					title={open ? null : t("adminShell.notificationCenter.button")}
+				>
+					<HeaderIconButton
+						aria-expanded={open}
+						ref={triggerRef}
+						aria-label={t("adminShell.notificationCenter.button")}
+						icon={
+							<Badge
+								color={token.colorPrimary}
+								dot={hasUnread}
+								styles={{
+									root: { display: "inline-flex", fontSize: "inherit" },
+								}}
+							>
+								<BellOutlined aria-hidden />
+							</Badge>
+						}
+						style={triggerStyle}
+						type="text"
+					/>
+				</Tooltip>
 			</Popover>
 		</>
 	);

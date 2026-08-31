@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ConfigProvider } from "antd";
+import { useState } from "react";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { i18n } from "../../i18n";
@@ -62,10 +63,21 @@ function renderPopover() {
 		defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
 	});
 	const onNavigate = vi.fn();
+	function Preview() {
+		const [open, setOpen] = useState(false);
+		return (
+			<NotificationPopover
+				onNavigate={onNavigate}
+				onOpenChange={setOpen}
+				open={open}
+				timeZone="UTC"
+			/>
+		);
+	}
 	render(
 		<ConfigProvider theme={{ token: { motion: false } }}>
 			<QueryClientProvider client={client}>
-				<NotificationPopover onNavigate={onNavigate} timeZone="UTC" />
+				<Preview />
 			</QueryClientProvider>
 		</ConfigProvider>,
 	);
@@ -73,6 +85,21 @@ function renderPopover() {
 }
 
 describe("NotificationPopover", () => {
+	it("closes with Escape from its content and returns focus to the trigger", async () => {
+		const { user } = renderPopover();
+		const button = screen.getByRole("button", { name: "通知" });
+		await user.click(button);
+		const popover = await screen.findByTestId("notification-popover");
+		within(popover).getByRole("button", { name: "查看全部消息" }).focus();
+		await user.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(
+				screen.queryByTestId("notification-popover"),
+			).not.toBeInTheDocument(),
+		);
+		expect(button).toHaveFocus();
+	});
+
 	it("previews notifications and supports quick read actions", async () => {
 		const { user } = renderPopover();
 
