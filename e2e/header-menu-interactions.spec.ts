@@ -47,6 +47,36 @@ function summarize(samples: number[]) {
 
 test.use({ hasTouch: true });
 
+test("触摸关闭顶栏菜单后不恢复悬停提示", async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 900 });
+	await page.goto("/login");
+	await page.locator('input[autocomplete="username"]').fill("admin");
+	await page.locator('input[autocomplete="current-password"]').fill("admin");
+	await page.locator('button[type="submit"]').click();
+	await expect(page.getByTestId("dashboard-stat-users")).toBeVisible();
+	await page.clock.install();
+	for (const name of ["语言", "通知", "Platform Admin"]) {
+		const button = page
+			.getByRole("banner")
+			.getByRole("button", { name, exact: true });
+		// Exercise the previous hover timer before touch input on a hybrid device.
+		await button.hover();
+		await page.clock.runFor(500);
+		await expect(button).toHaveAttribute("aria-expanded", "false");
+		for (let press = 0; press < 4; press++) {
+			await button.tap();
+			await expect(button).toHaveAttribute(
+				"aria-expanded",
+				press % 2 === 0 ? "true" : "false",
+			);
+			await page.clock.runFor(500);
+			await expect(
+				page.getByRole("tooltip", { name, exact: true }),
+			).toBeHidden();
+		}
+	}
+});
+
 test("顶栏三个菜单统一点击、互斥和关闭行为", async ({ page }, testInfo) => {
 	test.setTimeout(60_000);
 	const errors: string[] = [];
@@ -98,7 +128,7 @@ test("顶栏三个菜单统一点击、互斥和关闭行为", async ({ page }, 
 			await button.hover();
 			await expect(
 				page.getByRole("tooltip", { name, exact: true }),
-			).toBeVisible();
+			).toBeHidden();
 			await expect(surface).toBeHidden();
 			for (let press = 0; press < 4; press++) {
 				started = performance.now();
@@ -120,6 +150,13 @@ test("顶栏三个菜单统一点击、互斥和关闭行为", async ({ page }, 
 				} else {
 					await expect(button).toHaveAttribute("aria-expanded", "false");
 					await expect(surface).toBeHidden();
+					await expect(
+						page.getByRole("tooltip", { name, exact: true }),
+					).toBeHidden();
+					if (press === 3)
+						await page.screenshot({
+							path: testInfo.outputPath(`${width}-${name}-closed.png`),
+						});
 				}
 			}
 		}

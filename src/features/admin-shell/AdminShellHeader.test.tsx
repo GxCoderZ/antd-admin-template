@@ -120,9 +120,7 @@ describe("AdminShellHeader", () => {
 			const { user } = renderHeader(vi.fn().mockResolvedValue(undefined));
 			const button = screen.getByRole("button", { name });
 			await user.hover(button);
-			await waitFor(() =>
-				expect(screen.getByRole("tooltip", { name })).toBeVisible(),
-			);
+			expect(screen.queryByRole("tooltip", { name })).not.toBeInTheDocument();
 			expect(
 				screen.queryByRole("menuitem", { name: item }),
 			).not.toBeInTheDocument();
@@ -136,6 +134,7 @@ describe("AdminShellHeader", () => {
 					screen.queryByRole("menuitem", { name: item }),
 				).not.toBeInTheDocument(),
 			);
+			expect(screen.queryByRole("tooltip", { name })).not.toBeInTheDocument();
 			await user.click(button);
 			await screen.findByRole("menuitem", { name: item });
 			fireEvent.keyDown(window, { key: "Escape", keyCode: 27 });
@@ -152,6 +151,22 @@ describe("AdminShellHeader", () => {
 					screen.queryByRole("menuitem", { name: item }),
 				).not.toBeInTheDocument(),
 			);
+		},
+	);
+
+	it.each(["语言", "测试用户"])(
+		"does not show a tooltip when hovering %s",
+		async (name) => {
+			vi.useFakeTimers();
+			try {
+				renderHeader(vi.fn().mockResolvedValue(undefined));
+				fireEvent.mouseEnter(screen.getByRole("button", { name }));
+				await act(async () => vi.advanceTimersByTimeAsync(500));
+				await act(async () => vi.advanceTimersByTimeAsync(500));
+				expect(screen.queryByRole("tooltip", { name })).not.toBeInTheDocument();
+			} finally {
+				vi.useRealTimers();
+			}
 		},
 	);
 

@@ -288,17 +288,15 @@ export function AdminShellHeader({
 					styles={{ root: { width: screens.xs ? "100%" : undefined } }}
 					trigger={["click"]}
 				>
-					<Tooltip title={openMenu === "language" ? null : t("language.label")}>
-						<HeaderIconButton
-							aria-expanded={openMenu === "language"}
-							aria-haspopup="menu"
-							aria-label={t("language.label")}
-							style={iconActionStyle}
-							type="text"
-						>
-							<GlobalOutlined aria-hidden />
-						</HeaderIconButton>
-					</Tooltip>
+					<HeaderIconButton
+						aria-expanded={openMenu === "language"}
+						aria-haspopup="menu"
+						aria-label={t("language.label")}
+						style={iconActionStyle}
+						type="text"
+					>
+						<GlobalOutlined aria-hidden />
+					</HeaderIconButton>
 				</Dropdown>
 				<Tooltip title={themeActionLabel}>
 					<HeaderIconButton
@@ -334,26 +332,24 @@ export function AdminShellHeader({
 					open={openMenu === "account"}
 					trigger={["click"]}
 				>
-					<Tooltip title={openMenu === "account" ? null : currentUsername}>
-						<HeaderIconButton
-							aria-expanded={openMenu === "account"}
-							aria-haspopup="menu"
-							aria-label={currentUsername}
-							style={accountActionStyle}
-							type="text"
-						>
-							<Space size={token.marginXS}>
-								<PlatformUserAvatar
-									displayName={currentUsername}
-									fallback="icon"
-									revision={currentUserAvatarRevision}
-									size={28}
-									userId={currentUserId}
-								/>
-								{showAccountName ? <span>{currentUsername}</span> : null}
-							</Space>
-						</HeaderIconButton>
-					</Tooltip>
+					<HeaderIconButton
+						aria-expanded={openMenu === "account"}
+						aria-haspopup="menu"
+						aria-label={currentUsername}
+						style={accountActionStyle}
+						type="text"
+					>
+						<Space size={token.marginXS}>
+							<PlatformUserAvatar
+								displayName={currentUsername}
+								fallback="icon"
+								revision={currentUserAvatarRevision}
+								size={28}
+								userId={currentUserId}
+							/>
+							{showAccountName ? <span>{currentUsername}</span> : null}
+						</Space>
+					</HeaderIconButton>
 				</Dropdown>
 			</Flex>
 

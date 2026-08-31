@@ -299,28 +299,24 @@ export function NotificationPopover({
 				styles={{ container: { padding: 0, overflow: "hidden" } }}
 				trigger="click"
 			>
-				<Tooltip
-					title={open ? null : t("adminShell.notificationCenter.button")}
-				>
-					<HeaderIconButton
-						aria-expanded={open}
-						ref={triggerRef}
-						aria-label={t("adminShell.notificationCenter.button")}
-						icon={
-							<Badge
-								color={token.colorPrimary}
-								dot={hasUnread}
-								styles={{
-									root: { display: "inline-flex", fontSize: "inherit" },
-								}}
-							>
-								<BellOutlined aria-hidden />
-							</Badge>
-						}
-						style={triggerStyle}
-						type="text"
-					/>
-				</Tooltip>
+				<HeaderIconButton
+					aria-expanded={open}
+					ref={triggerRef}
+					aria-label={t("adminShell.notificationCenter.button")}
+					icon={
+						<Badge
+							color={token.colorPrimary}
+							dot={hasUnread}
+							styles={{
+								root: { display: "inline-flex", fontSize: "inherit" },
+							}}
+						>
+							<BellOutlined aria-hidden />
+						</Badge>
+					}
+					style={triggerStyle}
+					type="text"
+				/>
 			</Popover>
 		</>
 	);
