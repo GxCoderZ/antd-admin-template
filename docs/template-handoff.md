@@ -88,21 +88,15 @@ pnpm init:template -- --project-name warehouse-console --display-name "仓储控
 
 工程能力保持在现有包管理事实内：React、TypeScript、Vite、React Router、Ant Design、TanStack Query、i18next、Fake Server、Vitest、Testing Library、Playwright、ESLint、Prettier、dependency-cruiser、Knip、Renovate 等是否启用及具体版本均读取 `package.json` 与 `pnpm-lock.yaml`，不要在页面或文档中维护第二份依赖版本清单。
 
-源码、配置或依赖修改后运行：
+验证范围以 [项目规则第 9 节](../AGENTS.md#9-测试与完成定义) 为唯一规则来源，先确定修改点、责任层和受影响页面，再选择测试，不因涉及壳层就跑全站。
 
-```bash
-pnpm run typecheck
-pnpm test -- --run
-pnpm run lint
-pnpm run check:circular-deps
-pnpm run check:unused
-pnpm run build:prod
-```
+- 局部修改：类型检查（涉及 TS/TSX 时）、修改文件的 ESLint、相关组件/领域测试，以及必要的对应页面巡检。
+- 共享行为：增加受影响调用方的代表性回归，用 `pnpm run test:e2e <spec 文件...> -g <用例名称>` 定向执行；不重复跑无关领域。
+- 大范围基础变更、CI 或发布验收：执行规则中列出的完整门禁；依赖变化另运行 `pnpm audit --prod`。普通本地提交不触发全量检查。
+- 仅文档：运行 `git diff --check` 并检查相关链接，不运行应用测试，也不声称应用行为已验证。
 
-涉及路由、壳层或跨页流程，再运行 `pnpm run test:e2e`；涉及依赖，再运行 `pnpm audit --prod`。仅文档修改至少运行 `git diff --check`，不要据此声称应用行为已验证。
+页面巡检只覆盖受影响页面。局部视觉或交互检查桌面和 `390px`；涉及响应式、断点、全局布局或输入模式切换时增加 `768px` 并检查切换恢复。按受影响状态检查核心交互、加载/空/失败/无权限、横向溢出、文本重叠、按钮遮挡、弹层边界、控制台错误和请求失败。1440px 是完整工作基线，窄屏保留核心列并允许必要的横向滚动。
 
-涉及页面、表格、Drawer、Modal、主题或响应式时，启动 `pnpm dev`，在 `1440px`、`768px`、`390px` 检查打开、核心交互、加载/空/失败/无权限状态、横向溢出、文本重叠、按钮遮挡、弹层边界、控制台错误和请求失败。1440px 是完整工作基线，窄屏保留核心列并允许必要的横向滚动。
+需要代表页面巡检时，定向运行 `pnpm run test:e2e e2e/template-experience.spec.ts -g <相关页面用例>`。该文件覆盖用户、公告、字典和审计，额外检查 1286px，输出 `test-results/template-experience-*/page-*.png`、`overlay-*.png` 和 `experience-metrics.json`。同次运行内对比桌面初始/恢复截图，不把 Windows 字体基准强加给 Linux CI；跨提交的截图仍需人工审阅，不宣称已提供跨平台静态金图测试。
 
-代表页面巡检：先运行 `pnpm run build:prod`，再运行 `pnpm exec playwright test e2e/template-experience.spec.ts`。它覆盖用户、公告、字典和审计，额外检查 1286px，输出 `test-results/template-experience-*/page-*.png`、`overlay-*.png` 和 `experience-metrics.json`。同次运行内对比桌面初始/恢复截图，不把 Windows 字体基准强加给 Linux CI；跨提交的截图仍需人工审阅，不宣称已提供跨平台静态金图测试。
-
-浏览器验收必须使用当前源码的新构建。采样以目标页面/弹层可用和实际运动结束为准，不把不相关的按钮涟漪算入打开耗时；不得关闭动画、增加延时或放宽阈值掩盖失败。遇到失败先看 JSON、错误上下文和截图，再定位责任层。
+浏览器验收必须对应当前源码。局部功能/视觉可用最新开发服务，性能、打包及发布验收使用新生产构建；现有 Playwright 入口会构建并启动预览，无需先重复构建，复用服务时需确认产物来源。采样以目标页面/弹层可用和实际运动结束为准，不把不相关的按钮涟漪算入打开耗时；不得关闭动画、增加延时或放宽阈值掩盖失败。遇到失败先看 JSON、错误上下文和截图，再定位责任层。

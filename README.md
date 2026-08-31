@@ -52,6 +52,8 @@ pnpm init:template -- --project-name warehouse-console --display-name "仓储控
 
 ## 质量命令
 
+以下是检查入口，不要求每次修改全部执行。日常按 [项目验证规则](AGENTS.md#9-测试与完成定义) 选择相关组件、页面和测试；全量检查用于大范围改动及 CI/发布验收。
+
 ```bash
 pnpm run typecheck
 pnpm test -- --run
