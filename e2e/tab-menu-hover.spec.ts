@@ -126,8 +126,8 @@ for (const mode of ["light", "dark"]) {
 			if (touch) await button.tap();
 			else await button.click();
 			await expect(menu).toBeHidden();
-			await expect(button).not.toHaveAttribute("data-rippling", "true");
 			interactions.push(performance.now() - started);
+			await expect(button).not.toHaveAttribute("data-rippling", "true");
 			// Keep :hover active to reproduce browsers that retain it after a touch.
 			await button.hover();
 			expect(

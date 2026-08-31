@@ -1,10 +1,7 @@
-import type { AnimationEvent, CSSProperties } from "react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import styles from "./PressRipple.module.css";
-
-interface RippleState {
-	phase: "alternate" | "primary";
+export interface PressRippleState {
+	id: number;
 	squareClip: boolean;
 	state: "pressed" | "released";
 	target: HTMLElement;
@@ -14,53 +11,63 @@ interface RippleState {
 }
 
 export function usePressRipple(disabled = false) {
-	const [ripple, setRipple] = useState<RippleState | null>(null);
-	const phase = useRef<RippleState["phase"]>("alternate");
+	const [ripples, setRipples] = useState<PressRippleState[]>([]);
+	const nextId = useRef(0);
 	const showRipple = (
 		target: HTMLElement,
 		pointer?: { clientX: number; clientY: number },
 		squareClip = false,
 	) => {
-		if (disabled) return;
+		if (
+			disabled ||
+			window.matchMedia("(prefers-reduced-motion: reduce)").matches
+		)
+			return;
 		const rect = target.getBoundingClientRect();
-		phase.current = phase.current === "primary" ? "alternate" : "primary";
-		setRipple({
-			phase: phase.current,
+		const ripple: PressRippleState = {
+			id: nextId.current++,
 			squareClip,
 			state: "pressed",
 			target,
 			size: Math.max(rect.width, rect.height) * 2,
 			x: pointer ? pointer.clientX - rect.left : rect.width / 2,
 			y: pointer ? pointer.clientY - rect.top : rect.height / 2,
-		});
+		};
+		setRipples((current) => [
+			...current.map((item): PressRippleState =>
+				item.state === "pressed" ? { ...item, state: "released" } : item,
+			),
+			ripple,
+		]);
 	};
 	const releaseRipple = () => {
-		setRipple((current) =>
-			current?.state === "pressed"
-				? { ...current, state: "released" }
+		setRipples((current) =>
+			current.some((item) => item.state === "pressed")
+				? current.map((item) =>
+						item.state === "pressed"
+							? { ...item, state: "released" as const }
+							: item,
+					)
 				: current,
 		);
 	};
-	const finishRipple = (event: AnimationEvent<HTMLElement>) => {
-		if (
-			event.target === event.currentTarget &&
-			event.animationName === styles.rippleFadeOut
-		) {
-			setRipple((current) => (current?.state === "released" ? null : current));
-		}
-	};
-	const rippleProps = ripple
+	const finishRipple = useCallback((id: number) => {
+		setRipples((current) => current.filter((item) => item.id !== id));
+	}, []);
+	const latestRipple = ripples.at(-1);
+	const rippleProps = latestRipple
 		? {
 				"data-rippling": "true",
-				"data-ripple-phase": ripple.phase,
-				"data-ripple-state": ripple.state,
-				style: {
-					"--press-ripple-size": `${ripple.size}px`,
-					"--press-ripple-x": `${ripple.x}px`,
-					"--press-ripple-y": `${ripple.y}px`,
-				} as CSSProperties,
+				"data-ripple-state": latestRipple.state,
 			}
 		: undefined;
 
-	return { ripple, rippleProps, showRipple, releaseRipple, finishRipple };
+	return {
+		ripples,
+		activeRipple: ripples.find((item) => item.state === "pressed"),
+		rippleProps,
+		showRipple,
+		releaseRipple,
+		finishRipple,
+	};
 }

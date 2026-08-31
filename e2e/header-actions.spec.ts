@@ -11,19 +11,20 @@ async function signIn(page: Page) {
 	return performance.now() - started;
 }
 
-async function expectHeldRipple(
-	button: Locator,
-	pseudoElement: string | null = "::after",
-) {
-	const result = await button.evaluate(async (target, pseudoElement) => {
-		const animations = target
+async function expectHeldRipple(button: Locator) {
+	const result = await button.evaluate(async (target) => {
+		const circle = target.matches("[data-ripple-id]")
+			? target
+			: target.querySelector("[data-ripple-id]");
+		if (!circle) throw new Error("Missing ripple circle");
+		const animations = circle
 			.getAnimations({ subtree: true })
 			.filter((animation) => animation instanceof CSSAnimation);
 		const [ripple] = animations;
 		if (animations.length !== 1 || !ripple)
 			throw new Error(`Expected one press animation, got ${animations.length}`);
 		await new Promise(requestAnimationFrame);
-		const style = getComputedStyle(target, pseudoElement);
+		const style = getComputedStyle(circle);
 		const started = {
 			name: ripple.animationName,
 			opacity: Number(style.opacity),
@@ -34,10 +35,11 @@ async function expectHeldRipple(
 		return {
 			started,
 			finished: ripple.playState,
-			opacity: Number(getComputedStyle(target, pseudoElement).opacity),
+			opacity: Number(getComputedStyle(circle).opacity),
 			pressOverlay: getComputedStyle(target, "::before").content,
+			isButton: target.tagName === "BUTTON",
 		};
-	}, pseudoElement);
+	});
 	expect(result.started.name).toContain("press-ripple");
 	expect(result.started.opacity).toBeGreaterThan(0);
 	expect(result.started.display).toBe("block");
@@ -46,25 +48,37 @@ async function expectHeldRipple(
 	expect(result.opacity).toBeGreaterThan(0);
 	expect(result.pressOverlay).toBe("none");
 	await expect(button).toHaveAttribute("data-ripple-state", "pressed");
-	if (pseudoElement)
+	if (result.isButton)
 		await expect(button).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 }
 
 async function expectRippleRelease(button: Locator, removed = false) {
-	const name = await button.evaluate(async (target) => {
-		const fade = target
-			.getAnimations({ subtree: true })
-			.find(
-				(animation) =>
-					animation instanceof CSSAnimation &&
-					animation.animationName.includes("rippleFadeOut"),
-			);
-		if (!(fade instanceof CSSAnimation) || fade.playState !== "running")
-			throw new Error("Missing ripple release animation");
-		await fade.finished;
-		return fade.animationName;
+	const names = await button.evaluateAll(async (targets) => {
+		const fades = targets.flatMap((target) => {
+			const layer = target.matches("[data-ripple-id]")
+				? target.parentElement
+				: target;
+			if (!layer) throw new Error("Missing ripple layer");
+			return layer
+				.getAnimations({ subtree: true })
+				.filter(
+					(animation) =>
+						animation instanceof CSSAnimation &&
+						animation.animationName.includes("rippleFadeOut"),
+				);
+		});
+		if (!fades.length) throw new Error("Missing ripple release animation");
+		// Navigation can hide the popup before its fade ends; cancellation must also clean up.
+		await Promise.allSettled(fades.map((fade) => fade.finished));
+		if (
+			fades.some(
+				(fade) => fade.playState !== "finished" && fade.playState !== "idle",
+			)
+		)
+			throw new Error("Ripple animation did not finish or cancel");
+		return fades.map((fade) => (fade as CSSAnimation).animationName);
 	});
-	expect(name).toContain("rippleFadeOut");
+	expect(names.every((name) => name.includes("rippleFadeOut"))).toBe(true);
 	if (removed) await expect(button).toHaveCount(0);
 	else await expect(button).not.toHaveAttribute("data-rippling");
 }
@@ -90,6 +104,95 @@ async function getMenuRippleBounds(ripple: Locator) {
 			x: bounds.x,
 			y: bounds.y,
 		};
+	});
+}
+
+for (const width of [1440, 390]) {
+	test.describe(`overlapping ripples ${width}px`, () => {
+		test.use({ hasTouch: width === 390, viewport: { width, height: 900 } });
+		test("successive presses overlap and finish independently", async ({
+			page,
+		}, testInfo) => {
+			const errors: string[] = [];
+			page.on("pageerror", (error) => errors.push(error.message));
+			page.on("console", (message) => {
+				if (message.type() === "error") errors.push(message.text());
+			});
+			page.on("requestfailed", (request) => {
+				if (request.failure()?.errorText !== "net::ERR_ABORTED")
+					errors.push(request.url());
+			});
+			page.on("response", (response) => {
+				if (response.status() >= 400)
+					errors.push(`${response.status()} ${response.url()}`);
+			});
+			await signIn(page);
+			const button = page.getByRole("button", {
+				name: "更多标签操作",
+				exact: true,
+			});
+			const box = await button.boundingBox();
+			if (!box) throw new Error("Missing ripple button");
+			const waves = button.locator("[data-ripple-id]");
+			for (let press = 0; press < 3; press += 1) {
+				const x = box.x + (box.width * (press + 1)) / 4;
+				const y = box.y + box.height / 2;
+				if (width === 390) await page.touchscreen.tap(x, y);
+				else {
+					await page.mouse.move(x, y);
+					await page.mouse.down();
+					if (press < 2) await page.mouse.up();
+				}
+				await expect(waves).toHaveCount(press + 1);
+				// Observe real expansion before the next press, without finishing animations artificially.
+				await waves.last().evaluate(async (circle) => {
+					const [animation] = circle.getAnimations();
+					if (!animation) throw new Error("Missing expanding ripple");
+					await animation.ready;
+					while (
+						typeof animation.currentTime === "number" &&
+						animation.currentTime < 90
+					)
+						await new Promise(requestAnimationFrame);
+				});
+			}
+			const layers = await waves.evaluateAll((circles) =>
+				circles.map((circle) => ({
+					id: circle.getAttribute("data-ripple-id"),
+					x: getComputedStyle(circle).getPropertyValue("--press-ripple-x"),
+					transform: getComputedStyle(circle).transform,
+					opacity: Number(getComputedStyle(circle).opacity),
+					fadeOpacity: circle.parentElement
+						? Number(getComputedStyle(circle.parentElement).opacity)
+						: 0,
+				})),
+			);
+			expect(layers).toHaveLength(3);
+			expect(new Set(layers.map((layer) => layer.id)).size).toBe(3);
+			expect(new Set(layers.map((layer) => layer.x)).size).toBe(3);
+			expect(new Set(layers.map((layer) => layer.transform)).size).toBe(3);
+			expect(
+				layers.every((layer) => layer.opacity > 0 && layer.fadeOpacity > 0),
+			).toBe(true);
+			await page.screenshot({
+				path: testInfo.outputPath(`overlapping-${width}.png`),
+			});
+			if (width === 1440) {
+				await expect(waves).toHaveCount(1);
+				await expect(waves).toHaveAttribute("data-ripple-state", "pressed");
+				await page.mouse.up();
+			}
+			await expect(waves).toHaveCount(0);
+			await expect(button).not.toHaveAttribute("data-rippling");
+			expect(await button.boundingBox()).toEqual(box);
+			await page.keyboard.press("Escape");
+			expect(
+				await page.evaluate(
+					() => document.documentElement.scrollWidth <= innerWidth,
+				),
+			).toBe(true);
+			expect(errors).toEqual([]);
+		});
 	});
 }
 
@@ -123,7 +226,7 @@ for (const width of [1440, 768, 390]) {
 		const bounds = await dashboard.boundingBox();
 		await page.mouse.down();
 		const ripple = dashboard.locator('[data-rippling="true"]');
-		await expectHeldRipple(ripple, null);
+		await expectHeldRipple(ripple);
 		await expectMenuRippleCorners(ripple, true);
 		await expect(dashboard).toHaveCSS("background-color", selectedColor);
 		expect(await dashboard.boundingBox()).toEqual(bounds);
@@ -157,7 +260,7 @@ for (const width of [1440, 768, 390]) {
 		await group.hover({ position: { x: 4, y: 20 } });
 		await page.mouse.down();
 		const groupRipple = group.locator('[data-rippling="true"]');
-		await expectHeldRipple(groupRipple, null);
+		await expectHeldRipple(groupRipple);
 		await expect(group).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 		await page.mouse.up();
 		await expectRippleRelease(groupRipple, true);
@@ -216,7 +319,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	await expect(page.locator('[data-rippling="true"]')).toHaveCount(0);
 	await page.mouse.down();
 	const ripple = dashboard.locator('[data-rippling="true"]');
-	await expectHeldRipple(ripple, null);
+	await expectHeldRipple(ripple);
 	await expectMenuRippleCorners(ripple, false);
 	expect(await getMenuRippleBounds(ripple)).toEqual(
 		await dashboard.boundingBox(),
@@ -237,7 +340,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	for (const key of ["Enter", "Space"]) {
 		await dashboard.focus();
 		await page.keyboard.down(key);
-		await expectHeldRipple(ripple, null);
+		await expectHeldRipple(ripple);
 		await expect(dashboard).toBeFocused();
 		await expect(dashboard).toHaveCSS("outline-style", "solid");
 		await page.keyboard.up(key);
@@ -247,9 +350,9 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	for (let click = 0; click < 3; click += 1) {
 		await dashboard.click();
 		starts.push(
-			await ripple.evaluate(async (element) => {
-				const fade = element
-					.getAnimations()
+			await ripple.last().evaluate(async (element) => {
+				const fade = element.parentElement
+					?.getAnimations()
 					.find(
 						(animation) =>
 							animation instanceof CSSAnimation &&
@@ -263,6 +366,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	}
 	expect(starts).not.toContain(null);
 	expect(new Set(starts).size).toBe(3);
+	await expect(ripple).toHaveCount(3);
 	await expectRippleRelease(ripple, true);
 	const system = header.getByRole("menuitem", {
 		name: "系统管理",
@@ -276,7 +380,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 		await item.hover({ position: { x: 4, y: 20 } });
 		await page.mouse.down();
 		const itemRipple = page.locator('[data-rippling="true"]');
-		await expectHeldRipple(itemRipple, null);
+		await expectHeldRipple(itemRipple);
 		await expectMenuRippleCorners(itemRipple, item !== system);
 		if (item === system)
 			expect(await getMenuRippleBounds(itemRipple)).toEqual(
@@ -300,7 +404,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 	expect(selectedBackground).not.toBe("rgba(0, 0, 0, 0)");
 	await page.mouse.down();
 	const selectedRipple = users.locator('[data-rippling="true"]');
-	await expectHeldRipple(selectedRipple, null);
+	await expectHeldRipple(selectedRipple);
 	await expect(users).toHaveCSS("background-color", selectedBackground);
 	await page.mouse.up();
 	await expectRippleRelease(selectedRipple, true);
@@ -314,7 +418,7 @@ test("横向导航及两级子菜单共享长按水波纹并保留原生交互",
 		await item.hover({ position: { x: 4, y: 20 } });
 		await page.mouse.down();
 		const itemRipple = item.locator('[data-rippling="true"]');
-		await expectHeldRipple(itemRipple, null);
+		await expectHeldRipple(itemRipple);
 		await expectMenuRippleCorners(itemRipple, true);
 		await page.mouse.up();
 		await expectRippleRelease(itemRipple, true);
@@ -427,7 +531,7 @@ for (const width of [1440, 768, 390]) {
 				await account.evaluate(async (button) => {
 					const fade = button
 						.getAnimations({ subtree: true })
-						.find(
+						.findLast(
 							(animation) =>
 								animation instanceof CSSAnimation &&
 								animation.animationName.includes("rippleFadeOut"),
@@ -463,11 +567,7 @@ for (const width of [1440, 768, 390]) {
 		await page.emulateMedia({ reducedMotion: "reduce" });
 		await language.hover();
 		await page.mouse.down();
-		expect(
-			await language.evaluate(
-				(button) => getComputedStyle(button, "::after").display,
-			),
-		).toBe("none");
+		await expect(language.locator("[data-ripple-id]")).toHaveCount(0);
 		await page.mouse.move(0, 0);
 		await page.mouse.up();
 	});

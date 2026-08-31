@@ -3,6 +3,7 @@ import type { KeyboardEvent, PointerEvent } from "react";
 import { forwardRef } from "react";
 
 import { appAntdCssVar } from "../../app/antdCssVar";
+import { PressRipple } from "./PressRipple";
 import styles from "./PressRipple.module.css";
 import { usePressRipple } from "./usePressRipple";
 
@@ -33,7 +34,7 @@ export const HeaderIconButton = forwardRef<
 	ref,
 ) {
 	const isUnavailable = disabled === true || Boolean(loading);
-	const { rippleProps, showRipple, releaseRipple, finishRipple } =
+	const { ripples, rippleProps, showRipple, releaseRipple, finishRipple } =
 		usePressRipple(isUnavailable);
 
 	const handlePointerDown = (event: PointerEvent<HTMLElement>) => {
@@ -78,10 +79,7 @@ export const HeaderIconButton = forwardRef<
 				className={mergeClassNames(styles.button, className)}
 				{...(disabled === undefined ? {} : { disabled })}
 				{...(loading === undefined ? {} : { loading })}
-				onAnimationEnd={(event) => {
-					onAnimationEnd?.(event);
-					finishRipple(event);
-				}}
+				onAnimationEnd={onAnimationEnd}
 				onBlur={(event) => {
 					onBlur?.(event);
 					releaseRipple();
@@ -105,10 +103,11 @@ export const HeaderIconButton = forwardRef<
 					releaseRipple();
 				}}
 				ref={ref}
-				style={{ ...style, ...rippleProps?.style }}
+				style={style}
 			>
 				{children}
 			</Button>
+			<PressRipple ripples={ripples} onFinish={finishRipple} />
 		</ConfigProvider>
 	);
 });

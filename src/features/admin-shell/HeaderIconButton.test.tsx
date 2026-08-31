@@ -1,9 +1,12 @@
 import { SearchOutlined } from "@ant-design/icons";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ConfigProvider } from "antd";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { HeaderIconButton } from "./HeaderIconButton";
+import styles from "./PressRipple.module.css";
+
+afterEach(() => vi.restoreAllMocks());
 
 function renderButton(disabled = false) {
 	render(
@@ -35,7 +38,55 @@ function renderButton(disabled = false) {
 	return button;
 }
 
+function finishFade(layer: HTMLElement) {
+	// jsdom has no AnimationEvent constructor, so React registers the WebKit event.
+	const event = new Event("webkitAnimationEnd", { bubbles: true });
+	Object.defineProperty(event, "animationName", {
+		value: styles.rippleFadeOut,
+	});
+	fireEvent(layer, event);
+}
+
 describe("HeaderIconButton", () => {
+	it("keeps successive ripples visible at their own press positions", () => {
+		const button = renderButton();
+		fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
+		fireEvent.pointerUp(button);
+		fireEvent.pointerDown(button, { button: 0, clientX: 24, clientY: 20 });
+		const ripples = button.querySelectorAll("[data-ripple-id]");
+		expect(ripples).toHaveLength(2);
+		expect(ripples[0]).toHaveAttribute("data-ripple-state", "released");
+		expect(ripples[0]).toHaveStyle({
+			"--press-ripple-x": "8px",
+			"--press-ripple-y": "10px",
+		});
+		expect(ripples[1]).toHaveAttribute("data-ripple-state", "pressed");
+		expect(ripples[1]).toHaveStyle({
+			"--press-ripple-x": "24px",
+			"--press-ripple-y": "20px",
+		});
+	});
+
+	it("finishes an older ripple without removing the next held ripple", () => {
+		const button = renderButton();
+		fireEvent.pointerDown(button, { button: 0 });
+		fireEvent.pointerUp(button);
+		fireEvent.pointerDown(button, { button: 0 });
+		const ripples = button.querySelectorAll("[data-ripple-id]");
+		expect(ripples).toHaveLength(2);
+		const firstLayer = ripples[0]?.parentElement;
+		const secondLayer = ripples[1]?.parentElement;
+		if (!firstLayer || !secondLayer) throw new Error("Missing ripple layers");
+		finishFade(firstLayer);
+		expect(ripples[0]).not.toBeInTheDocument();
+		expect(ripples[1]).toBeInTheDocument();
+		expect(ripples[1]).toHaveAttribute("data-ripple-state", "pressed");
+		fireEvent.pointerUp(button);
+		finishFade(secondLayer);
+		expect(button.querySelectorAll("[data-ripple-id]")).toHaveLength(0);
+		expect(button).not.toHaveAttribute("data-rippling");
+	});
+
 	it("shows a pointer ripple from the pressed position", () => {
 		const button = renderButton();
 
@@ -43,8 +94,7 @@ describe("HeaderIconButton", () => {
 
 		expect(button).toHaveAttribute("data-rippling", "true");
 		expect(button).toHaveAttribute("data-ripple-state", "pressed");
-		expect(button).toHaveAttribute("data-ripple-phase", "primary");
-		expect(button).toHaveStyle({
+		expect(button.querySelector("[data-ripple-id]")).toHaveStyle({
 			"--press-ripple-size": "64px",
 			"--press-ripple-x": "8px",
 			"--press-ripple-y": "10px",
@@ -61,7 +111,7 @@ describe("HeaderIconButton", () => {
 		fireEvent.keyDown(button, { key: "Enter" });
 
 		expect(button).toHaveAttribute("data-rippling", "true");
-		expect(button).toHaveStyle({
+		expect(button.querySelector("[data-ripple-id]")).toHaveStyle({
 			"--press-ripple-x": "16px",
 			"--press-ripple-y": "16px",
 		});
@@ -75,11 +125,11 @@ describe("HeaderIconButton", () => {
 		const button = renderButton();
 		fireEvent.keyDown(button, { key: "Enter" });
 		fireEvent.keyDown(button, { key: "Enter", repeat: true });
-		expect(button).toHaveAttribute("data-ripple-phase", "primary");
+		expect(button.querySelectorAll("[data-ripple-id]")).toHaveLength(1);
 		expect(button).toHaveAttribute("data-ripple-state", "pressed");
 		fireEvent.keyUp(button, { key: "Enter" });
 		fireEvent.keyDown(button, { key: "Enter" });
-		expect(button).toHaveAttribute("data-ripple-phase", "alternate");
+		expect(button.querySelectorAll("[data-ripple-id]")).toHaveLength(2);
 		expect(button).toHaveAttribute("data-ripple-state", "pressed");
 	});
 
@@ -93,23 +143,30 @@ describe("HeaderIconButton", () => {
 		},
 	);
 
-	it("restarts the ripple when pressed repeatedly before animation ends", () => {
+	it("cleans up a ripple when hiding its host cancels the animation", () => {
 		const button = renderButton();
-
 		fireEvent.pointerDown(button, { button: 0, clientX: 8, clientY: 10 });
-		expect(button).toHaveAttribute("data-ripple-phase", "primary");
-		fireEvent.pointerUp(button);
-		expect(button).toHaveAttribute("data-ripple-state", "released");
+		const ripple = button.querySelector("[data-ripple-id]");
+		if (!ripple) throw new Error("Missing ripple");
+		fireEvent(ripple, new Event("animationcancel", { bubbles: true }));
+		expect(button.querySelectorAll("[data-ripple-id]")).toHaveLength(0);
+		expect(button).not.toHaveAttribute("data-rippling");
+	});
 
-		fireEvent.pointerDown(button, { button: 0, clientX: 12, clientY: 14 });
-
-		expect(button).toHaveAttribute("data-rippling", "true");
-		expect(button).toHaveAttribute("data-ripple-state", "pressed");
-		expect(button).toHaveAttribute("data-ripple-phase", "alternate");
-		expect(button).toHaveStyle({
-			"--press-ripple-x": "12px",
-			"--press-ripple-y": "14px",
-		});
+	it("does not accumulate waves when reduced motion is requested", () => {
+		const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+		vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+			...mediaQuery,
+			media: query,
+			matches: query === "(prefers-reduced-motion: reduce)",
+		}));
+		const button = renderButton();
+		for (let press = 0; press < 20; press += 1) {
+			fireEvent.pointerDown(button, { button: 0 });
+			fireEvent.pointerUp(button);
+		}
+		expect(button.querySelectorAll("[data-ripple-id]")).toHaveLength(0);
+		expect(button).not.toHaveAttribute("data-rippling");
 	});
 
 	it("does not show a ripple when disabled", () => {

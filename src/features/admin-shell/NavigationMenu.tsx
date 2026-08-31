@@ -6,10 +6,9 @@ import {
 	type MenuRef,
 } from "antd";
 import { useRef } from "react";
-import { createPortal } from "react-dom";
 
 import { appAntdCssVar } from "../../app/antdCssVar";
-import styles from "./PressRipple.module.css";
+import { PressRipple } from "./PressRipple";
 import { usePressRipple } from "./usePressRipple";
 
 function getRippleTarget(
@@ -42,7 +41,7 @@ function getRippleTarget(
 export function NavigationMenu(props: MenuProps) {
 	const menuRef = useRef<MenuRef>(null);
 	const { token } = theme.useToken();
-	const { ripple, rippleProps, showRipple, releaseRipple, finishRipple } =
+	const { ripples, activeRipple, showRipple, releaseRipple, finishRipple } =
 		usePressRipple(props.disabled);
 	const resolveRippleTarget = (target: EventTarget | null) =>
 		getRippleTarget(
@@ -83,9 +82,9 @@ export function NavigationMenu(props: MenuProps) {
 				onPointerOutCapture={(event) => {
 					props.onPointerOutCapture?.(event);
 					if (
-						ripple &&
+						activeRipple &&
 						(!(event.relatedTarget instanceof Node) ||
-							!ripple.target.contains(event.relatedTarget))
+							!activeRipple.target.contains(event.relatedTarget))
 					)
 						releaseRipple();
 				}}
@@ -106,25 +105,11 @@ export function NavigationMenu(props: MenuProps) {
 				}}
 				onBlurCapture={(event) => {
 					props.onBlurCapture?.(event);
-					if (ripple?.target.contains(event.target)) releaseRipple();
+					if (activeRipple?.target.contains(event.target)) releaseRipple();
 				}}
 			/>
 			{/* Menu owns its selection pseudo-element; the project ripple uses a separate, non-interactive child. */}
-			{ripple
-				? createPortal(
-						<span
-							aria-hidden
-							className={`${styles.menuRipple}${ripple.squareClip ? ` ${styles.squareMenuRipple}` : ""}`}
-						>
-							<span
-								{...rippleProps}
-								className={styles.ripple}
-								onAnimationEnd={finishRipple}
-							/>
-						</span>,
-						ripple.target,
-					)
-				: null}
+			<PressRipple ripples={ripples} onFinish={finishRipple} />
 		</ConfigProvider>
 	);
 }

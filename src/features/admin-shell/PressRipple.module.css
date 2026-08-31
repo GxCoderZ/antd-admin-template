@@ -11,27 +11,27 @@
 	}
 }
 
-.menuRipple {
+.layer {
 	border-radius: inherit;
 	inset: 0;
 	overflow: hidden;
 	pointer-events: none;
 	position: absolute;
+	z-index: 0;
 }
 
-.squareMenuRipple {
+.squareLayer {
 	border-radius: 0;
 }
 
-.button::after,
 .ripple {
-	animation-duration: 220ms;
+	animation-name: press-ripple-enter;
+	animation-duration: 550ms;
 	animation-fill-mode: forwards;
-	animation-timing-function: ease-out;
+	animation-timing-function: ease-in-out;
 	background: currentColor;
 	border-radius: 50%;
-	content: "";
-	display: none;
+	display: block;
 	height: var(--press-ripple-size);
 	left: var(--press-ripple-x);
 	opacity: 0.14;
@@ -43,38 +43,11 @@
 	z-index: 0;
 }
 
-.button[data-rippling="true"]::after,
-.ripple {
-	display: block;
+.layer[data-ripple-state="released"] {
+	animation: rippleFadeOut 550ms ease-in-out forwards;
 }
 
-.button[data-ripple-phase="primary"]::after,
-.ripple[data-ripple-phase="primary"] {
-	animation-name: press-ripple-primary;
-}
-
-.button[data-ripple-phase="alternate"]::after,
-.ripple[data-ripple-phase="alternate"] {
-	animation-name: press-ripple-alternate;
-}
-
-.button[data-ripple-phase="primary"][data-ripple-state="released"]::after,
-.ripple[data-ripple-phase="primary"][data-ripple-state="released"] {
-	animation-name: press-ripple-primary, rippleFadeOut;
-}
-
-.button[data-ripple-phase="alternate"][data-ripple-state="released"]::after,
-.ripple[data-ripple-phase="alternate"][data-ripple-state="released"] {
-	animation-name: press-ripple-alternate, rippleFadeOut;
-}
-
-@keyframes press-ripple-primary {
-	to {
-		transform: translate(-50%, -50%) scale(1);
-	}
-}
-
-@keyframes press-ripple-alternate {
+@keyframes press-ripple-enter {
 	to {
 		transform: translate(-50%, -50%) scale(1);
 	}
@@ -87,9 +60,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.button[data-ripple-phase][data-ripple-state]::after,
-	.ripple[data-ripple-phase][data-ripple-state] {
-		animation: none;
-		display: none;
+	.layer,
+	.layer[data-ripple-state="released"],
+	.ripple {
+		animation-duration: 0ms;
+		visibility: hidden;
 	}
 }

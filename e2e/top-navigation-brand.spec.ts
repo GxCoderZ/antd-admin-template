@@ -8,7 +8,9 @@ async function expectHeldBrandRipple(brand: Locator) {
 			throw new Error("Expected one brand ripple animation");
 		const running = animation.playState;
 		await animation.finished;
-		const ripple = getComputedStyle(element, "::after");
+		const circle = element.querySelector("[data-ripple-id]");
+		if (!circle) throw new Error("Missing brand ripple circle");
+		const ripple = getComputedStyle(circle);
 		return {
 			name: animation.animationName,
 			running,
@@ -32,16 +34,15 @@ async function expectHeldBrandRipple(brand: Locator) {
 
 async function expectBrandRippleRelease(brand: Locator) {
 	await brand.evaluate(async (element) => {
-		const fade = element
+		const fades = element
 			.getAnimations({ subtree: true })
-			.find(
+			.filter(
 				(animation) =>
 					animation instanceof CSSAnimation &&
 					animation.animationName.includes("rippleFadeOut"),
 			);
-		if (!fade || fade.playState !== "running")
-			throw new Error("Missing brand ripple fade animation");
-		await fade.finished;
+		if (!fades.length) throw new Error("Missing brand ripple fade animation");
+		await Promise.all(fades.map((fade) => fade.finished));
 	});
 	await expect(brand).not.toHaveAttribute("data-rippling");
 }
@@ -306,7 +307,7 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 			await brand.evaluate(async (element) => {
 				const fade = element
 					.getAnimations({ subtree: true })
-					.find(
+					.findLast(
 						(animation) =>
 							animation instanceof CSSAnimation &&
 							animation.animationName.includes("rippleFadeOut"),
@@ -330,11 +331,7 @@ test("顶部导航完整显示品牌并在宽窄屏切换后恢复", async ({ pa
 	await page.emulateMedia({ reducedMotion: "reduce" });
 	await brand.hover();
 	await page.mouse.down();
-	expect(
-		await brand.evaluate(
-			(element) => getComputedStyle(element, "::after").display,
-		),
-	).toBe("none");
+	await expect(brand.locator("[data-ripple-id]")).toHaveCount(0);
 	await page.mouse.up();
 	await page.emulateMedia({ reducedMotion: "no-preference" });
 	await header

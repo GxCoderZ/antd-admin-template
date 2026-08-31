@@ -82,12 +82,11 @@ describe("log navigation", () => {
 			const target = brand.firstElementChild ?? brand;
 			fireEvent.pointerDown(target, { button: 0, clientX: 8, clientY: 10 });
 			expect(brand).toHaveAttribute("data-ripple-state", "pressed");
-			expect(brand).toHaveAttribute("data-ripple-phase", "primary");
-			expect(brand.querySelector("[data-rippling]")).toBeNull();
+			expect(brand.querySelectorAll("[data-ripple-id]")).toHaveLength(1);
 			fireEvent.pointerUp(target);
 			expect(brand).toHaveAttribute("data-ripple-state", "released");
 			fireEvent.pointerDown(target, { button: 0, clientX: 12, clientY: 14 });
-			expect(brand).toHaveAttribute("data-ripple-phase", "alternate");
+			expect(brand.querySelectorAll("[data-ripple-id]")).toHaveLength(2);
 			expect(brand).toHaveAttribute("data-ripple-state", "pressed");
 			fireEvent.pointerCancel(brand);
 			expect(brand).toHaveAttribute("data-ripple-state", "released");
@@ -110,7 +109,7 @@ describe("log navigation", () => {
 			"/dashboard",
 		);
 		fireEvent.keyDown(brand, { key: "Enter", repeat: true });
-		expect(brand).toHaveAttribute("data-ripple-phase", "primary");
+		expect(brand.querySelectorAll("[data-ripple-id]")).toHaveLength(1);
 		await user.keyboard("{/Enter}");
 		expect(brand).toHaveAttribute("data-ripple-state", "released");
 		fireEvent.pointerDown(brand, { button: 0 });
@@ -195,10 +194,12 @@ describe("log navigation", () => {
 			fireEvent.pointerUp(item);
 			expect(ripple).toHaveAttribute("data-ripple-state", "released");
 			fireEvent.pointerDown(item, { button: 0, clientX: 10, clientY: 12 });
-			expect(ripple).toHaveAttribute("data-ripple-phase", "alternate");
-			expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
-			fireEvent.pointerCancel(item);
+			const next = item.querySelectorAll("[data-ripple-id]");
+			expect(next).toHaveLength(2);
 			expect(ripple).toHaveAttribute("data-ripple-state", "released");
+			expect(next[1]).toHaveAttribute("data-ripple-state", "pressed");
+			fireEvent.pointerCancel(item);
+			expect(next[1]).toHaveAttribute("data-ripple-state", "released");
 		},
 	);
 
@@ -213,10 +214,12 @@ describe("log navigation", () => {
 			fireEvent.pointerUp(item);
 			expect(ripple).toHaveAttribute("data-ripple-state", "released");
 			fireEvent.pointerDown(item, { button: 0, clientX: 4, clientY: 4 });
-			expect(ripple).toHaveAttribute("data-ripple-phase", "alternate");
-			expect(ripple).toHaveAttribute("data-ripple-state", "pressed");
-			fireEvent.pointerCancel(item);
+			const next = item.querySelectorAll("[data-ripple-id]");
+			expect(next).toHaveLength(2);
 			expect(ripple).toHaveAttribute("data-ripple-state", "released");
+			expect(next[1]).toHaveAttribute("data-ripple-state", "pressed");
+			fireEvent.pointerCancel(item);
+			expect(next[1]).toHaveAttribute("data-ripple-state", "released");
 		},
 	);
 
